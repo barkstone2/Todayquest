@@ -7,6 +7,6 @@ import todayquest.user.entity.UserInfo;
 @Repository
 public interface UserRepository extends JpaRepository<UserInfo, Long> {
 
-    UserInfo findByOauth2Id(String oauth2Id);
+    UserInfo findByUserId(String userId);
     boolean existsByNickname(String nickname);
 }

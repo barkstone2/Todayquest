@@ -1,0 +1,77 @@
+package todayquest.user.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import todayquest.user.dto.UserPrincipal;
+import todayquest.user.entity.ProviderType;
+import todayquest.user.entity.UserInfo;
+import todayquest.user.repository.UserRepository;
+
+import java.util.Map;
+import java.util.Random;
+
+@Transactional
+@RequiredArgsConstructor
+@Service
+public class UserServiceImpl implements UserService{
+
+    private final UserRepository userRepository;
+
+    @Override
+    public UserPrincipal processUserInfo(OidcUserRequest request, OidcUser user) {
+        return processUserInfo((OAuth2UserRequest) request, user);
+    }
+
+    @Override
+    public UserPrincipal processUserInfo(OAuth2UserRequest request, OAuth2User user) {
+        ProviderType providerType = ProviderType.valueOf(request.getClientRegistration().getRegistrationId().toUpperCase());
+
+        String id = user.getName();
+
+        if(providerType.name().equals("NAVER")) {
+            Map<String, Object> info = user.getAttribute("response");
+            id = (String) info.get("id");
+        }
+
+        UserInfo savedUserInfo = userRepository.findByUserId(id);
+
+        if(savedUserInfo == null) {
+            String tempNickName = createRandomNickname();
+
+            while (isDuplicateNickname(tempNickName)) {
+                tempNickName = createRandomNickname();
+            }
+
+            UserInfo newUserInfo = UserInfo.builder()
+                    .userId(id)
+                    .nickname(tempNickName)
+                    .providerType(providerType)
+                    .build();
+
+            savedUserInfo = userRepository.saveAndFlush(newUserInfo);
+        }
+        return UserPrincipal.create(savedUserInfo);
+    }
+
+    @Override
+    public boolean isDuplicateNickname(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
+
+    public String createRandomNickname() {
+        String[] nickNamePrefixPool = {"행복한", "즐거운", "아름다운", "기쁜", "빨간", "까만", "노란", "파란", "슬픈"};
+        String[] nickNamePostfixPool = {"바지", "자동차", "비행기", "로봇", "강아지", "고양이", "트럭", "장갑", "신발", "토끼"};
+
+        String tempNickName =
+                nickNamePrefixPool[new Random().nextInt(nickNamePrefixPool.length)] +
+                nickNamePostfixPool[new Random().nextInt(nickNamePostfixPool.length)]
+                + new Random().nextInt(1_000_000_000);
+
+        return tempNickName;
+    }
+}

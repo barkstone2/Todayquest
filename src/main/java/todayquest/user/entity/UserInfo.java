@@ -16,7 +16,7 @@ public class UserInfo {
     private Long id;
 
     @Column(nullable = false)
-    private String userId;
+    private String oauth2Id;
 
     @Column(nullable = false, length = 20)
     private String nickname;

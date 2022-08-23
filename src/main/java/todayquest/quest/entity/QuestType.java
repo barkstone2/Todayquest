@@ -6,9 +6,9 @@ import lombok.Getter;
 public enum QuestType {
     DAILY("일간"), WEEKLY("주간"), MONTHLY("월간"), ANNUALLY("연간");
 
-    private String typeMessage;
+    private String message;
 
-    QuestType(String typeMessage) {
-        this.typeMessage = typeMessage;
+    QuestType(String message) {
+        this.message = message;
     }
 }

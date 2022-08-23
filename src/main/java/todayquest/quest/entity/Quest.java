@@ -1,10 +1,14 @@
 package todayquest.quest.entity;
 
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
+import todayquest.quest.dto.QuestRequestDto;
 import todayquest.user.entity.UserInfo;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import static javax.persistence.FetchType.*;
 
@@ -18,7 +22,7 @@ public class Quest {
     @Column(name = "quest_id")
     private Long id;
 
-    @Column(length = 100, nullable = false)
+    @Column(length = 50, nullable = false)
     private String title;
 
     @Column(length = 300)
@@ -40,7 +44,8 @@ public class Quest {
      * 추후 주간, 월간, 연간 퀘스트 추가 시 이 필드에 날짜 정보를 입력 받아 배치 처리에 사용한다.
      */
     @Column(nullable = false)
-    private LocalDateTime deadLine;
+    private LocalDate deadLineDate;
+    private LocalTime deadLineTime;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -58,5 +63,12 @@ public class Quest {
     private LocalDateTime regDate;
     private LocalDateTime modifyDate;
 
+    public void updateQuestEntity(QuestRequestDto dto) {
+        this.title = dto.getTitle();
+        this.description = dto.getDescription();
+        this.isRepeat = dto.isRepeat();
+        this.deadLineDate = dto.getDeadLineDate();
+        this.deadLineTime = dto.getDeadLineTime();
+    }
 }
 

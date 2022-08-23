@@ -3,9 +3,83 @@
 <head>
     <title>퀘스트 목록</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <style>
+        .card{
+            width: 400px!important;
+            cursor: pointer;
+        }
+        .fw-semi-bold {
+            font-weight: 600!important;
+        }
+        .card:hover {
+            background-color: aliceblue!important;
+        }
+        .list-item {
+            position: relative;
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #212529;
+            border: 1px solid rgba(0,0,0,.125);
+            border-width: 0 0 1px;
+        }
+        .list-group-flush>.list-item:last-child {
+            border-bottom-width: 0;
+        }
+    </style>
 </head>
-<body>
+<body class="container">
     <h1>퀘스트 목록</h1>
+    <div class="row row-cols-1 row-cols-md-auto g-4">
+        <div th:if="${questList.size() == 0}">
+            등록된 퀘스트가 없습니다.
+        </div>
+        <div class="col" th:each="quest : ${questList}">
+            <div class="card" th:onclick="|getQuest(${quest.questId})|">
+                <div class="card-header">
+                    <span class="p-1 fw-semi-bold" th:text="|#${quest.questId}|"></span>
+                    <!-- TODO 퀘스트 객체에서 가져오도록 변경할 것 -->
+                    <span class="rounded bg-danger text-white p-1">어려움</span>
+                    <span th:class="|${quest.state.cssClassInfo} p-1 m-1|" th:text="${quest.state.message}">퀘스트 상태</span>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-truncate" th:text="${quest.title}">퀘스트 제목</h5>
+                    <p class="card-text border-start border-2 ps-3" style="height: 72px" th:text="${quest.description}">퀘스트 설명</p>
 
+                    <!-- TODO 퀘스트 객체에서 가져오도록 변경할 것 -->
+                    <ul class="list-unstyled mb-1">
+                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>
+                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>
+                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기</li>
+                    </ul>
+                    <!-- TODO 퀘스트 객체에서 가져오도록 변경할 것 -->
+                    <span class="border border-1 rounded p-1 bg-light fw-semi-bold">경험치 50</span>
+                    <span class="border border-1 rounded p-1 bg-light fw-semi-bold">골드 100</span>
+                </div>
+                <!-- TODO 퀘스트 객체에서 가져오도록 변경할 것 -->
+                <!-- TODO 리스트 목록이 부족해도 빈칸 세개는 무조건 출력 값이 없는 경우 &nbsp; 넣어주기 -->
+                <div class="list-group list-group-flush">
+                    <div class="list-item text-truncate">An item</div>
+                    <div class="list-item text-truncate">A second item</div>
+                    <div class="list-item text-truncate">A third item</div>
+                </div>
+<!--                <ul class="list-group list-group-flush">-->
+<!--                    <li class="list-group-item text-truncate">An item</li>-->
+<!--                    <li class="list-group-item text-truncate">A second item</li>-->
+<!--                    <li class="list-group-item text-truncate">A third item</li>-->
+<!--                </ul>-->
+                <div class="card-footer">
+                    <span class="bg-warning rounded p-1 text-white">완료기한</span>
+                    <span class="m-1 fw-semi-bold" th:text="|${quest.deadLineDate} ${quest.deadLineTime}|"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="/quests/save">퀘스트 등록</a>
 </body>
+<script th:inline="javascript">
+    function getQuest(questId) {
+        location.href = '/quests/' + questId;
+    }
+</script>
 </html>

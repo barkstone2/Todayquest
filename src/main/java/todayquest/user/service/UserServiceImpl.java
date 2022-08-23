@@ -12,6 +12,7 @@ import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 
+import javax.annotation.PostConstruct;
 import java.util.Map;
 import java.util.Random;
 
@@ -38,7 +39,7 @@ public class UserServiceImpl implements UserService{
             id = (String) info.get("id");
         }
 
-        UserInfo savedUserInfo = userRepository.findByUserId(id);
+        UserInfo savedUserInfo = userRepository.findByOauth2Id(id);
 
         if(savedUserInfo == null) {
             String tempNickName = createRandomNickname();
@@ -48,7 +49,7 @@ public class UserServiceImpl implements UserService{
             }
 
             UserInfo newUserInfo = UserInfo.builder()
-                    .userId(id)
+                    .oauth2Id(id)
                     .nickname(tempNickName)
                     .providerType(providerType)
                     .build();

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>퀘스트 조회</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+</head>
+<body>
+<form method="post" id="questForm" th:object="${quest}" th:action="@{|/quests/${quest.questId}|}" class="container">
+    <h1>퀘스트 조회</h1>
+    <input type="hidden" name="_method" value="get"/>
+    <div class="mb-3 row align-items-center">
+        <label th:for="title" class="col-sm-1 col-form-label text-center">제목</label>
+        <div class="col-sm-4">
+            <input class="form-control" type="text" th:field="*{title}" disabled>
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label th:for="description" class="col-sm-1 col-form-label text-center">설명</label>
+        <div class="col-sm-4">
+            <textarea style="resize: none" class="form-control" type="text" rows="3" th:field="*{description}" disabled></textarea>
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label th:for="deadLineDate" class="col-sm-1 col-form-label text-center">마감일</label>
+        <div class="col-auto">
+            <input class="form-control" type="date" th:field="*{deadLineDate}" disabled>
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label th:for="deadLineTime" class="col-sm-1 col-form-label text-center">마감시간</label>
+        <div class="col-auto">
+            <input class="form-control" type="time" th:field="*{deadLineTime}" disabled>
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label th:for="repeat" class="col-sm-1 col-form-label text-center">반복여부</label>
+        <div class="col-auto align-self-center">
+            <div class="form-check form-switch">
+                <input class="form-control form-check-input" type="checkbox" th:field="*{repeat}" disabled>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="btn btn-primary mb-2" id="updateBtn" onclick="getUpdateInput()">수정</button>
+    <button type="button" class="btn btn-secondary mb-2 d-none" id="cancelBtn" onclick="getUpdateInput()">취소</button>
+    <button type="button" class="btn btn-danger mb-2" id="deleteBtn" onclick="submitQuestForm('DELETE');">포기</button>
+    <button type="button" class="btn btn-success mb-2" id="listBtn" onclick="getQuests();">목록</button>
+</form>
+
+</body>
+<script th:inline="javascript">
+    function getQuests() {
+        location.href = '/quests';
+    }
+    function getUpdateInput() {
+
+        let deleteBtn = document.getElementById('deleteBtn');
+        let cancelBtn = document.getElementById('cancelBtn');
+        let updateBtn = document.getElementById('updateBtn');
+
+        let inputs = document.getElementById('questForm').getElementsByClassName('form-control');
+
+        for (let i = 0; i < inputs.length; i++) {
+            let type = inputs[i].getAttribute('type');
+            if(type == 'hidden') continue;
+
+            inputs[i].toggleAttribute('disabled');
+        }
+
+        updateBtn.classList.toggle('btn-on');
+        cancelBtn.classList.toggle('d-none');
+        deleteBtn.classList.toggle('d-none');
+
+        if (updateBtn.classList.contains('btn-on')) {
+            updateBtn.innerText = '저장';
+            updateBtn.setAttribute('onclick', `submitQuestForm('PUT')`);
+
+        } else {
+            updateBtn.innerText = '수정';
+            updateBtn.setAttribute('onclick', `getUpdateInput()`);
+        }
+    }
+
+
+    function submitQuestForm(method) {
+        let form = document.getElementById('questForm');
+        let methodInput = document.getElementsByName('_method')[0];
+        methodInput.setAttribute('value', method);
+
+        if (method == 'PUT') {
+        } else if (method == 'DELETE') {
+            if (!confirm('삭제 시 복구가 불가능 합니다.\n정말 삭제 하시겠습니까?')) {
+                return;
+            }
+        } else {
+            return;
+        }
+
+        form.submit();
+    }
+</script>
+</html>

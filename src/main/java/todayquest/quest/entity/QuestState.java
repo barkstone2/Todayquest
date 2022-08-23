@@ -4,10 +4,16 @@ import lombok.Getter;
 
 @Getter
 public enum QuestState {
-    COMPLETE("완료"), FAIL("실패"), CANCEL("취소"), PROCEED("진행"), DELETE("삭제");
-    private String stateMessage;
+    PROCEED("진행", "bg-primary text-white rounded"),
+    COMPLETE("완료", "bg-success text-white rounded"),
+    FAIL("실패", "bg-danger text-white rounded"),
+    CANCEL("취소", "bg-secondary text-white rounded"),
+    DELETE("삭제", "bg-dark text-white rounded");
+    private String message;
+    private String cssClassInfo;
 
-    QuestState(String stateMessage) {
-        this.stateMessage = stateMessage;
+    QuestState(String message, String cssClassInfo) {
+        this.message = message;
+        this.cssClassInfo = cssClassInfo;
     }
 }

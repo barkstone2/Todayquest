@@ -49,12 +49,6 @@ public class QuestController {
         return "/quest/view";
     }
 
-    @GetMapping("/{questId}/update")
-    public String updateForm(@PathVariable("questId") Long questId, Model model) {
-        model.addAttribute("quest", questService.getQuestInfo(questId));
-        return "/quest/update";
-    }
-
     @PostMapping("/save")
     public String save(QuestRequestDto dto, @AuthenticationPrincipal UserPrincipal principal) {
         questService.saveQuest(dto, principal);

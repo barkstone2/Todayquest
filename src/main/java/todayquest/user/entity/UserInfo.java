@@ -25,4 +25,8 @@ public class UserInfo {
     @Column(nullable = false)
     private ProviderType providerType;
 
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
 }

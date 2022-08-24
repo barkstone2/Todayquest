@@ -1,5 +1,7 @@
 package todayquest.quest.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -12,8 +14,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+
 @Data
 @NoArgsConstructor
+@AllArgsConstructor @Builder
 public class QuestRequestDto {
 
     private String title;

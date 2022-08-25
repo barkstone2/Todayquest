@@ -1,6 +1,7 @@
 package todayquest.quest.entity;
 
 import lombok.Getter;
+import todayquest.user.dto.UserPrincipal;
 import todayquest.user.entity.DifficultyType;
 
 import java.util.Arrays;
@@ -32,16 +33,16 @@ public enum QuestDifficulty {
     int experience;
     int gold;
     DifficultyType type;
-    String name;
+    String text;
 
-    QuestDifficulty(int experience, int gold, DifficultyType type, String name) {
+    QuestDifficulty(int experience, int gold, DifficultyType type, String text) {
         this.experience = experience;
         this.gold = gold;
         this.type = type;
-        this.name = name;
+        this.text = text;
     }
 
-    static List<QuestDifficulty> getEnumListOfType(DifficultyType type) {
+    public static List<QuestDifficulty> getEnumListOfType(DifficultyType type) {
         return Arrays.stream(QuestDifficulty.values())
                 .filter(e -> e.type.equals(type))
                 .collect(Collectors.toList());

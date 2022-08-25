@@ -9,34 +9,51 @@
     <h1>퀘스트 조회</h1>
     <input type="hidden" name="_method" value="get"/>
     <div class="mb-3 row align-items-center">
+        <label th:for="difficulty" class="col-sm-1 col-form-label text-center">난이도</label>
+        <div class="col-auto">
+            <select th:field="*{difficulty}" class="form-item form-select" disabled>
+                <option value="">==난이도 선택==</option>
+                <option th:each="dfc : ${difficultyList}"
+                        th:value="${dfc.name()}" th:text="${dfc.getText()}"
+                        th:data-exp="${dfc.experience}" th:data-gold="${dfc.gold}">difficulty</option>
+            </select>
+        </div>
+    </div>
+    <div class="mb-3 row align-items-center">
+        <label class="col-sm-1 col-form-label text-center">보상</label>
+        <div class="col-auto">
+            <div id="diffReward" style="background-color: #e9ecef" class="col-auto form-control" th:text="|*{difficulty.experience} Exp, *{difficulty.gold} Gold|"></div>
+        </div>
+    </div>
+    <div class="mb-3 row align-items-center">
         <label th:for="title" class="col-sm-1 col-form-label text-center">제목</label>
         <div class="col-sm-4">
-            <input class="form-control" type="text" th:field="*{title}" disabled>
+            <input class="form-item form-control" type="text" th:field="*{title}" disabled>
         </div>
     </div>
     <div class="mb-3 row">
         <label th:for="description" class="col-sm-1 col-form-label text-center">설명</label>
         <div class="col-sm-4">
-            <textarea style="resize: none" class="form-control" type="text" rows="3" th:field="*{description}" disabled></textarea>
+            <textarea style="resize: none" class="form-item form-control" type="text" rows="3" th:field="*{description}" disabled></textarea>
         </div>
     </div>
     <div class="mb-3 row">
         <label th:for="deadLineDate" class="col-sm-1 col-form-label text-center">마감일</label>
         <div class="col-auto">
-            <input class="form-control" type="date" th:field="*{deadLineDate}" disabled>
+            <input class="form-item form-control" type="date" th:field="*{deadLineDate}" disabled>
         </div>
     </div>
     <div class="mb-3 row">
         <label th:for="deadLineTime" class="col-sm-1 col-form-label text-center">마감시간</label>
         <div class="col-auto">
-            <input class="form-control" type="time" th:field="*{deadLineTime}" disabled>
+            <input class="form-item form-control" type="time" th:field="*{deadLineTime}" disabled>
         </div>
     </div>
     <div class="mb-3 row">
         <label th:for="repeat" class="col-sm-1 col-form-label text-center">반복여부</label>
         <div class="col-auto align-self-center">
             <div class="form-check form-switch">
-                <input class="form-control form-check-input" type="checkbox" th:field="*{repeat}" disabled>
+                <input class="form-item form-control form-check-input" type="checkbox" th:field="*{repeat}" disabled>
             </div>
         </div>
     </div>
@@ -49,16 +66,31 @@
 
 </body>
 <script th:inline="javascript">
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let difficultySelect = document.getElementById('difficulty');
+
+        difficultySelect.addEventListener("change", function () {
+            let exp = this.options[this.selectedIndex].getAttribute('data-exp');
+            let gold = this.options[this.selectedIndex].getAttribute('data-gold');
+
+            let rewardText = exp + ' Exp, ' + gold + ' Gold';
+
+            document.getElementById('diffReward').innerText = rewardText;
+        });
+    });
+
     function getQuests() {
         location.href = '/quests';
     }
+
     function getUpdateInput() {
 
         let deleteBtn = document.getElementById('deleteBtn');
         let cancelBtn = document.getElementById('cancelBtn');
         let updateBtn = document.getElementById('updateBtn');
 
-        let inputs = document.getElementById('questForm').getElementsByClassName('form-control');
+        let inputs = document.getElementById('questForm').getElementsByClassName('form-item');
 
         for (let i = 0; i < inputs.length; i++) {
             let type = inputs[i].getAttribute('type');

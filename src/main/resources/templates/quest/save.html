@@ -13,6 +13,15 @@
     <div>마감일 : <input type="date" th:field="*{deadLineDate}"></div>
     <div>마감시간 : <input type="time" th:field="*{deadLineTime}"></div>
     <div>반복여부 : <input type="checkbox" th:field="*{repeat}"></div>
+    <div>
+        퀘스트 난이도 :
+        <select th:field="*{difficulty}" class="form-select">
+            <option value="">==난이도 선택==</option>
+            <option th:each="dfc : ${difficultyList}"
+            th:value="${dfc.name()}" th:text="${dfc.getText()}">difficulty
+            </option>
+        </select>
+    </div>
     <button type="submit">등록</button>
 </form>
 

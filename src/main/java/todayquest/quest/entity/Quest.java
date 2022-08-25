@@ -55,6 +55,10 @@ public class Quest {
     @Column(nullable = false)
     private QuestType type;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private QuestDifficulty difficulty;
+
     /**
      * 등록자 정보는 추후 User 엔티티 추가 후 해당 정보를 받아서 처리할 것
      */
@@ -69,6 +73,7 @@ public class Quest {
         this.isRepeat = dto.isRepeat();
         this.deadLineDate = dto.getDeadLineDate();
         this.deadLineTime = dto.getDeadLineTime();
+        this.difficulty = dto.getDifficulty();
     }
 }
 

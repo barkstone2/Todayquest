@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 import todayquest.quest.entity.Quest;
+import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.entity.QuestState;
 import todayquest.quest.entity.QuestType;
 
@@ -24,6 +25,7 @@ public class QuestResponseDto {
     private LocalTime deadLineTime;
     private QuestState state;
     private QuestType type;
+    private QuestDifficulty difficulty;
 
     public static QuestResponseDto createDto(Quest quest) {
         return QuestResponseDto.builder()
@@ -35,6 +37,7 @@ public class QuestResponseDto {
                 .deadLineTime(quest.getDeadLineTime())
                 .state(quest.getState())
                 .type(quest.getType())
+                .difficulty(quest.getDifficulty())
                 .build();
     }
 

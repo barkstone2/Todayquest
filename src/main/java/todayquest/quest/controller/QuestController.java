@@ -1,21 +1,15 @@
 package todayquest.quest.controller;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import todayquest.quest.dto.QuestRequestDto;
-import todayquest.quest.dto.QuestResponseDto;
+import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.service.QuestService;
 import todayquest.user.dto.UserPrincipal;
-import todayquest.user.entity.UserInfo;
-
-import java.security.Principal;
-import java.time.LocalDateTime;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,14 +32,16 @@ public class QuestController {
     }
 
     @GetMapping("/save")
-    public String saveForm(Model model) {
+    public String saveForm(Model model, @AuthenticationPrincipal UserPrincipal principal) {
         model.addAttribute("quest", new QuestRequestDto());
+        model.addAttribute("difficultyList", QuestDifficulty.getEnumListOfType(principal.getDifficultyType()));
         return "/quest/save";
     }
 
     @GetMapping("/{questId}")
-    public String view(@PathVariable("questId") Long questId, Model model) {
+    public String view(@PathVariable("questId") Long questId, Model model, @AuthenticationPrincipal UserPrincipal principal) {
         model.addAttribute("quest", questService.getQuestInfo(questId));
+        model.addAttribute("difficultyList", QuestDifficulty.getEnumListOfType(principal.getDifficultyType()));
         return "/quest/view";
     }
 

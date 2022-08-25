@@ -37,25 +37,23 @@
             <div class="card" th:onclick="|getQuest(${quest.questId})|">
                 <div class="card-header">
                     <span class="p-1 fw-semi-bold" th:text="|#${quest.questId}|"></span>
-                    <!-- TODO 퀘스트 객체에서 가져오도록 변경할 것 -->
-                    <span class="rounded bg-danger text-white p-1">어려움</span>
+                    <span class="rounded bg-danger text-white p-1" th:text="${quest.difficulty.getText()}">퀘스트 난이도</span>
                     <span th:class="|${quest.state.cssClassInfo} p-1 m-1|" th:text="${quest.state.message}">퀘스트 상태</span>
                 </div>
                 <div class="card-body">
                     <h5 class="card-title text-truncate" th:text="${quest.title}">퀘스트 제목</h5>
                     <p class="card-text border-start border-2 ps-3" style="height: 72px" th:text="${quest.description}">퀘스트 설명</p>
 
-                    <!-- TODO 퀘스트 객체에서 가져오도록 변경할 것 -->
+                    <!-- TODO 세부 퀘스트 목록 퀘스트 객체에서 가져오도록 변경할 것 -->
                     <ul class="list-unstyled mb-1">
                         <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>
                         <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>
                         <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기</li>
                     </ul>
-                    <!-- TODO 퀘스트 객체에서 가져오도록 변경할 것 -->
-                    <span class="border border-1 rounded p-1 bg-light fw-semi-bold">경험치 50</span>
-                    <span class="border border-1 rounded p-1 bg-light fw-semi-bold">골드 100</span>
+                    <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|경험치 ${quest.difficulty.getExperience()}|">경험치 50</span>
+                    <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|골드 ${quest.difficulty.getGold()}|">골드 100</span>
                 </div>
-                <!-- TODO 퀘스트 객체에서 가져오도록 변경할 것 -->
+                <!-- TODO 커스텀 보상 목록 퀘스트 객체에서 가져오도록 변경할 것 -->
                 <!-- TODO 리스트 목록이 부족해도 빈칸 세개는 무조건 출력 값이 없는 경우 &nbsp; 넣어주기 -->
                 <div class="list-group list-group-flush">
                     <div class="list-item text-truncate">An item</div>

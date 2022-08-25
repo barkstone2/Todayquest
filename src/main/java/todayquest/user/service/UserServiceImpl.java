@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.user.dto.UserPrincipal;
+import todayquest.user.entity.DifficultyType;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
@@ -52,6 +53,7 @@ public class UserServiceImpl implements UserService{
                     .oauth2Id(id)
                     .nickname(tempNickName)
                     .providerType(providerType)
+                    .difficultyType(DifficultyType.difficulty)
                     .build();
 
             savedUserInfo = userRepository.saveAndFlush(newUserInfo);

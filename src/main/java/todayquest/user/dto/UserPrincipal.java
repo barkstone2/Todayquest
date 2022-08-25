@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import todayquest.user.entity.DifficultyType;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 
@@ -24,6 +25,7 @@ public class UserPrincipal implements OAuth2User, OidcUser, UserDetails {
     private final Long userId;
     private final String nickname;
     private final ProviderType providerType;
+    private DifficultyType difficultyType;
     private final Collection<GrantedAuthority> authorities;
 
     private Map<String, Object> attributes;
@@ -33,6 +35,7 @@ public class UserPrincipal implements OAuth2User, OidcUser, UserDetails {
                 .userId(userInfo.getId())
                 .nickname(userInfo.getNickname())
                 .providerType(userInfo.getProviderType())
+                .difficultyType(userInfo.getDifficultyType())
                 .authorities(Collections.singletonList(new SimpleGrantedAuthority(RoleType.USER.getCode())))
                 .build();
     }

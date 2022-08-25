@@ -1,7 +1,6 @@
 package todayquest.quest.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Repository;
 import todayquest.quest.entity.Quest;
 import todayquest.user.entity.UserInfo;

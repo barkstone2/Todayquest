@@ -45,10 +45,9 @@
                     <p class="card-text border-start border-2 ps-3" style="height: 72px" th:text="${quest.description}">퀘스트 설명</p>
 
                     <!-- TODO 세부 퀘스트 목록 퀘스트 객체에서 가져오도록 변경할 것 -->
-                    <ul class="list-unstyled mb-1">
-                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>
-                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>
-                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기</li>
+                    <ul class="list-unstyled mb-1" th:each="reward : ${quest.rewards}">
+                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100" th:text="${reward}"></li>
+<!--                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>-->
                     </ul>
                     <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|경험치 ${quest.difficulty.getExperience()}|">경험치 50</span>
                     <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|골드 ${quest.difficulty.getGold()}|">골드 100</span>

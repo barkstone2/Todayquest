@@ -5,65 +5,80 @@
     <link rel="stylesheet" href="/css/bootstrap.min.css"/>
 </head>
 <body>
-<form method="post" id="questForm" th:object="${quest}" th:action="@{|/quests/${quest.questId}|}" class="container">
-    <h1>퀘스트 조회</h1>
-    <input type="hidden" name="_method" value="get"/>
-    <div class="mb-3 row align-items-center">
-        <label th:for="difficulty" class="col-sm-1 col-form-label text-center">난이도</label>
-        <div class="col-auto">
-            <select th:field="*{difficulty}" class="form-item form-select" disabled>
-                <option value="">==난이도 선택==</option>
-                <option th:each="dfc : ${difficultyList}"
-                        th:value="${dfc.name()}" th:text="${dfc.getText()}"
-                        th:data-exp="${dfc.experience}" th:data-gold="${dfc.gold}">difficulty</option>
-            </select>
-        </div>
-    </div>
-    <div class="mb-3 row align-items-center">
-        <label class="col-sm-1 col-form-label text-center">보상</label>
-        <div class="col-auto">
-            <div id="diffReward" style="background-color: #e9ecef" class="col-auto form-control" th:text="|*{difficulty.experience} Exp, *{difficulty.gold} Gold|"></div>
-        </div>
-    </div>
-    <div class="mb-3 row align-items-center">
-        <label th:for="title" class="col-sm-1 col-form-label text-center">제목</label>
-        <div class="col-sm-4">
-            <input class="form-item form-control" type="text" th:field="*{title}" disabled>
-        </div>
-    </div>
-    <div class="mb-3 row">
-        <label th:for="description" class="col-sm-1 col-form-label text-center">설명</label>
-        <div class="col-sm-4">
-            <textarea style="resize: none" class="form-item form-control" type="text" rows="3" th:field="*{description}" disabled></textarea>
-        </div>
-    </div>
-    <div class="mb-3 row">
-        <label th:for="deadLineDate" class="col-sm-1 col-form-label text-center">마감일</label>
-        <div class="col-auto">
-            <input class="form-item form-control" type="date" th:field="*{deadLineDate}" disabled>
-        </div>
-    </div>
-    <div class="mb-3 row">
-        <label th:for="deadLineTime" class="col-sm-1 col-form-label text-center">마감시간</label>
-        <div class="col-auto">
-            <input class="form-item form-control" type="time" th:field="*{deadLineTime}" disabled>
-        </div>
-    </div>
-    <div class="mb-3 row">
-        <label th:for="repeat" class="col-sm-1 col-form-label text-center">반복여부</label>
-        <div class="col-auto align-self-center">
-            <div class="form-check form-switch">
-                <input class="form-item form-control form-check-input" type="checkbox" th:field="*{repeat}" disabled>
+<div class="container">
+    <div class="position-relative" style="max-width: 700px; min-width: 400px;">
+        <form method="post" id="questForm" th:object="${quest}" th:action="@{|/quests/${quest.questId}|}">
+            <h1>퀘스트 조회</h1>
+            <input type="hidden" name="_method" value="get"/>
+            <div class="row mb-3">
+                <label th:for="difficulty" class="col-sm-2 col-form-label">난이도</label>
+                <div class="col-auto">
+                    <select th:field="*{difficulty}" class="form-item form-select" disabled>
+                        <option value="">==난이도 선택==</option>
+                        <option th:each="dfc : ${difficultyList}"
+                                th:value="${dfc.name()}" th:text="${dfc.getText()}"
+                                th:data-exp="${dfc.experience}" th:data-gold="${dfc.gold}">difficulty</option>
+                    </select>
+                </div>
             </div>
-        </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">보상</label>
+                <div class="col-auto">
+                    <div id="diffReward" style="background-color: #e9ecef" class="col-auto form-control" th:text="|*{difficulty.experience} Exp, *{difficulty.gold} Gold|"></div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label th:for="title" class="col-sm-2 col-form-label">제목</label>
+                <div class="col-sm-10">
+                    <input class="form-item form-control" type="text" th:field="*{title}" disabled>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label th:for="description" class="col-sm-2 col-form-label">설명</label>
+                <div class="col-sm-10">
+                    <textarea style="resize: none" class="form-item form-control" type="text" rows="3" th:field="*{description}" disabled></textarea>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label th:for="reward" class="col-sm-2 col-form-label align-items-center">커스텀 보상</label>
+                <div class="col-sm-10">
+                    <div th:each="reward : ${quest.rewards}" class="reward-row d-flex mb-1" th:id="|rewardRow${rewardStat.count}|" th:data-id="${rewardStat.count}">
+                        <div class="w-75">
+                            <input class="form-item reward-item form-control" type="text" th:id="|reward${rewardStat.count}|" th:name="rewards" th:value="${reward}" disabled>
+                        </div>
+                        <div class="reward-delete btn btn-secondary visually-hidden ms-1" th:data-id="${rewardStat.count}">삭제</div>
+                    </div>
+                    <div id="rewardAddBtn" class="btn btn-light visually-hidden">추가</div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label th:for="deadLineDate" class="col-sm-2 col-form-label">마감일</label>
+                <div class="col-auto">
+                    <input class="form-item form-control" type="date" th:field="*{deadLineDate}" disabled>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label th:for="deadLineTime" class="col-sm-2 col-form-label">마감시간</label>
+                <div class="col-auto">
+                    <input class="form-item form-control" type="time" th:field="*{deadLineTime}" disabled>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label th:for="repeat" class="col-sm-2 col-form-label">반복여부</label>
+                <div class="col-auto align-self-center">
+                    <div class="form-check form-switch">
+                        <input class="form-item form-control form-check-input" type="checkbox" th:field="*{repeat}" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-primary mb-2" id="updateBtn" onclick="getUpdateInput()">수정</button>
+            <button type="button" class="btn btn-secondary mb-2 d-none" id="cancelBtn" onclick="getUpdateInput()">취소</button>
+            <button type="button" class="btn btn-danger mb-2" id="deleteBtn" onclick="submitQuestForm('DELETE');">포기</button>
+            <button type="button" class="btn btn-success mb-2" id="listBtn" onclick="getQuests();">목록</button>
+        </form>
     </div>
-
-    <button type="button" class="btn btn-primary mb-2" id="updateBtn" onclick="getUpdateInput()">수정</button>
-    <button type="button" class="btn btn-secondary mb-2 d-none" id="cancelBtn" onclick="getUpdateInput()">취소</button>
-    <button type="button" class="btn btn-danger mb-2" id="deleteBtn" onclick="submitQuestForm('DELETE');">포기</button>
-    <button type="button" class="btn btn-success mb-2" id="listBtn" onclick="getQuests();">목록</button>
-</form>
-
+</div>
 </body>
 <script th:inline="javascript">
 
@@ -78,6 +93,30 @@
 
             document.getElementById('diffReward').innerText = rewardText;
         });
+
+        let rewardDeleteBtns = document.getElementsByClassName('reward-delete');
+
+        for (let i = 0; i < rewardDeleteBtns.length; i++) {
+            rewardDeleteBtns[i].addEventListener('click', function () {
+                let targetId = 'rewardRow' + rewardDeleteBtns[i].getAttribute('data-id');
+                document.getElementById(targetId).classList.add('visually-hidden');
+            });
+        }
+
+        let rewardAddBtn = document.getElementById('rewardAddBtn');
+        rewardAddBtn.addEventListener('click', function () {
+
+            let tempRowHtml = document.createElement('div');
+            tempRowHtml.className = 'reward-row d-flex mb-1 temp-row';
+            tempRowHtml.innerHTML = '<div class="w-75">'
+                                  +     '<input class="form-item reward-item form-control" type="text" name="rewards">'
+                                  + '</div>'
+
+            rewardAddBtn.before(tempRowHtml);
+            let rewardRowCount = document.getElementsByClassName('reward-row').length;
+            if(rewardRowCount == 5) rewardAddBtn.classList.toggle('visually-hidden');
+        });
+
     });
 
     function getQuests() {
@@ -89,6 +128,9 @@
         let deleteBtn = document.getElementById('deleteBtn');
         let cancelBtn = document.getElementById('cancelBtn');
         let updateBtn = document.getElementById('updateBtn');
+        let rewardDeleteBtns = document.getElementsByClassName('reward-delete');
+        let rewardRows = document.getElementsByClassName('reward-row');
+        let rewardAddBtn = document.getElementById('rewardAddBtn');
 
         let inputs = document.getElementById('questForm').getElementsByClassName('form-item');
 
@@ -102,6 +144,11 @@
         updateBtn.classList.toggle('btn-on');
         cancelBtn.classList.toggle('d-none');
         deleteBtn.classList.toggle('d-none');
+        if(rewardRows.length < 5) rewardAddBtn.classList.toggle('visually-hidden');
+
+        for (let i = 0; i < rewardDeleteBtns.length; i++) {
+            rewardDeleteBtns[i].classList.toggle('visually-hidden');
+        }
 
         if (updateBtn.classList.contains('btn-on')) {
             updateBtn.innerText = '저장';
@@ -110,9 +157,17 @@
         } else {
             updateBtn.innerText = '수정';
             updateBtn.setAttribute('onclick', `getUpdateInput()`);
+
+            for (let i = 0; i < rewardRows.length; i++) {
+                rewardRows[i].classList.remove('visually-hidden');
+            }
+
+            let tempRows = document.getElementsByClassName('temp-row');
+            while (tempRows.length > 0) {
+                tempRows[0].remove();
+            }
         }
     }
-
 
     function submitQuestForm(method) {
         let form = document.getElementById('questForm');
@@ -120,6 +175,15 @@
         methodInput.setAttribute('value', method);
 
         if (method == 'PUT') {
+            let rewardRows = document.getElementsByClassName('reward-row');
+
+            for (let i = 0; i < rewardRows.length; i++) {
+
+                if (rewardRows[i].classList.contains('visually-hidden')) {
+                    let targetId = 'reward' + rewardRows[i].getAttribute('data-id');
+                    document.getElementById(targetId).remove();
+                }
+            }
         } else if (method == 'DELETE') {
             if (!confirm('삭제 시 복구가 불가능 합니다.\n정말 삭제 하시겠습니까?')) {
                 return;

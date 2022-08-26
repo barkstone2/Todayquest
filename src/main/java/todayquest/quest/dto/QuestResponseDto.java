@@ -10,6 +10,8 @@ import todayquest.quest.entity.QuestType;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Builder
 @Data
@@ -26,6 +28,7 @@ public class QuestResponseDto {
     private QuestState state;
     private QuestType type;
     private QuestDifficulty difficulty;
+    private List<String> rewards;
 
     public static QuestResponseDto createDto(Quest quest) {
         return QuestResponseDto.builder()
@@ -38,6 +41,7 @@ public class QuestResponseDto {
                 .state(quest.getState())
                 .type(quest.getType())
                 .difficulty(quest.getDifficulty())
+                .rewards(quest.getRewards().stream().map(r -> r.getReward()).collect(Collectors.toList()))
                 .build();
     }
 

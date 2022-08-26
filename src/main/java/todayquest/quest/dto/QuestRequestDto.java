@@ -5,15 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import todayquest.quest.entity.Quest;
-import todayquest.quest.entity.QuestDifficulty;
-import todayquest.quest.entity.QuestState;
-import todayquest.quest.entity.QuestType;
+import todayquest.quest.entity.*;
 import todayquest.user.entity.UserInfo;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Data
@@ -29,6 +27,7 @@ public class QuestRequestDto {
     @DateTimeFormat(pattern = "HH:mm")
     private LocalTime deadLineTime;
     private QuestDifficulty difficulty;
+    private List<String> rewards;
 
     public Quest mapToEntity(UserInfo userInfo) {
         return Quest.builder()
@@ -41,7 +40,12 @@ public class QuestRequestDto {
                 .type(QuestType.DAILY)
                 .state(QuestState.PROCEED)
                 .difficulty(getDifficulty())
+                .rewards(getRewardEntityList())
                 .build();
+    }
+
+    public List<QuestReward> getRewardEntityList() {
+        return getRewards().stream().map(s -> QuestReward.builder().reward(s).build()).collect(Collectors.toList());
     }
 
 

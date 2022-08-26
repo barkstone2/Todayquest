@@ -9,6 +9,9 @@ import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static javax.persistence.FetchType.*;
 
@@ -59,6 +62,10 @@ public class Quest {
     @Column(nullable = false)
     private QuestDifficulty difficulty;
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "quest_id")
+    private List<QuestReward> rewards = new ArrayList<>();
+
     /**
      * 등록자 정보는 추후 User 엔티티 추가 후 해당 정보를 받아서 처리할 것
      */
@@ -74,6 +81,8 @@ public class Quest {
         this.deadLineDate = dto.getDeadLineDate();
         this.deadLineTime = dto.getDeadLineTime();
         this.difficulty = dto.getDifficulty();
+        rewards.clear();
+        rewards.addAll(dto.getRewardEntityList());
     }
 }
 

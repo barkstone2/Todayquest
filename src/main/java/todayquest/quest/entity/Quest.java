@@ -1,7 +1,7 @@
 package todayquest.quest.entity;
 
+import com.mysema.commons.lang.Assert;
 import lombok.*;
-import org.springframework.format.annotation.DateTimeFormat;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.user.entity.UserInfo;
 
@@ -11,13 +11,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static javax.persistence.FetchType.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor @Builder
 @Entity
 public class Quest {
 
@@ -74,6 +72,32 @@ public class Quest {
     private LocalDateTime regDate;
     private LocalDateTime modifyDate;
 
+    @Builder
+    public Quest(String title, String description, UserInfo user, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime,
+                 QuestState state, QuestType type, QuestDifficulty difficulty, List<QuestReward> rewards) {
+
+        Assert.hasText(title, "title must not be empty");
+        Assert.notNull(isRepeat, "isRepeat must not be null");
+        Assert.notNull(deadLineDate, "deadLineDate must not be null");
+        Assert.notNull(user, "user must not be null");
+        Assert.notNull(state, "state must not be null");
+        Assert.notNull(type, "type must not be null");
+        Assert.notNull(difficulty, "difficulty must not be null");
+        Assert.notNull(rewards, "rewards must not be null");
+        Assert.isFalse(rewards.size() > 5, "rewards size must not exceed 5");
+
+        this.title = title;
+        this.description = description;
+        this.user = user;
+        this.isRepeat = isRepeat;
+        this.deadLineDate = deadLineDate;
+        this.deadLineTime = deadLineTime;
+        this.state = state;
+        this.type = type;
+        this.difficulty = difficulty;
+        this.rewards = rewards;
+    }
+
     public void updateQuestEntity(QuestRequestDto dto) {
         this.title = dto.getTitle();
         this.description = dto.getDescription();
@@ -81,8 +105,30 @@ public class Quest {
         this.deadLineDate = dto.getDeadLineDate();
         this.deadLineTime = dto.getDeadLineTime();
         this.difficulty = dto.getDifficulty();
-        rewards.clear();
-        rewards.addAll(dto.getRewardEntityList());
+        updateRewardList(dto.getRewardEntityList());
     }
+
+    private void updateRewardList(List<QuestReward> rewardEntityList) {
+
+        int updateCount = rewardEntityList.size();
+
+        for (int i = 0; i < updateCount; i++) {
+            QuestReward newReward = rewardEntityList.get(i);
+            try {
+                QuestReward questReward = rewards.get(i);
+                questReward.updateReward(newReward.getReward());
+            } catch (IndexOutOfBoundsException e) {
+                rewards.add(newReward);
+            }
+        }
+
+        int overCount = rewards.size() - updateCount;
+        if (overCount > 0) {
+            for (int i = updateCount; i < updateCount + overCount; i++) {
+                rewards.remove(updateCount);
+            }
+        }
+    }
+
 }
 

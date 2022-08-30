@@ -17,4 +17,7 @@ public class QuestReward {
     @Column(length = 30, nullable = false)
     private String reward;
 
+    public void updateReward(String reward) {
+        this.reward = reward;
+    }
 }

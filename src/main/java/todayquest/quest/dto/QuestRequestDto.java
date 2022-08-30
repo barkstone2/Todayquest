@@ -1,6 +1,6 @@
 package todayquest.quest.dto;
 
-import lombok.AllArgsConstructor;
+import com.mysema.commons.lang.Assert;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,13 +10,13 @@ import todayquest.user.entity.UserInfo;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor @Builder
 public class QuestRequestDto {
 
     private String title;
@@ -27,7 +27,7 @@ public class QuestRequestDto {
     @DateTimeFormat(pattern = "HH:mm")
     private LocalTime deadLineTime;
     private QuestDifficulty difficulty;
-    private List<String> rewards;
+    private List<String> rewards = new ArrayList<>();
 
     public Quest mapToEntity(UserInfo userInfo) {
         return Quest.builder()
@@ -42,6 +42,22 @@ public class QuestRequestDto {
                 .difficulty(getDifficulty())
                 .rewards(getRewardEntityList())
                 .build();
+    }
+
+    @Builder
+    public QuestRequestDto(String title, String description, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime, QuestDifficulty difficulty, List<String> rewards) {
+        Assert.hasText(title, "title must not be empty");
+        Assert.notNull(isRepeat, "isRepeat must not be null");
+        Assert.notNull(deadLineDate, "deadLineDate must not be null");
+        Assert.notNull(difficulty, "difficulty must not be null");
+
+        this.title = title;
+        this.description = description;
+        this.isRepeat = isRepeat;
+        this.deadLineDate = deadLineDate;
+        this.deadLineTime = deadLineTime;
+        this.difficulty = difficulty;
+        this.rewards = rewards;
     }
 
     public List<QuestReward> getRewardEntityList() {

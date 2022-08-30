@@ -19,6 +19,7 @@ import todayquest.annotation.WithCustomMockUser;
 import todayquest.config.SecurityConfig;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
+import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.entity.QuestState;
 import todayquest.quest.service.QuestService;
 
@@ -60,12 +61,16 @@ class QuestControllerUnitTest {
                 .questId(1L).state(QuestState.PROCEED).title("title1")
                 .description("desc1").isRepeat(true)
                 .deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now())
+                .difficulty(QuestDifficulty.easy)
+                .rewards(List.of("reward1", "reward2", "reward3"))
                 .build();
 
         QuestResponseDto quest2 = QuestResponseDto.builder()
                 .questId(2L).state(QuestState.PROCEED).title("title2")
                 .description("desc2").isRepeat(true)
                 .deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now())
+                .difficulty(QuestDifficulty.easy)
+                .rewards(List.of("reward1", "reward2", "reward3"))
                 .build();
 
         list.add(quest1);
@@ -133,6 +138,9 @@ class QuestControllerUnitTest {
         map.add("deadLineDate", "2022-11-11");
         map.add("deadLineTime", "11:11");
         map.add("repeat", "true");
+        map.add("reward", "reward1");
+        map.add("reward", "reward2");
+        map.add("reward", "reward3");
 
         //when
         doNothing()
@@ -178,6 +186,7 @@ class QuestControllerUnitTest {
         map.add("deadLineDate", "2022-11-11");
         map.add("deadLineTime", "11:11");
         map.add("repeat", "true");
+        map.add("reward", "reward1");
 
         //when
 

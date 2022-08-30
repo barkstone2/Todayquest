@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import todayquest.user.entity.DifficultyType;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 
@@ -33,6 +34,7 @@ class UserRepositoryTest {
                 .nickname("oldNickname")
                 .oauth2Id("oauth2-id")
                 .providerType(ProviderType.GOOGLE)
+                .difficultyType(DifficultyType.difficulty)
                 .build();
 
     }
@@ -46,6 +48,7 @@ class UserRepositoryTest {
                 .nickname("newUser")
                 .oauth2Id("oauth2-id-save")
                 .providerType(ProviderType.GOOGLE)
+                .difficultyType(DifficultyType.difficulty)
                 .build();
 
         //when
@@ -59,9 +62,15 @@ class UserRepositoryTest {
     @Test
     public void testFindAll() throws Exception {
         //given
-        UserInfo user1 = UserInfo.builder().nickname("nick-list-1").oauth2Id("oauth2-id-list-1").providerType(ProviderType.GOOGLE).build();
-        UserInfo user2 = UserInfo.builder().nickname("nick-list-2").oauth2Id("oauth2-id-list-2").providerType(ProviderType.GOOGLE).build();
-        UserInfo user3 = UserInfo.builder().nickname("nick-list-3").oauth2Id("oauth2-id-list-3").providerType(ProviderType.GOOGLE).build();
+        UserInfo user1 = UserInfo.builder().nickname("nick-list-1").oauth2Id("oauth2-id-list-1")
+                .difficultyType(DifficultyType.difficulty)
+                .providerType(ProviderType.GOOGLE).build();
+        UserInfo user2 = UserInfo.builder().nickname("nick-list-2").oauth2Id("oauth2-id-list-2")
+                .difficultyType(DifficultyType.difficulty)
+                .providerType(ProviderType.GOOGLE).build();
+        UserInfo user3 = UserInfo.builder().nickname("nick-list-3").oauth2Id("oauth2-id-list-3")
+                .difficultyType(DifficultyType.difficulty)
+                .providerType(ProviderType.GOOGLE).build();
         userRepository.save(user1);
         userRepository.save(user2);
         userRepository.save(user3);

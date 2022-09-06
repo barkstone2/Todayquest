@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.util.StringUtils;
 import todayquest.quest.entity.*;
 import todayquest.user.entity.UserInfo;
 
@@ -61,7 +62,7 @@ public class QuestRequestDto {
     }
 
     public List<QuestReward> getRewardEntityList() {
-        return getRewards().stream().map(s -> QuestReward.builder().reward(s).build()).collect(Collectors.toList());
+        return getRewards().stream().filter(StringUtils::hasText).map(s -> QuestReward.builder().reward(s).build()).collect(Collectors.toList());
     }
 
 

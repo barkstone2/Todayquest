@@ -25,16 +25,25 @@
         .list-group-flush>.list-item:last-child {
             border-bottom-width: 0;
         }
+        .text-box {
+            height: 72px;
+            -webkit-line-clamp: 3;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            word-wrap: break-word;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="container">
-    <h1>퀘스트 목록</h1>
+    <h1>퀘스트 목록     <a class="btn btn-primary"href="/quests/save">퀘스트 등록</a></h1>
     <div class="row row-cols-1 row-cols-md-auto g-4">
         <div th:if="${questList.size() == 0}">
             등록된 퀘스트가 없습니다.
         </div>
         <div class="col" th:each="quest : ${questList}">
-            <div class="card" th:onclick="|getQuest(${quest.questId})|">
+            <a class="card text-reset text-decoration-none" th:href="|/quests/${quest.questId}|">
                 <div class="card-header">
                     <span class="p-1 fw-semi-bold" th:text="|#${quest.questId}|"></span>
                     <span class="rounded bg-danger text-white p-1" th:text="${quest.difficulty.getText()}">퀘스트 난이도</span>
@@ -42,13 +51,15 @@
                 </div>
                 <div class="card-body">
                     <h5 class="card-title text-truncate" th:text="${quest.title}">퀘스트 제목</h5>
-                    <p class="card-text border-start border-2 ps-3" style="height: 72px" th:text="${quest.description}">퀘스트 설명</p>
+                    <p class="card-text border-start border-2 ps-3 text-box" th:text="${quest.description}">퀘스트 설명</p>
 
                     <!-- TODO 세부 퀘스트 목록 퀘스트 객체에서 가져오도록 변경할 것 -->
-                    <ul class="list-unstyled mb-1" th:each="reward : ${quest.rewards}">
-                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100" th:text="${reward}"></li>
-<!--                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>-->
-                    </ul>
+                    <div class="mb-1" style="height: 216px;">
+                        <ul class="list-unstyled mb-1" th:each="reward : ${quest.rewards}">
+                            <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100" th:text="${reward}"></li>
+    <!--                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>-->
+                        </ul>
+                    </div>
                     <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|경험치 ${quest.difficulty.getExperience()}|">경험치 50</span>
                     <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|골드 ${quest.difficulty.getGold()}|">골드 100</span>
                 </div>
@@ -68,11 +79,9 @@
                     <span class="bg-warning rounded p-1 text-white">완료기한</span>
                     <span class="m-1 fw-semi-bold" th:text="|${quest.deadLineDate} ${quest.deadLineTime}|"></span>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
-
-    <a href="/quests/save">퀘스트 등록</a>
 </body>
 <script th:inline="javascript">
     function getQuest(questId) {

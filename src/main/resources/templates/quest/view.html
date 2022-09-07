@@ -75,7 +75,7 @@
             <button type="button" class="btn btn-primary mb-2" id="updateBtn" onclick="getUpdateInput()">수정</button>
             <button type="button" class="btn btn-secondary mb-2 d-none" id="cancelBtn" onclick="getUpdateInput()">취소</button>
             <button type="button" class="btn btn-danger mb-2" id="deleteBtn" onclick="submitQuestForm('DELETE');">포기</button>
-            <button type="button" class="btn btn-success mb-2" id="listBtn" onclick="getQuests();">목록</button>
+            <a class="btn btn-success mb-2" id="listBtn" href="/quests">목록</a>
         </form>
     </div>
 </div>
@@ -91,6 +91,7 @@
 
             let rewardText = exp + ' Exp, ' + gold + ' Gold';
 
+            if(this.selectedIndex == 0) rewardText = '난이도를 선택하세요.';
             document.getElementById('diffReward').innerText = rewardText;
         });
 
@@ -118,10 +119,6 @@
         });
 
     });
-
-    function getQuests() {
-        location.href = '/quests';
-    }
 
     function getUpdateInput() {
 

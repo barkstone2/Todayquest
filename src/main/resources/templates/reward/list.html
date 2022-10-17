@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>아이템 목록</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+</head>
+<body class="container">
+    <h1>아이템 목록     <a class="btn btn-primary"href="/rewards/save">아이템 등록</a></h1>
+    <div class="container">
+        <div class="row border p-1">
+            <div class="col-3">이름</div>
+            <div class="col-3">등급</div>
+            <div class="col-6">설명</div>
+        </div>
+        <div th:if="${rewards.size() == 0}" class="row">
+            등록된 아이템이 없습니다.
+        </div>
+        <a class="row text-reset text-decoration-none p-1 border" th:each="reward : ${rewards}" th:href="|/rewards/${reward.id}|">
+            <div class="col-3" th:text="${reward.name}">이름</div>
+            <div class="col-3" th:text="${reward.grade}">등급</div>
+            <div class="col-6" th:text="${reward.description}">설명</div>
+        </a>
+    </div>
+</body>
+<script th:inline="javascript">
+</script>
+</html>

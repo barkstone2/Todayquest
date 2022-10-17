@@ -1,6 +1,7 @@
 package todayquest.reward.entity;
 
 import lombok.*;
+import todayquest.reward.dto.RewardRequestDto;
 import todayquest.user.entity.UserInfo;
 
 import javax.persistence.*;
@@ -30,7 +31,9 @@ public class Reward {
     @Enumerated(EnumType.STRING)
     private RewardGrade grade;
 
-    public void updateReward(String name) {
-        this.name = name;
+    public void updateReward(RewardRequestDto dto) {
+        this.name = dto.getName();
+        this.description = dto.getDescription();
+        this.grade = dto.getGrade();
     }
 }

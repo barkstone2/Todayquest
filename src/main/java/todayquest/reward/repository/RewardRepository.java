@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface RewardRepository extends JpaRepository<Reward, Long> {
 
-    List<Reward> findByUserId(Long userId);
+    List<Reward> findAllByUserId(Long userId);
     Reward findByIdAndUserId(Long id, Long userId);
     void deleteByIdAndUserId(Long id, Long userId);
 }

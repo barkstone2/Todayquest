@@ -111,13 +111,12 @@ class QuestServiceTest {
                 .deadLineTime(LocalTime.now())
                 .rewards(new ArrayList<>())
                 .build();
-        UserPrincipal principal = UserPrincipal.builder().build();
 
         //when
         when(userRepository.getById(any())).thenReturn(UserInfo.builder().build());
         when(questRewardRepository.saveAll(any())).thenReturn(null);
         //then
-        questService.saveQuest(dto, principal);
+        questService.saveQuest(dto, 1L);
     }
     @DisplayName("본인의 퀘스트 업데이트 테스트")
     @Test

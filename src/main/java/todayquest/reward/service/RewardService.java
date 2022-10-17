@@ -21,28 +21,28 @@ public class RewardService {
     private final RewardRepository rewardRepository;
     private final UserRepository userRepository;
 
-    public List<RewardResponseDto> getRewardList(UserPrincipal principal) {
-        return rewardRepository.findByUserId(principal.getUserId()).stream()
+    public List<RewardResponseDto> getRewardList(Long userId) {
+        return rewardRepository.findAllByUserId(userId).stream()
                 .map(RewardResponseDto::createDto)
                 .collect(Collectors.toList());
     }
 
-    public RewardResponseDto getReward(Long id, UserPrincipal principal) {
-        return RewardResponseDto.createDto(rewardRepository.findByIdAndUserId(id, principal.getUserId()));
+    public RewardResponseDto getReward(Long id, Long userId) {
+        return RewardResponseDto.createDto(rewardRepository.findByIdAndUserId(id, userId));
     }
 
-    public void saveReward(RewardRequestDto dto, UserPrincipal principal) {
-        UserInfo findUser = userRepository.getById(principal.getUserId());
+    public void saveReward(RewardRequestDto dto, Long userId) {
+        UserInfo findUser = userRepository.getById(userId);
         rewardRepository.save(dto.mapToEntity(findUser));
     }
 
-    public void updateReward(RewardRequestDto dto, Long rewardId, UserPrincipal principal) {
-        Reward findReward = rewardRepository.findByIdAndUserId(rewardId, principal.getUserId());
+    public void updateReward(RewardRequestDto dto, Long rewardId, Long userId) {
+        Reward findReward = rewardRepository.findByIdAndUserId(rewardId, userId);
         findReward.updateReward(dto);
     }
 
-    public void deleteReward(Long rewardId, UserPrincipal principal) {
-        rewardRepository.deleteByIdAndUserId(rewardId, principal.getUserId());
+    public void deleteReward(Long rewardId, Long userId) {
+        rewardRepository.deleteByIdAndUserId(rewardId, userId);
     }
 
 

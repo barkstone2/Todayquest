@@ -40,8 +40,8 @@ public class QuestService {
         return QuestResponseDto.createDto(questRepository.getById(questId));
     }
 
-    public void saveQuest(QuestRequestDto dto, UserPrincipal principal) {
-        UserInfo findId = userRepository.getById(principal.getUserId());
+    public void saveQuest(QuestRequestDto dto, Long userId) {
+        UserInfo findId = userRepository.getById(userId);
         Quest savedQuest = questRepository.save(dto.mapToEntity(findId));
 
         List<Reward> rewards = rewardRepository.findAllById(dto.getRewards());

@@ -38,7 +38,7 @@ public class QuestController {
     public String saveForm(Model model, @AuthenticationPrincipal UserPrincipal principal) {
         model.addAttribute("quest", new QuestRequestDto());
         model.addAttribute("difficultyList", QuestDifficulty.getEnumListOfType(principal.getDifficultyType()));
-        model.addAttribute("rewardList", rewardService.getRewardList(principal));
+        model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
         return "/quest/save";
     }
 
@@ -46,13 +46,13 @@ public class QuestController {
     public String view(@PathVariable("questId") Long questId, Model model, @AuthenticationPrincipal UserPrincipal principal) {
         model.addAttribute("quest", questService.getQuestInfo(questId));
         model.addAttribute("difficultyList", QuestDifficulty.getEnumListOfType(principal.getDifficultyType()));
-        model.addAttribute("rewardList", rewardService.getRewardList(principal));
+        model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
         return "/quest/view";
     }
 
     @PostMapping("/save")
     public String save(QuestRequestDto dto, @AuthenticationPrincipal UserPrincipal principal) {
-        questService.saveQuest(dto, principal);
+        questService.saveQuest(dto, principal.getUserId());
         return "redirect:/quests";
     }
 

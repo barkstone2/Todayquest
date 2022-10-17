@@ -18,13 +18,13 @@ public class RewardController {
 
     @GetMapping("")
     public String list(Model model, @AuthenticationPrincipal UserPrincipal principal) {
-        model.addAttribute("rewards", rewardService.getRewardList(principal));
+        model.addAttribute("rewards", rewardService.getRewardList(principal.getUserId()));
         return "reward/list";
     }
 
     @GetMapping("/{rewardId}")
     public String view(@PathVariable("rewardId") Long rewardId, Model model, @AuthenticationPrincipal UserPrincipal principal) {
-        model.addAttribute("reward", rewardService.getReward(rewardId, principal));
+        model.addAttribute("reward", rewardService.getReward(rewardId, principal.getUserId()));
         model.addAttribute("gradeList", RewardGrade.getEnumList());
         return "reward/view";
     }
@@ -39,19 +39,19 @@ public class RewardController {
 
     @PostMapping("/save")
     public String save(RewardRequestDto dto, @AuthenticationPrincipal UserPrincipal principal) {
-        rewardService.saveReward(dto, principal);
+        rewardService.saveReward(dto, principal.getUserId());
         return "redirect:/rewards";
     }
 
     @PutMapping("/{rewardId}")
     public String update(RewardRequestDto dto, @PathVariable("rewardId") Long rewardId, @AuthenticationPrincipal UserPrincipal principal) {
-        rewardService.updateReward(dto, rewardId, principal);
+        rewardService.updateReward(dto, rewardId, principal.getUserId());
         return "redirect:/rewards/{rewardId}";
     }
 
     @DeleteMapping("/{rewardId}")
     public String delete(@PathVariable("rewardId") Long rewardId, @AuthenticationPrincipal UserPrincipal principal) {
-        rewardService.deleteReward(rewardId, principal);
+        rewardService.deleteReward(rewardId, principal.getUserId());
         return "redirect:/rewards";
     }
 

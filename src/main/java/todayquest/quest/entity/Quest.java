@@ -1,8 +1,12 @@
 package todayquest.quest.entity;
 
 import com.mysema.commons.lang.Assert;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import todayquest.quest.dto.QuestRequestDto;
+import todayquest.reward.entity.Reward;
 import todayquest.user.entity.UserInfo;
 
 import javax.persistence.*;
@@ -12,7 +16,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static javax.persistence.FetchType.*;
+import static javax.persistence.FetchType.LAZY;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -60,9 +64,9 @@ public class Quest {
     @Column(nullable = false)
     private QuestDifficulty difficulty;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "quest_id")
+    @OneToMany(mappedBy = "quest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestReward> rewards = new ArrayList<>();
+
 
     /**
      * 등록자 정보는 추후 User 엔티티 추가 후 해당 정보를 받아서 처리할 것
@@ -74,7 +78,7 @@ public class Quest {
 
     @Builder
     public Quest(String title, String description, UserInfo user, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime,
-                 QuestState state, QuestType type, QuestDifficulty difficulty, List<QuestReward> rewards) {
+                 QuestState state, QuestType type, QuestDifficulty difficulty) {
 
         Assert.hasText(title, "title must not be empty");
         Assert.notNull(isRepeat, "isRepeat must not be null");
@@ -83,7 +87,6 @@ public class Quest {
         Assert.notNull(state, "state must not be null");
         Assert.notNull(type, "type must not be null");
         Assert.notNull(difficulty, "difficulty must not be null");
-        Assert.notNull(rewards, "rewards must not be null");
         Assert.isFalse(rewards.size() > 5, "rewards size must not exceed 5");
 
         this.title = title;
@@ -95,28 +98,26 @@ public class Quest {
         this.state = state;
         this.type = type;
         this.difficulty = difficulty;
-        this.rewards = rewards;
     }
 
-    public void updateQuestEntity(QuestRequestDto dto) {
+    public void updateQuestEntity(QuestRequestDto dto, List<Reward> updateRewards) {
         this.title = dto.getTitle();
         this.description = dto.getDescription();
         this.isRepeat = dto.isRepeat();
         this.deadLineDate = dto.getDeadLineDate();
         this.deadLineTime = dto.getDeadLineTime();
         this.difficulty = dto.getDifficulty();
-        updateRewardList(dto.getRewardEntityList());
+        updateRewardList(updateRewards);
     }
 
-    private void updateRewardList(List<QuestReward> rewardEntityList) {
+    private void updateRewardList(List<Reward> rewardIdList) {
 
-        int updateCount = rewardEntityList.size();
+        int updateCount = rewardIdList.size();
 
         for (int i = 0; i < updateCount; i++) {
-            QuestReward newReward = rewardEntityList.get(i);
+            QuestReward newReward = QuestReward.builder().reward(rewardIdList.get(i)).quest(this).build();
             try {
-                QuestReward questReward = rewards.get(i);
-                questReward.updateReward(newReward.getReward());
+                rewards.get(i).updateReward(rewardIdList.get(i));
             } catch (IndexOutOfBoundsException e) {
                 rewards.add(newReward);
             }

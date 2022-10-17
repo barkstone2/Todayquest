@@ -3,6 +3,7 @@ package todayquest.quest.entity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import todayquest.quest.dto.QuestRequestDto;
+import todayquest.reward.entity.Reward;
 import todayquest.user.entity.UserInfo;
 
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ class QuestTest {
     @Test
     public void testUpdateRewardList1() {
 
+        //given
         QuestRequestDto dto = QuestRequestDto.builder()
                 .title("test title")
                 .description("test description")
@@ -25,22 +27,8 @@ class QuestTest {
                 .deadLineDate(LocalDate.of(1111, 11, 11))
                 .deadLineTime(LocalTime.of(11, 11))
                 .difficulty(QuestDifficulty.easy)
-                .rewards(List.of("reward1", "reward2"))
+                .rewards(List.of(1L,2L,3L,4L))
                 .build();
-
-        QuestReward reward1 = QuestReward.builder().id(1L).reward("1").build();
-        QuestReward reward2 = QuestReward.builder().id(2L).reward("2").build();
-        QuestReward reward3 = QuestReward.builder().id(3L).reward("3").build();
-        QuestReward reward4 = QuestReward.builder().id(4L).reward("4").build();
-        QuestReward reward5 = QuestReward.builder().id(5L).reward("5").build();
-
-        List<QuestReward> rewards = new ArrayList<>(){{
-           add(reward1);
-           add(reward2);
-           add(reward3);
-           add(reward4);
-           add(reward5);
-        }};
 
         Quest entity = Quest.builder()
                 .title("test")
@@ -49,16 +37,34 @@ class QuestTest {
                 .type(QuestType.DAILY)
                 .difficulty(QuestDifficulty.easy)
                 .isRepeat(true)
-                .rewards(rewards)
                 .user(UserInfo.builder().build())
                 .deadLineDate(LocalDate.now())
                 .build();
 
-        entity.updateQuestEntity(dto);
+        Reward reward1 = Reward.builder().id(1L).name("1").build();
+        Reward reward2 = Reward.builder().id(2L).name("2").build();
+        Reward reward3 = Reward.builder().id(3L).name("3").build();
+        Reward reward4 = Reward.builder().id(4L).name("4").build();
+
+        List<Reward> rewards = new ArrayList<>(){{
+           add(reward1);
+           add(reward2);
+           add(reward3);
+           add(reward4);
+        }};
+
+        entity.updateQuestEntity(dto, rewards);
+
+
+        //when
+        rewards.remove(3);
+        rewards.remove(2);
+
+        entity.updateQuestEntity(dto, rewards);
 
         assertThat(entity.getRewards().size()).isEqualTo(2);
-        assertThat(entity.getRewards().get(0).getId()).isEqualTo(1L);
-        assertThat(entity.getRewards().get(0).getReward()).isEqualTo("reward1");
+        assertThat(entity.getRewards().get(0).getReward().getId()).isEqualTo(1L);
+        assertThat(entity.getRewards().get(0).getReward().getName()).isEqualTo("1");
     }
 
 
@@ -66,6 +72,7 @@ class QuestTest {
     @Test
     public void testUpdateRewardList2() {
 
+        //given
         QuestRequestDto dto = QuestRequestDto.builder()
                 .title("test title")
                 .description("test description")
@@ -73,16 +80,8 @@ class QuestTest {
                 .deadLineDate(LocalDate.of(1111, 11, 11))
                 .deadLineTime(LocalTime.of(11, 11))
                 .difficulty(QuestDifficulty.easy)
-                .rewards(List.of("reward1", "reward2", "reward3", "reward4"))
+                .rewards(List.of(1L, 2L))
                 .build();
-
-        QuestReward reward1 = QuestReward.builder().id(1L).reward("1").build();
-        QuestReward reward2 = QuestReward.builder().id(2L).reward("2").build();
-
-        List<QuestReward> rewards = new ArrayList<>(){{
-           add(reward1);
-           add(reward2);
-        }};
 
         Quest entity = Quest.builder()
                 .title("test")
@@ -91,18 +90,32 @@ class QuestTest {
                 .type(QuestType.DAILY)
                 .difficulty(QuestDifficulty.easy)
                 .isRepeat(true)
-                .rewards(rewards)
                 .user(UserInfo.builder().build())
                 .deadLineDate(LocalDate.now())
                 .build();
 
-        entity.updateQuestEntity(dto);
+        Reward reward1 = Reward.builder().id(1L).name("1").build();
+        Reward reward2 = Reward.builder().id(2L).name("2").build();
+        List<Reward> rewards = new ArrayList<>(){{
+           add(reward1);
+           add(reward2);
+        }};
+
+        entity.updateQuestEntity(dto, rewards);
+
+        //when
+        Reward reward3 = Reward.builder().id(3L).name("3").build();
+        Reward reward4 = Reward.builder().id(4L).name("4").build();
+        rewards.add(reward3);
+        rewards.add(reward4);
+
+        entity.updateQuestEntity(dto, rewards);
 
         assertThat(entity.getRewards().size()).isEqualTo(4);
-        assertThat(entity.getRewards().get(0).getId()).isEqualTo(1L);
-        assertThat(entity.getRewards().get(0).getReward()).isEqualTo("reward1");
-        assertThat(entity.getRewards().get(3).getId()).isNull();
-        assertThat(entity.getRewards().get(3).getReward()).isEqualTo("reward4");
+        assertThat(entity.getRewards().get(0).getReward().getId()).isEqualTo(1L);
+        assertThat(entity.getRewards().get(0).getReward().getName()).isEqualTo("1");
+        assertThat(entity.getRewards().get(3).getReward().getId()).isNotNull();
+        assertThat(entity.getRewards().get(3).getReward().getName()).isEqualTo("4");
     }
 
 

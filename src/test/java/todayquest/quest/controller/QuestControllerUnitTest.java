@@ -19,9 +19,13 @@ import todayquest.annotation.WithCustomMockUser;
 import todayquest.config.SecurityConfig;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
+import todayquest.quest.entity.Quest;
 import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.entity.QuestState;
 import todayquest.quest.service.QuestService;
+import todayquest.reward.dto.RewardResponseDto;
+import todayquest.reward.service.RewardService;
+import todayquest.user.entity.UserInfo;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -29,8 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -51,8 +54,11 @@ class QuestControllerUnitTest {
     @MockBean
     QuestService questService;
 
+    @MockBean
+    RewardService rewardService;
+
     static final String URI_PREFIX = "/quests";
-    List<QuestResponseDto> list = new ArrayList<>();
+    List<QuestResponseDto> questList = new ArrayList<>();
     ObjectMapper mapper;
 
     @BeforeEach
@@ -62,7 +68,6 @@ class QuestControllerUnitTest {
                 .description("desc1").isRepeat(true)
                 .deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now())
                 .difficulty(QuestDifficulty.easy)
-                .rewards(List.of("reward1", "reward2", "reward3"))
                 .build();
 
         QuestResponseDto quest2 = QuestResponseDto.builder()
@@ -70,11 +75,11 @@ class QuestControllerUnitTest {
                 .description("desc2").isRepeat(true)
                 .deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now())
                 .difficulty(QuestDifficulty.easy)
-                .rewards(List.of("reward1", "reward2", "reward3"))
                 .build();
 
-        list.add(quest1);
-        list.add(quest2);
+        questList.add(quest1);
+        questList.add(quest2);
+
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
     }
@@ -87,12 +92,12 @@ class QuestControllerUnitTest {
         String uri = "";
 
         //when
-        when(questService.getQuestList(any())).thenReturn(list);
+        when(questService.getQuestList(any())).thenReturn(questList);
 
         //then
         mvc.perform(get(URI_PREFIX + uri))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("questList", list))
+                .andExpect(model().attribute("questList", questList))
                 .andExpect(view().name("/quest/list"));
     }
 
@@ -102,10 +107,10 @@ class QuestControllerUnitTest {
         //given
         String uri = "/save";
 
-        //when
         //then
         mvc.perform(get(URI_PREFIX + uri))
                 .andExpect(status().isOk())
+                .andExpect(model().attribute("rewardList", new ArrayList<>()))
                 .andExpect(model().attributeExists("quest"))
                 .andExpect(view().name("/quest/save"));
 
@@ -115,15 +120,16 @@ class QuestControllerUnitTest {
     @Test
     public void testView() throws Exception {
         //given
-        String uri = "/" + list.get(0).getQuestId();
+        String uri = "/" + questList.get(0).getQuestId();
 
         //when
-        when(questService.getQuestInfo(any())).thenReturn(list.get(0));
+        when(questService.getQuestInfo(any())).thenReturn(questList.get(0));
 
         //then
         mvc.perform(get(URI_PREFIX + uri))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("quest", list.get(0)))
+                .andExpect(model().attribute("rewardList", new ArrayList<>()))
+                .andExpect(model().attribute("quest", questList.get(0)))
                 .andExpect(view().name("/quest/view"));
     }
 
@@ -159,25 +165,47 @@ class QuestControllerUnitTest {
 
     }
 
-    @DisplayName("퀘스트 삭제 요청")
+    @DisplayName("퀘스트 삭제 성공")
     @Test
-    public void testDelete() throws Exception {
+    public void testDeleteSuccess() throws Exception {
         //given
-        String uri = "/" + list.get(0).getQuestId();
+        String uri = "/" + questList.get(0).getQuestId();
 
         //when
+        doReturn(true)
+                .when(questService)
+                .deleteQuest(any(), any());
+
         //then
         mvc.perform(delete(URI_PREFIX + uri).with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/quests"));
+                .andExpect(redirectedUrl("/quests"))
+                .andExpect(model().attributeDoesNotExist("message"));
+    }
+
+    @DisplayName("퀘스트 삭제 실패")
+    @Test
+    public void testDeleteFail() throws Exception {
+        //given
+        String uri = "/" + questList.get(0).getQuestId();
+
+        //when
+        doReturn(false)
+                .when(questService)
+                .deleteQuest(any(), any());
+        //then
+        mvc.perform(delete(URI_PREFIX + uri).with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/quests*"))
+                .andExpect(model().attributeExists("message"));
     }
 
 
-    @DisplayName("퀘스트 수정 요청")
+    @DisplayName("퀘스트 수정 성공")
     @Test
-    public void testUpdate() throws Exception {
+    public void testUpdateSuccess() throws Exception {
         //given
-        Long questId = list.get(0).getQuestId();
+        Long questId = questList.get(0).getQuestId();
         String uri = "/" + questId;
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -190,9 +218,9 @@ class QuestControllerUnitTest {
 
         //when
 
-        doNothing()
+        doReturn(true)
                 .when(questService)
-                .updateQuest(any(QuestRequestDto.class), any());
+                .updateQuest(any(QuestRequestDto.class), any(), any());
 
         //then
         mvc.perform(
@@ -201,7 +229,40 @@ class QuestControllerUnitTest {
                         .params(map)
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/quests/" + questId));
+                .andExpect(redirectedUrl("/quests/" + questId))
+                .andExpect(model().attributeDoesNotExist("message"));
+    }
+
+    @DisplayName("퀘스트 수정 실패")
+    @Test
+    public void testUpdateFail() throws Exception {
+        //given
+        Long questId = questList.get(0).getQuestId();
+        String uri = "/" + questId;
+
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+        map.add("title", "save title");
+        map.add("description", "save description");
+        map.add("deadLineDate", "2022-11-11");
+        map.add("deadLineTime", "11:11");
+        map.add("repeat", "true");
+        map.add("reward", "reward1");
+
+        //when
+
+        doReturn(false)
+                .when(questService)
+                .updateQuest(any(QuestRequestDto.class), any(), any());
+
+        //then
+        mvc.perform(
+                put(URI_PREFIX + uri)
+                        .with(csrf())
+                        .params(map)
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/quests*"))
+                .andExpect(model().attributeExists("message"));
     }
 
 

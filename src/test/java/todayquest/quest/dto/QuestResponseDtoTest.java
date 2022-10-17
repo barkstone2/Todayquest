@@ -26,7 +26,6 @@ class QuestResponseDtoTest {
                 .state(QuestState.PROCEED)
                 .type(QuestType.DAILY)
                 .difficulty(QuestDifficulty.easy)
-                .rewards(new ArrayList<>())
                 .build();
 
         //when

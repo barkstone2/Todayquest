@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="/css/bootstrap.min.css"/>
     <style>
         .disable-style {
-            background-color: #e9ecef;
+            background-color: #e9ecef !important;
         }
     </style>
 </head>
@@ -14,7 +14,7 @@
     <div class="position-relative" style="max-width: 700px; min-width: 400px;">
         <form method="post" id="questForm" th:object="${quest}" th:action="@{|/quests/${quest.questId}|}">
             <h1>퀘스트 조회</h1>
-            <input type="hidden" name="_method" value="get"/>
+            <input type="hidden" name="_method" value="post"/>
             <div class="row mb-3">
                 <label th:for="difficulty" class="col-sm-2 col-form-label">난이도</label>
                 <div class="col-auto">
@@ -61,7 +61,6 @@
                                     th:id="|reward${reward.id}|"
                                     th:value="${reward.id}" th:text="${reward.name}">reward</option>
                         </select>
-                        <div id="rewardAddBtn" class="btn btn-light ms-1">신규 아이템 등록</div>
                     </div>
                 </div>
             </div>
@@ -97,6 +96,7 @@
 <script th:inline="javascript">
 
     document.addEventListener("DOMContentLoaded", function () {
+
         let difficultySelect = document.getElementById('difficulty');
 
         difficultySelect.addEventListener("change", function () {
@@ -151,6 +151,44 @@
 
     });
 
+
+    let inputData = new Array();
+    function restoreInputValue() {
+        let updateBtn = document.getElementById('updateBtn');
+        let inputs = document.getElementById('questForm').getElementsByClassName('form-item');
+
+        if (updateBtn.classList.contains('btn-on')) {
+
+            for (let i = 0; i < inputs.length; i++) {
+                let type = inputs[i].getAttribute('type');
+                let value = inputs[i].value;
+                if(type == 'checkbox') value = inputs[i].checked;
+                inputData.push(value);
+            }
+        } else {
+            for (let i = 0; i < inputs.length; i++) {
+                let type = inputs[i].getAttribute('type');
+                if(type == 'checkbox') {
+                    inputs[i].checked = inputData[i];
+                } else {
+                    inputs[i].value = inputData[i];
+                }
+            }
+
+            inputData = new Array();
+
+            let diff = document.getElementById('difficulty');
+            let exp = diff.options[diff.selectedIndex].getAttribute('data-exp');
+            let gold = diff.options[diff.selectedIndex].getAttribute('data-gold');
+            let rewardText = exp + ' Exp, ' + gold + ' Gold';
+
+            if(this.selectedIndex == 0) rewardText = '난이도를 선택하세요.';
+            document.getElementById('diffReward').innerText = rewardText;
+        }
+
+    }
+
+
     function toggleUpdateForm() {
 
         let deleteBtn = document.getElementById('deleteBtn');
@@ -162,9 +200,20 @@
         let rewardSelector = document.getElementById('rewardSelector');
         let rewards = document.getElementById('rewards');
 
+        let inputs = document.getElementById('questForm').getElementsByClassName('form-item');
+
+        for (let i = 0; i < inputs.length; i++) {
+            let type = inputs[i].getAttribute('type');
+            if(type == 'hidden') continue;
+
+            inputs[i].toggleAttribute('disabled');
+        }
+
         updateBtn.classList.toggle('btn-on');
         cancelBtn.classList.toggle('d-none');
         deleteBtn.classList.toggle('d-none');
+
+        restoreInputValue();
 
         rewardSelector.classList.toggle('visually-hidden');
 

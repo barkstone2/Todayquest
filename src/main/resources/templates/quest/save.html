@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="/css/bootstrap.min.css"/>
     <style>
         .disable-style {
-            background-color: #e9ecef;
+            background-color: #e9ecef !important;
         }
     </style>
 </head>
@@ -13,7 +13,7 @@
     <div class="position-relative" style="max-width: 700px; min-width: 400px;">
         <form method="post" th:object="${quest}" th:action="@{/quests/save}">
             <h1>퀘스트 등록</h1>
-            <input type="hidden" name="_method" value="get"/>
+            <input type="hidden" name="_method" value="post"/>
             <div class="row mb-3">
                 <label th:for="difficulty" class="col-sm-2 col-form-label">난이도</label>
                 <div class="col-auto">
@@ -53,7 +53,6 @@
                                     th:id="|reward${reward.id}|"
                                     th:value="${reward.id}" th:text="${reward.name}">reward</option>
                         </select>
-                        <div id="rewardAddBtn" class="btn btn-light ms-1">신규 아이템 등록</div>
                     </div>
                 </div>
             </div>

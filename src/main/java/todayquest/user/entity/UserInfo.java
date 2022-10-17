@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 public class UserInfo {
 
     @Id @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "userIdGenerator")
+    @Column(name = "user_id")
     private Long id;
 
     @Column(nullable = false)

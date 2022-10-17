@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.service.QuestService;
+import todayquest.reward.service.RewardService;
 import todayquest.user.dto.UserPrincipal;
 
 @Slf4j
@@ -18,6 +19,7 @@ import todayquest.user.dto.UserPrincipal;
 public class QuestController {
 
     private final QuestService questService;
+    private final RewardService rewardService;
 
     @GetMapping("")
     public String list(@AuthenticationPrincipal UserPrincipal principal, Model model) {
@@ -35,6 +37,7 @@ public class QuestController {
     public String saveForm(Model model, @AuthenticationPrincipal UserPrincipal principal) {
         model.addAttribute("quest", new QuestRequestDto());
         model.addAttribute("difficultyList", QuestDifficulty.getEnumListOfType(principal.getDifficultyType()));
+        model.addAttribute("rewardList", rewardService.getRewardList(principal));
         return "/quest/save";
     }
 
@@ -42,6 +45,7 @@ public class QuestController {
     public String view(@PathVariable("questId") Long questId, Model model, @AuthenticationPrincipal UserPrincipal principal) {
         model.addAttribute("quest", questService.getQuestInfo(questId));
         model.addAttribute("difficultyList", QuestDifficulty.getEnumListOfType(principal.getDifficultyType()));
+        model.addAttribute("rewardList", rewardService.getRewardList(principal));
         return "/quest/view";
     }
 

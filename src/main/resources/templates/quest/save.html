@@ -3,6 +3,11 @@
 <head>
     <title>퀘스트 등록</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <style>
+        .disable-style {
+            background-color: #e9ecef;
+        }
+    </style>
 </head>
 <body class="container">
     <div class="position-relative" style="max-width: 700px; min-width: 400px;">
@@ -23,7 +28,7 @@
             <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">보상</label>
                 <div class="col-auto">
-                    <div id="diffReward" style="background-color: #e9ecef" class="col-auto form-control" th:text="'난이도를 선택하세요.'"></div>
+                    <div id="diffReward" class="col-auto form-control disable-style" th:text="'난이도를 선택하세요.'"></div>
                 </div>
             </div>
             <div class="row mb-3">
@@ -39,15 +44,17 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label th:for="reward" class="col-sm-2 col-form-label align-items-center">커스텀 보상</label>
+                <label th:for="reward" class="col-sm-2 col-form-label align-items-center">보상 아이템</label>
                 <div class="col-sm-10">
-                    <div th:each="reward : ${quest.rewards}" class="reward-row d-flex mb-1" th:id="|rewardRow${rewardStat.count}|" th:data-id="${rewardStat.count}">
-                        <div class="w-75">
-                            <input class="form-item reward-item form-control" type="text" th:id="|reward${rewardStat.count}|" th:name="rewards" th:value="${reward}">
-                        </div>
-                        <div class="reward-delete btn btn-secondary visually-hidden ms-1" th:data-id="${rewardStat.count}">삭제</div>
+                    <div class="d-flex mb-1" id="rewardSelector">
+                        <select class="form-item form-select w-75" id="rewards">
+                            <option value="">==보상 아이템 선택==</option>
+                            <option th:each="reward : ${rewardList}"
+                                    th:id="|reward${reward.id}|"
+                                    th:value="${reward.id}" th:text="${reward.name}">reward</option>
+                        </select>
+                        <div id="rewardAddBtn" class="btn btn-light ms-1">신규 아이템 등록</div>
                     </div>
-                    <div id="rewardAddBtn" class="btn btn-light">추가</div>
                 </div>
             </div>
             <div class="row mb-3">
@@ -91,28 +98,43 @@
             document.getElementById('diffReward').innerText = rewardText;
         });
 
-        let rewardAddBtn = document.getElementById('rewardAddBtn');
-        rewardAddBtn.addEventListener('click', function () {
+        let rewards = document.getElementById('rewards');
+        rewards.addEventListener('change', function () {
+            let rewardSelector = document.getElementById('rewardSelector');
+
+            let selectedText = rewards.selectedOptions[0].text;
+            let selectedId = rewards.selectedOptions[0].id;
+            let selectedValue = rewards.selectedOptions[0].value;
+
+            if(!selectedId) return;
 
             let tempRowHtml = document.createElement('div');
             tempRowHtml.className = 'reward-row d-flex mb-1 temp-row';
             tempRowHtml.innerHTML
                 = '<div class="w-75">'
-                +     '<input class="form-item reward-item form-control" type="text" name="rewards">'
+                +     '<input type="hidden" name="rewards" id="'+selectedId+'" value="'+selectedValue+'">'
+                +     '<span class="form-control disable-style">'+selectedText+'</span>'
                 + '</div>'
-                + '<div class="reward-delete btn btn-secondary ms-1" onclick="deleteTempRewardRow(this)">삭제</div>';
+                + '<div class="reward-delete btn btn-secondary ms-1" onclick="deleteRewardRow(this)">삭제</div>';
 
-            rewardAddBtn.before(tempRowHtml);
+            rewardSelector.before(tempRowHtml);
+
+            rewards.selectedOptions[0].classList.add('d-none');
+            rewards.selectedIndex = 0;
+
             let rewardRowCount = document.getElementsByClassName('reward-row').length;
-            if(rewardRowCount == 5) rewardAddBtn.classList.add('visually-hidden');
+            if(rewardRowCount == 5) rewards.setAttribute('disabled', '');
         });
 
     });
 
-    function deleteTempRewardRow(t) {
+    function deleteRewardRow(t) {
+        let listElId = t.previousElementSibling.children[0].id;
         t.parentElement.remove();
-        let rewardAddBtn = document.getElementById('rewardAddBtn');
-        rewardAddBtn.classList.remove('visually-hidden');
+        document.getElementById(listElId).classList.remove('d-none');
+
+        let rewards = document.getElementById('rewards');
+        rewards.removeAttribute('disabled');
     }
 </script>
 </html>

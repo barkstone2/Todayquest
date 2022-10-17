@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.entity.*;
+import todayquest.reward.entity.Reward;
+import todayquest.reward.repository.RewardRepository;
 import todayquest.user.entity.DifficultyType;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
@@ -28,12 +30,19 @@ class QuestRepositoryTest {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    RewardRepository rewardRepository;
+
+    @Autowired
+    QuestRewardRepository questRewardRepository;
+
     UserInfo userInfo;
 
     @BeforeEach
     void init() {
         userInfo = UserInfo.builder()
-                .nickname("nickname").providerType(ProviderType.GOOGLE)
+                .nickname("nickname")
+                .providerType(ProviderType.GOOGLE)
                 .difficultyType(DifficultyType.difficulty)
                 .oauth2Id("oauth2id").build();
         userRepository.save(userInfo);
@@ -52,7 +61,6 @@ class QuestRepositoryTest {
                 .isRepeat(true)
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
-                .rewards(new ArrayList<>())
                 .user(userInfo)
                 .build();
 
@@ -65,7 +73,6 @@ class QuestRepositoryTest {
                 .isRepeat(true)
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
-                .rewards(new ArrayList<>())
                 .user(userInfo)
                 .build();
 
@@ -78,7 +85,6 @@ class QuestRepositoryTest {
                 .isRepeat(true)
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
-                .rewards(new ArrayList<>())
                 .user(userInfo)
                 .build();
 
@@ -107,19 +113,29 @@ class QuestRepositoryTest {
                 .isRepeat(true)
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
-                .rewards(new ArrayList<>())
                 .user(userInfo)
                 .build();
 
-        QuestReward reward1 = QuestReward.builder().reward("1").build();
-        QuestReward reward2 = QuestReward.builder().reward("2").build();
-        QuestReward reward3 = QuestReward.builder().reward("3").build();
-
-        quest1.getRewards().add(reward1);
-        quest1.getRewards().add(reward2);
-        quest1.getRewards().add(reward3);
-
         questRepository.save(quest1);
+
+        Reward reward1 = Reward.builder().name("1").build();
+        Reward reward2 = Reward.builder().name("2").build();
+        Reward reward3 = Reward.builder().name("3").build();
+
+        List<Reward> rewards = new ArrayList<>();
+        rewards.add(reward1);
+        rewards.add(reward2);
+        rewards.add(reward3);
+
+        rewardRepository.saveAll(rewards);
+
+        QuestReward qr1 = QuestReward.builder().quest(quest1).reward(reward1).build();
+        QuestReward qr2 = QuestReward.builder().quest(quest1).reward(reward2).build();
+        QuestReward qr3 = QuestReward.builder().quest(quest1).reward(reward3).build();
+
+        questRewardRepository.save(qr1);
+        questRewardRepository.save(qr2);
+        questRewardRepository.save(qr3);
 
         Quest findQuest = questRepository.getById(quest1.getId());
 
@@ -130,15 +146,16 @@ class QuestRepositoryTest {
                 .deadLineDate(LocalDate.of(1111, 11, 11))
                 .deadLineTime(LocalTime.of(11, 11))
                 .difficulty(QuestDifficulty.easy)
-                .rewards(List.of("reward1", "reward2"))
                 .build();
 
+        rewards.remove(2);
+
         //when
-        findQuest.updateQuestEntity(dto);
+        findQuest.updateQuestEntity(dto, rewards);
 
         //then
-        assertThat(findQuest.getRewards().get(0).getReward()).isEqualTo("reward1");
-        assertThat(findQuest.getRewards().get(0).getId()).isEqualTo(reward1.getId());
+        assertThat(findQuest.getRewards().get(0).getReward().getName()).isEqualTo("1");
+        assertThat(findQuest.getRewards().get(0).getReward().getId()).isEqualTo(reward1.getId());
         assertThat(findQuest.getRewards().size()).isEqualTo(2);
     }
 
@@ -155,15 +172,20 @@ class QuestRepositoryTest {
                 .isRepeat(true)
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
-                .rewards(new ArrayList<>())
                 .user(userInfo)
                 .build();
 
-        QuestReward reward1 = QuestReward.builder().reward("1").build();
-        QuestReward reward2 = QuestReward.builder().reward("2").build();
+        List<Reward> rewards = new ArrayList<>();
+        Reward reward1 = Reward.builder().name("1").build();
+        Reward reward2 = Reward.builder().name("2").build();
+        Reward reward3 = Reward.builder().name("3").build();
+        rewards.add(reward1);
+        rewards.add(reward2);
+        rewards.add(reward3);
 
-        quest1.getRewards().add(reward1);
-        quest1.getRewards().add(reward2);
+        rewardRepository.saveAll(rewards);
+
+        questRewardRepository.save(QuestReward.builder().reward(reward1).quest(quest1).build());
 
         questRepository.save(quest1);
 
@@ -176,18 +198,17 @@ class QuestRepositoryTest {
                 .deadLineDate(LocalDate.of(1111, 11, 11))
                 .deadLineTime(LocalTime.of(11, 11))
                 .difficulty(QuestDifficulty.easy)
-                .rewards(List.of("reward1", "reward2", "reward3", "reward4"))
                 .build();
 
+
         //when
-        findQuest.updateQuestEntity(dto);
+        findQuest.updateQuestEntity(dto, rewards);
         questRepository.flush();
 
         //then
-        assertThat(findQuest.getRewards().size()).isEqualTo(4);
-        assertThat(findQuest.getRewards().get(0).getId()).isEqualTo(reward1.getId());
-        assertThat(findQuest.getRewards().get(3).getReward()).isEqualTo("reward4");
-        assertThat(findQuest.getRewards().get(3).getId()).isNotNull();
+        assertThat(findQuest.getRewards().size()).isEqualTo(3);
+        assertThat(findQuest.getRewards().get(0).getReward().getId()).isEqualTo(reward1.getId());
+        assertThat(findQuest.getRewards().get(2).getReward().getName()).isEqualTo("3");
     }
 
 

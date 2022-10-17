@@ -51,14 +51,22 @@ public class QuestService {
         questRewardRepository.saveAll(collect);
     }
 
-    public void updateQuest(QuestRequestDto dto, Long questId) {
+    public boolean updateQuest(QuestRequestDto dto, Long questId, Long userId) {
         Quest findQuest = questRepository.getById(questId);
-        List<Reward> updateRewards = rewardRepository.findAllById(dto.getRewards());
-
-        findQuest.updateQuestEntity(dto, updateRewards);
+        if (findQuest.getUser().getId().equals(userId)) {
+            List<Reward> updateRewards = rewardRepository.findAllById(dto.getRewards());
+            findQuest.updateQuestEntity(dto, updateRewards);
+            return true;
+        }
+        return false;
     }
 
-    public void deleteQuest(Long questId) {
-        questRepository.deleteById(questId);
+    public boolean deleteQuest(Long questId, Long userId) {
+        Quest findQuest = questRepository.getById(questId);
+        if (findQuest.getUser().getId().equals(userId)) {
+            questRepository.deleteById(questId);
+            return true;
+        }
+        return false;
     }
 }

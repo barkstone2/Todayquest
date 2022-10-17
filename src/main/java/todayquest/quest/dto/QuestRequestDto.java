@@ -5,15 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.util.StringUtils;
-import todayquest.quest.entity.*;
+import todayquest.quest.entity.Quest;
+import todayquest.quest.entity.QuestDifficulty;
+import todayquest.quest.entity.QuestState;
+import todayquest.quest.entity.QuestType;
 import todayquest.user.entity.UserInfo;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Data
@@ -28,7 +29,7 @@ public class QuestRequestDto {
     @DateTimeFormat(pattern = "HH:mm")
     private LocalTime deadLineTime;
     private QuestDifficulty difficulty;
-    private List<String> rewards = new ArrayList<>();
+    private List<Long> rewards = new ArrayList<>();
 
     public Quest mapToEntity(UserInfo userInfo) {
         return Quest.builder()
@@ -41,12 +42,11 @@ public class QuestRequestDto {
                 .type(QuestType.DAILY)
                 .state(QuestState.PROCEED)
                 .difficulty(getDifficulty())
-                .rewards(getRewardEntityList())
                 .build();
     }
 
     @Builder
-    public QuestRequestDto(String title, String description, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime, QuestDifficulty difficulty, List<String> rewards) {
+    public QuestRequestDto(String title, String description, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime, QuestDifficulty difficulty, List<Long> rewards) {
         Assert.hasText(title, "title must not be empty");
         Assert.notNull(isRepeat, "isRepeat must not be null");
         Assert.notNull(deadLineDate, "deadLineDate must not be null");
@@ -60,11 +60,5 @@ public class QuestRequestDto {
         this.difficulty = difficulty;
         this.rewards = rewards;
     }
-
-    public List<QuestReward> getRewardEntityList() {
-        return getRewards().stream().filter(StringUtils::hasText).map(s -> QuestReward.builder().reward(s).build()).collect(Collectors.toList());
-    }
-
-
 
 }

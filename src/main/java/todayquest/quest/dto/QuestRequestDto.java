@@ -51,6 +51,7 @@ public class QuestRequestDto {
         Assert.notNull(isRepeat, "isRepeat must not be null");
         Assert.notNull(deadLineDate, "deadLineDate must not be null");
         Assert.notNull(difficulty, "difficulty must not be null");
+        if(rewards != null) Assert.isFalse(rewards.size() > 5, "rewards size must not exceed 5");
 
         this.title = title;
         this.description = description;

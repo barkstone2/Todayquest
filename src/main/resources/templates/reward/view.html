@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>아이템 정보</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+</head>
+<body>
+<div class="container">
+    <div class="position-relative" style="max-width: 700px; min-width: 400px;">
+        <form method="post" id="rewardForm" th:object="${reward}" th:action="@{|/rewards/${reward.id}|}">
+            <h1>아이템 정보</h1>
+            <input type="hidden" name="_method" value="post"/>
+            <div class="row mb-3">
+                <label th:for="name" class="col-sm-2 col-form-label">제목</label>
+                <div class="col-sm-10">
+                    <input class="form-item form-control" type="text" th:field="*{name}" disabled>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label th:for="description" class="col-sm-2 col-form-label">설명</label>
+                <div class="col-sm-10">
+                    <textarea style="resize: none" class="form-item form-control" type="text" rows="3" th:field="*{description}" disabled></textarea>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label th:for="grade" class="col-sm-2 col-form-label">등급</label>
+                <div class="col-auto">
+                    <select th:field="*{grade}" class="form-item form-select" disabled>
+                        <option value="">==등급 선택==</option>
+                        <option th:each="g : ${gradeList}"
+                                th:value="${g.name()}" th:text="${g.getText()}"
+                                th:data-color="${g.color}">등급</option>
+                    </select>
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary mb-2" id="updateBtn" onclick="toggleUpdateForm()">수정</button>
+            <button type="button" class="btn btn-secondary mb-2 d-none" id="cancelBtn" onclick="toggleUpdateForm()">취소</button>
+            <button type="button" class="btn btn-danger mb-2" id="deleteBtn" onclick="submitForm('DELETE');">삭제</button>
+            <a class="btn btn-success mb-2" id="listBtn" href="/rewards">목록</a>
+        </form>
+    </div>
+</div>
+</body>
+<script th:inline="javascript">
+
+    let inputData = new Array();
+    function restoreInputValue() {
+        let updateBtn = document.getElementById('updateBtn');
+        let inputs = document.getElementById('rewardForm').getElementsByClassName('form-item');
+
+        if (updateBtn.classList.contains('btn-on')) {
+
+            for (let i = 0; i < inputs.length; i++) {
+                let type = inputs[i].getAttribute('type');
+                let value = inputs[i].value;
+                if(type == 'checkbox') value = inputs[i].checked;
+                inputData.push(value);
+            }
+        } else {
+            for (let i = 0; i < inputs.length; i++) {
+                let type = inputs[i].getAttribute('type');
+                if(type == 'checkbox') {
+                    inputs[i].checked = inputData[i];
+                } else {
+                    inputs[i].value = inputData[i];
+                }
+            }
+
+            inputData = new Array();
+        }
+    }
+
+    function toggleUpdateForm() {
+
+        let deleteBtn = document.getElementById('deleteBtn');
+        let cancelBtn = document.getElementById('cancelBtn');
+        let updateBtn = document.getElementById('updateBtn');
+
+        updateBtn.classList.toggle('btn-on');
+        cancelBtn.classList.toggle('d-none');
+        deleteBtn.classList.toggle('d-none');
+
+        restoreInputValue();
+
+        let inputs = document.getElementById('rewardForm').getElementsByClassName('form-item');
+
+        for (let i = 0; i < inputs.length; i++) {
+            let type = inputs[i].getAttribute('type');
+            if(type == 'hidden') continue;
+
+            inputs[i].toggleAttribute('disabled');
+        }
+
+        if (updateBtn.classList.contains('btn-on')) {
+            updateBtn.innerText = '저장';
+            updateBtn.setAttribute('onclick', `submitForm('PUT')`);
+
+        } else {
+            updateBtn.innerText = '수정';
+            updateBtn.setAttribute('onclick', `toggleUpdateForm()`);
+        }
+    }
+
+    function submitForm(method) {
+        console.log('test');
+        let form = document.getElementById('rewardForm');
+        let methodInput = document.getElementsByName('_method')[0];
+        methodInput.setAttribute('value', method);
+
+        if (method == 'DELETE') {
+            if (!confirm('삭제 시 복구가 불가능 합니다.\n정말 삭제 하시겠습니까?')) {
+                return;
+            }
+        }
+
+        form.submit();
+    }
+
+</script>
+</html>

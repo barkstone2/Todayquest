@@ -87,7 +87,6 @@ public class Quest {
         Assert.notNull(state, "state must not be null");
         Assert.notNull(type, "type must not be null");
         Assert.notNull(difficulty, "difficulty must not be null");
-        Assert.isFalse(rewards.size() > 5, "rewards size must not exceed 5");
 
         this.title = title;
         this.description = description;

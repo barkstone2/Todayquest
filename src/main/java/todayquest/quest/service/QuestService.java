@@ -3,6 +3,7 @@ package todayquest.quest.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import todayquest.common.MessageUtil;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
 import todayquest.quest.entity.Quest;
@@ -11,11 +12,11 @@ import todayquest.quest.repository.QuestRepository;
 import todayquest.quest.repository.QuestRewardRepository;
 import todayquest.reward.entity.Reward;
 import todayquest.reward.repository.RewardRepository;
-import todayquest.user.dto.UserPrincipal;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -27,7 +28,6 @@ public class QuestService {
     private final UserRepository userRepository;
     private final RewardRepository rewardRepository;
     private final QuestRewardRepository questRewardRepository;
-
 
     public List<QuestResponseDto> getQuestList(Long userId) {
         return questRepository.getQuestsByUserOrderByDeadLineDateAscDeadLineTimeAsc(UserInfo.builder().id(userId).build())
@@ -41,32 +41,35 @@ public class QuestService {
     }
 
     public void saveQuest(QuestRequestDto dto, Long userId) {
-        UserInfo findId = userRepository.getById(userId);
-        Quest savedQuest = questRepository.save(dto.mapToEntity(findId));
+        Optional<UserInfo> findUser = userRepository.findById(userId);
+        Quest savedQuest = questRepository.save(dto.mapToEntity(findUser.orElseThrow(() -> new IllegalStateException(MessageUtil.getMessage("exception.login.expire")))));
 
-        List<Reward> rewards = rewardRepository.findAllById(dto.getRewards());
+        List<Reward> rewards = rewardRepository.findAllByIdAndUserId(dto.getRewards(), userId);
         List<QuestReward> collect = rewards.stream()
                 .map(r -> QuestReward.builder().reward(r).quest(savedQuest).build())
                 .collect(Collectors.toList());
         questRewardRepository.saveAll(collect);
     }
 
-    public boolean updateQuest(QuestRequestDto dto, Long questId, Long userId) {
-        Quest findQuest = questRepository.getById(questId);
-        if (findQuest.getUser().getId().equals(userId)) {
+    public void updateQuest(QuestRequestDto dto, Long questId, Long userId) {
+        Optional<Quest> findQuest = questRepository.findById(questId);
+        Quest quest = findQuest.orElseThrow(() -> new IllegalStateException(MessageUtil.getMessage("exception.login.expire")));
+
+        if (quest.getUser().getId().equals(userId)) {
             List<Reward> updateRewards = rewardRepository.findAllById(dto.getRewards());
-            findQuest.updateQuestEntity(dto, updateRewards);
-            return true;
+            quest.updateQuestEntity(dto, updateRewards);
+        } else {
+            throw new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest")));
         }
-        return false;
     }
 
-    public boolean deleteQuest(Long questId, Long userId) {
-        Quest findQuest = questRepository.getById(questId);
-        if (findQuest.getUser().getId().equals(userId)) {
+    public void deleteQuest(Long questId, Long userId) {
+        Optional<Quest> findQuest = questRepository.findById(questId);
+        Quest quest = findQuest.orElseThrow(() -> new IllegalStateException(MessageUtil.getMessage("exception.login.expire")));
+        if (quest.getUser().getId().equals(userId)) {
             questRepository.deleteById(questId);
-            return true;
+        } else {
+            throw new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest")));
         }
-        return false;
     }
 }

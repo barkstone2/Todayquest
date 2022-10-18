@@ -3,34 +3,43 @@
 <head>
     <title>아이템 정보</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <style>
+        .field-error {
+            border-color: #dc3545; !important;
+            color: #dc3545; !important;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
     <div class="position-relative" style="max-width: 700px; min-width: 400px;">
-        <form method="post" id="rewardForm" th:object="${reward}" th:action="@{|/rewards/${reward.id}|}">
+        <form method="post" id="rewardForm" th:object="${rewardItem}" th:action="@{|/rewards/${rewardId}|}">
             <h1>아이템 정보</h1>
             <input type="hidden" name="_method" value="post"/>
             <div class="row mb-3">
                 <label th:for="name" class="col-sm-2 col-form-label">제목</label>
                 <div class="col-sm-10">
-                    <input class="form-item form-control" type="text" th:field="*{name}" disabled>
+                    <input class="form-item form-control" type="text" th:field="*{name}" th:errorclass="field-error" disabled>
+                    <div th:errorclass="field-error" th:errors="*{name}"></div>
                 </div>
             </div>
             <div class="row mb-3">
                 <label th:for="description" class="col-sm-2 col-form-label">설명</label>
                 <div class="col-sm-10">
-                    <textarea style="resize: none" class="form-item form-control" type="text" rows="3" th:field="*{description}" disabled></textarea>
+                    <textarea style="resize: none" class="form-item form-control" type="text" rows="3" th:field="*{description}" th:errorclass="field-error" disabled></textarea>
+                    <div th:errorclass="field-error" th:errors="*{description}"></div>
                 </div>
             </div>
             <div class="row mb-3">
                 <label th:for="grade" class="col-sm-2 col-form-label">등급</label>
                 <div class="col-auto">
-                    <select th:field="*{grade}" class="form-item form-select" disabled>
+                    <select th:field="*{grade}" class="form-item form-select" th:errorclass="field-error" disabled>
                         <option value="">==등급 선택==</option>
                         <option th:each="g : ${gradeList}"
                                 th:value="${g.name()}" th:text="${g.getText()}"
                                 th:data-color="${g.color}">등급</option>
                     </select>
+                    <div th:errorclass="field-error" th:errors="*{grade}"></div>
                 </div>
             </div>
             <button type="button" class="btn btn-primary mb-2" id="updateBtn" onclick="toggleUpdateForm()">수정</button>
@@ -42,6 +51,7 @@
 </div>
 </body>
 <script th:inline="javascript">
+
 
     let inputData = new Array();
     function restoreInputValue() {
@@ -114,6 +124,10 @@
         }
 
         form.submit();
+    }
+
+    if([[${hasError}]]) {
+        toggleUpdateForm();
     }
 
 </script>

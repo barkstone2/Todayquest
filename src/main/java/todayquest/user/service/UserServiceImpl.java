@@ -13,7 +13,6 @@ import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 
-import javax.annotation.PostConstruct;
 import java.util.Map;
 import java.util.Random;
 

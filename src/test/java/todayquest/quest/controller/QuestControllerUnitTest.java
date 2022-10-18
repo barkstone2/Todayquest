@@ -19,13 +19,10 @@ import todayquest.annotation.WithCustomMockUser;
 import todayquest.config.SecurityConfig;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
-import todayquest.quest.entity.Quest;
 import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.entity.QuestState;
 import todayquest.quest.service.QuestService;
-import todayquest.reward.dto.RewardResponseDto;
 import todayquest.reward.service.RewardService;
-import todayquest.user.entity.UserInfo;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -39,6 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
+@DisplayName("퀘스트 컨트롤러 유닛 테스트")
 @WithCustomMockUser
 @WebMvcTest(controllers = QuestController.class,
 excludeFilters = @ComponentScan.Filter(
@@ -141,18 +139,11 @@ class QuestControllerUnitTest {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("title", "save title");
         map.add("description", "save description");
-        map.add("deadLineDate", "2022-11-11");
-        map.add("deadLineTime", "11:11");
         map.add("repeat", "true");
-        map.add("reward", "reward1");
-        map.add("reward", "reward2");
-        map.add("reward", "reward3");
+        map.add("difficulty", QuestDifficulty.easy.name());
+
 
         //when
-        doNothing()
-                .when(questService)
-                .saveQuest(any(QuestRequestDto.class), any());
-
         //then
         mvc.perform(
                     post(URI_PREFIX + uri)
@@ -161,45 +152,23 @@ class QuestControllerUnitTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/quests"));
+                .andExpect(redirectedUrlPattern("/quests*"));
 
     }
 
-    @DisplayName("퀘스트 삭제 성공")
+    @DisplayName("퀘스트 삭제 테스트")
     @Test
     public void testDeleteSuccess() throws Exception {
         //given
         String uri = "/" + questList.get(0).getQuestId();
 
         //when
-        doReturn(true)
-                .when(questService)
-                .deleteQuest(any(), any());
-
         //then
         mvc.perform(delete(URI_PREFIX + uri).with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/quests"))
-                .andExpect(model().attributeDoesNotExist("message"));
+                .andExpect(model().attributeDoesNotExist("hasError"));
     }
-
-    @DisplayName("퀘스트 삭제 실패")
-    @Test
-    public void testDeleteFail() throws Exception {
-        //given
-        String uri = "/" + questList.get(0).getQuestId();
-
-        //when
-        doReturn(false)
-                .when(questService)
-                .deleteQuest(any(), any());
-        //then
-        mvc.perform(delete(URI_PREFIX + uri).with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/quests*"))
-                .andExpect(model().attributeExists("message"));
-    }
-
 
     @DisplayName("퀘스트 수정 성공")
     @Test
@@ -211,17 +180,10 @@ class QuestControllerUnitTest {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("title", "save title");
         map.add("description", "save description");
-        map.add("deadLineDate", "2022-11-11");
-        map.add("deadLineTime", "11:11");
         map.add("repeat", "true");
-        map.add("reward", "reward1");
+        map.add("difficulty", QuestDifficulty.easy.name());
 
         //when
-
-        doReturn(true)
-                .when(questService)
-                .updateQuest(any(QuestRequestDto.class), any(), any());
-
         //then
         mvc.perform(
                 put(URI_PREFIX + uri)
@@ -230,7 +192,7 @@ class QuestControllerUnitTest {
                 )
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/quests/" + questId))
-                .andExpect(model().attributeDoesNotExist("message"));
+                .andExpect(model().attributeDoesNotExist("hasError"));
     }
 
     @DisplayName("퀘스트 수정 실패")
@@ -241,28 +203,21 @@ class QuestControllerUnitTest {
         String uri = "/" + questId;
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("title", "save title");
+        map.add("title", "");
         map.add("description", "save description");
-        map.add("deadLineDate", "2022-11-11");
-        map.add("deadLineTime", "11:11");
         map.add("repeat", "true");
-        map.add("reward", "reward1");
+        map.add("difficulty", QuestDifficulty.easy.name());
 
         //when
-
-        doReturn(false)
-                .when(questService)
-                .updateQuest(any(QuestRequestDto.class), any(), any());
-
         //then
         mvc.perform(
                 put(URI_PREFIX + uri)
                         .with(csrf())
                         .params(map)
                 )
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/quests*"))
-                .andExpect(model().attributeExists("message"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("/quest/view"))
+                .andExpect(model().attributeExists("hasError"));
     }
 
 

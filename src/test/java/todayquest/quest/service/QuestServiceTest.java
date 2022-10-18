@@ -7,6 +7,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
+import org.springframework.security.access.AccessDeniedException;
+import todayquest.common.MessageUtil;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
 import todayquest.quest.entity.Quest;
@@ -24,11 +27,13 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@DisplayName("퀘스트 서비스 유닛 테스트")
 @ExtendWith(MockitoExtension.class)
 class QuestServiceTest {
 
@@ -47,7 +52,13 @@ class QuestServiceTest {
     @Mock
     QuestRewardRepository questRewardRepository;
 
-    @DisplayName("퀘스트 목록 테스트")
+    @InjectMocks
+    MessageUtil messageUtil;
+
+    @Mock
+    MessageSource messageSource;
+
+    @DisplayName("퀘스트 목록 테스트_반환값 있을때")
     @Test
     public void testGetList() throws Exception {
         //given
@@ -72,30 +83,19 @@ class QuestServiceTest {
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0).getTitle()).isEqualTo("test");
     }
-
-    @DisplayName("퀘스트 상세보기 테스트")
+    @DisplayName("퀘스트 목록 테스트_반환값 없을때")
     @Test
-    public void testGetQuestInfo() throws Exception {
+    public void testGetListReturnNone() throws Exception {
         //given
-        Long questId = 1L;
-        Quest entity = Quest.builder()
-                .title("test")
-                .description("test")
-                .state(QuestState.PROCEED)
-                .type(QuestType.DAILY)
-                .difficulty(QuestDifficulty.easy)
-                .isRepeat(true)
-                .deadLineDate(LocalDate.now())
-                .user(UserInfo.builder().build())
-                .build();
+        Long userId = 1L;
+        List<Quest> entityList = List.of();
 
         //when
-        when(questRepository.getById(any())).thenReturn(entity);
+        when(questRepository.getQuestsByUserOrderByDeadLineDateAscDeadLineTimeAsc(any())).thenReturn(entityList);
 
         //then
-        QuestResponseDto result = questService.getQuestInfo(questId);
-        assertThat(result).isNotNull();
-        assertThat(result.getTitle()).isEqualTo("test");
+        List<QuestResponseDto> result = questService.getQuestList(userId);
+        assertThat(result.size()).isEqualTo(0);
     }
 
     @DisplayName("퀘스트 저장 테스트")
@@ -114,7 +114,7 @@ class QuestServiceTest {
 
         //when
         when(userRepository.getById(any())).thenReturn(UserInfo.builder().build());
-        when(questRewardRepository.saveAll(any())).thenReturn(null);
+        when(questRepository.save(any())).thenReturn(Quest.builder().build());
         //then
         questService.saveQuest(dto, 1L);
     }
@@ -134,7 +134,7 @@ class QuestServiceTest {
                 .build();
 
         //when
-        when(questRepository.getById(any())).thenReturn(entity);
+        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(entity));
         when(rewardRepository.findAllById(any())).thenReturn(new ArrayList<>());
 
         //then
@@ -147,8 +147,7 @@ class QuestServiceTest {
                 .deadLineTime(LocalTime.now())
                 .build();
 
-        boolean isUpdated = questService.updateQuest(dto, 1L, 1L);
-        assertThat(isUpdated).isTrue();
+        assertThatNoException().isThrownBy(() -> questService.updateQuest(dto, 1L, 1L));
     }
 
     @DisplayName("다른 유저의 퀘스트 업데이트 테스트")
@@ -167,7 +166,7 @@ class QuestServiceTest {
                 .build();
 
         //when
-        when(questRepository.getById(any())).thenReturn(entity);
+        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(entity));
 
         //then
         QuestRequestDto dto = QuestRequestDto.builder()
@@ -179,8 +178,7 @@ class QuestServiceTest {
                 .deadLineTime(LocalTime.now())
                 .build();
 
-        boolean isUpdated = questService.updateQuest(dto, 1L, 2L);
-        assertThat(isUpdated).isFalse();
+        assertThatThrownBy(() ->questService.updateQuest(dto, 1L, 2L)).isInstanceOf(AccessDeniedException.class);
     }
 
 
@@ -202,11 +200,10 @@ class QuestServiceTest {
 
 
         //when
-        when(questRepository.getById(any())).thenReturn(entity);
+        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(entity));
 
         //then
-        boolean isDeleted = questService.deleteQuest(questId, 1L);
-        assertThat(isDeleted).isTrue();
+        assertThatNoException().isThrownBy(() -> questService.deleteQuest(questId, 1L));
     }
 
     @DisplayName("다른 유저의 퀘스트 삭제 테스트")
@@ -227,11 +224,10 @@ class QuestServiceTest {
 
 
         //when
-        when(questRepository.getById(any())).thenReturn(entity);
+        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(entity));
 
         //then
-        boolean isDeleted = questService.deleteQuest(questId, 2L);
-        assertThat(isDeleted).isFalse();
+        assertThatThrownBy(() -> questService.deleteQuest(questId, 2L)).isInstanceOf(AccessDeniedException.class);
     }
 
 }

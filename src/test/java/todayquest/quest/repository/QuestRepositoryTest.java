@@ -21,6 +21,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("퀘스트 리포지토리 유닛 테스트")
 @DataJpaTest
 class QuestRepositoryTest {
 

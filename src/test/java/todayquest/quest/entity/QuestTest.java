@@ -13,6 +13,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("퀘스트 엔티티 유닛 테스트")
 class QuestTest {
 
     @DisplayName("클리어 보상 목록 길이 감소 테스트")

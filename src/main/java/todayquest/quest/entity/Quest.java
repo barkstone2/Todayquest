@@ -80,14 +80,6 @@ public class Quest {
     public Quest(String title, String description, UserInfo user, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime,
                  QuestState state, QuestType type, QuestDifficulty difficulty) {
 
-        Assert.hasText(title, "title must not be empty");
-        Assert.notNull(isRepeat, "isRepeat must not be null");
-        Assert.notNull(deadLineDate, "deadLineDate must not be null");
-        Assert.notNull(user, "user must not be null");
-        Assert.notNull(state, "state must not be null");
-        Assert.notNull(type, "type must not be null");
-        Assert.notNull(difficulty, "difficulty must not be null");
-
         this.title = title;
         this.description = description;
         this.user = user;

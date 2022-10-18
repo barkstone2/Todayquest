@@ -1,6 +1,7 @@
 package todayquest.quest.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.common.MessageUtil;
@@ -40,36 +41,38 @@ public class QuestService {
         return QuestResponseDto.createDto(questRepository.getById(questId));
     }
 
-    public void saveQuest(QuestRequestDto dto, Long userId) {
-        Optional<UserInfo> findUser = userRepository.findById(userId);
-        Quest savedQuest = questRepository.save(dto.mapToEntity(findUser.orElseThrow(() -> new IllegalStateException(MessageUtil.getMessage("exception.login.expire")))));
+    public Long saveQuest(QuestRequestDto dto, Long userId) {
+        UserInfo findUser = userRepository.getById(userId);
+        Quest savedQuest = questRepository.save(dto.mapToEntity(findUser));
 
         List<Reward> rewards = rewardRepository.findAllByIdAndUserId(dto.getRewards(), userId);
         List<QuestReward> collect = rewards.stream()
                 .map(r -> QuestReward.builder().reward(r).quest(savedQuest).build())
                 .collect(Collectors.toList());
         questRewardRepository.saveAll(collect);
+
+        return savedQuest.getId();
     }
 
     public void updateQuest(QuestRequestDto dto, Long questId, Long userId) {
         Optional<Quest> findQuest = questRepository.findById(questId);
-        Quest quest = findQuest.orElseThrow(() -> new IllegalStateException(MessageUtil.getMessage("exception.login.expire")));
+        Quest quest = findQuest.orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))));
 
         if (quest.getUser().getId().equals(userId)) {
             List<Reward> updateRewards = rewardRepository.findAllById(dto.getRewards());
             quest.updateQuestEntity(dto, updateRewards);
         } else {
-            throw new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest")));
+            throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("quest")));
         }
     }
 
     public void deleteQuest(Long questId, Long userId) {
         Optional<Quest> findQuest = questRepository.findById(questId);
-        Quest quest = findQuest.orElseThrow(() -> new IllegalStateException(MessageUtil.getMessage("exception.login.expire")));
+        Quest quest = findQuest.orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))));
         if (quest.getUser().getId().equals(userId)) {
             questRepository.deleteById(questId);
         } else {
-            throw new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest")));
+            throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("quest")));
         }
     }
 }

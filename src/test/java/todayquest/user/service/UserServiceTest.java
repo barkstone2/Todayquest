@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType.BEARER;
 
+@DisplayName("유저 서비스 유닛 테스트")
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 

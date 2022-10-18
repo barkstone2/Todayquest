@@ -43,13 +43,13 @@ public class RewardController {
 
 
     @PostMapping("/save")
-    public String save(@Valid @ModelAttribute("rewardItem") RewardRequestDto dto, BindingResult bindingResult, @AuthenticationPrincipal UserPrincipal principal, Model model) {
+    public String save(@Valid @ModelAttribute("rewardItem") RewardRequestDto dto, BindingResult bindingResult, @AuthenticationPrincipal UserPrincipal principal, Model model, RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("gradeList", RewardGrade.getEnumList());
             return "/reward/save";
         }
 
-        rewardService.saveReward(dto, principal.getUserId());
+        redirectAttributes.addAttribute("savedId", rewardService.saveReward(dto, principal.getUserId()));
         return "redirect:/rewards";
     }
 

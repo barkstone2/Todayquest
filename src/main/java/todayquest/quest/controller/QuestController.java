@@ -53,13 +53,13 @@ public class QuestController {
     }
 
     @PostMapping("/save")
-    public String save(@Valid @ModelAttribute("quest") QuestRequestDto dto, BindingResult bindingResult, @AuthenticationPrincipal UserPrincipal principal, Model model) {
+    public String save(@Valid @ModelAttribute("quest") QuestRequestDto dto, BindingResult bindingResult, @AuthenticationPrincipal UserPrincipal principal, Model model, RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("difficultyList", QuestDifficulty.getEnumListOfType(principal.getDifficultyType()));
             model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
-            return "quest/save";
+            return "/quest/save";
         }
-        questService.saveQuest(dto, principal.getUserId());
+        redirectAttributes.addAttribute("savedId", questService.saveQuest(dto, principal.getUserId()));
 
         return "redirect:/quests";
     }

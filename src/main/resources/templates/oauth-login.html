@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -12,4 +12,9 @@
 <a href="/oauth2/authorization/naver" class="btn btn-success active" role="button">Naver Login</a><br>
 <a href="/oauth2/authorization/kakao" class="btn btn-success active" role="button">Kakao Login</a>
 </body>
+<script th:inline="javascript">
+    if([[${message}]]){
+        alert([[${message}]]);
+    }
+</script>
 </html>

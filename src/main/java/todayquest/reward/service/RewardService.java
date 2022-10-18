@@ -3,6 +3,7 @@ package todayquest.reward.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import todayquest.common.MessageUtil;
 import todayquest.reward.dto.RewardRequestDto;
 import todayquest.reward.dto.RewardResponseDto;
 import todayquest.reward.entity.Reward;
@@ -12,6 +13,7 @@ import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -28,22 +30,31 @@ public class RewardService {
     }
 
     public RewardResponseDto getReward(Long id, Long userId) {
-        return RewardResponseDto.createDto(rewardRepository.findByIdAndUserId(id, userId));
+        Optional<Reward> findReward = rewardRepository.findByIdAndUserId(id, userId);
+        return RewardResponseDto.createDto(
+                findReward.orElseThrow(
+                        () -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("item")))
+                )
+        );
     }
 
     public void saveReward(RewardRequestDto dto, Long userId) {
-        UserInfo findUser = userRepository.getById(userId);
-        rewardRepository.save(dto.mapToEntity(findUser));
+        Optional<UserInfo> findUser = userRepository.findById(userId);
+        rewardRepository.save(dto.mapToEntity(findUser.orElseThrow(() -> new IllegalStateException(MessageUtil.getMessage("exception.login.expire")))));
     }
 
     public void updateReward(RewardRequestDto dto, Long rewardId, Long userId) {
-        Reward findReward = rewardRepository.findByIdAndUserId(rewardId, userId);
-        findReward.updateReward(dto);
+        Optional<Reward> findReward = rewardRepository.findByIdAndUserId(rewardId, userId);
+        findReward.orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("item")))).updateReward(dto);
     }
 
     public void deleteReward(Long rewardId, Long userId) {
-        rewardRepository.deleteByIdAndUserId(rewardId, userId);
+        long deleteCount = rewardRepository.deleteByIdAndUserId(rewardId, userId);
+        if(deleteCount == 0) throw new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("item")));
     }
 
+    public List<RewardResponseDto> getRewardListByIds(List<Long> ids, Long userId) {
+        return rewardRepository.findAllByIdAndUserId(ids, userId).stream().map(RewardResponseDto::createDto).collect(Collectors.toList());
+    }
 
 }

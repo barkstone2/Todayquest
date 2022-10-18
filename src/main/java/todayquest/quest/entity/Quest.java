@@ -48,7 +48,6 @@ public class Quest {
      * 현재 일간 퀘스트만 사용하므로 시간 정보만 받아서 처리, 날짜 정보는 앞단에서 오늘 날짜와 동일하게 처리한다.
      * 추후 주간, 월간, 연간 퀘스트 추가 시 이 필드에 날짜 정보를 입력 받아 배치 처리에 사용한다.
      */
-    @Column(nullable = false)
     private LocalDate deadLineDate;
     private LocalTime deadLineTime;
 

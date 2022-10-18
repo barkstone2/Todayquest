@@ -20,6 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("유저 리포지토리 테스트")
 @Slf4j
 @DataJpaTest
 class UserRepositoryTest {

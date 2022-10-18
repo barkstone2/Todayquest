@@ -25,9 +25,5 @@ public class MessageUtil {
         return messageSource.getMessage(code, args, locale);
     }
 
-    public static String getMessage(String code, Locale locale) {
-        return messageSource.getMessage(code, null, locale);
-    }
-
 }
 

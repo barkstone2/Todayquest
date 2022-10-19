@@ -47,6 +47,9 @@ public class UserPrincipal implements OAuth2User, OidcUser, UserDetails {
         return userPrincipal;
     }
 
+    public int getLevel() {
+        return 10;
+    }
 
     @Override
     public Map<String, Object> getAttributes() {

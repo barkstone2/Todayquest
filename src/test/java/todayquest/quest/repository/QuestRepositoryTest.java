@@ -9,7 +9,6 @@ import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.entity.*;
 import todayquest.reward.entity.Reward;
 import todayquest.reward.repository.RewardRepository;
-import todayquest.user.entity.DifficultyType;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
@@ -44,7 +43,6 @@ class QuestRepositoryTest {
         userInfo = UserInfo.builder()
                 .nickname("nickname")
                 .providerType(ProviderType.GOOGLE)
-                .difficultyType(DifficultyType.difficulty)
                 .oauth2Id("oauth2id").build();
         userRepository.save(userInfo);
     }

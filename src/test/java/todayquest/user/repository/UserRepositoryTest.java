@@ -1,24 +1,19 @@
 package todayquest.user.repository;
 
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
-import todayquest.user.entity.DifficultyType;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("유저 리포지토리 테스트")
 @Slf4j
@@ -35,7 +30,6 @@ class UserRepositoryTest {
                 .nickname("oldNickname")
                 .oauth2Id("oauth2-id")
                 .providerType(ProviderType.GOOGLE)
-                .difficultyType(DifficultyType.difficulty)
                 .build();
 
     }
@@ -49,7 +43,6 @@ class UserRepositoryTest {
                 .nickname("newUser")
                 .oauth2Id("oauth2-id-save")
                 .providerType(ProviderType.GOOGLE)
-                .difficultyType(DifficultyType.difficulty)
                 .build();
 
         //when
@@ -64,13 +57,10 @@ class UserRepositoryTest {
     public void testFindAll() throws Exception {
         //given
         UserInfo user1 = UserInfo.builder().nickname("nick-list-1").oauth2Id("oauth2-id-list-1")
-                .difficultyType(DifficultyType.difficulty)
                 .providerType(ProviderType.GOOGLE).build();
         UserInfo user2 = UserInfo.builder().nickname("nick-list-2").oauth2Id("oauth2-id-list-2")
-                .difficultyType(DifficultyType.difficulty)
                 .providerType(ProviderType.GOOGLE).build();
         UserInfo user3 = UserInfo.builder().nickname("nick-list-3").oauth2Id("oauth2-id-list-3")
-                .difficultyType(DifficultyType.difficulty)
                 .providerType(ProviderType.GOOGLE).build();
         userRepository.save(user1);
         userRepository.save(user2);

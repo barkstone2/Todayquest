@@ -29,14 +29,6 @@ public class UserInfo {
     @Column(nullable = false)
     private ProviderType providerType;
 
-    /**
-     * 기본값 DifficultyType.difficulty
-     * @see todayquest.user.service.UserServiceImpl -> processUser()
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private DifficultyType difficultyType;
-
     public void updateNickname(String nickname) {
         this.nickname = nickname;
     }

@@ -10,9 +10,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.ModelMap;
@@ -26,18 +24,14 @@ import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.entity.QuestState;
 import todayquest.quest.entity.QuestType;
 import todayquest.quest.repository.QuestRepository;
-import todayquest.user.entity.DifficultyType;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -195,7 +189,6 @@ class QuestControllerTest {
         //given
         UserInfo anotherUser = UserInfo.builder()
                 .providerType(ProviderType.GOOGLE)
-                .difficultyType(DifficultyType.difficulty)
                 .oauth2Id("oauth2id")
                 .nickname("nickname")
                 .build();
@@ -348,7 +341,6 @@ class QuestControllerTest {
         //given
         UserInfo anotherUser = UserInfo.builder()
                 .providerType(ProviderType.GOOGLE)
-                .difficultyType(DifficultyType.difficulty)
                 .oauth2Id("oauth2id")
                 .nickname("nickname")
                 .build();

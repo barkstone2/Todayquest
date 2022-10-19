@@ -37,7 +37,7 @@ public class QuestController {
     @GetMapping("/save")
     public String saveForm(Model model, @AuthenticationPrincipal UserPrincipal principal) {
         model.addAttribute("quest", new QuestRequestDto());
-        model.addAttribute("difficultyList", QuestDifficulty.getEnumListOfType(principal.getDifficultyType()));
+        model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
         model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
         return "/quest/save";
     }
@@ -47,7 +47,7 @@ public class QuestController {
         QuestResponseDto quest = questService.getQuestInfo(questId);
         model.addAttribute("quest", quest);
         model.addAttribute("rewards", quest.getRewards());
-        model.addAttribute("difficultyList", QuestDifficulty.getEnumListOfType(principal.getDifficultyType()));
+        model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
         model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
         return "/quest/view";
     }
@@ -55,7 +55,7 @@ public class QuestController {
     @PostMapping("/save")
     public String save(@Valid @ModelAttribute("quest") QuestRequestDto dto, BindingResult bindingResult, @AuthenticationPrincipal UserPrincipal principal, Model model, RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("difficultyList", QuestDifficulty.getEnumListOfType(principal.getDifficultyType()));
+            model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
             model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
             return "/quest/save";
         }
@@ -68,7 +68,7 @@ public class QuestController {
     public String update(@Valid @ModelAttribute("quest") QuestRequestDto dto, BindingResult bindingResult, @PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal, Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("rewards", rewardService.getRewardListByIds(dto.getRewards(), principal.getUserId()));
-            model.addAttribute("difficultyList", QuestDifficulty.getEnumListOfType(principal.getDifficultyType()));
+            model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
             model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
             model.addAttribute("hasError", true);
             return "/quest/view";

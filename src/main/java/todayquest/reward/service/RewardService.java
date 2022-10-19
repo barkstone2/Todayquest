@@ -32,7 +32,7 @@ public class RewardService {
         Optional<Reward> findReward = rewardRepository.findByIdAndUserId(id, userId);
         return RewardResponseDto.createDto(
                 findReward.orElseThrow(
-                        () -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("rewardItem")))
+                        () -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward")))
                 )
         );
     }
@@ -45,12 +45,12 @@ public class RewardService {
 
     public void updateReward(RewardRequestDto dto, Long rewardId, Long userId) {
         Optional<Reward> findReward = rewardRepository.findByIdAndUserId(rewardId, userId);
-        findReward.orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("rewardItem")))).updateReward(dto);
+        findReward.orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward")))).updateReward(dto);
     }
 
     public void deleteReward(Long rewardId, Long userId) {
         long deleteCount = rewardRepository.deleteByIdAndUserId(rewardId, userId);
-        if(deleteCount == 0) throw new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("rewardItem")));
+        if(deleteCount == 0) throw new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward")));
     }
 
     public List<RewardResponseDto> getRewardListByIds(List<Long> ids, Long userId) {

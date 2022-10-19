@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import todayquest.reward.entity.Reward;
 import todayquest.reward.entity.RewardGrade;
-import todayquest.user.entity.DifficultyType;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
@@ -35,7 +34,6 @@ public class RewardRepositoryTest {
         userInfo = UserInfo.builder()
                 .nickname("nickname")
                 .providerType(ProviderType.GOOGLE)
-                .difficultyType(DifficultyType.difficulty)
                 .oauth2Id("oauth2id")
                 .build();
         userRepository.save(userInfo);

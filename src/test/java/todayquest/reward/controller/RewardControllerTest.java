@@ -128,7 +128,7 @@ public class RewardControllerTest {
                 .andReturn().getModelAndView().getModelMap();
 
         //then
-        RewardResponseDto reward = (RewardResponseDto) modelMap1.get("rewardItem");
+        RewardResponseDto reward = (RewardResponseDto) modelMap1.get("reward");
         assertThat(reward.getName()).isEqualTo("save name");
     }
 
@@ -301,7 +301,7 @@ public class RewardControllerTest {
 
         //then
         assertThat(exception).isInstanceOf(IllegalArgumentException.class);
-        assertThat(exception.getMessage()).isEqualTo(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("rewardItem")));
+        assertThat(exception.getMessage()).isEqualTo(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward")));
     }
 
     @DisplayName("보상 아이템 삭제 통합 테스트_성공")
@@ -356,7 +356,7 @@ public class RewardControllerTest {
 
         //then
         assertThat(exception).isInstanceOf(IllegalArgumentException.class);
-        assertThat(exception.getMessage()).isEqualTo(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("rewardItem")));
+        assertThat(exception.getMessage()).isEqualTo(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward")));
     }
 
 

@@ -76,9 +76,9 @@ class RewardControllerUnitTest {
         //then
         RewardResponseDto dto = (RewardResponseDto) mvc.perform(get(URI_PREFIX + uri))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("rewardItem"))
+                .andExpect(model().attributeExists("reward"))
                 .andExpect(view().name("/reward/view"))
-                .andReturn().getModelAndView().getModel().get("rewardItem");
+                .andReturn().getModelAndView().getModel().get("reward");
 
         assertThat(dto.getName()).isEqualTo(reward.getName());
     }
@@ -93,7 +93,7 @@ class RewardControllerUnitTest {
         //then
         mvc.perform(get(URI_PREFIX + uri))
                 .andExpect(model().attributeExists("gradeList"))
-                .andExpect(model().attributeExists("rewardItem"))
+                .andExpect(model().attributeExists("reward"))
                 .andExpect(view().name("/reward/save"));
 
     }

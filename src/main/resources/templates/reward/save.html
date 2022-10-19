@@ -11,7 +11,7 @@
 <body class="container">
 <header th:replace="~{/layout/header :: userHeader}"></header>
 <div class="position-relative" style="max-width: 700px; min-width: 400px;">
-    <form method="post" th:object="${rewardItem}" th:action="@{/rewards/save}" th:id="rewardForm">
+    <form method="post" th:object="${reward}" th:action="@{/rewards/save}" th:id="rewardForm">
         <h1>아이템 등록</h1>
         <input type="hidden" name="_method" value="post"/>
         <div class="row mb-3">

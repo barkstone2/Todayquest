@@ -93,10 +93,12 @@
                 </div>
             </div>
 
-            <button type="button" class="btn btn-primary mb-2" id="updateBtn" onclick="toggleUpdateForm()">수정</button>
+            <button th:if="${quest.state.name()=='PROCEED'}" type="button" class="btn btn-success mb-2" id="completeBtn" onclick="submitQuestForm('POST')">완료</button>
+            <button th:if="${quest.state.name()=='PROCEED'}" type="button" class="btn btn-primary mb-2" id="updateBtn" onclick="toggleUpdateForm()">수정</button>
             <button type="button" class="btn btn-secondary mb-2 d-none" id="cancelBtn" onclick="toggleUpdateForm()">취소</button>
-            <button type="button" class="btn btn-danger mb-2" id="deleteBtn" onclick="submitQuestForm('DELETE');">포기</button>
-            <a class="btn btn-success mb-2" id="listBtn" href="/quests">목록</a>
+            <button th:if="${quest.state.name()=='PROCEED'}" type="button" class="btn btn-danger mb-2" id="deleteBtn" onclick="submitQuestForm('DELETE', '/discard');">포기</button>
+            <button th:if="${quest.state.name()!='PROCEED' && quest.state.name()!='DELETE'}" type="button" class="btn btn-danger mb-2" id="deleteBtn" onclick="submitQuestForm('DELETE');">삭제</button>
+            <a class="btn btn-dark mb-2" id="listBtn" href="/quests">목록</a>
         </form>
     </div>
 </div>
@@ -270,7 +272,7 @@
         }
     }
 
-    function submitQuestForm(method) {
+    function submitQuestForm(method, uri) {
         let form = document.getElementById('questForm');
         let methodInput = document.getElementsByName('_method')[0];
         methodInput.setAttribute('value', method);
@@ -286,7 +288,18 @@
                 }
             }
         } else if (method == 'DELETE') {
-            if (!confirm('삭제 시 복구가 불가능 합니다.\n정말 삭제 하시겠습니까?')) {
+            let process = '삭제';
+            if(uri == '/discard') {
+                process = '포기';
+                let action = form.getAttribute("action");
+                form.setAttribute("action", action + uri);
+            }
+
+            if (!confirm('퀘스트 ' + process + ' 시 되돌릴 수 없습니다.\n정말 ' + process + ' 하시겠습니까?')) {
+                return;
+            }
+        } else if (method == 'POST') {
+            if (!confirm('퀘스트를 완료하시겠습니까?\n완료 시 되돌릴 수 없습니다.')) {
                 return;
             }
         } else {

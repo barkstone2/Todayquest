@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/layout/head :: commonHead ('상태창', ~{::style})}">
+    <title>상태창</title>
+    <style>
+        @media (min-width: 768px) {
+            .border-md-s-t {
+                border-left: 1px solid #dee2e6!important
+            }
+        }
+        @media (max-width: 768px) {
+            .border-md-s-t {
+                border-top: 1px solid #dee2e6!important
+            }
+        }
+    </style>
+</head>
+<body class="container">
+<header th:replace="~{/layout/header :: userHeader}"></header>
+<h1>상태창</h1>
+    <div class="container">
+        <div class="row border">
+            <div class="col-md-3 p-2">
+                <div class="row text-center">
+                    <div class="col-12">프로필 사진</div>
+                </div>
+                <div class="row text-center align-self-center">
+                    <div>
+                        <img src="/image/image.webp" class="border border-dark border-2"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md border-md-s-t">
+                <div class="row col p-2">
+                    <div class="col-3 align-self-center text-center">닉네임</div>
+                    <div class="col row">
+                        <div class="col-auto align-self-center" th:text="${#authentication.name}">닉네임</div>
+                    </div>
+                    <div class="col-auto align-self-center">
+                        <div class="col btn-sm btn-secondary">닉네임 변경</div>
+                    </div>
+                </div>
+                <div class="row col p-2">
+                    <div class="col-3 text-center">레벨</div>
+                    <div class="col-auto"th:text="|15|">레벨</div>
+                </div>
+                <div class="row col p-2">
+                    <div class="col-3 text-center">현재 경험치</div>
+                    <div class="col-auto" th:text="|13%|">경험치</div>
+                </div>
+                <div class="row col p-2">
+                    <div class="col-3 text-center">소지 골드</div>
+                    <div class="col-auto" th:text="|1,323골드|">골드</div>
+                </div>
+            </div>
+        </div>
+        <div class="row border border-top-0">
+            <div class="row p-2">
+                <div class="col-md-1"></div>
+                <div class="col-4 text-center">클리어한 퀘스트 수</div>
+                <div class="col-auto">15</div>
+            </div>
+            <div class="row p-2">
+                <div class="col-md-1"></div>
+                <div class="col-4 text-center">실패한 퀘스트 수</div>
+                <div class="col-auto">15</div>
+            </div>
+            <div class="row p-2">
+                <div class="col-md-1"></div>
+                <div class="col-4 text-center">포기한 퀘스트 수</div>
+                <div class="col-auto">15</div>
+            </div>
+        </div>
+
+        <div class="row border border-top-0">
+            <div class="row m-2">달성한 업적</div>
+            <div class="container">
+                <div class="row">
+                    <div class="col overflow-scroll" style="max-height: 500px;">
+                        <div class="row p-2 m-1 border">
+                            <div class="col-sm-auto align-self-center">
+                                <img src="/image/image.webp" class="border border-dark border-2"/>
+                            </div>
+                            <div class="col-sm align-self-center">
+                                <div class="row p-2 border-bottom">
+                                    <div class="col-auto align-self-center">업적명</div>
+                                    <div class="col overflow-auto">너무 대단해서 이름이 엄청나게 긴 업적을 달성한 것이 정말 엄청난 업적인 것이라는 업적은 사실 거짓말이고 그냥 이름이 엄청 긴 업적 이름이 어디까지 길어지나 테스트하는 용도로 업적명을 길게 적어보자 이렇게 긴 업적명이 없긴한데 일단 엄청 긴 업적</div>
+                                </div>
+                                <div class="row p-2">
+                                    <div class="col-auto align-self-center">달성일</div>
+                                    <div class="col">2022-09-18</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row p-2 m-1 border">
+                            <div class="col-sm-auto">
+                                <img src="/image/image.webp" class="border border-dark border-2"/>
+                            </div>
+                            <div class="col-sm align-self-center">
+                                <div class="row p-2 border-bottom">
+                                    <div class="col-auto align-self-center">업적명</div>
+                                    <div class="col overflow-auto">엄청나게 긴 업적 명 첫 번째 업적이다.</div>
+                                </div>
+                                <div class="row p-2">
+                                    <div class="col-auto align-self-center">달성일</div>
+                                    <div class="col">2022-09-18</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row p-2 m-1 border">
+                            <div class="col-sm-auto">
+                                <img src="/image/image.webp" class="border border-dark border-2"/>
+                            </div>
+                            <div class="col-sm align-self-center">
+                                <div class="row p-2 border-bottom">
+                                    <div class="col-auto align-self-center">업적명</div>
+                                    <div class="col overflow-auto">엄청나게 긴 업적 명 첫 번째 업적이다.</div>
+                                </div>
+                                <div class="row p-2">
+                                    <div class="col-auto align-self-center">달성일</div>
+                                    <div class="col">2022-09-18</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row p-2 m-1 border">
+                            <div class="col-sm-auto">
+                                <img src="/image/image.webp" class="border border-dark border-2"/>
+                            </div>
+                            <div class="col-sm align-self-center">
+                                <div class="row p-2 border-bottom">
+                                    <div class="col-auto align-self-center">업적명</div>
+                                    <div class="col overflow-auto">엄청나게 긴 업적 명 첫 번째 업적이다.</div>
+                                </div>
+                                <div class="row p-2">
+                                    <div class="col-auto align-self-center">달성일</div>
+                                    <div class="col">2022-09-18</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row p-2 m-1 border">
+                            <div class="col-sm-auto">
+                                <img src="/image/image.webp" class="border border-dark border-2"/>
+                            </div>
+                            <div class="col-sm align-self-center">
+                                <div class="row p-2 border-bottom">
+                                    <div class="col-auto align-self-center">업적명</div>
+                                    <div class="col overflow-auto">엄청나게 긴 업적 명 첫 번째 업적이다.</div>
+                                </div>
+                                <div class="row p-2">
+                                    <div class="col-auto align-self-center">달성일</div>
+                                    <div class="col">2022-09-18</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row p-2 m-1 border">
+                            <div class="col-sm-auto">
+                                <img src="/image/image.webp" class="border border-dark border-2"/>
+                            </div>
+                            <div class="col-sm align-self-center">
+                                <div class="row p-2 border-bottom">
+                                    <div class="col-auto align-self-center">업적명</div>
+                                    <div class="col overflow-auto">엄청나게 긴 업적 명 첫 번째 업적이다.</div>
+                                </div>
+                                <div class="row p-2">
+                                    <div class="col-auto align-self-center">달성일</div>
+                                    <div class="col">2022-09-18</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row p-2 m-1 border">
+                            <div class="col-sm-auto">
+                                <img src="/image/image.webp" class="border border-dark border-2"/>
+                            </div>
+                            <div class="col-sm align-self-center">
+                                <div class="row p-2 border-bottom">
+                                    <div class="col-auto align-self-center">업적명</div>
+                                    <div class="col overflow-auto">엄청나게 긴 업적 명 첫 번째 업적이다.</div>
+                                </div>
+                                <div class="row p-2">
+                                    <div class="col-auto align-self-center">달성일</div>
+                                    <div class="col">2022-09-18</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

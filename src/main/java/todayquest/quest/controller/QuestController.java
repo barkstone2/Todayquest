@@ -85,5 +85,15 @@ public class QuestController {
         return "redirect:/quests";
     }
 
+    @PostMapping("/{questId}")
+    public String complete(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal, RedirectAttributes redirectAttributes) {
+        questService.completeQuest(questId, principal.getUserId());
+        return "redirect:/quests";
+    }
 
+    @DeleteMapping("/{questId}/discard")
+    public String discard(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal, RedirectAttributes redirectAttributes) {
+        questService.discardQuest(questId, principal.getUserId());
+        return "redirect:/quests";
+    }
 }

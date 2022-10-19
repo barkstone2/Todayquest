@@ -121,5 +121,9 @@ public class Quest {
         }
     }
 
+    public void changeState(QuestState state) {
+        this.state = state;
+    }
+
 }
 

@@ -11,20 +11,28 @@ import todayquest.oauth.service.CustomOidcUserService;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private static final String[] ALLOWED_URL = {"/oauth-login", "/"};
+    private static final String[] ALLOWED_URL = {"/", "/css/**", "/js/**", "/image/**"};
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOidcUserService customOidcUserService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
-                .antMatchers(ALLOWED_URL).permitAll() // login URL에는 누구나 접근 가능하게 합니다.
-                .anyRequest().authenticated() // 그 이외에는 인증된 사용자만 접근 가능하게 합니다.
-                .and()
-                .oauth2Login() // oauth2Login 설정 시작
+        http.authorizeRequests()
+                .antMatchers(ALLOWED_URL).permitAll()
+                .anyRequest().authenticated();
+
+        http.logout()
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID");
+
+        http.oauth2Login() // oauth2Login 설정 시작
+                .loginPage("/")
                 .userInfoEndpoint() // oauth2Login 성공 이후의 설정을 시작
                 .oidcUserService(customOidcUserService)
-                .userService(customOAuth2UserService);
+                .userService(customOAuth2UserService)
+                .and().defaultSuccessUrl("/user/status");
+
     }
 }

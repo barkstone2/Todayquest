@@ -1,8 +1,6 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>퀘스트 조회</title>
-    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+<head th:replace="~{/layout/head :: commonHead ('퀘스트 조회', ~{::style})}">
     <style>
         .disable-style {
             background-color: #e9ecef !important;
@@ -15,6 +13,7 @@
 </head>
 <body>
 <div class="container">
+    <header th:replace="~{/layout/header :: userHeader}"></header>
     <div class="position-relative" style="max-width: 700px; min-width: 400px;">
         <form method="post" id="questForm" th:object="${quest}" th:action="@{|/quests/${questId}|}">
             <h1>퀘스트 조회</h1>

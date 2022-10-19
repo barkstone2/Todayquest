@@ -24,14 +24,7 @@ public class CustomHandlerExceptionResolver implements HandlerExceptionResolver 
             modelMap.put("message", ex.getMessage());
 
             return modelAndView;
-        } else if (ex instanceof IllegalStateException) {
-            ModelAndView modelAndView = new ModelAndView("/oauth-login");
-            modelAndView.setStatus(HttpStatus.UNAUTHORIZED);
-            ModelMap modelMap = modelAndView.getModelMap();
-            modelMap.put("message", ex.getMessage());
-
-            return modelAndView;
-        } else if (ex instanceof AccessDeniedException) {
+        }else if (ex instanceof AccessDeniedException) {
             ModelAndView modelAndView = new ModelAndView("/error/error");
             modelAndView.setStatus(HttpStatus.FORBIDDEN);
             ModelMap modelMap = modelAndView.getModelMap();

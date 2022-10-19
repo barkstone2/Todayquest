@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/layout/head :: commonHead ('아이템 정보', ~{::style})}">
+    <style></style>
+</head>
+<div class="container">
+    <div class="position-relative" style="max-width: 700px; min-width: 400px;">
+        <form method="post" id="itemForm" th:object="${item}" th:data-id="${itemId}" th:action="@{|/inventory/${itemId}|}">
+            <input type="hidden" name="_method" value="post"/>
+            <div class="row mb-3">
+                <div class="col-3">아이템명</div>
+                <div class="col-auto">
+                    <span class="form-item" type="text" th:text="*{name}"></span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-3">아이템 설명</div>
+                <div class="col-auto">
+                    <span class="form-item" type="text" th:text="*{description}"></span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-3">아이템 등급</div>
+                <div class="col-auto">
+                    <span class="form-item" th:text="*{grade.text}"></span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-3">보유 수량</div>
+                <div class="col-auto">
+                    <span class="form-item" id="itemCount" th:data-count="*{count}" th:text="|*{count}개|"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</html>

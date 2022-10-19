@@ -21,8 +21,12 @@ public class MessageUtil {
         return messageSource.getMessage(code, args, Locale.ROOT);
     }
 
-    public static String getMessage(String code, Object[] args, Locale locale) {
+    public static String getMessageWithLocale(String code, Object[] args, Locale locale) {
         return messageSource.getMessage(code, args, locale);
+    }
+
+    public static String getMessageWithLocale(String code, Locale locale) {
+        return messageSource.getMessage(code, null, locale);
     }
 
 }

@@ -29,21 +29,21 @@ public class RewardController {
 
     @GetMapping("/{rewardId}")
     public String view(@PathVariable("rewardId") Long rewardId, Model model, @AuthenticationPrincipal UserPrincipal principal) {
-        model.addAttribute("rewardItem", rewardService.getReward(rewardId, principal.getUserId()));
+        model.addAttribute("reward", rewardService.getReward(rewardId, principal.getUserId()));
         model.addAttribute("gradeList", RewardGrade.getEnumList());
         return "/reward/view";
     }
 
     @GetMapping("/save")
     public String saveForm(Model model) {
-        model.addAttribute("rewardItem", new RewardRequestDto());
+        model.addAttribute("reward", new RewardRequestDto());
         model.addAttribute("gradeList", RewardGrade.getEnumList());
         return "/reward/save";
     }
 
 
     @PostMapping("/save")
-    public String save(@Valid @ModelAttribute("rewardItem") RewardRequestDto dto, BindingResult bindingResult, @AuthenticationPrincipal UserPrincipal principal, Model model, RedirectAttributes redirectAttributes) {
+    public String save(@Valid @ModelAttribute("reward") RewardRequestDto dto, BindingResult bindingResult, @AuthenticationPrincipal UserPrincipal principal, Model model, RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("gradeList", RewardGrade.getEnumList());
             return "/reward/save";
@@ -54,7 +54,7 @@ public class RewardController {
     }
 
     @PutMapping("/{rewardId}")
-    public String update(@Valid @ModelAttribute("rewardItem") RewardRequestDto dto, BindingResult bindingResult, @PathVariable("rewardId") Long rewardId, @AuthenticationPrincipal UserPrincipal principal, Model model) {
+    public String update(@Valid @ModelAttribute("reward") RewardRequestDto dto, BindingResult bindingResult, @PathVariable("rewardId") Long rewardId, @AuthenticationPrincipal UserPrincipal principal, Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("gradeList", RewardGrade.getEnumList());
             model.addAttribute("hasError", true);

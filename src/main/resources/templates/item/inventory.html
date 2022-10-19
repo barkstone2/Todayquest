@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/layout/head :: commonHead ('인벤토리', ~{::style})}">
+    <title>상태창</title>
+    <style>
+        @media (min-width: 768px) {
+            .border-md-s-t {
+                border-left: 1px solid #dee2e6!important
+            }
+        }
+        @media (max-width: 768px) {
+            .border-md-s-t {
+                border-top: 1px solid #dee2e6!important
+            }
+        }
+        .item:hover {
+            background-color: aliceblue!important;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="container">
+<header th:replace="~{/layout/header :: userHeader}"></header>
+<h1>인벤토리</h1>
+<div class="container border border-dark border-3">
+    <div class="row overflow-scroll" style="max-height: 800px;">
+
+        <div class="item col-auto m-1 p-2 border border-3 border-dark" style="min-height: 200px;" th:each="item : ${items}" th:data-id="${item.id}">
+            <div class="p-1 text-center position-relative border border-dark border-2 m-auto" style="width: 150px; height: 150px;">
+                <img src="/image/image.webp" style="width: 120px; height: 120px;"/>
+                <div class="position-absolute" style="right: 3px; bottom: 3px;" th:text="|${item.count}개|">3개</div>
+            </div>
+            <div class="align-self-end text-center text-break" th:text="${item.name}">아이템 이름</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="itemModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="itemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="itemModalLabel">아이템 정보</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                ...
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <button type="button" class="btn btn-primary" onclick="sendRequest('PUT')">사용하기</button>
+                <button type="button" class="btn btn-warning" onclick="sendRequest('DELETE')">버리기</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        let items = document.getElementsByClassName('item');
+        for (let i = 0; i < items.length; i++) {
+            items[i].addEventListener('click', function () {
+                let itemId = items[i].getAttribute('data-id');
+                let xhr = new XMLHttpRequest();
+                xhr.open('get', '/inventory/'+itemId);
+
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        document.getElementById('modalBody').innerHTML = xhr.response;
+                        let itemModal = new bootstrap.Modal(document.getElementById('itemModal'));
+                        let dataCount = document.getElementById('itemCount').getAttribute('data-count');
+                        let selector = document.getElementById('count');
+                        if(selector) selector.remove();
+
+                        let select = document.createElement('select');
+                        select.name = 'count';
+                        select.id = 'count';
+
+                        for (let j = 1; j <= dataCount; j++) {
+                            let option = document.createElement('option');
+                            option.text = j;
+                            option.value = j;
+                            select.add(option);
+                        }
+
+                        let footer = document.getElementById('modalFooter');
+                        footer.insertBefore(select, footer.firstChild);
+                        itemModal.toggle();
+                    }
+                };
+
+                xhr.send();
+            });
+        }
+    });
+
+    function sendRequest(method) {
+        let itemId = document.getElementById('itemForm').getAttribute('data-id');
+        let xhr = new XMLHttpRequest();
+        let token = document.getElementsByName('_csrf')[0].getAttribute('content');
+        let header = document.getElementsByName('_csrf_header')[0].getAttribute('content');
+        xhr.open(method, '/inventory/' + itemId);
+        xhr.setRequestHeader('content-type', 'application/json');
+        xhr.setRequestHeader(header, token);
+
+        let count = document.getElementById('count').selectedOptions[0].value;
+
+        xhr.onload = () => {
+            let result = JSON.parse(xhr.response);
+            alert(result.message);
+            location.reload();
+        };
+
+        xhr.send(JSON.stringify({count : count}));
+    }
+
+</script>
+</html>

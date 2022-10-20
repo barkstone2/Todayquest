@@ -23,7 +23,7 @@ import static javax.persistence.FetchType.LAZY;
 @Entity
 public class Quest {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "quest_id")
     private Long id;
 
@@ -74,7 +74,6 @@ public class Quest {
      * 등록자 정보는 추후 User 엔티티 추가 후 해당 정보를 받아서 처리할 것
      */
     private String regUser;
-    private String regIp;
     private LocalDateTime regDate;
     private LocalDateTime modifyDate;
 

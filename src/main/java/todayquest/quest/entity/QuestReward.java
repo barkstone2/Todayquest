@@ -13,7 +13,7 @@ import static javax.persistence.FetchType.*;
 @Entity
 public class QuestReward {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "quest_reward_id")
     private Long id;
 

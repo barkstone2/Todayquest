@@ -326,7 +326,7 @@ public class RewardControllerTest {
         Optional<Reward> beforeReward = rewardRepository.findById(savedId);
         assertThat(beforeReward).isNotEmpty();
 
-        String url = SERVER_ADDR + port + URI_PREFIX + "/" + savedId;
+        String url = SERVER_ADDR + port + URI_PREFIX + "/" + beforeReward.get().getId();
 
         //when
         mvc.perform(
@@ -337,7 +337,7 @@ public class RewardControllerTest {
                 .andExpect(redirectedUrlPattern("/rewards*"));
 
         //then
-        boolean isExist = rewardRepository.existsById(savedId);
+        boolean isExist = rewardRepository.existsById(beforeReward.get().getId());
         assertThat(isExist).isFalse();
     }
 

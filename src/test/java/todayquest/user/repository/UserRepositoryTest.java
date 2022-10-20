@@ -72,7 +72,7 @@ class UserRepositoryTest {
         List<UserInfo> all = userRepository.findAll();
 
         //then
-        assertThat(all.size()).isGreaterThan(3);
+        assertThat(all.size()).isGreaterThanOrEqualTo(3);
         assertThat(all).contains(user1, user2, user3);
     }
 

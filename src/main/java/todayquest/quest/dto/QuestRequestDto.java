@@ -36,6 +36,8 @@ public class QuestRequestDto {
     private LocalTime deadLineTime;
     @NotNull
     private QuestDifficulty difficulty;
+
+    private QuestState state;
     @Size(max = 5)
     private List<Long> rewards = new ArrayList<>();
 

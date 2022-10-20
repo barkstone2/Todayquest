@@ -19,6 +19,16 @@
             <h1>퀘스트 조회</h1>
             <input type="hidden" name="_method" value="post"/>
             <div class="row mb-3">
+                <label th:for="state" class="col-sm-2 col-form-label">상태</label>
+                <div class="col-auto">
+                    <div class="col-sm-10">
+                        <input type="hidden" th:field="*{state}">
+                        <input class="form-control"th:value="*{state.message}" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
                 <label th:for="difficulty" class="col-sm-2 col-form-label">난이도</label>
                 <div class="col-auto">
                     <select th:field="*{difficulty}" class="form-item form-select" th:errorclass="field-error" disabled>

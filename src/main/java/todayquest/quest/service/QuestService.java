@@ -48,7 +48,9 @@ public class QuestService {
 
     public Long saveQuest(QuestRequestDto dto, Long userId) {
         UserInfo findUser = userRepository.getById(userId);
-        Quest savedQuest = questRepository.save(dto.mapToEntity(findUser));
+
+        Long nextSeq = questRepository.getNextSeqByUserId(userId);
+        Quest savedQuest = questRepository.save(dto.mapToEntity(nextSeq, findUser));
 
         List<Reward> rewards = rewardRepository.findAllByIdAndUserId(dto.getRewards(), userId);
         List<QuestReward> collect = rewards.stream()

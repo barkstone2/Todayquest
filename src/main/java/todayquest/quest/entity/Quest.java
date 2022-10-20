@@ -37,6 +37,9 @@ public class Quest {
     @JoinColumn(name = "user_id")
     private UserInfo user;
 
+    @Column(name = "user_quest_seq")
+    private Long seq;
+
     /**
      * QuestType 정보와 조합해 반복 주기를 설정한다.
      * 마찬가지로 배치 처리가 필요할 듯 하다.
@@ -63,7 +66,7 @@ public class Quest {
     @Column(nullable = false)
     private QuestDifficulty difficulty;
 
-    @OneToMany(mappedBy = "quest", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "quest")
     private List<QuestReward> rewards = new ArrayList<>();
 
 
@@ -76,12 +79,13 @@ public class Quest {
     private LocalDateTime modifyDate;
 
     @Builder
-    public Quest(String title, String description, UserInfo user, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime,
+    public Quest(String title, String description, UserInfo user, Long seq, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime,
                  QuestState state, QuestType type, QuestDifficulty difficulty) {
 
         this.title = title;
         this.description = description;
         this.user = user;
+        this.seq = seq;
         this.isRepeat = isRepeat;
         this.deadLineDate = deadLineDate;
         this.deadLineTime = deadLineTime;

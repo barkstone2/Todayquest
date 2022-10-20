@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
@@ -17,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("유저 리포지토리 테스트")
 @Slf4j
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DataJpaTest
 class UserRepositoryTest {
 
@@ -70,8 +72,8 @@ class UserRepositoryTest {
         List<UserInfo> all = userRepository.findAll();
 
         //then
-        assertThat(all.size()).isEqualTo(3);
-        assertThat(all).containsExactly(user1, user2, user3);
+        assertThat(all.size()).isGreaterThan(3);
+        assertThat(all).contains(user1, user2, user3);
     }
 
     @DisplayName("유저 정보 조회 테스트")

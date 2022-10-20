@@ -178,9 +178,9 @@ class QuestControllerTest {
                 .andExpect(redirectedUrl("/quests"));
 
         //then
-        Optional<Quest> findQuest = questRepository.findById(savedId);
+        Quest findQuest = questRepository.getById(savedId);
         assertThat(savedTitle).isEqualTo("save title");
-        assertThat(findQuest).isEmpty();
+        assertThat(findQuest.getState()).isEqualTo(QuestState.DELETE);
     }
 
     @DisplayName("퀘스트 삭제 통합 테스트_다른 유저의 퀘스트")
@@ -316,6 +316,7 @@ class QuestControllerTest {
         map.add("description", "");
         map.add("repeat", "true");
         map.add("difficulty", QuestDifficulty.easy.name());
+        map.add("state", QuestState.PROCEED.name());
 
         //when
         mvc.perform(

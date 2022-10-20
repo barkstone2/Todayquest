@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import todayquest.common.UserLevelLock;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
 import todayquest.quest.entity.QuestDifficulty;
@@ -25,6 +26,7 @@ public class QuestController {
 
     private final QuestService questService;
     private final RewardService rewardService;
+    private final UserLevelLock userLevelLock;
 
 
     @GetMapping("")
@@ -59,7 +61,13 @@ public class QuestController {
             model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
             return "/quest/save";
         }
-        redirectAttributes.addAttribute("savedId", questService.saveQuest(dto, principal.getUserId()));
+
+        Long savedId = userLevelLock.executeWithLock(
+                "QUEST_SEQ" + principal.getUserId(),
+                3,
+                () -> questService.saveQuest(dto, principal.getUserId())
+        );
+        redirectAttributes.addAttribute("savedId", savedId);
 
         return "redirect:/quests";
     }

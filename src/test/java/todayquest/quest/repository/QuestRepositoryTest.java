@@ -63,6 +63,7 @@ class QuestRepositoryTest {
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
                 .user(userInfo)
+                .seq(1L)
                 .build();
 
         Quest quest2 = Quest.builder()
@@ -75,6 +76,7 @@ class QuestRepositoryTest {
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
                 .user(userInfo)
+                .seq(2L)
                 .build();
 
         Quest quest3 = Quest.builder()
@@ -87,6 +89,7 @@ class QuestRepositoryTest {
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
                 .user(userInfo)
+                .seq(3L)
                 .build();
 
         questRepository.save(quest1);
@@ -115,6 +118,7 @@ class QuestRepositoryTest {
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
                 .user(userInfo)
+                .seq(1L)
                 .build();
 
         questRepository.save(quest1);
@@ -174,6 +178,7 @@ class QuestRepositoryTest {
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
                 .user(userInfo)
+                .seq(1L)
                 .build();
 
         List<Reward> rewards = new ArrayList<>();

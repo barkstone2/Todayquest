@@ -204,6 +204,7 @@ class QuestControllerTest {
                 .isRepeat(true)
                 .difficulty(QuestDifficulty.easy)
                 .user(anotherUser)
+                .seq(1L)
                 .build();
 
         questRepository.save(anotherUserQuest);
@@ -357,6 +358,7 @@ class QuestControllerTest {
                 .isRepeat(true)
                 .difficulty(QuestDifficulty.easy)
                 .user(anotherUser)
+                .seq(1L)
                 .build();
 
         questRepository.save(anotherUserQuest);

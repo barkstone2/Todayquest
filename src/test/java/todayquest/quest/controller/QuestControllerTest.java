@@ -76,7 +76,8 @@ class QuestControllerTest {
                 .apply(springSecurity())
                 .build();
 
-        testUser = UserInfo.builder().id(1L).build();
+        testUser = userRepository.save(UserInfo.builder().nickname("n").oauth2Id("oid").providerType(ProviderType.GOOGLE).build());
+
     }
 
     @DisplayName("퀘스트 목록 화면 요청 통합 테스트")

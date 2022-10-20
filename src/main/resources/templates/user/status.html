@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{/layout/head :: commonHead ('상태창', ~{::style})}">
+<head th:replace="~{layout/head :: commonHead ('상태창', ~{::style})}">
     <title>상태창</title>
     <style>
         @media (min-width: 768px) {
@@ -16,7 +16,7 @@
     </style>
 </head>
 <body class="container">
-<header th:replace="~{/layout/header :: userHeader}"></header>
+<header th:replace="~{layout/header :: userHeader}"></header>
 <h1>상태창</h1>
     <div class="container">
         <div class="row border">

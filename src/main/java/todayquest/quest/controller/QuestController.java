@@ -33,7 +33,7 @@ public class QuestController {
     public String list(@AuthenticationPrincipal UserPrincipal principal, Model model) {
         model.addAttribute("questList", questService.getQuestList(principal.getUserId()));
 
-        return "/quest/list";
+        return "quest/list";
     }
 
     @GetMapping("/save")
@@ -41,7 +41,7 @@ public class QuestController {
         model.addAttribute("quest", new QuestRequestDto());
         model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
         model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
-        return "/quest/save";
+        return "quest/save";
     }
 
     @GetMapping("/{questId}")
@@ -51,7 +51,7 @@ public class QuestController {
         model.addAttribute("rewards", quest.getRewards());
         model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
         model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
-        return "/quest/view";
+        return "quest/view";
     }
 
     @PostMapping("/save")
@@ -59,7 +59,7 @@ public class QuestController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
             model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
-            return "/quest/save";
+            return "quest/save";
         }
 
         Long savedId = userLevelLock.executeWithLock(
@@ -79,7 +79,7 @@ public class QuestController {
             model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
             model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
             model.addAttribute("hasError", true);
-            return "/quest/view";
+            return "quest/view";
         }
 
         questService.updateQuest(dto, questId, principal.getUserId());

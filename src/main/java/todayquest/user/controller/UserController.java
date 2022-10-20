@@ -13,8 +13,7 @@ public class UserController {
 
     @GetMapping("/status")
     public String myPage() {
-
-        return "/user/status";
+        return "user/status";
     }
 
 }

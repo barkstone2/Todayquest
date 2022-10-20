@@ -59,7 +59,7 @@ class RewardControllerUnitTest {
         mvc.perform(get(URI_PREFIX + uri))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("rewards", rewardList))
-                .andExpect(view().name("/reward/list"));
+                .andExpect(view().name("reward/list"));
 
     }
 
@@ -77,7 +77,7 @@ class RewardControllerUnitTest {
         RewardResponseDto dto = (RewardResponseDto) mvc.perform(get(URI_PREFIX + uri))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("reward"))
-                .andExpect(view().name("/reward/view"))
+                .andExpect(view().name("reward/view"))
                 .andReturn().getModelAndView().getModel().get("reward");
 
         assertThat(dto.getName()).isEqualTo(reward.getName());
@@ -94,7 +94,7 @@ class RewardControllerUnitTest {
         mvc.perform(get(URI_PREFIX + uri))
                 .andExpect(model().attributeExists("gradeList"))
                 .andExpect(model().attributeExists("reward"))
-                .andExpect(view().name("/reward/save"));
+                .andExpect(view().name("reward/save"));
 
     }
 
@@ -133,7 +133,7 @@ class RewardControllerUnitTest {
         mvc.perform(post(URI_PREFIX + uri)
                         .with(csrf())
                         .params(param))
-                .andExpect(view().name("/reward/save"));
+                .andExpect(view().name("reward/save"));
     }
 
 
@@ -172,7 +172,7 @@ class RewardControllerUnitTest {
         mvc.perform(put(URI_PREFIX + uri)
                         .with(csrf())
                         .params(param))
-                .andExpect(view().name("/reward/view"))
+                .andExpect(view().name("reward/view"))
                 .andExpect(model().attributeExists("hasError"));
     }
 

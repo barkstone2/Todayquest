@@ -98,7 +98,7 @@ class QuestControllerUnitTest {
         mvc.perform(get(URI_PREFIX + uri))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("questList", questList))
-                .andExpect(view().name("/quest/list"));
+                .andExpect(view().name("quest/list"));
     }
 
     @DisplayName("퀘스트 등록 화면 요청")
@@ -112,7 +112,7 @@ class QuestControllerUnitTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("rewardList", new ArrayList<>()))
                 .andExpect(model().attributeExists("quest"))
-                .andExpect(view().name("/quest/save"));
+                .andExpect(view().name("quest/save"));
 
     }
 
@@ -130,7 +130,7 @@ class QuestControllerUnitTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("rewardList", new ArrayList<>()))
                 .andExpect(model().attribute("quest", questList.get(0)))
-                .andExpect(view().name("/quest/view"));
+                .andExpect(view().name("quest/view"));
     }
 
     @DisplayName("퀘스트 등록 요청")
@@ -221,7 +221,7 @@ class QuestControllerUnitTest {
                         .params(map)
                 )
                 .andExpect(status().isOk())
-                .andExpect(view().name("/quest/view"))
+                .andExpect(view().name("quest/view"))
                 .andExpect(model().attributeExists("hasError"));
     }
 

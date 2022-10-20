@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{/layout/head :: commonHead ('아이템 목록', ~{::style})}">
+<head th:replace="~{layout/head :: commonHead ('아이템 목록', ~{::style})}">
     <style></style>
 </head>
 <body class="container">
-    <header th:replace="~{/layout/header :: userHeader}"></header>
+    <header th:replace="~{layout/header :: userHeader}"></header>
     <h1>아이템 목록     <a class="btn btn-primary"href="/rewards/save">아이템 등록</a></h1>
     <div class="container">
         <div class="row border p-1">

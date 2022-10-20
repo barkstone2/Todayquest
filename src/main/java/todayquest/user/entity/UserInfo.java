@@ -11,11 +11,10 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor @Builder
-@SequenceGenerator(name = "userIdGenerator", sequenceName = "USER_SEQUENCE")
 @Entity
 public class UserInfo {
 
-    @Id @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "userIdGenerator")
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
 

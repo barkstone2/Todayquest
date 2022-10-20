@@ -19,7 +19,7 @@ import static javax.persistence.FetchType.LAZY;
 @Entity
 public class Item {
     
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "item_id")
     private Long id;
 
@@ -34,9 +34,10 @@ public class Item {
     private int count;
 
     @Builder
-    public Item(UserInfo user, Reward reward) {
+    public Item(UserInfo user, Reward reward, int count) {
         this.user = user;
         this.reward = reward;
+        this.count = count;
     }
 
     public void addCount() {

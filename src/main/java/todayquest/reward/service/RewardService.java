@@ -1,6 +1,7 @@
 package todayquest.reward.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.common.MessageUtil;
@@ -29,12 +30,8 @@ public class RewardService {
     }
 
     public RewardResponseDto getReward(Long id, Long userId) {
-        Optional<Reward> findReward = rewardRepository.findByIdAndUserId(id, userId);
-        return RewardResponseDto.createDto(
-                findReward.orElseThrow(
-                        () -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward")))
-                )
-        );
+        Reward reward = getRewardWithOwnerCheck(id, userId);
+        return RewardResponseDto.createDto(reward);
     }
 
     public Long saveReward(RewardRequestDto dto, Long userId) {
@@ -44,17 +41,31 @@ public class RewardService {
     }
 
     public void updateReward(RewardRequestDto dto, Long rewardId, Long userId) {
-        Optional<Reward> findReward = rewardRepository.findByIdAndUserId(rewardId, userId);
-        findReward.orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward")))).updateReward(dto);
+        Reward reward = getRewardWithOwnerCheck(rewardId, userId);
+        reward.updateReward(dto);
     }
 
     public void deleteReward(Long rewardId, Long userId) {
-        long deleteCount = rewardRepository.deleteByIdAndUserId(rewardId, userId);
-        if(deleteCount == 0) throw new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward")));
+        getRewardWithOwnerCheck(rewardId, userId);
+        rewardRepository.deleteById(rewardId);
     }
 
     public List<RewardResponseDto> getRewardListByIds(List<Long> ids, Long userId) {
         return rewardRepository.findAllByIdAndUserId(ids, userId).stream().map(RewardResponseDto::createDto).collect(Collectors.toList());
+    }
+
+    /**
+     * 요청한 RewardId가 올바른지, 유저 정보가 올바른지 확인
+     */
+    private Reward getRewardWithOwnerCheck(Long id, Long userId) {
+        Optional<Reward> findReward = rewardRepository.findById(id);
+        Reward reward = findReward
+                .orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward"))));
+
+        if(!reward.getUser().getId().equals(userId)) {
+            throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("reward")));
+        }
+        return reward;
     }
 
 }

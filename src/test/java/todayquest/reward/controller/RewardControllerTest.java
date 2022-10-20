@@ -308,7 +308,7 @@ public class RewardControllerTest {
     @Test
     public void testDelete() throws Exception {
         //given
-        String saveUrl = "http://localhost:" + port + URI_PREFIX + "/save";
+        String saveUrl = SERVER_ADDR + port + URI_PREFIX + "/save";
         MultiValueMap<String, String> param = new LinkedMultiValueMap<>();
         param.add("name", "save name");
         param.add("description", "save description");
@@ -326,7 +326,7 @@ public class RewardControllerTest {
         Optional<Reward> beforeReward = rewardRepository.findById(savedId);
         assertThat(beforeReward).isNotEmpty();
 
-        String url = "http://localhost:" + port + URI_PREFIX + "/" + savedId;
+        String url = SERVER_ADDR + port + URI_PREFIX + "/" + savedId;
 
         //when
         mvc.perform(

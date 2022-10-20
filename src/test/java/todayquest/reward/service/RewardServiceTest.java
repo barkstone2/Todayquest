@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
+import org.springframework.security.core.userdetails.User;
 import todayquest.common.MessageUtil;
 import todayquest.quest.service.QuestService;
 import todayquest.reward.dto.RewardRequestDto;
@@ -66,10 +67,11 @@ class RewardServiceTest {
         //given
         Reward reward = Reward.builder()
                 .name("name")
+                .user(UserInfo.builder().id(1L).build())
                 .build();
 
         //when
-        when(rewardRepository.findByIdAndUserId(any(), any())).thenReturn(Optional.ofNullable(reward));
+        when(rewardRepository.findById(any())).thenReturn(Optional.ofNullable(reward));
         RewardResponseDto dto = rewardService.getReward(1L, 1L);
 
         //then
@@ -85,7 +87,7 @@ class RewardServiceTest {
                 .build();
 
         //when
-        when(rewardRepository.findByIdAndUserId(any(), any())).thenReturn(Optional.ofNullable(null));
+        when(rewardRepository.findById(any())).thenReturn(Optional.ofNullable(null));
 
         //then
         assertThatThrownBy(() -> rewardService.getReward(1L, 1L))
@@ -112,10 +114,10 @@ class RewardServiceTest {
     @Test
     void updateReward() {
         //given
-        Reward reward = Reward.builder().name("save name").build();
+        Reward reward = Reward.builder().name("save name").user(UserInfo.builder().id(1L).build()).build();
 
         //when
-        when(rewardRepository.findByIdAndUserId(any(), any())).thenReturn(Optional.ofNullable(reward));
+        when(rewardRepository.findById(any())).thenReturn(Optional.ofNullable(reward));
         rewardService.updateReward(RewardRequestDto.builder().name("update name").build(), 1L, 1L);
 
         //then
@@ -129,7 +131,7 @@ class RewardServiceTest {
         Reward reward = Reward.builder().name("save name").build();
 
         //when
-        when(rewardRepository.findByIdAndUserId(any(), any())).thenReturn(Optional.ofNullable(null));
+        when(rewardRepository.findById(any())).thenReturn(Optional.ofNullable(null));
 
 
         //then
@@ -142,8 +144,10 @@ class RewardServiceTest {
     @Test
     public void testDeleteRewardFail() throws Exception {
         //given
+        Reward reward = Reward.builder().name("save name").build();
+
         //when
-        when(rewardRepository.deleteByIdAndUserId(any(), any())).thenReturn(0L);
+        when(rewardRepository.findById(any())).thenReturn(Optional.ofNullable(null));
 
         //then
         assertThatThrownBy(() -> rewardService.deleteReward(1L, 1L))

@@ -8,6 +8,6 @@ import todayquest.user.entity.UserInfo;
 import java.util.List;
 
 @Repository
-public interface QuestRepository extends JpaRepository<Quest, Long> {
+public interface QuestRepository extends JpaRepository<Quest, Long>, QuestRepositoryCustom {
     List<Quest> getQuestsByUserOrderByDeadLineDateAscDeadLineTimeAsc(UserInfo userInfo);
 }

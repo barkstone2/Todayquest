@@ -39,10 +39,11 @@ public class QuestRequestDto {
     @Size(max = 5)
     private List<Long> rewards = new ArrayList<>();
 
-    public Quest mapToEntity(UserInfo userInfo) {
+    public Quest mapToEntity(Long nextSeq, UserInfo userInfo) {
         return Quest.builder()
                 .title(getTitle())
                 .user(userInfo)
+                .seq(nextSeq)
                 .description(getDescription())
                 .isRepeat(isRepeat())
                 .deadLineDate(getDeadLineDate())

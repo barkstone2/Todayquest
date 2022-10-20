@@ -66,6 +66,7 @@ class QuestControllerUnitTest {
                 .description("desc1").isRepeat(true)
                 .deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now())
                 .difficulty(QuestDifficulty.easy)
+                .state(QuestState.PROCEED)
                 .build();
 
         QuestResponseDto quest2 = QuestResponseDto.builder()
@@ -73,6 +74,7 @@ class QuestControllerUnitTest {
                 .description("desc2").isRepeat(true)
                 .deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now())
                 .difficulty(QuestDifficulty.easy)
+                .state(QuestState.PROCEED)
                 .build();
 
         questList.add(quest1);
@@ -207,8 +209,11 @@ class QuestControllerUnitTest {
         map.add("description", "save description");
         map.add("repeat", "true");
         map.add("difficulty", QuestDifficulty.easy.name());
+        map.add("state", QuestState.PROCEED.name());
 
         //when
+        when(questService.getQuestInfo(any())).thenReturn(questList.get(0));
+
         //then
         mvc.perform(
                 put(URI_PREFIX + uri)

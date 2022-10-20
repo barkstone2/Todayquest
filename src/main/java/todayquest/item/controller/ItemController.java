@@ -26,13 +26,13 @@ public class ItemController {
     @GetMapping("")
     public String inventory(@AuthenticationPrincipal UserPrincipal principal, Model model) {
         model.addAttribute("items", itemService.getInventoryItems(principal.getUserId()));
-        return "/item/inventory";
+        return "item/inventory";
     }
 
     @GetMapping("/{itemId}")
     public String itemInfo(@PathVariable Long itemId, @AuthenticationPrincipal UserPrincipal principal, Model model) {
         model.addAttribute("item", itemService.getItemInfo(itemId, principal.getUserId()));
-        return "/item/view";
+        return "item/view";
     }
 
 

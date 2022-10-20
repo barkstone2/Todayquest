@@ -18,21 +18,21 @@ public class CustomHandlerExceptionResolver implements HandlerExceptionResolver 
                                          HttpServletResponse response, Object handler, Exception ex) {
 
         if (ex instanceof IllegalArgumentException) {
-            ModelAndView modelAndView = new ModelAndView("/error/error");
+            ModelAndView modelAndView = new ModelAndView("error/error");
             modelAndView.setStatus(HttpStatus.BAD_REQUEST);
             ModelMap modelMap = modelAndView.getModelMap();
             modelMap.put("message", ex.getMessage());
 
             return modelAndView;
         }else if (ex instanceof AccessDeniedException) {
-            ModelAndView modelAndView = new ModelAndView("/error/error");
+            ModelAndView modelAndView = new ModelAndView("error/error");
             modelAndView.setStatus(HttpStatus.FORBIDDEN);
             ModelMap modelMap = modelAndView.getModelMap();
             modelMap.put("message", ex.getMessage());
 
             return modelAndView;
         } else {
-            return new ModelAndView("/error/error");
+            return new ModelAndView("error/error");
         }
     }
 }

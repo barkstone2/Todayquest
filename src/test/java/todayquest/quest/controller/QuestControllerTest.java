@@ -89,7 +89,7 @@ class QuestControllerTest {
         //when
         String body = mvc.perform(get(url))
                 .andExpect(status().isOk())
-                .andExpect(view().name("/quest/list"))
+                .andExpect(view().name("quest/list"))
                 .andExpect(model().attributeExists("questList"))
                 .andReturn().getResponse().getContentAsString();
 
@@ -146,7 +146,7 @@ class QuestControllerTest {
                                 .params(map)
                                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 )
-                .andExpect(view().name("/quest/save"));
+                .andExpect(view().name("quest/save"));
     }
 
 
@@ -326,7 +326,7 @@ class QuestControllerTest {
                                 .with(csrf())
                                 .params(map)
                 )
-                .andExpect(view().name("/quest/view"))
+                .andExpect(view().name("quest/view"))
                 .andExpect(model().attributeExists("hasError"))
                 .andReturn().getResolvedException();
 

@@ -90,7 +90,7 @@ public class RewardControllerTest {
         //when
         String body = mvc.perform(get(url))
                 .andExpect(status().isOk())
-                .andExpect(view().name("/reward/list"))
+                .andExpect(view().name("reward/list"))
                 .andExpect(model().attributeExists("rewards"))
                 .andReturn().getResponse().getContentAsString();
 
@@ -124,7 +124,7 @@ public class RewardControllerTest {
         //when
         ModelMap modelMap1 = mvc.perform(get(url))
                 .andExpect(status().isOk())
-                .andExpect(view().name("/reward/view"))
+                .andExpect(view().name("reward/view"))
                 .andReturn().getModelAndView().getModelMap();
 
         //then
@@ -141,7 +141,7 @@ public class RewardControllerTest {
         //when
         //then
         mvc.perform(get(url))
-                .andExpect(view().name("/reward/save"))
+                .andExpect(view().name("reward/save"))
                 .andExpect(model().attributeExists("gradeList"));
     }
 
@@ -189,7 +189,7 @@ public class RewardControllerTest {
                         .params(param)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 )
-                .andExpect(view().name("/reward/save"))
+                .andExpect(view().name("reward/save"))
                 .andExpect(model().attributeDoesNotExist("savedId"));
     }
 
@@ -270,7 +270,7 @@ public class RewardControllerTest {
                                 .with(csrf())
                                 .params(param)
                 )
-                .andExpect(view().name("/reward/view"))
+                .andExpect(view().name("reward/view"))
                 .andExpect(model().attributeExists("hasError"));
 
         //then

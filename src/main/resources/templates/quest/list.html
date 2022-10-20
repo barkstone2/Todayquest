@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{/layout/head :: commonHead ('오늘의 퀘스트', ~{::style})}">
+<head th:replace="~{layout/head :: commonHead ('오늘의 퀘스트', ~{::style})}">
     <style>
         .card{
             width: 400px!important;
@@ -35,7 +35,7 @@
     </style>
 </head>
 <body class="container">
-    <header th:replace="~{/layout/header :: userHeader}"></header>
+    <header th:replace="~{layout/header :: userHeader}"></header>
     <h1>퀘스트 목록     <a class="btn btn-primary"href="/quests/save">퀘스트 등록</a></h1>
     <div class="row row-cols-1 row-cols-md-auto g-4">
         <div th:if="${questList.size() == 0}">

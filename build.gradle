@@ -39,7 +39,7 @@ dependencies {
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
 
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.h2database:h2'
+	runtimeOnly 'mysql:mysql-connector-java'
 	annotationProcessor 'org.projectlombok:lombok'
 	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.8.0'
 

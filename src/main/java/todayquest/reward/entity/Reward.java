@@ -1,6 +1,7 @@
 package todayquest.reward.entity;
 
 import lombok.*;
+import todayquest.common.BaseTimeEntity;
 import todayquest.reward.dto.RewardRequestDto;
 import todayquest.user.entity.UserInfo;
 
@@ -12,7 +13,7 @@ import static javax.persistence.FetchType.LAZY;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor @Builder
 @Entity
-public class Reward {
+public class Reward extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reward_id")

@@ -1,17 +1,16 @@
 package todayquest.quest.entity;
 
-import com.mysema.commons.lang.Assert;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import todayquest.common.BaseTimeEntity;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.reward.entity.Reward;
 import todayquest.user.entity.UserInfo;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +20,7 @@ import static javax.persistence.FetchType.LAZY;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class Quest {
+public class Quest extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "quest_id")
@@ -69,13 +68,6 @@ public class Quest {
     @OneToMany(mappedBy = "quest")
     private List<QuestReward> rewards = new ArrayList<>();
 
-
-    /**
-     * 등록자 정보는 추후 User 엔티티 추가 후 해당 정보를 받아서 처리할 것
-     */
-    private String regUser;
-    private LocalDateTime regDate;
-    private LocalDateTime modifyDate;
 
     @Builder
     public Quest(String title, String description, UserInfo user, Long seq, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime,

@@ -57,7 +57,7 @@ public class QuestRequestDto {
     }
 
     @Builder
-    public QuestRequestDto(String title, String description, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime, QuestDifficulty difficulty, List<Long> rewards) {
+    public QuestRequestDto(String title, String description, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime, QuestDifficulty difficulty, QuestState state, List<Long> rewards) {
 
         this.title = title;
         this.description = description;
@@ -65,6 +65,7 @@ public class QuestRequestDto {
         this.deadLineDate = deadLineDate;
         this.deadLineTime = deadLineTime;
         this.difficulty = difficulty;
+        this.state = state;
         this.rewards = rewards;
     }
 

@@ -27,7 +27,13 @@
                     </div>
                 </div>
             </div>
-
+            <div class="row mb-3" th:if="${quest.state == quest.state.COMPLETE || quest.state == quest.state.DISCARD}" th:switch="${quest.state}">
+                <div class="col-sm-2 col-form-label" th:case="${quest.state.COMPLETE}">완료일자</div>
+                <div class="col-sm-2 col-form-label" th:case="${quest.state.DISCARD}">포기일자</div>
+                <div class="col-auto">
+                    <input class="form-control" th:value="${#temporals.format(quest.lastModifiedDate, 'yyyy-MM-dd HH:mm:ss')}" disabled>
+                </div>
+            </div>
             <div class="row mb-3">
                 <label th:for="difficulty" class="col-sm-2 col-form-label">난이도</label>
                 <div class="col-auto">

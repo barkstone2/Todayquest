@@ -78,7 +78,9 @@ public class QuestService {
             }
 
             List<Reward> updateRewards = rewardRepository.findAllById(dto.getRewards());
-            quest.updateQuestEntity(dto, updateRewards);
+            List<QuestReward> newRewards = quest.updateQuestEntity(dto, updateRewards);
+
+            questRewardRepository.saveAll(newRewards);
 
         } else {
             throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("quest")));

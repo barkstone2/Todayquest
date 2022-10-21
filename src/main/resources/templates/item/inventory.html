@@ -14,7 +14,7 @@
             }
         }
         .item:hover {
-            background-color: aliceblue!important;
+            background-color: #bad9fc!important;
             cursor: pointer;
         }
     </style>
@@ -24,14 +24,19 @@
 <h1>인벤토리</h1>
 <div class="container border border-dark border-3">
     <div class="row overflow-scroll" style="max-height: 800px;">
-
         <div class="item col-auto m-1 p-2 border border-3 border-dark" style="min-height: 200px;" th:each="item : ${items}" th:data-id="${item.id}">
-            <div class="p-1 text-center position-relative border border-dark border-2 m-auto" style="width: 150px; height: 150px;">
+            <div class="p-1 text-center position-relative border border-dark border-2 m-auto" th:style="|width: 150px; height: 150px; background-color: ${item.grade.color}|">
                 <img src="/image/image.webp" style="width: 120px; height: 120px;"/>
-                <div class="position-absolute" style="right: 3px; bottom: 3px;" th:text="|${item.count}개|">3개</div>
+                <div class="position-absolute fw-bold" style="right: 3px; bottom: 3px;" th:text="|${item.count}개|">3개</div>
             </div>
             <div class="align-self-end text-center text-break" th:text="${item.name}">아이템 이름</div>
+
         </div>
+        <th:block th:if="${items.size() < 28}" th:each="num : ${#numbers.sequence(1+items.size(), 28)}">
+            <div class="col-auto m-1 p-2 border border-3 border-dark" style="min-height: 200px;">
+                <div class="p-1 text-center position-relative m-auto" style="width: 150px; height: 150px;"></div>
+            </div>
+        </th:block>
     </div>
 </div>
 

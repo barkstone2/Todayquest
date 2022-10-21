@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
+import todayquest.common.BaseTimeEntity;
 import todayquest.common.MessageUtil;
 import todayquest.reward.entity.Reward;
 import todayquest.user.entity.UserInfo;
@@ -17,7 +18,7 @@ import static javax.persistence.FetchType.LAZY;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DynamicInsert
 @Entity
-public class Item {
+public class Item extends BaseTimeEntity {
     
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "item_id")

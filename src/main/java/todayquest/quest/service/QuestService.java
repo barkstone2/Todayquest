@@ -1,6 +1,11 @@
 package todayquest.quest.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,11 +40,12 @@ public class QuestService {
 
     private final QuestRewardRepository questRewardRepository;
 
-    public List<QuestResponseDto> getQuestList(Long userId) {
-        return questRepository.getQuestsByUserOrderByDeadLineDateAscDeadLineTimeAsc(UserInfo.builder().id(userId).build())
-                .stream()
-                .map(QuestResponseDto::createDto)
-                .collect(Collectors.toList());
+    @Transactional
+    public Slice<QuestResponseDto> getQuestList(Long userId, QuestState state, Pageable pageable) {
+
+        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        return questRepository.getQuestsList(userId, state, pageRequest)
+                .map(QuestResponseDto::createDto);
     }
 
     public QuestResponseDto getQuestInfo(Long questId) {

@@ -1,11 +1,13 @@
 package todayquest.quest.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 @Getter
 public enum QuestDifficulty {
 

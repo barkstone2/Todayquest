@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout/head :: commonHead ('인벤토리', ~{::style})}">
+<head th:replace="~{layout/header :: common_head ('인벤토리', ~{::style})}">
     <title>상태창</title>
     <style>
         @media (min-width: 768px) {
@@ -20,7 +20,7 @@
     </style>
 </head>
 <body class="container">
-<header th:replace="~{layout/header :: userHeader}"></header>
+<header th:replace="~{layout/head_menu :: user_menu}"></header>
 <h1>인벤토리</h1>
 <div class="container border border-dark border-3">
     <div class="row overflow-scroll" style="max-height: 800px;">

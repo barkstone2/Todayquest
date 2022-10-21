@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout/head :: commonHead ('아이템 정보', ~{::style})}">
+<head th:replace="~{layout/header :: common_head ('아이템 정보', ~{::style})}">
     <style>
         .field-error {
             border-color: #dc3545; !important;
@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="container">
-    <header th:replace="~{layout/header :: userHeader}"></header>
+    <header th:replace="~{layout/head_menu :: user_menu}"></header>
     <div class="position-relative" style="max-width: 700px; min-width: 400px;">
         <form method="post" id="rewardForm" th:object="${reward}" th:action="@{|/rewards/${rewardId}|}">
             <h1>아이템 정보</h1>

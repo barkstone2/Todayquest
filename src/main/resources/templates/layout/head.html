@@ -1,9 +1,0 @@
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:fragment="commonHead(title, style)">
-    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
-    <script src="/js/bootstrap.bundle.min.js"></script>
-    <title th:text="${title}">오늘의 퀘스트</title>
-    <th:block th:replace="${style}"/>
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-</head>

@@ -36,3 +36,6 @@ out/
 
 ### VS Code ###
 .vscode/
+/src/main/resources/db/realdb/schema.sql
+/src/main/resources/db/devdb/schema.sql
+/src/main/resources/db/devdb/data.sql

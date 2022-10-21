@@ -85,35 +85,38 @@ public class Quest extends BaseTimeEntity {
         this.difficulty = difficulty;
     }
 
-    public void updateQuestEntity(QuestRequestDto dto, List<Reward> updateRewards) {
+    public List<QuestReward> updateQuestEntity(QuestRequestDto dto, List<Reward> updateRewards) {
         this.title = dto.getTitle();
         this.description = dto.getDescription();
         this.isRepeat = dto.isRepeat();
         this.deadLineDate = dto.getDeadLineDate();
         this.deadLineTime = dto.getDeadLineTime();
         this.difficulty = dto.getDifficulty();
-        updateRewardList(updateRewards);
+        return updateRewardList(updateRewards);
     }
 
-    private void updateRewardList(List<Reward> rewardIdList) {
+    private List<QuestReward> updateRewardList(List<Reward> updateRewards) {
+        List<QuestReward> newRewards = new ArrayList<>();
 
-        int updateCount = rewardIdList.size();
+        int updateCount = updateRewards.size();
 
         for (int i = 0; i < updateCount; i++) {
-            QuestReward newReward = QuestReward.builder().reward(rewardIdList.get(i)).quest(this).build();
+            QuestReward newReward = QuestReward.builder().reward(updateRewards.get(i)).quest(this).build();
             try {
-                rewards.get(i).updateReward(rewardIdList.get(i));
+                rewards.get(i).updateReward(updateRewards.get(i));
             } catch (IndexOutOfBoundsException e) {
-                rewards.add(newReward);
+                newRewards.add(newReward);
             }
         }
 
         int overCount = rewards.size() - updateCount;
         if (overCount > 0) {
             for (int i = updateCount; i < updateCount + overCount; i++) {
-                rewards.remove(updateCount);
+                rewards.remove(i);
             }
         }
+
+        return newRewards;
     }
 
     public void changeState(QuestState state) {

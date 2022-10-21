@@ -35,18 +35,30 @@
     </style>
 </head>
 <body class="container">
-    <header th:replace="~{layout/header :: userHeader}"></header>
-    <h1>퀘스트 목록     <a class="btn btn-primary"href="/quests/save">퀘스트 등록</a></h1>
-    <div class="row row-cols-1 row-cols-md-auto g-4">
-        <div th:if="${questList.size() == 0}">
+    <header th:replace="~{layout/head_menu :: user_menu}"></header>
+    <div class="row">
+        <h1 class="col-auto">퀘스트 목록</h1>
+        <div class="col-auto align-self-center">
+            <select class="form-control form-select" th:name="state" th:id="state">
+                <option th:each="state : ${stateList}" th:value="${state.name()}" th:text="${state.message}" th:selected="${searchCondition.state == state}"></option>
+            </select>
+        </div>
+        <div class="col-auto align-self-center">
+            <a class="btn btn-primary"href="/quests/save">퀘스트 등록</a>
+        </div>
+    </div>
+    <div class="row row-cols-1 row-cols-md-auto g-4 mb-4" id="questList">
+        <div th:if="${questList. getSize() == 0}">
             등록된 퀘스트가 없습니다.
         </div>
-        <div class="col" th:each="quest : ${questList}">
+        <div class="col" th:each="quest : ${questList.getContent()}">
             <a class="card text-reset text-decoration-none" th:href="|/quests/${quest.questId}|">
                 <div class="card-header">
-                    <span class="p-1 fw-semi-bold" th:text="|#${quest.questId}|"></span>
+                    <span class="p-1 fw-semi-bold" th:text="|#${quest.seq}|"></span>
                     <span class="rounded bg-danger text-white p-1" th:text="${quest.difficulty.getText()}">퀘스트 난이도</span>
                     <span th:class="|${quest.state.cssClassInfo} p-1 m-1|" th:text="${quest.state.message}">퀘스트 상태</span>
+                    <span class="p-1 fw-semi-bold" th:if="${quest.state == quest.state.COMPLETE || quest.state == quest.state.DISCARD}"
+                          th:text="${#temporals.format(quest.lastModifiedDate, 'yyyy-MM-dd HH:mm:ss')}"></span>
                 </div>
                 <div class="card-body">
                     <h5 class="card-title text-truncate" th:text="${quest.title}">퀘스트 제목</h5>
@@ -54,37 +66,187 @@
 
                     <!-- TODO 세부 퀘스트 목록 퀘스트 객체에서 가져오도록 변경할 것 -->
                     <div class="mb-1" style="height: 216px;">
-                        <ul class="list-unstyled mb-1" th:each="reward : ${quest.rewards}">
-                            <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100" th:text="${reward.name}"></li>
-    <!--                        <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>-->
+                        <ul class="list-unstyled mb-1">
+<!--                            <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>-->
                         </ul>
                     </div>
                     <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|경험치 ${quest.difficulty.getExperience()}|">경험치 50</span>
                     <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|골드 ${quest.difficulty.getGold()}|">골드 100</span>
                 </div>
-                <!-- TODO 커스텀 보상 목록 퀘스트 객체에서 가져오도록 변경할 것 -->
-                <!-- TODO 리스트 목록이 부족해도 빈칸 세개는 무조건 출력 값이 없는 경우 &nbsp; 넣어주기 -->
-                <div class="list-group list-group-flush">
-                    <div class="list-item text-truncate">An item</div>
-                    <div class="list-item text-truncate">A second item</div>
-                    <div class="list-item text-truncate">A third item</div>
+                <div class="list-group list-group-flush" >
+                    <div class="list-item text-truncate" th:each="reward : ${quest.rewards}" th:text="${reward.name}">&nbsp;</div>
+                    <div class="list-item text-truncate" th:each="num : ${#numbers.sequence(1+quest.rewards.size(),3)}">&nbsp;</div>
                 </div>
-<!--                <ul class="list-group list-group-flush">-->
-<!--                    <li class="list-group-item text-truncate">An item</li>-->
-<!--                    <li class="list-group-item text-truncate">A second item</li>-->
-<!--                    <li class="list-group-item text-truncate">A third item</li>-->
-<!--                </ul>-->
-                <div class="card-footer">
+                <div class="card-footer" th:with="deadLine=|${#strings.defaultString(quest.deadLineDate, '')} ${#strings.defaultString(quest.deadLineTime, '')}|">
                     <span class="bg-warning rounded p-1 text-white">완료기한</span>
-                    <span class="m-1 fw-semi-bold" th:text="|${quest.deadLineDate} ${quest.deadLineTime}|"></span>
+                    <span class="m-1 fw-semi-bold" th:text="|${#strings.defaultString(deadLine, '없음')}|"></span>
                 </div>
             </a>
         </div>
     </div>
+    <h4 class="visually-hidden mb-4 text-center" id="lastPageMessage">마지막 페이지입니다.</h4>
 </body>
 <script th:inline="javascript">
-    function getQuest(questId) {
-        location.href = '/quests/' + questId;
+
+    let stateSelector = document.getElementById('state');
+    stateSelector.addEventListener('change', function () {
+        location.href = "?state=" + stateSelector.value;
+    });
+
+    const pageSize = 9;
+    let currentPage = 0;
+    let hasNext = [[${questList.hasNext}]];
+
+    function getQuestPages(pageNo) {
+        const state = document.getElementById('state').value;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("get", "/api/quests?page=" + pageNo + "&state=" + state);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                const result = JSON.parse(xhr.response);
+                console.log(result);
+                hasNext = !result.last;
+                currentPage = result.number;
+
+                const listEl = document.getElementById('questList');
+                const questList = result.content;
+
+                for (let i = 0; i < questList.length; i++) {
+                    let quest = questList[i];
+                    let questEl = createQuestCard(quest);
+                    listEl.appendChild(questEl);
+                }
+
+            }
+        }
+
+        xhr.send();
     }
+
+    function getScrollTop() {
+        return (window.scrollY !== undefined) ? window.scrollY : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+    };
+
+    function getDocumentHeight() {
+        const body = document.body;
+        const html = document.documentElement;
+
+        return Math.max(
+            body.scrollHeight, body.offsetHeight,
+            html.clientHeight, html.scrollHeight, html.offsetHeight
+        );
+    };
+
+    window.onscroll = function () {
+        if(!hasNext && document.getElementById('lastPageMessage').classList.contains('visually-hidden')) {
+            document.getElementById('lastPageMessage').classList.remove('visually-hidden');
+        }
+
+        if (getScrollTop() === getDocumentHeight() - window.innerHeight && hasNext) {
+            getQuestPages(currentPage+1);
+        }
+    };
+
+    function createQuestCard(quest) {
+        let cardFrame = document.createElement("div");
+        cardFrame.className = "col";
+
+        let cardAnchor = document.createElement("a");
+        cardAnchor.className = "card text-reset text-decoration-none";
+        cardAnchor.href = "/quests/" + quest.questId;
+
+        let cardHeader = document.createElement("div");
+        cardHeader.className = "card-header";
+
+        let headerEl1 = document.createElement("span");
+        headerEl1.className = "p-1 fw-semi-bold";
+        headerEl1.textContent = "#" + quest.seq;
+
+        let headerEl2 = document.createElement("span");
+        headerEl2.className="rounded bg-danger text-white p-1";
+        headerEl2.textContent=quest.difficulty.text;
+
+        let headerEl3 = document.createElement("span");
+        headerEl3.className= quest.state.cssClassInfo;
+        headerEl3.classList.add("p-1");
+        headerEl3.classList.add("m-1");
+        headerEl3.textContent=quest.state.message;
+
+        cardHeader.appendChild(headerEl1);
+        cardHeader.appendChild(headerEl2);
+        cardHeader.appendChild(headerEl3);
+
+        cardAnchor.appendChild(cardHeader);
+
+        let cardBody = document.createElement("div");
+        cardBody.className = "card-body";
+
+        let bodyEl1 = document.createElement("h5");
+        bodyEl1.className="card-title text-truncate";
+        bodyEl1.textContent=quest.title;
+
+
+        let bodyEl2 = document.createElement("p");
+        bodyEl2.className="card-text border-start border-2 ps-3 text-box"
+        bodyEl2.textContent=quest.description;
+
+        let bodyEl3 = document.createElement("div");
+        bodyEl3.className="mb-1";
+        bodyEl3.style.height="216px";
+
+        let bodyEl4 = document.createElement("span");
+        bodyEl4.className="border border-1 rounded p-1 bg-light fw-semi-bold";
+        bodyEl4.textContent="경험치 "+quest.difficulty.experience;
+
+        let bodyEl5 = document.createElement("span");
+        bodyEl5.className="border border-1 rounded p-1 bg-light fw-semi-bold";
+        bodyEl5.textContent="골드 "+quest.difficulty.gold;
+
+        cardBody.appendChild(bodyEl1);
+        cardBody.appendChild(bodyEl2);
+        cardBody.appendChild(bodyEl3);
+        cardBody.appendChild(bodyEl4);
+        cardBody.append(" ");
+        cardBody.appendChild(bodyEl5);
+
+        cardAnchor.appendChild(cardBody);
+
+        let rewardList = document.createElement("div");
+        rewardList.className = "list-group list-group-flush";
+
+        for (let i = 0; i < 3; i++) {
+            let rewardItem = document.createElement("div");
+            rewardItem.className = "list-item text-truncate";
+            rewardItem.innerHTML = quest.rewards[i] ? quest.rewards[i].name : "&nbsp;";
+            rewardList.appendChild(rewardItem);
+        }
+
+        cardAnchor.appendChild(rewardList);
+
+        let cardFooter = document.createElement("div");
+        cardFooter.className="card-footer";
+
+        let footerEl1 = document.createElement("span");
+        footerEl1.className="bg-warning rounded p-1 text-white";
+        footerEl1.textContent="완료기한";
+
+        let footerEl2 = document.createElement("span");
+        footerEl2.className="m-1 fw-semi-bold";
+        let deadLineText = (quest.deadLineDate != null ? quest.deadLineDate : "") + " " + (quest.deadLineTime != null ? quest.deadLineTime.substring(0, 5) : "");
+        footerEl2.textContent= deadLineText.trim() == "" ? "없음" : deadLineText.trim();
+
+        cardFooter.appendChild(footerEl1);
+        cardFooter.appendChild(footerEl2);
+
+        cardAnchor.appendChild(cardFooter);
+
+        cardFrame.appendChild(cardAnchor);
+
+        return cardFrame;
+    }
+
 </script>
 </html>

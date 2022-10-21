@@ -2,6 +2,7 @@ package todayquest.quest.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,7 +12,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import todayquest.common.UserLevelLock;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
+import todayquest.quest.dto.QuestSearchCondition;
 import todayquest.quest.entity.QuestDifficulty;
+import todayquest.quest.entity.QuestState;
 import todayquest.quest.service.QuestService;
 import todayquest.reward.service.RewardService;
 import todayquest.user.dto.UserPrincipal;
@@ -30,9 +33,9 @@ public class QuestController {
 
 
     @GetMapping("")
-    public String list(@AuthenticationPrincipal UserPrincipal principal, Model model) {
-        model.addAttribute("questList", questService.getQuestList(principal.getUserId()));
-
+    public String list(@ModelAttribute("searchCondition") QuestSearchCondition condition, @AuthenticationPrincipal UserPrincipal principal, Model model) {
+        model.addAttribute("questList", questService.getQuestList(principal.getUserId(), condition.getState(), PageRequest.of(0, 9)));
+        model.addAttribute("stateList", QuestState.getEnumListForUser());
         return "quest/list";
     }
 

@@ -10,6 +10,7 @@ import todayquest.quest.entity.QuestType;
 import todayquest.reward.dto.RewardResponseDto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ public class QuestResponseDto {
     private Long questId;
     private String title;
     private String description;
+    private Long seq;
     private boolean isRepeat;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate deadLineDate;
@@ -30,18 +32,21 @@ public class QuestResponseDto {
     private QuestType type;
     private QuestDifficulty difficulty;
     private List<RewardResponseDto> rewards;
+    private LocalDateTime lastModifiedDate;
 
     public static QuestResponseDto createDto(Quest quest) {
         return QuestResponseDto.builder()
                 .questId(quest.getId())
                 .title(quest.getTitle())
                 .description(quest.getDescription())
+                .seq(quest.getSeq())
                 .isRepeat(quest.isRepeat())
                 .deadLineDate(quest.getDeadLineDate())
                 .deadLineTime(quest.getDeadLineTime())
                 .state(quest.getState())
                 .type(quest.getType())
                 .difficulty(quest.getDifficulty())
+                .lastModifiedDate(quest.getLastModifiedDate())
                 .rewards(quest.getRewards().stream().map(r -> RewardResponseDto.createDto(r.getReward())).collect(Collectors.toList()))
                 .build();
     }

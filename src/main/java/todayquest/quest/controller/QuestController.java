@@ -15,6 +15,7 @@ import todayquest.quest.dto.QuestResponseDto;
 import todayquest.quest.dto.QuestSearchCondition;
 import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.entity.QuestState;
+import todayquest.quest.service.QuestLogService;
 import todayquest.quest.service.QuestService;
 import todayquest.reward.service.RewardService;
 import todayquest.user.dto.UserPrincipal;
@@ -31,6 +32,7 @@ public class QuestController {
     private final QuestService questService;
     private final RewardService rewardService;
     private final UserLevelLock userLevelLock;
+    private final QuestLogService questLogService;
 
 
     @GetMapping("")
@@ -100,12 +102,14 @@ public class QuestController {
     @PostMapping("/{questId}")
     public String complete(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal, RedirectAttributes redirectAttributes) throws IOException {
         questService.completeQuest(questId, principal);
+        questLogService.saveQuestLog(questId, principal.getUserId(), QuestState.COMPLETE);
         return "redirect:/quests";
     }
 
     @DeleteMapping("/{questId}/discard")
     public String discard(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal, RedirectAttributes redirectAttributes) {
         questService.discardQuest(questId, principal.getUserId());
+        questLogService.saveQuestLog(questId, principal.getUserId(), QuestState.DISCARD);
         return "redirect:/quests";
     }
 }

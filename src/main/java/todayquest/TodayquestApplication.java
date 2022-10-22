@@ -17,7 +17,6 @@ import todayquest.user.dto.UserPrincipal;
 import javax.sql.DataSource;
 import java.util.Optional;
 
-@EnableJpaAuditing
 @SpringBootApplication
 public class TodayquestApplication {
 

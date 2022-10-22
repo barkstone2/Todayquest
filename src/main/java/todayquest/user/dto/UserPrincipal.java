@@ -13,6 +13,7 @@ import todayquest.user.entity.UserInfo;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @Getter @Setter
@@ -28,10 +29,17 @@ public class UserPrincipal implements OAuth2User, OidcUser, UserDetails {
     private Map<String, Object> attributes;
 
     public static UserPrincipal create(UserInfo userInfo) {
+
+        Map<String, Object> attr = new HashMap<>();
+        attr.put("level", userInfo.getLevel());
+        attr.put("gold", userInfo.getGold());
+        attr.put("exp", userInfo.getExp());
+
         return UserPrincipal.builder()
                 .userId(userInfo.getId())
                 .nickname(userInfo.getNickname())
                 .providerType(userInfo.getProviderType())
+                .attributes(attr)
                 .authorities(Collections.singletonList(new SimpleGrantedAuthority(RoleType.USER.getCode())))
                 .build();
     }
@@ -44,8 +52,22 @@ public class UserPrincipal implements OAuth2User, OidcUser, UserDetails {
         return userPrincipal;
     }
 
-    public int getLevel() {
-        return 10;
+    public Integer getLevel() {
+        return (Integer) attributes.get("level");
+    }
+
+    public Long getExp() {
+        return (Long) attributes.get("exp");
+    }
+
+    public Long getGold() {
+        return (Long) attributes.get("gold");
+    }
+
+    public void synchronizeUserInfo(int level, Long exp, Long gold) {
+        attributes.put("level", level);
+        attributes.put("exp", exp);
+        attributes.put("gold", gold);
     }
 
     @Override

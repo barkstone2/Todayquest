@@ -58,17 +58,17 @@
             <div class="row p-2">
                 <div class="col-md-1"></div>
                 <div class="col-4 text-center">클리어한 퀘스트 수</div>
-                <div class="col-auto">15</div>
+                <div class="col-auto" th:text="${questLog.get('COMPLETE')}">15</div>
             </div>
             <div class="row p-2">
                 <div class="col-md-1"></div>
                 <div class="col-4 text-center">실패한 퀘스트 수</div>
-                <div class="col-auto">15</div>
+                <div class="col-auto" th:text="${questLog.get('FAIL')}">15</div>
             </div>
             <div class="row p-2">
                 <div class="col-md-1"></div>
                 <div class="col-4 text-center">포기한 퀘스트 수</div>
-                <div class="col-auto">15</div>
+                <div class="col-auto" th:text="${questLog.get('DISCARD')}">15</div>
             </div>
         </div>
 

@@ -106,6 +106,7 @@
         let header = document.getElementsByName('_csrf_header')[0].getAttribute('content');
         xhr.open(method, '/inventory/' + itemId);
         xhr.setRequestHeader('content-type', 'application/json');
+        xhr.setRequestHeader('Accept', 'application/json');
         xhr.setRequestHeader(header, token);
 
         let count = document.getElementById('count').selectedOptions[0].value;

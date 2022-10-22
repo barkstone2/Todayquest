@@ -20,6 +20,9 @@ public class WithMockCustomUserSecurityContextFactory implements WithSecurityCon
                         .id(user.userId())
                         .providerType(user.providerType())
                         .nickname(user.nickname())
+                        .level(1)
+                        .gold(0L)
+                        .exp(0L)
                         .build()
         );
 

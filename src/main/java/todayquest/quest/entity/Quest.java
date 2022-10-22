@@ -112,7 +112,8 @@ public class Quest extends BaseTimeEntity {
         int overCount = rewards.size() - updateCount;
         if (overCount > 0) {
             for (int i = updateCount; i < updateCount + overCount; i++) {
-                rewards.remove(i);
+                // 새로 변경된 rewards의 길이 index에서 요소를 계속 삭제
+                rewards.remove(updateCount);
             }
         }
 

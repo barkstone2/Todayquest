@@ -42,30 +42,31 @@ class QuestTest {
                 .deadLineDate(LocalDate.now())
                 .build();
 
+
         Reward reward1 = Reward.builder().id(1L).name("1").build();
         Reward reward2 = Reward.builder().id(2L).name("2").build();
         Reward reward3 = Reward.builder().id(3L).name("3").build();
         Reward reward4 = Reward.builder().id(4L).name("4").build();
 
+        entity.getRewards().add(QuestReward.builder().reward(reward1).build());
+        entity.getRewards().add(QuestReward.builder().reward(reward2).build());
+        entity.getRewards().add(QuestReward.builder().reward(reward3).build());
+        entity.getRewards().add(QuestReward.builder().reward(reward4).build());
+
         List<Reward> rewards = new ArrayList<>(){{
-           add(reward1);
-           add(reward2);
            add(reward3);
            add(reward4);
         }};
 
-        entity.updateQuestEntity(dto, rewards);
-
-
         //when
-        rewards.remove(3);
-        rewards.remove(2);
+        List<QuestReward> newRewards = entity.updateQuestEntity(dto, rewards);
 
-        entity.updateQuestEntity(dto, rewards);
 
+        //then
+        assertThat(newRewards.size()).isEqualTo(0);
         assertThat(entity.getRewards().size()).isEqualTo(2);
-        assertThat(entity.getRewards().get(0).getReward().getId()).isEqualTo(1L);
-        assertThat(entity.getRewards().get(0).getReward().getName()).isEqualTo("1");
+        assertThat(entity.getRewards().get(0).getReward().getId()).isEqualTo(reward3.getId());
+        assertThat(entity.getRewards().get(0).getReward().getName()).isEqualTo(reward3.getName());
     }
 
 
@@ -97,26 +98,25 @@ class QuestTest {
 
         Reward reward1 = Reward.builder().id(1L).name("1").build();
         Reward reward2 = Reward.builder().id(2L).name("2").build();
+        Reward reward3 = Reward.builder().id(3L).name("3").build();
+        Reward reward4 = Reward.builder().id(4L).name("4").build();
+
+        entity.getRewards().add(QuestReward.builder().reward(reward1).build());
+
         List<Reward> rewards = new ArrayList<>(){{
            add(reward1);
            add(reward2);
+           add(reward3);
+           add(reward4);
         }};
 
-        entity.updateQuestEntity(dto, rewards);
-
         //when
-        Reward reward3 = Reward.builder().id(3L).name("3").build();
-        Reward reward4 = Reward.builder().id(4L).name("4").build();
-        rewards.add(reward3);
-        rewards.add(reward4);
+        List<QuestReward> newRewards = entity.updateQuestEntity(dto, rewards);
 
-        entity.updateQuestEntity(dto, rewards);
-
-        assertThat(entity.getRewards().size()).isEqualTo(4);
-        assertThat(entity.getRewards().get(0).getReward().getId()).isEqualTo(1L);
-        assertThat(entity.getRewards().get(0).getReward().getName()).isEqualTo("1");
-        assertThat(entity.getRewards().get(3).getReward().getId()).isNotNull();
-        assertThat(entity.getRewards().get(3).getReward().getName()).isEqualTo("4");
+        assertThat(entity.getRewards().size()).isEqualTo(1);
+        assertThat(newRewards.size()).isEqualTo(3);
+        assertThat(newRewards.stream().map(qr -> qr.getReward())).containsExactly(reward2, reward3, reward4);
+        assertThat(entity.getRewards().get(0).getReward().getId()).isEqualTo(reward1.getId());
     }
 
 

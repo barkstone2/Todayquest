@@ -1,6 +1,7 @@
 package todayquest.user.entity;
 
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
 import todayquest.common.BaseTimeEntity;
 
 import javax.persistence.*;
@@ -8,6 +9,7 @@ import javax.persistence.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor @Builder
+@DynamicInsert
 @Entity
 public class UserInfo extends BaseTimeEntity {
 

@@ -49,7 +49,6 @@ public class UserService {
                     .oauth2Id(id)
                     .nickname(tempNickName)
                     .providerType(providerType)
-                    .level(1)
                     .build();
 
             savedUserInfo = userRepository.saveAndFlush(newUserInfo);

@@ -58,8 +58,11 @@ public class QuestService {
                 .map(QuestResponseDto::createDto);
     }
 
-    public QuestResponseDto getQuestInfo(Long questId) {
-        return QuestResponseDto.createDto(questRepository.getById(questId));
+    public QuestResponseDto getQuestInfo(Long questId, Long userId) {
+        Quest quest = findQuestWithValidation(questId);
+        checkQuestOwner(quest.getUser().getId(), userId);
+
+        return QuestResponseDto.createDto(quest);
     }
 
     public Long saveQuest(QuestRequestDto dto, Long userId) {
@@ -78,35 +81,24 @@ public class QuestService {
     }
 
     public void updateQuest(QuestRequestDto dto, Long questId, Long userId) {
-        Optional<Quest> findQuest = questRepository.findById(questId);
-        Quest quest = findQuest.orElseThrow(() -> new IllegalArgumentException(
-                MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))));
+        Quest quest = findQuestWithValidation(questId);
+        checkQuestOwner(quest.getUser().getId(), userId);
 
-        if (quest.getUser().getId().equals(userId)) {
-            if (!quest.getState().equals(QuestState.PROCEED)) {
-                throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.update.invalid.state"));
-            }
-
-            List<Reward> updateRewards = rewardRepository.findAllById(dto.getRewards());
-            List<QuestReward> newRewards = quest.updateQuestEntity(dto, updateRewards);
-
-            questRewardRepository.saveAll(newRewards);
-
-        } else {
-            throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("quest")));
+        if (!quest.getState().equals(QuestState.PROCEED)) {
+            throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.update.invalid.state"));
         }
+
+        List<Reward> updateRewards = rewardRepository.findAllById(dto.getRewards());
+        List<QuestReward> newRewards = quest.updateQuestEntity(dto, updateRewards);
+        questRewardRepository.saveAll(newRewards);
     }
 
-    public void deleteQuest(Long questId, Long userId) {
-        Optional<Quest> findQuest = questRepository.findById(questId);
-        Quest quest = findQuest.orElseThrow(() -> new IllegalArgumentException(
-                MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))));
 
-        if (quest.getUser().getId().equals(userId)) {
-            quest.changeState(QuestState.DELETE);
-        } else {
-            throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("quest")));
-        }
+
+    public void deleteQuest(Long questId, Long userId) {
+        Quest quest = findQuestWithValidation(questId);
+        checkQuestOwner(quest.getUser().getId(), userId);
+        quest.changeState(QuestState.DELETE);
     }
 
     public void completeQuest(Long questId, UserPrincipal principal) throws IOException {
@@ -116,83 +108,82 @@ public class QuestService {
         Map<Integer, Long> expTable = om.readValue(resource.getInputStream(), new TypeReference<>() {});
         Long targetExp = expTable.get(principal.getLevel());
 
-        Optional<Quest> findQuest = questRepository.findById(questId);
-        Quest quest = findQuest
-                .orElseThrow(() -> new IllegalArgumentException(
-                        MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest")))
-                );
-
+        Quest quest = findQuestWithValidation(questId);
         UserInfo questOwner = quest.getUser();
-        if (questOwner.getId().equals(principal.getUserId())) {
-            if(quest.getState().equals(QuestState.DELETE)) {
-                throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.deleted"));
-            }
+        checkQuestOwner(quest.getUser().getId(), principal.getUserId());
 
-            // 퀘스트에 등록된 Reward 정보를 가져온다.
-            List<Reward> rewardList = quest.getRewards().stream()
-                    .map(qr -> qr.getReward())
-                    .collect(Collectors.toList());
-
-            // Reward의 ID 값만 가져온다.
-            List<Long> rewardIds = rewardList.stream()
-                    .map(r -> r.getId())
-                    .collect(Collectors.toList());
-
-            // 퀘스트 보상 아이템 중 이미 인벤토리에 있는 아이템을 찾아 dirty checking으로 개수를 증가시킨다.
-            List<Item> dirtyCheckItemList = itemRepository.findAllByRewardIdsAndUserId(rewardIds, principal.getUserId());
-            dirtyCheckItemList.stream().forEach(r -> r.addCount());
-
-            // 더티 체킹으로 업데이트한 아이템의 Reward ID 값만 가져온다.
-            List<Long> dirtyCheckIds = dirtyCheckItemList.stream()
-                    .map(i -> i.getReward().getId())
-                    .collect(Collectors.toList());
-
-            // 퀘스트의 보상 아이템 중 더티체킹으로 업데이트 하지 않은, 즉 새로 등록할 아이템을 걸러내 새로 등록한다.
-            List<Item> saveList = rewardList.stream()
-                    .filter(r -> !dirtyCheckIds.contains(r.getId()))
-                    .map(r -> Item.builder().reward(r).user(questOwner).build())
-                    .collect(Collectors.toList());
-            itemRepository.saveAll(saveList);
-
-            // 퀘스트의 상태를 완료 상태로 변경한다.
-            quest.changeState(QuestState.COMPLETE);
-
-            // 더티체킹으로 퀘스트를 클리어한 유저의 경험치와 골드를 증가시킨다.
-            // 레벨업이 가능한 경우 레벨업을 시킨다.
-            questOwner.earnExpAndGold(quest.getDifficulty().getExperience(), quest.getDifficulty().getGold());
-            questOwner.levelUpCheck(targetExp);
-
-            // 로그인된 사용자의 정보를 동기화한다.
-            principal.synchronizeUserInfo(questOwner.getLevel(), questOwner.getExp(), questOwner.getGold());
-
-            // 아이템 획득 로그 저장
-            List<ItemLog> itemEarnLogs = rewardIds.stream()
-                    .map(rewardId -> ItemLog.builder()
-                            .rewardId(rewardId)
-                            .userId(principal.getUserId())
-                            .type(ItemLogType.EARN)
-                            .build()
-                    )
-                    .collect(Collectors.toList());
-            itemLogRepository.saveAll(itemEarnLogs);
-        } else {
-            throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("quest")));
+        if(quest.getState().equals(QuestState.DELETE)) {
+            throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.deleted"));
         }
+
+        // 퀘스트에 등록된 Reward 정보를 가져온다.
+        List<Reward> rewardList = quest.getRewards().stream()
+                .map(qr -> qr.getReward())
+                .collect(Collectors.toList());
+
+        // Reward의 ID 값만 가져온다.
+        List<Long> rewardIds = rewardList.stream()
+                .map(r -> r.getId())
+                .collect(Collectors.toList());
+
+        // 퀘스트 보상 아이템 중 이미 인벤토리에 있는 아이템을 찾아 dirty checking으로 개수를 증가시킨다.
+        List<Item> dirtyCheckItemList = itemRepository.findAllByRewardIdsAndUserId(rewardIds, principal.getUserId());
+        dirtyCheckItemList.stream().forEach(r -> r.addCount());
+
+        // 더티 체킹으로 업데이트한 아이템의 Reward ID 값만 가져온다.
+        List<Long> dirtyCheckIds = dirtyCheckItemList.stream()
+                .map(i -> i.getReward().getId())
+                .collect(Collectors.toList());
+
+        // 퀘스트의 보상 아이템 중 더티체킹으로 업데이트 하지 않은, 즉 새로 등록할 아이템을 걸러내 새로 등록한다.
+        List<Item> saveList = rewardList.stream()
+                .filter(r -> !dirtyCheckIds.contains(r.getId()))
+                .map(r -> Item.builder().reward(r).user(questOwner).build())
+                .collect(Collectors.toList());
+        itemRepository.saveAll(saveList);
+
+        // 퀘스트의 상태를 완료 상태로 변경한다.
+        quest.changeState(QuestState.COMPLETE);
+
+        // 더티체킹으로 퀘스트를 클리어한 유저의 경험치와 골드를 증가시킨다.
+        // 레벨업이 가능한 경우 레벨업을 시킨다.
+        questOwner.earnExpAndGold(quest.getDifficulty().getExperience(), quest.getDifficulty().getGold());
+        questOwner.levelUpCheck(targetExp);
+
+        // 로그인된 사용자의 정보를 동기화한다.
+        principal.synchronizeUserInfo(questOwner.getLevel(), questOwner.getExp(), questOwner.getGold());
+
+        // 아이템 획득 로그 저장
+        List<ItemLog> itemEarnLogs = rewardIds.stream()
+                .map(rewardId -> ItemLog.builder()
+                        .rewardId(rewardId)
+                        .userId(principal.getUserId())
+                        .type(ItemLogType.EARN)
+                        .build()
+                )
+                .collect(Collectors.toList());
+        itemLogRepository.saveAll(itemEarnLogs);
     }
 
     public void discardQuest(Long questId, Long userId) {
+        Quest quest = findQuestWithValidation(questId);
+        checkQuestOwner(quest.getUser().getId(), userId);
+
+        if(quest.getState().equals(QuestState.DELETE)) {
+            throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.deleted"));
+        }
+
+        quest.changeState(QuestState.DISCARD);
+    }
+
+    private void checkQuestOwner(Long ownerUserId, Long userId) {
+        if (!ownerUserId.equals(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("quest")));
+    }
+
+    private Quest findQuestWithValidation(Long questId) {
         Optional<Quest> findQuest = questRepository.findById(questId);
         Quest quest = findQuest.orElseThrow(() -> new IllegalArgumentException(
                 MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))));
-
-        if (quest.getUser().getId().equals(userId)) {
-            if(quest.getState().equals(QuestState.DELETE)) {
-                throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.deleted"));
-            }
-
-            quest.changeState(QuestState.DISCARD);
-        } else {
-            throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("quest")));
-        }
+        return quest;
     }
 }

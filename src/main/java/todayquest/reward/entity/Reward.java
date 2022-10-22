@@ -32,9 +32,14 @@ public class Reward extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private RewardGrade grade;
 
+    private boolean isDeleted;
     public void updateReward(RewardRequestDto dto) {
         this.name = dto.getName();
         this.description = dto.getDescription();
         this.grade = dto.getGrade();
+    }
+
+    public void deleteReward() {
+        this.isDeleted = true;
     }
 }

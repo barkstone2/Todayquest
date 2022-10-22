@@ -3,6 +3,7 @@ package todayquest.quest.dto;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import todayquest.quest.entity.Quest;
 import todayquest.quest.entity.QuestDifficulty;
@@ -38,7 +39,7 @@ public class QuestRequestDto {
     private QuestDifficulty difficulty;
 
     private QuestState state;
-    @Size(max = 5)
+    @Size(max = 3)
     private List<Long> rewards = new ArrayList<>();
 
     public Quest mapToEntity(Long nextSeq, UserInfo userInfo) {

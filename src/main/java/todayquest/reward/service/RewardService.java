@@ -29,8 +29,8 @@ public class RewardService {
                 .collect(Collectors.toList());
     }
 
-    public RewardResponseDto getReward(Long id, Long userId) {
-        Reward reward = getRewardWithOwnerCheck(id, userId);
+    public RewardResponseDto getReward(Long rewardId, Long userId) {
+        Reward reward = getRewardWithOwnerCheck(rewardId, userId);
         return RewardResponseDto.createDto(reward);
     }
 
@@ -46,8 +46,9 @@ public class RewardService {
     }
 
     public void deleteReward(Long rewardId, Long userId) {
-        getRewardWithOwnerCheck(rewardId, userId);
-        rewardRepository.deleteById(rewardId);
+        Reward reward = getRewardWithOwnerCheck(rewardId, userId);
+        if(rewardRepository.isRewardUseInProceedQuest(rewardId)) throw new IllegalStateException(MessageUtil.getMessage("reward.error.delete.used"));
+        reward.deleteReward();
     }
 
     public List<RewardResponseDto> getRewardListByIds(List<Long> ids, Long userId) {
@@ -58,7 +59,7 @@ public class RewardService {
      * 요청한 RewardId가 올바른지, 유저 정보가 올바른지 확인
      */
     private Reward getRewardWithOwnerCheck(Long id, Long userId) {
-        Optional<Reward> findReward = rewardRepository.findById(id);
+        Optional<Reward> findReward = rewardRepository.findByIdNotDeleted(id);
         Reward reward = findReward
                 .orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward"))));
 

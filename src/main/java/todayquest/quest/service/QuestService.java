@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.common.MessageUtil;
 import todayquest.item.entity.Item;
+import todayquest.item.entity.ItemLog;
+import todayquest.item.entity.ItemLogType;
+import todayquest.item.repository.ItemLogRepository;
 import todayquest.item.repository.ItemRepository;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
@@ -44,6 +47,8 @@ public class QuestService {
     private final ItemRepository itemRepository;
 
     private final QuestRewardRepository questRewardRepository;
+
+    private final ItemLogRepository itemLogRepository;
     private final ResourceLoader resourceLoader;
 
     public Slice<QuestResponseDto> getQuestList(Long userId, QuestState state, Pageable pageable) {
@@ -159,6 +164,17 @@ public class QuestService {
 
             // 로그인된 사용자의 정보를 동기화한다.
             principal.synchronizeUserInfo(questOwner.getLevel(), questOwner.getExp(), questOwner.getGold());
+
+            // 아이템 획득 로그 저장
+            List<ItemLog> itemEarnLogs = rewardIds.stream()
+                    .map(rewardId -> ItemLog.builder()
+                            .rewardId(rewardId)
+                            .userId(principal.getUserId())
+                            .type(ItemLogType.EARN)
+                            .build()
+                    )
+                    .collect(Collectors.toList());
+            itemLogRepository.saveAll(itemEarnLogs);
         } else {
             throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("quest")));
         }

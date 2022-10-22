@@ -13,6 +13,19 @@
                 border-top: 1px solid #dee2e6!important
             }
         }
+
+        @media (min-width: 576px) {
+            .border-sm-s-t {
+                border-left: 1px solid #dee2e6!important
+            }
+        }
+
+        @media (max-width: 576px) {
+            .border-sm-s-t {
+                border-top: 1px solid #dee2e6!important
+            }
+        }
+
     </style>
 </head>
 <body class="container">
@@ -55,24 +68,35 @@
             </div>
         </div>
         <div class="row border border-top-0">
-            <div class="row p-2">
-                <div class="col-md-1"></div>
-                <div class="col-4 text-center">클리어한 퀘스트 수</div>
-                <div class="col-auto" th:text="${questLog.get('COMPLETE')}">15</div>
+            <div class="col-sm-6 ">
+                <div class="row p-2">
+                    <div class="col-6 text-center">클리어한 퀘스트 수</div>
+                    <div class="col-auto" th:text="${#strings.defaultString(questLog.get('COMPLETE'), 0)}">0</div>
+                </div>
+                <div class="row p-2">
+                    <div class="col-6 text-center">실패한 퀘스트 수</div>
+                    <div class="col-2" th:text="${#strings.defaultString(questLog.get('FAIL'), 0)}">0</div>
+                </div>
+                <div class="row p-2">
+                    <div class="col-6 text-center">포기한 퀘스트 수</div>
+                    <div class="col-auto" th:text="${#strings.defaultString(questLog.get('DISCARD'), 0)}">0</div>
+                </div>
             </div>
-            <div class="row p-2">
-                <div class="col-md-1"></div>
-                <div class="col-4 text-center">실패한 퀘스트 수</div>
-                <div class="col-auto" th:text="${questLog.get('FAIL')}">15</div>
-            </div>
-            <div class="row p-2">
-                <div class="col-md-1"></div>
-                <div class="col-4 text-center">포기한 퀘스트 수</div>
-                <div class="col-auto" th:text="${questLog.get('DISCARD')}">15</div>
+            <div class="col-sm-6 border-sm-s-t">
+                <div class="row p-2">
+                    <div class="col-6 text-center">획득한 아이템 수</div>
+                    <div class="col-auto" th:text="${#strings.defaultString(itemLog.get('EARN'), 0)}">0</div>
+                </div>
+                <div class="row p-2">
+                    <div class="col-6 text-center">사용한 아이템 수</div>
+                    <div class="col-auto" th:text="${#strings.defaultString(itemLog.get('USE'), 0)}">0</div>
+                </div>
+                <div class="row p-2">
+                    <div class="col-6 text-center">버린 아이템 수</div>
+                    <div class="col-auto" th:text="${#strings.defaultString(itemLog.get('ABANDON'), 0)}">0</div>
+                </div>
             </div>
         </div>
-
-
 <!--        <div class="row border border-top-0">-->
 <!--            <div class="row m-2">달성한 업적</div>-->
 <!--            <div class="container">-->

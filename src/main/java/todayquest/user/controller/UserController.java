@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import todayquest.item.service.ItemLogService;
 import todayquest.quest.service.QuestLogService;
 import todayquest.user.dto.UserPrincipal;
 
@@ -23,6 +24,7 @@ public class UserController {
 
     private final ResourceLoader resourceLoader;
     private final QuestLogService questLogService;
+    private final ItemLogService itemLogService;
 
     @GetMapping("/status")
     public String myPage(@AuthenticationPrincipal UserPrincipal principal, Model model) throws IOException {
@@ -34,6 +36,7 @@ public class UserController {
 
         model.addAttribute("targetExp", expTable.get(principal.getLevel()));
         model.addAttribute("questLog", questLogService.getQuestLog(principal.getUserId()));
+        model.addAttribute("itemLog", itemLogService.getItemLog(principal.getUserId()));
         return "user/status";
     }
 

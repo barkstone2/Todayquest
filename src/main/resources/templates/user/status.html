@@ -50,7 +50,7 @@
                         <div class="col-auto align-self-center" th:text="${#authentication.name}">닉네임</div>
                     </div>
                     <div class="col-auto align-self-center">
-                        <div class="col btn-sm btn-secondary">닉네임 변경</div>
+                        <div class="col btn-sm btn-secondary" style="cursor:pointer;" id="nicknameChangeBtn">닉네임 변경</div>
                     </div>
                 </div>
                 <div class="row col p-2">
@@ -221,5 +221,60 @@
 <!--        </div>-->
 
     </div>
+
+<!-- Modal -->
+<div class="modal fade" id="nicknameModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="nicknameModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="nicknameModalLabel">닉네임 변경</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <input class="form-control form-text" type="text" id="newNickname" size="20">
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <button type="button" class="btn btn-primary" id="nicknameSubmitBtn">변경하기</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
+<script th:inline="javascript">
+
+    document.getElementById('nicknameChangeBtn').onclick = function () {
+        let nicknameModal = new bootstrap.Modal(document.getElementById('nicknameModal'));
+        nicknameModal.toggle();
+    };
+
+    document.getElementById('nicknameSubmitBtn').onclick = function () {
+        let nickname = document.getElementById('newNickname').value;
+
+        if(nickname === '') {
+            alert('닉네임을 입력해 주세요.');
+            return;
+        }
+
+        let xhr = new XMLHttpRequest();
+        let token = document.getElementsByName('_csrf')[0].getAttribute('content');
+        let header = document.getElementsByName('_csrf_header')[0].getAttribute('content');
+        xhr.open('PUT', '/user');
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.setRequestHeader(header, token);
+
+        xhr.onload = () => {
+            alert(xhr.response);
+            if (xhr.status === 200) {
+                location.reload();
+            }
+        };
+
+        xhr.send(JSON.stringify({nickname:nickname}));
+    };
+
+
+</script>
 </html>

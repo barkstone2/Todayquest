@@ -22,10 +22,10 @@ import java.util.Map;
 public class UserPrincipal implements OAuth2User, OidcUser, UserDetails {
 
     private final Long userId;
-    private final String nickname;
     private final ProviderType providerType;
     private final Collection<GrantedAuthority> authorities;
 
+    private String nickname;
     private Map<String, Object> attributes;
 
     public static UserPrincipal create(UserInfo userInfo) {

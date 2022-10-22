@@ -11,22 +11,26 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import todayquest.annotation.WithCustomMockUser;
+import todayquest.common.UserLevelLock;
 import todayquest.config.SecurityConfig;
-import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
 import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.entity.QuestState;
+import todayquest.quest.service.QuestLogService;
 import todayquest.quest.service.QuestService;
 import todayquest.reward.service.RewardService;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -55,8 +59,14 @@ class QuestControllerUnitTest {
     @MockBean
     RewardService rewardService;
 
+    @MockBean
+    QuestLogService questLogService;
+
+    @MockBean
+    UserLevelLock userLevelLock;
+
     static final String URI_PREFIX = "/quests";
-    List<QuestResponseDto> questList = new ArrayList<>();
+    Slice<QuestResponseDto> questList;
     ObjectMapper mapper;
 
     @BeforeEach
@@ -67,6 +77,7 @@ class QuestControllerUnitTest {
                 .deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now())
                 .difficulty(QuestDifficulty.easy)
                 .state(QuestState.PROCEED)
+                .rewards(new ArrayList<>())
                 .build();
 
         QuestResponseDto quest2 = QuestResponseDto.builder()
@@ -75,11 +86,14 @@ class QuestControllerUnitTest {
                 .deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now())
                 .difficulty(QuestDifficulty.easy)
                 .state(QuestState.PROCEED)
+                .rewards(new ArrayList<>())
                 .build();
 
-        questList.add(quest1);
-        questList.add(quest2);
+        List<QuestResponseDto> list = new LinkedList<>();
+        list.add(quest1);
+        list.add(quest2);
 
+        questList = new SliceImpl<>(list);
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
     }
@@ -92,7 +106,7 @@ class QuestControllerUnitTest {
         String uri = "";
 
         //when
-        when(questService.getQuestList(any())).thenReturn(questList);
+        when(questService.getQuestList(any(), any(), any())).thenReturn(questList);
 
         //then
         mvc.perform(get(URI_PREFIX + uri))
@@ -120,16 +134,16 @@ class QuestControllerUnitTest {
     @Test
     public void testView() throws Exception {
         //given
-        String uri = "/" + questList.get(0).getQuestId();
+        String uri = "/" + questList.getContent().get(0).getQuestId();
 
         //when
-        when(questService.getQuestInfo(any())).thenReturn(questList.get(0));
+        when(questService.getQuestInfo(any(), any())).thenReturn(questList.getContent().get(0));
 
         //then
         mvc.perform(get(URI_PREFIX + uri))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("rewardList", new ArrayList<>()))
-                .andExpect(model().attribute("quest", questList.get(0)))
+                .andExpect(model().attribute("quest", questList.getContent().get(0)))
                 .andExpect(view().name("quest/view"));
     }
 
@@ -144,8 +158,10 @@ class QuestControllerUnitTest {
         map.add("repeat", "true");
         map.add("difficulty", QuestDifficulty.easy.name());
 
-
         //when
+        when(userLevelLock.executeWithLock(anyString(), anyInt(), any()))
+                .thenReturn(null);
+
         //then
         mvc.perform(
                     post(URI_PREFIX + uri)
@@ -162,7 +178,7 @@ class QuestControllerUnitTest {
     @Test
     public void testDeleteSuccess() throws Exception {
         //given
-        String uri = "/" + questList.get(0).getQuestId();
+        String uri = "/" + questList.getContent().get(0).getQuestId();
 
         //when
         //then
@@ -176,7 +192,7 @@ class QuestControllerUnitTest {
     @Test
     public void testUpdateSuccess() throws Exception {
         //given
-        Long questId = questList.get(0).getQuestId();
+        Long questId = questList.getContent().get(0).getQuestId();
         String uri = "/" + questId;
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -201,7 +217,7 @@ class QuestControllerUnitTest {
     @Test
     public void testUpdateFail() throws Exception {
         //given
-        Long questId = questList.get(0).getQuestId();
+        Long questId = questList.getContent().get(0).getQuestId();
         String uri = "/" + questId;
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -212,7 +228,7 @@ class QuestControllerUnitTest {
         map.add("state", QuestState.PROCEED.name());
 
         //when
-        when(questService.getQuestInfo(any())).thenReturn(questList.get(0));
+        when(questService.getQuestInfo(any(), any())).thenReturn(questList.getContent().get(0));
 
         //then
         mvc.perform(

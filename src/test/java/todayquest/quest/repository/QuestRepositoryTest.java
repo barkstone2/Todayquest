@@ -6,9 +6,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import todayquest.quest.dto.QuestRequestDto;
-import todayquest.quest.entity.*;
-import todayquest.reward.entity.Reward;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import todayquest.quest.entity.Quest;
+import todayquest.quest.entity.QuestDifficulty;
+import todayquest.quest.entity.QuestState;
+import todayquest.quest.entity.QuestType;
 import todayquest.reward.repository.RewardRepository;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
@@ -16,13 +19,11 @@ import todayquest.user.repository.UserRepository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("퀘스트 리포지토리 유닛 테스트")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@AutoConfigureTestDatabase
 @DataJpaTest
 class QuestRepositoryTest {
 
@@ -39,6 +40,7 @@ class QuestRepositoryTest {
     QuestRewardRepository questRewardRepository;
 
     UserInfo userInfo;
+    UserInfo anotherUser;
 
     @BeforeEach
     void init() {
@@ -46,176 +48,91 @@ class QuestRepositoryTest {
                 .nickname("nickname")
                 .providerType(ProviderType.GOOGLE)
                 .oauth2Id("oauth2id").build();
-        userRepository.save(userInfo);
+        anotherUser = UserInfo.builder()
+                .nickname("nickname2")
+                .providerType(ProviderType.GOOGLE)
+                .oauth2Id("oauth2id").build();
+        userInfo = userRepository.save(userInfo);
+        anotherUser = userRepository.save(anotherUser);
     }
 
-    @DisplayName("유저 별 퀘스트 목록 조회 종료 기한 오름차순 정렬")
+    @DisplayName("퀘스트 목록 조회")
     @Test
-    public void testGetQuestsByUserOrderByDeadLineDateAscDeadLineTimeAsc() throws Exception {
+    public void testGetQuestsList() throws Exception {
         //given
-        Quest quest1 = Quest.builder()
+
+        Quest.QuestBuilder builder = Quest.builder()
                 .title("title")
                 .description("desc")
                 .difficulty(QuestDifficulty.easy)
                 .state(QuestState.PROCEED)
                 .type(QuestType.DAILY)
-                .isRepeat(true)
-                .deadLineDate(LocalDate.now())
-                .deadLineTime(LocalTime.now())
+                .deadLineDate(LocalDate.of(2000, 10, 10))
+                .deadLineTime(LocalTime.of(6, 6, 6))
                 .user(userInfo)
-                .seq(1L)
-                .build();
+                .isRepeat(true)
+                .seq(1L);
 
-        Quest quest2 = Quest.builder()
+
+
+        // 정상 등록 2건
+        Quest savedQuest1 = questRepository.save(builder.build());
+        Quest savedQuest2 = questRepository.save(builder.build());
+
+        // PROCEED 상태가 아닌 퀘스트 1건 등록
+        Quest savedQuest3 = questRepository.save(builder.state(QuestState.DISCARD).build());
+
+        // 다른 유저의 퀘스트 1건 등록
+        Quest savedQuest4 = questRepository.save(builder.user(anotherUser).build());
+
+        // deadLineDate == null 인 퀘스트 1건 등록
+        Quest savedQuest5 = questRepository.save(Quest.builder()
                 .title("title")
                 .description("desc")
                 .difficulty(QuestDifficulty.easy)
                 .state(QuestState.PROCEED)
                 .type(QuestType.DAILY)
-                .isRepeat(true)
-                .deadLineDate(LocalDate.now())
-                .deadLineTime(LocalTime.now())
                 .user(userInfo)
-                .seq(2L)
-                .build();
-
-        Quest quest3 = Quest.builder()
-                .title("title")
-                .description("desc")
-                .difficulty(QuestDifficulty.easy)
-                .state(QuestState.PROCEED)
-                .type(QuestType.DAILY)
+                .deadLineTime(LocalTime.of(6, 6, 6))
                 .isRepeat(true)
-                .deadLineDate(LocalDate.now())
-                .deadLineTime(LocalTime.now())
-                .user(userInfo)
-                .seq(3L)
-                .build();
-
-        questRepository.save(quest1);
-        questRepository.save(quest2);
-        questRepository.save(quest3);
+                .seq(1L).build());
 
         //when
-        List<Quest> result = questRepository.getQuestsByUserOrderByDeadLineDateAscDeadLineTimeAsc(userInfo);
+        Slice<Quest> result = questRepository.getQuestsList(userInfo.getId(), QuestState.PROCEED, PageRequest.of(0, 9));
 
         //then
-        assertThat(result).containsExactly(quest1, quest2, quest3);
-        assertThat(result.size()).isEqualTo(3);
+        assertThat(result.getContent()).contains(savedQuest1, savedQuest2, savedQuest5);
+        assertThat(result.getContent()).doesNotContain(savedQuest3, savedQuest4);
+        assertThat(result.getContent().indexOf(savedQuest5)).isEqualTo(result.getContent().size()-1);
+        assertThat(result.getContent().size()).isEqualTo(3);
     }
 
-    @DisplayName("퀘스트 보상 업데이트 테스트 기존 보상 제거")
+    @DisplayName("퀘스트 SEQ 조회 단순 로직 테스트")
     @Test
-    void testUpdateRewardList1() {
+    public void testGetMaxSeqMethod() throws Exception {
         //given
-        Quest quest1 = Quest.builder()
+        Quest quest = Quest.builder()
                 .title("title")
                 .description("desc")
                 .difficulty(QuestDifficulty.easy)
                 .state(QuestState.PROCEED)
                 .type(QuestType.DAILY)
-                .isRepeat(true)
-                .deadLineDate(LocalDate.now())
-                .deadLineTime(LocalTime.now())
+                .deadLineDate(LocalDate.of(2000, 10, 10))
+                .deadLineTime(LocalTime.of(6, 6, 6))
                 .user(userInfo)
-                .seq(1L)
-                .build();
-
-        questRepository.save(quest1);
-
-        Reward reward1 = Reward.builder().name("1").build();
-        Reward reward2 = Reward.builder().name("2").build();
-        Reward reward3 = Reward.builder().name("3").build();
-
-        List<Reward> rewards = new ArrayList<>();
-        rewards.add(reward1);
-        rewards.add(reward2);
-        rewards.add(reward3);
-
-        rewardRepository.saveAll(rewards);
-
-        QuestReward qr1 = QuestReward.builder().quest(quest1).reward(reward1).build();
-        QuestReward qr2 = QuestReward.builder().quest(quest1).reward(reward2).build();
-        QuestReward qr3 = QuestReward.builder().quest(quest1).reward(reward3).build();
-
-        questRewardRepository.save(qr1);
-        questRewardRepository.save(qr2);
-        questRewardRepository.save(qr3);
-
-        Quest findQuest = questRepository.getById(quest1.getId());
-
-        QuestRequestDto dto = QuestRequestDto.builder()
-                .title("test title")
-                .description("test description")
                 .isRepeat(true)
-                .deadLineDate(LocalDate.of(1111, 11, 11))
-                .deadLineTime(LocalTime.of(11, 11))
-                .difficulty(QuestDifficulty.easy)
+                .seq(10L)
                 .build();
-
-        rewards.remove(2);
+        Quest savedQuest = questRepository.save(quest);
 
         //when
-        findQuest.updateQuestEntity(dto, rewards);
+        Long currentSeq = savedQuest.getSeq();
+        Long nextSeq = questRepository.getNextSeqByUserId(userInfo.getId());
+        Long anotherUserSeq = questRepository.getNextSeqByUserId(anotherUser.getId());
 
         //then
-        assertThat(findQuest.getRewards().get(0).getReward().getName()).isEqualTo("1");
-        assertThat(findQuest.getRewards().get(0).getReward().getId()).isEqualTo(reward1.getId());
-        assertThat(findQuest.getRewards().size()).isEqualTo(2);
+        assertThat(nextSeq).isEqualTo(currentSeq+1);
+        assertThat(anotherUserSeq).isEqualTo(1);
     }
-
-    @DisplayName("퀘스트 보상 업데이트 테스트 신규 보상 추가")
-    @Test
-    void testUpdateRewardList2() {
-        //given
-        Quest quest1 = Quest.builder()
-                .title("title")
-                .description("desc")
-                .difficulty(QuestDifficulty.easy)
-                .state(QuestState.PROCEED)
-                .type(QuestType.DAILY)
-                .isRepeat(true)
-                .deadLineDate(LocalDate.now())
-                .deadLineTime(LocalTime.now())
-                .user(userInfo)
-                .seq(1L)
-                .build();
-
-        List<Reward> rewards = new ArrayList<>();
-        Reward reward1 = Reward.builder().name("1").build();
-        Reward reward2 = Reward.builder().name("2").build();
-        Reward reward3 = Reward.builder().name("3").build();
-        rewards.add(reward1);
-        rewards.add(reward2);
-        rewards.add(reward3);
-
-        rewardRepository.saveAll(rewards);
-
-        questRewardRepository.save(QuestReward.builder().reward(reward1).quest(quest1).build());
-
-        questRepository.save(quest1);
-
-        Quest findQuest = questRepository.getById(quest1.getId());
-
-        QuestRequestDto dto = QuestRequestDto.builder()
-                .title("test title")
-                .description("test description")
-                .isRepeat(true)
-                .deadLineDate(LocalDate.of(1111, 11, 11))
-                .deadLineTime(LocalTime.of(11, 11))
-                .difficulty(QuestDifficulty.easy)
-                .build();
-
-
-        //when
-        findQuest.updateQuestEntity(dto, rewards);
-        questRepository.flush();
-
-        //then
-        assertThat(findQuest.getRewards().size()).isEqualTo(3);
-        assertThat(findQuest.getRewards().get(0).getReward().getId()).isEqualTo(reward1.getId());
-        assertThat(findQuest.getRewards().get(2).getReward().getName()).isEqualTo("3");
-    }
-
 
 }

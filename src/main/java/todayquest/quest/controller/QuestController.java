@@ -52,7 +52,7 @@ public class QuestController {
 
     @GetMapping("/{questId}")
     public String view(@PathVariable("questId") Long questId, Model model, @AuthenticationPrincipal UserPrincipal principal) {
-        QuestResponseDto quest = questService.getQuestInfo(questId);
+        QuestResponseDto quest = questService.getQuestInfo(questId, principal.getUserId());
         model.addAttribute("quest", quest);
         model.addAttribute("rewards", quest.getRewards());
         model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
@@ -68,12 +68,11 @@ public class QuestController {
             return "quest/save";
         }
 
-        Long savedId = userLevelLock.executeWithLock(
+        userLevelLock.executeWithLock(
                 "QUEST_SEQ" + principal.getUserId(),
                 3,
                 () -> questService.saveQuest(dto, principal.getUserId())
         );
-        redirectAttributes.addAttribute("savedId", savedId);
 
         return "redirect:/quests";
     }
@@ -94,20 +93,20 @@ public class QuestController {
     }
 
     @DeleteMapping("/{questId}")
-    public String delete(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal, RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal) {
         questService.deleteQuest(questId, principal.getUserId());
         return "redirect:/quests";
     }
 
     @PostMapping("/{questId}")
-    public String complete(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal, RedirectAttributes redirectAttributes) throws IOException {
+    public String complete(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal) throws IOException {
         questService.completeQuest(questId, principal);
         questLogService.saveQuestLog(questId, principal.getUserId(), QuestState.COMPLETE);
         return "redirect:/quests";
     }
 
     @DeleteMapping("/{questId}/discard")
-    public String discard(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal, RedirectAttributes redirectAttributes) {
+    public String discard(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal) {
         questService.discardQuest(questId, principal.getUserId());
         questLogService.saveQuestLog(questId, principal.getUserId(), QuestState.DISCARD);
         return "redirect:/quests";

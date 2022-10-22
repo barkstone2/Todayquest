@@ -20,6 +20,7 @@ import todayquest.reward.service.RewardService;
 import todayquest.user.dto.UserPrincipal;
 
 import javax.validation.Valid;
+import java.io.IOException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -97,8 +98,8 @@ public class QuestController {
     }
 
     @PostMapping("/{questId}")
-    public String complete(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal, RedirectAttributes redirectAttributes) {
-        questService.completeQuest(questId, principal.getUserId());
+    public String complete(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal, RedirectAttributes redirectAttributes) throws IOException {
+        questService.completeQuest(questId, principal);
         return "redirect:/quests";
     }
 

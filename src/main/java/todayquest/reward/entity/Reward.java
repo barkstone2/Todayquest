@@ -29,6 +29,7 @@ public class Reward extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private UserInfo user;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private RewardGrade grade;
 

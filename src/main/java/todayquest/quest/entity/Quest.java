@@ -36,7 +36,7 @@ public class Quest extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private UserInfo user;
 
-    @Column(name = "user_quest_seq")
+    @Column(name = "user_quest_seq", nullable = false)
     private Long seq;
 
     /**

@@ -17,8 +17,11 @@ public class QuestLog extends BaseLogEntity {
     @Column(name = "quest_log_id")
     private Long id;
 
+    @Column(nullable = false)
     private Long userId;
+    @Column(nullable = false)
     private Long questId;
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private QuestState state;
 

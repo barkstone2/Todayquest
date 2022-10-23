@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -56,10 +57,10 @@ public class UserController {
         ResponseEntity<String> responseEntity;
 
         if (isDuplicated) {
-            responseEntity = new ResponseEntity<>(MessageUtil.getMessage("nickname.duplicate"), HttpStatus.CONFLICT);
+            responseEntity = ResponseEntity.status(HttpStatus.CONFLICT).contentType(MediaType.APPLICATION_JSON).body(MessageUtil.getMessage("nickname.duplicate"));
         } else {
             userService.changeNickname(principal, nickname);
-            responseEntity = new ResponseEntity<>(MessageUtil.getMessage("nickname.changed"), HttpStatus.OK);
+            responseEntity = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(MessageUtil.getMessage("nickname.changed"));
         }
 
         return responseEntity;
@@ -67,7 +68,7 @@ public class UserController {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex){
-        return ResponseEntity.badRequest().body(ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
+        return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).body(ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
     }
 
 }

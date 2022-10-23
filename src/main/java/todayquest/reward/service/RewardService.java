@@ -34,10 +34,9 @@ public class RewardService {
         return RewardResponseDto.createDto(reward);
     }
 
-    public Long saveReward(RewardRequestDto dto, Long userId) {
+    public void saveReward(RewardRequestDto dto, Long userId) {
         UserInfo findUser = userRepository.getById(userId);
-        Reward saveReward = rewardRepository.save(dto.mapToEntity(findUser));
-        return saveReward.getId();
+        rewardRepository.save(dto.mapToEntity(findUser));
     }
 
     public void updateReward(RewardRequestDto dto, Long rewardId, Long userId) {

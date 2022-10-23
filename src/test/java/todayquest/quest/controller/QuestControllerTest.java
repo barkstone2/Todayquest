@@ -6,8 +6,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.filter.CharacterEncodingFilter;
 import todayquest.annotation.WithCustomMockUser;
 import todayquest.common.MessageUtil;
 import todayquest.quest.entity.Quest;
@@ -28,6 +29,7 @@ import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -47,18 +49,11 @@ class QuestControllerTest {
     int port;
 
     @Autowired
-    TestRestTemplate restTemplate;
-
-    @Autowired
     QuestRepository questRepository;
 
     @Autowired
     UserRepository userRepository;
 
-    @Autowired
-    QuestController questController;
-
-    static final String URI_PREFIX = "/quests";
 
     @Autowired
     WebApplicationContext context;
@@ -68,12 +63,14 @@ class QuestControllerTest {
     UserInfo testUser;
     Quest testQuest;
     static final String SERVER_ADDR = "http://localhost:";
+    static final String URI_PREFIX = "/quests";
 
     @BeforeEach
     public void setUp() {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
+                .addFilter(new CharacterEncodingFilter("UTF-8", true))
                 .build();
 
         testUser = userRepository.getById(1L);
@@ -104,6 +101,30 @@ class QuestControllerTest {
         //then
         assertThat(body).contains("퀘스트 목록");
     }
+
+    @DisplayName("퀘스트 목록 화면 요청_검색조건 통합 테스트")
+    @Test
+    public void testListWithCondition() throws Exception {
+        //given
+        String url = SERVER_ADDR + port + URI_PREFIX + "/";
+
+        MultiValueMap<String, String> cond = new LinkedMultiValueMap<>();
+        cond.add("state", QuestState.COMPLETE.name());
+
+        //when
+        Map<String, Object> model = mvc.perform(get(url)
+                        .params(cond))
+                .andExpect(status().isOk())
+                .andExpect(view().name("quest/list"))
+                .andExpect(model().attributeExists("questList"))
+                .andReturn().getModelAndView().getModel();
+
+        Slice questList = (Slice) model.get("questList");
+
+        //then
+        assertThat(questList.getContent().size()).isEqualTo(0);
+    }
+
 
     @DisplayName("퀘스트 등록 화면 요청 통합 테스트")
     @Test
@@ -189,7 +210,6 @@ class QuestControllerTest {
                 )
                 .andExpect(view().name("quest/save"));
     }
-
 
     @DisplayName("퀘스트 수정 통합 테스트_성공")
     @Test

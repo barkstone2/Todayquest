@@ -7,16 +7,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.access.AccessDeniedException;
 import todayquest.common.MessageUtil;
 import todayquest.item.entity.Item;
-import todayquest.item.repository.ItemLogRepository;
-import todayquest.item.repository.ItemRepository;
+import todayquest.item.service.ItemService;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
 import todayquest.quest.entity.Quest;
@@ -30,6 +27,7 @@ import todayquest.reward.repository.RewardRepository;
 import todayquest.user.dto.UserPrincipal;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
+import todayquest.user.service.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -37,41 +35,30 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @DisplayName("퀘스트 서비스 유닛 테스트")
 @ExtendWith(MockitoExtension.class)
 class QuestServiceTest {
 
-    @InjectMocks
-    QuestService questService;
+    @InjectMocks QuestService questService;
 
-    @Mock
-    QuestRepository questRepository;
+    // 역할 객체
+    @Mock QuestRepository questRepository;
+    @Mock UserRepository userRepository;
+    @Mock RewardRepository rewardRepository;
+    @Mock QuestRewardRepository questRewardRepository;
 
-    @Mock
-    UserRepository userRepository;
+    // 협력 객체
+    @Mock ItemService itemService;
+    @Mock UserService userService;
+    @Mock QuestLogService questLogService;
 
-    @Mock
-    RewardRepository rewardRepository;
-
-    @Mock
-    ItemRepository itemRepository;
-
-    @Mock
-    QuestRewardRepository questRewardRepository;
-
-    @InjectMocks
-    MessageUtil messageUtil;
-
-    @Mock
-    MessageSource messageSource;
-
-    @Mock
-    ResourceLoader resourceLoader;
-
-    @Mock
-    ItemLogRepository itemLogRepository;
+    // 기타 처리 용
+    @InjectMocks MessageUtil messageUtil;
+    @Mock MessageSource messageSource;
 
     @DisplayName("퀘스트 목록 테스트_반환값 있을때")
     @Test
@@ -99,6 +86,7 @@ class QuestServiceTest {
         assertThat(result.getSize()).isEqualTo(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("test");
     }
+
     @DisplayName("퀘스트 목록 테스트_반환값 없을때")
     @Test
     public void testGetListReturnNone() throws Exception {
@@ -129,9 +117,9 @@ class QuestServiceTest {
                 .build();
 
         //when
-        when(userRepository.getById(any())).thenReturn(UserInfo.builder().build());
+        UserInfo findUser = UserInfo.builder().build();
+        when(userRepository.getById(any())).thenReturn(findUser);
         when(questRepository.save(any())).thenReturn(Quest.builder().build());
-
 
         //then
         questService.saveQuest(dto, 1L);
@@ -297,8 +285,9 @@ class QuestServiceTest {
     public void testQuestComplete() throws Exception {
         //given
         Long questId = 1L;
+        Long userId = 1L;
         UserPrincipal principal = UserPrincipal.builder()
-                .userId(1L).build();
+                .userId(userId).build();
         Map<String, Object> attr = new HashMap<>();
         attr.put("level", 1);
         principal.setAttributes(attr);
@@ -308,8 +297,10 @@ class QuestServiceTest {
         long beforeGold = 0L;
 
         UserInfo user = UserInfo.builder()
-                .id(1L).level(beforeLevel).gold(beforeGold).exp(beforeExp)
+                .id(userId).level(beforeLevel)
+                .gold(beforeGold).exp(beforeExp)
                 .build();
+
         Quest quest = Quest.builder()
                 .title("test")
                 .description("test")
@@ -327,23 +318,17 @@ class QuestServiceTest {
         Item i1 = Item.builder().reward(r1).count(beforeCount).build();
         Item i2 = Item.builder().reward(r2).count(1).build();
 
-        //when
-        when(resourceLoader.getResource(any())).thenReturn(new ClassPathResource("data/exp_table.json"));
-
-        when(itemRepository.findAllByRewardIdsAndUserId(any(), any())).thenReturn(List.of(i1));
-
         when(questRepository.findById(any())).thenReturn(Optional.ofNullable(quest));
 
+        //when
+        questService.completeQuest(questId, principal);
+
         //then
-        assertThatNoException()
-                .isThrownBy(() -> questService.completeQuest(questId, principal));
+        verify(itemService).saveAllWithDirtyChecking(any(), eq(user));
+        verify(userService).earnExpAndGold(user, quest.getDifficulty(), principal);
+        verify(questLogService).saveQuestLog(questId, userId, QuestState.COMPLETE);
 
         assertThat(quest.getState()).isEqualTo(QuestState.COMPLETE);
-        assertThat(i1.getCount()).isEqualTo(beforeCount+1);
-        assertThat(i2.getCount()).isEqualTo(1);
-        assertThat(user.getLevel()).isEqualTo(beforeLevel+1).isEqualTo(principal.getLevel());
-        assertThat(user.getGold()).isEqualTo(beforeGold + QuestDifficulty.easy.getGold()).isEqualTo(principal.getGold());
-        assertThat(user.getExp()).isEqualTo(beforeExp + QuestDifficulty.easy.getExperience() - 100).isEqualTo(principal.getExp());
     }
 
     @DisplayName("퀘스트 상태 완료로 변경_실패")
@@ -376,7 +361,6 @@ class QuestServiceTest {
                 .build();
 
         //when
-        when(resourceLoader.getResource(any())).thenReturn(new ClassPathResource("data/exp_table.json"));
 
         when(questRepository.findById(any())).thenReturn(Optional.ofNullable(quest));
 

@@ -8,14 +8,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import todayquest.common.UserLevelLock;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
 import todayquest.quest.dto.QuestSearchCondition;
 import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.entity.QuestState;
-import todayquest.quest.service.QuestLogService;
 import todayquest.quest.service.QuestService;
 import todayquest.reward.service.RewardService;
 import todayquest.user.dto.UserPrincipal;
@@ -32,8 +30,6 @@ public class QuestController {
     private final QuestService questService;
     private final RewardService rewardService;
     private final UserLevelLock userLevelLock;
-    private final QuestLogService questLogService;
-
 
     @GetMapping("")
     public String list(@ModelAttribute("searchCondition") QuestSearchCondition condition, @AuthenticationPrincipal UserPrincipal principal, Model model) {
@@ -101,14 +97,12 @@ public class QuestController {
     @PostMapping("/{questId}")
     public String complete(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal) throws IOException {
         questService.completeQuest(questId, principal);
-        questLogService.saveQuestLog(questId, principal.getUserId(), QuestState.COMPLETE);
         return "redirect:/quests";
     }
 
     @DeleteMapping("/{questId}/discard")
     public String discard(@PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal) {
         questService.discardQuest(questId, principal.getUserId());
-        questLogService.saveQuestLog(questId, principal.getUserId(), QuestState.DISCARD);
         return "redirect:/quests";
     }
 }

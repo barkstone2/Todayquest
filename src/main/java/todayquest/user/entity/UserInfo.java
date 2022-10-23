@@ -3,6 +3,7 @@ package todayquest.user.entity;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import todayquest.common.BaseTimeEntity;
+import todayquest.quest.entity.QuestDifficulty;
 
 import javax.persistence.*;
 
@@ -34,9 +35,10 @@ public class UserInfo extends BaseTimeEntity {
     public void updateNickname(String nickname) {
         this.nickname = nickname;
     }
-    public void earnExpAndGold(int exp, int gold) {
-        this.gold += gold;
-        this.exp += exp;
+    public void earnExpAndGold(QuestDifficulty clearInfo, Long targetExp) {
+        this.gold += clearInfo.getGold();
+        this.exp += clearInfo.getExperience();
+        levelUpCheck(targetExp);
     }
 
     public void levelUpCheck(Long targetExp) {

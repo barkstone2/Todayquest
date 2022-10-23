@@ -1,17 +1,24 @@
 package todayquest.user.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import todayquest.quest.entity.QuestDifficulty;
 import todayquest.user.dto.UserPrincipal;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 
+import javax.persistence.EntityManager;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
 
@@ -21,6 +28,8 @@ import java.util.Random;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final EntityManager em;
+    private final ResourceLoader resourceLoader;
 
     public UserPrincipal processUserInfo(OidcUserRequest request, OidcUser user) {
         return processUserInfo((OAuth2UserRequest) request, user);
@@ -65,6 +74,21 @@ public class UserService {
         findUser.updateNickname(nickname);
         principal.setNickname(nickname);
     }
+
+    public void earnExpAndGold(UserInfo user, QuestDifficulty clearInfo, UserPrincipal principal) throws IOException {
+        // 경험치 테이블을 읽어온다.
+        Resource resource = resourceLoader.getResource("classpath:data/exp_table.json");
+        ObjectMapper om = new ObjectMapper();
+        Map<Integer, Long> expTable = om.readValue(resource.getInputStream(), new TypeReference<>() {});
+        Long targetExp = expTable.get(user.getLevel());
+
+        // 사용자의 경험치와 골드를 증가시킨다.
+        user.earnExpAndGold(clearInfo, targetExp);
+
+        // 로그인된 세션의 정보를 동기화한다.
+        principal.synchronizeUserInfo(user);
+    }
+
     public String createRandomNickname() {
         String[] nickNamePrefixPool = {"행복한", "즐거운", "아름다운", "기쁜", "빨간", "까만", "노란", "파란", "슬픈"};
         String[] nickNamePostfixPool = {"바지", "자동차", "비행기", "로봇", "강아지", "고양이", "트럭", "장갑", "신발", "토끼"};

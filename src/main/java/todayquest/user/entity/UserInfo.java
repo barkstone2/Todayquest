@@ -28,7 +28,7 @@ public class UserInfo extends BaseTimeEntity {
     @Column(nullable = false)
     private ProviderType providerType;
 
-    private int level;
+    private Integer level;
     private Long exp;
     private Long gold;
 

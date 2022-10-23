@@ -1,13 +1,11 @@
 package todayquest.reward.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import todayquest.reward.dto.RewardRequestDto;
 import todayquest.reward.entity.RewardGrade;
 import todayquest.reward.service.RewardService;
@@ -43,13 +41,13 @@ public class RewardController {
 
 
     @PostMapping("/save")
-    public String save(@Valid @ModelAttribute("reward") RewardRequestDto dto, BindingResult bindingResult, @AuthenticationPrincipal UserPrincipal principal, Model model, RedirectAttributes redirectAttributes) {
+    public String save(@Valid @ModelAttribute("reward") RewardRequestDto dto, BindingResult bindingResult, @AuthenticationPrincipal UserPrincipal principal, Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("gradeList", RewardGrade.getEnumList());
             return "reward/save";
         }
 
-        redirectAttributes.addAttribute("savedId", rewardService.saveReward(dto, principal.getUserId()));
+        rewardService.saveReward(dto, principal.getUserId());
         return "redirect:/rewards";
     }
 

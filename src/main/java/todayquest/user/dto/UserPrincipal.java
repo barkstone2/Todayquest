@@ -64,10 +64,10 @@ public class UserPrincipal implements OAuth2User, OidcUser, UserDetails {
         return (Long) attributes.get("gold");
     }
 
-    public void synchronizeUserInfo(int level, Long exp, Long gold) {
-        attributes.put("level", level);
-        attributes.put("exp", exp);
-        attributes.put("gold", gold);
+    public void synchronizeUserInfo(UserInfo user) {
+        attributes.put("level", user.getLevel());
+        attributes.put("exp", user.getExp());
+        attributes.put("gold", user.getGold());
     }
 
     @Override

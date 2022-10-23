@@ -60,7 +60,14 @@ public class UserService {
                     .providerType(providerType)
                     .build();
 
-            savedUserInfo = userRepository.saveAndFlush(newUserInfo);
+            // Dynamic Insert로 처리한 컬럼의 default 값을 반환하지 않음
+            UserInfo savedUser = userRepository.saveAndFlush(newUserInfo);
+
+            // 영속성 컨텍스트에 저장한 엔티티를 준영속 상태로 만듬
+            em.detach(savedUser);
+
+            // 별도의 조회 쿼리로 엔티티 교체
+            savedUserInfo = userRepository.getById(savedUser.getId());
         }
         return UserPrincipal.create(savedUserInfo);
     }

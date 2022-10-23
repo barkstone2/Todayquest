@@ -31,22 +31,18 @@ public class ItemService {
 
     public ItemResponseDto getItemInfo(Long itemId, Long userId) {
         return ItemResponseDto
-                .createDto(itemRepository
-                        .findByIdAndUserId(itemId, userId)
-                        .orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward")))));
+                .createDto(getItemWithNullCheck(itemId, userId));
     }
 
     public ItemResponseDto useItem(Long itemId, Long userId, int count) {
-        Item findItem = itemRepository.findByIdAndUserId(itemId, userId)
-                .orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward"))));
+        Item findItem = getItemWithNullCheck(itemId, userId);
         findItem.subtractCount(count);
         itemLogRepository.save(ItemLog.builder().rewardId(findItem.getReward().getId()).userId(userId).type(ItemLogType.USE).build());
         return ItemResponseDto.createDto(findItem);
     }
 
     public ItemResponseDto abandonItem(Long itemId, Long userId, int count) {
-        Item findItem = itemRepository.findByIdAndUserId(itemId, userId)
-                .orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward"))));
+        Item findItem = getItemWithNullCheck(itemId, userId);
         findItem.subtractCount(count);
         itemLogRepository.save(ItemLog.builder().rewardId(findItem.getReward().getId()).userId(userId).type(ItemLogType.ABANDON).build());
         return ItemResponseDto.createDto(findItem);
@@ -80,7 +76,10 @@ public class ItemService {
         itemLogService.saveItemEarnLogs(rewardIds, user.getId());
     }
 
-
+    private Item getItemWithNullCheck(Long itemId, Long userId) {
+        return itemRepository.findByIdAndUserId(itemId, userId)
+                .orElseThrow(() -> new IllegalArgumentException(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("reward"))));
+    }
 
 
 }

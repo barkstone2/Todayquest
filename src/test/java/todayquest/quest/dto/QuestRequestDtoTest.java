@@ -8,8 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
+@DisplayName("퀘스트 요청 DTO 테스트")
 class QuestRequestDtoTest {
 
     @DisplayName("Builder 테스트")

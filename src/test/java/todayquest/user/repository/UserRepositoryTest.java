@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("유저 리포지토리 테스트")
 @Slf4j
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DataJpaTest
 class UserRepositoryTest {
 
@@ -29,119 +28,33 @@ class UserRepositoryTest {
     @BeforeEach
     void init() {
         userInfo = UserInfo.builder()
-                .nickname("oldNickname")
-                .oauth2Id("oauth2-id")
+                .id(1L)
+                .nickname("nickname")
+                .oauth2Id("oid")
                 .providerType(ProviderType.GOOGLE)
                 .build();
 
     }
-
-
-    @DisplayName("신규 유저 등록 테스트")
-    @Test
-    public void saveUserTest() throws Exception {
-        //given
-        UserInfo newUser = UserInfo.builder()
-                .nickname("newUser")
-                .oauth2Id("oauth2-id-save")
-                .providerType(ProviderType.GOOGLE)
-                .build();
-
-        //when
-        UserInfo savedUser = userRepository.save(newUser);
-
-        //then
-        assertThat(newUser.getId()).isEqualTo(savedUser.getId());
-    }
-
-    @DisplayName("유저 목록 조회 테스트")
-    @Test
-    public void testFindAll() throws Exception {
-        //given
-        UserInfo user1 = UserInfo.builder().nickname("nick-list-1").oauth2Id("oauth2-id-list-1")
-                .providerType(ProviderType.GOOGLE).build();
-        UserInfo user2 = UserInfo.builder().nickname("nick-list-2").oauth2Id("oauth2-id-list-2")
-                .providerType(ProviderType.GOOGLE).build();
-        UserInfo user3 = UserInfo.builder().nickname("nick-list-3").oauth2Id("oauth2-id-list-3")
-                .providerType(ProviderType.GOOGLE).build();
-        userRepository.save(user1);
-        userRepository.save(user2);
-        userRepository.save(user3);
-
-        //when
-        List<UserInfo> all = userRepository.findAll();
-
-        //then
-        assertThat(all.size()).isGreaterThanOrEqualTo(3);
-        assertThat(all).contains(user1, user2, user3);
-    }
-
-    @DisplayName("유저 정보 조회 테스트")
-    @Test
-    public void testFindUserById() throws Exception {
-        //given
-        UserInfo savedUser = userRepository.save(userInfo);
-
-        //when
-        UserInfo findUser = userRepository.findById(savedUser.getId()).get();
-
-        //then
-        assertThat(findUser.getNickname()).isEqualTo(savedUser.getNickname());
-    }
-
-
-    @DisplayName("더티체킹을 통한 유저 정보 업데이트 테스트")
-    @Test
-    public void testUpdateUser() throws Exception {
-        //given
-        UserInfo savedUser = userRepository.save(userInfo);
-        String newNickname = "newNickname";
-
-        //when
-        savedUser.updateNickname(newNickname);
-        userRepository.flush();
-
-        UserInfo findUser = userRepository.findById(savedUser.getId()).get();
-
-        //then
-        assertThat(findUser.getNickname()).isEqualTo(newNickname);
-    }
-
-
-    @DisplayName("유저 정보 삭제 테스트")
-    @Test
-    public void testDeleteUserById() throws Exception {
-        //given
-        UserInfo savedUser = userRepository.save(userInfo);
-        Long userId = savedUser.getId();
-
-        //when
-        userRepository.deleteById(userId);
-
-        //then
-        assertThatThrownBy(() -> userRepository.findById(userId).get())
-                .isInstanceOf(NoSuchElementException.class);
-    }
-
 
     @DisplayName("Oauth2Id로 유저 정보 조회 테스트")
     @Test
     void testFindByOauth2Id() {
         //given
-        UserInfo savedUser = userRepository.save(userInfo);
+        String oauth2Id = "oid";
 
         //when
-        UserInfo findUser = userRepository.findByOauth2Id(savedUser.getOauth2Id());
+        UserInfo findUser = userRepository.findByOauth2Id(oauth2Id);
 
         //then
-        assertThat(savedUser.getId()).isEqualTo(findUser.getId());
+        assertThat(findUser).isNotNull();
+        assertThat(findUser.getId()).isEqualTo(1L);
     }
 
     @DisplayName("닉네임 중복 체크 테스트")
     @Test
     void testExistsByNickname() {
         //given
-        UserInfo savedUser = userRepository.save(userInfo);
+        UserInfo savedUser = userRepository.getById(1L);
         String duplicateNickname = savedUser.getNickname();
         String newNickname = "newNickname";
 

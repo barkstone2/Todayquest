@@ -12,6 +12,7 @@ import todayquest.reward.repository.RewardRepository;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +32,9 @@ public class ItemRepositoryTest {
 
     @Autowired
     RewardRepository rewardRepository;
+
+    @Autowired
+    EntityManager em;
 
     @DisplayName("아이템 목록 조회 테스트")
     @Test
@@ -135,6 +139,29 @@ public class ItemRepositoryTest {
         assertThat(items.size()).isEqualTo(2);
         assertThat(items).contains(i1, i2);
         assertThat(items).doesNotContain(i3);
+    }
+
+
+    @DisplayName("dynamic insert 테스트")
+    @Test
+    public void testDynamicInsert() throws Exception {
+        //given
+        Long userId = 1L;
+        UserInfo user = userRepository.getById(userId);
+
+        Reward r1 = rewardRepository.save(Reward.builder()
+                .name("r1").user(user).grade(RewardGrade.E)
+                .build());
+        Item i1 = Item.builder().user(user).reward(r1).build();
+
+        //when
+        Item savedItem = itemRepository.save(i1);
+
+        //then
+        em.detach(savedItem);
+
+        Item findItem = itemRepository.getById(i1.getId());
+        assertThat(findItem.getCount()).isEqualTo(1);
     }
 
 

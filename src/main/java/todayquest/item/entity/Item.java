@@ -1,9 +1,6 @@
 package todayquest.item.entity;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import todayquest.common.BaseTimeEntity;
 import todayquest.common.MessageUtil;
@@ -16,6 +13,7 @@ import static javax.persistence.FetchType.LAZY;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor @Builder
 @DynamicInsert
 @Entity
 public class Item extends BaseTimeEntity {
@@ -32,14 +30,7 @@ public class Item extends BaseTimeEntity {
     @JoinColumn(name = "reward_id")
     private Reward reward;
 
-    private int count;
-
-    @Builder
-    public Item(UserInfo user, Reward reward, int count) {
-        this.user = user;
-        this.reward = reward;
-        this.count = count;
-    }
+    private Integer count;
 
     public void addCount() {
         this.count++;

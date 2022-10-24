@@ -159,9 +159,6 @@ class QuestControllerUnitTest {
         map.add("difficulty", QuestDifficulty.easy.name());
 
         //when
-        when(userLevelLock.executeWithLock(anyString(), anyInt(), any()))
-                .thenReturn(null);
-
         //then
         mvc.perform(
                     post(URI_PREFIX + uri)

@@ -62,20 +62,20 @@ public class UserLevelLockTest {
         CountDownLatch latch = new CountDownLatch(2);
 
         executorService.execute(() -> {
-            result1.set(userLevelLock.executeWithLock(
+            userLevelLock.executeWithLock(
                     "QUEST_SEQ" + userId,
                     3,
                     () -> questService.saveQuest(dto, userId)
-            ));
+            );
             latch.countDown();
         });
 
         executorService.execute(() -> {
-            result2.set(userLevelLock.executeWithLock(
+            userLevelLock.executeWithLock(
                     "QUEST_SEQ" + userId,
                     3,
                     () -> questService.saveQuest(dto, userId)
-            ));
+            );
             latch.countDown();
         });
 

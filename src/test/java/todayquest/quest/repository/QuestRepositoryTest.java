@@ -72,7 +72,6 @@ class QuestRepositoryTest {
                 .seq(1L);
 
 
-
         // 정상 등록 2건
         Quest savedQuest1 = questRepository.save(builder.build());
         Quest savedQuest2 = questRepository.save(builder.build());

@@ -65,7 +65,8 @@ public class Quest extends BaseTimeEntity {
     @Column(nullable = false)
     private QuestDifficulty difficulty;
 
-    @OneToMany(mappedBy = "quest")
+    // 퀘스트에서 제거되면 매핑 엔티티 삭제
+    @OneToMany(mappedBy = "quest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestReward> rewards = new ArrayList<>();
 
 

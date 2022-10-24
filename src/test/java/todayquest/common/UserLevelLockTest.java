@@ -55,12 +55,12 @@ public class UserLevelLockTest {
 
         Long userId = 1L;
 
-        AtomicLong result1 = new AtomicLong(1L);
-        AtomicLong result2 = new AtomicLong(2L);
+        int threadCount = 2;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        Long beforeSeq = questRepository.getNextSeqByUserId(userId);
 
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
-        CountDownLatch latch = new CountDownLatch(2);
-
+        //when
         executorService.execute(() -> {
             userLevelLock.executeWithLock(
                     "QUEST_SEQ" + userId,
@@ -81,10 +81,9 @@ public class UserLevelLockTest {
 
         latch.await();
 
-        Quest savedQuest1 = questRepository.getById(result1.get());
-        Quest savedQuest2 = questRepository.getById(result2.get());
-
-        assertThat(savedQuest1.getSeq()).isNotEqualTo(savedQuest2.getSeq());
+        //then
+        Long afterSeq = questRepository.getNextSeqByUserId(userId);
+        assertThat(beforeSeq + threadCount).isEqualTo(afterSeq);
     }
 
 }

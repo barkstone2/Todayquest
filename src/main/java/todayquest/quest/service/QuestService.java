@@ -57,7 +57,7 @@ public class QuestService {
         return QuestResponseDto.createDto(quest);
     }
 
-    public Long saveQuest(QuestRequestDto dto, Long userId) {
+    public void saveQuest(QuestRequestDto dto, Long userId) {
         UserInfo findUser = userRepository.getById(userId);
 
         Long nextSeq = questRepository.getNextSeqByUserId(userId);
@@ -68,8 +68,6 @@ public class QuestService {
                 .map(r -> QuestReward.builder().reward(r).quest(savedQuest).build())
                 .collect(Collectors.toList());
         questRewardRepository.saveAll(collect);
-
-        return savedQuest.getId();
     }
 
     public void updateQuest(QuestRequestDto dto, Long questId, Long userId) {

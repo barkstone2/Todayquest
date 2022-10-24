@@ -69,9 +69,9 @@
             <div class="row mb-3">
                 <label th:for="reward" class="col-sm-2 col-form-label align-items-center">보상 아이템</label>
                 <div class="col-sm-10">
-                    <div th:each="reward : ${rewards}" class="reward-row d-flex mb-1" th:id="|rewardRow${rewardStat.count}|" th:data-id="${reward.id}">
+                    <div th:each="reward : ${rewards}" class="reward-row d-flex mb-1" th:id="|rewardRow${reward.id}|" th:data-id="${reward.id}">
                         <div class="w-75">
-                            <input type="hidden" th:name="rewards" th:value="${reward.id}">
+                            <input type="hidden" th:name="rewards" th:id="|reward${reward.id}|" th:value="${reward.id}">
                             <span class="form-control disable-style" th:text="${reward.name}">reward</span>
                         </div>
                         <div class="reward-delete btn btn-secondary visually-hidden ms-1" th:data-id="${reward.id}">삭제</div>
@@ -80,7 +80,7 @@
                         <select class="form-item form-select w-75" id="rewards">
                             <option value="">==보상 아이템 선택==</option>
                             <option th:each="reward : ${rewardList}"
-                                    th:id="|reward${reward.id}|"
+                                    th:id="|rewardOption${reward.id}|"
                                     th:value="${reward.id}" th:text="${reward.name}">reward</option>
                         </select>
                     </div>
@@ -140,10 +140,12 @@
         for (let i = 0; i < rewardDeleteBtns.length; i++) {
             rewardDeleteBtns[i].addEventListener('click', function () {
                 let targetId = 'rewardRow' + rewardDeleteBtns[i].getAttribute('data-id');
-                let optionId = 'reward' + rewardDeleteBtns[i].getAttribute('data-id');
+                let optionId = 'rewardOption' + rewardDeleteBtns[i].getAttribute('data-id');
                 document.getElementById(targetId).classList.add('visually-hidden');
                 document.getElementById(optionId).classList.remove('d-none');
-                console.log(optionId);
+
+                let rewards = document.getElementById('rewards');
+                rewards.removeAttribute('disabled');
             });
         }
 
@@ -172,6 +174,8 @@
             rewards.selectedIndex = 0;
 
             let rewardRowCount = document.getElementsByClassName('reward-row').length;
+            let hiddenRewardRowCount = document.getElementsByClassName('reward-row visually-hidden').length;
+            rewardRowCount -= hiddenRewardRowCount;
             if(rewardRowCount == 3) rewards.setAttribute('disabled', '');
         });
 

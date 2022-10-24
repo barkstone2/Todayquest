@@ -38,15 +38,17 @@ public class UserService {
     public UserPrincipal processUserInfo(OAuth2UserRequest request, OAuth2User user) {
         ProviderType providerType = ProviderType.valueOf(request.getClientRegistration().getRegistrationId().toUpperCase());
 
+        // Oauth2 Provider 가 제공하는 ID 값 추출
         String id = user.getName();
-
         if(providerType.name().equals("NAVER")) {
             Map<String, Object> info = user.getAttribute("response");
             id = (String) info.get("id");
         }
 
+        // 해당 Provider ID로 가입된 회원이 있나 조회
         UserInfo savedUserInfo = userRepository.findByOauth2Id(id);
 
+        // 가입 이력이 없으면 유저 정보를 DB에 등록
         if(savedUserInfo == null) {
             String tempNickName = createRandomNickname();
 
@@ -69,6 +71,8 @@ public class UserService {
             // 별도의 조회 쿼리로 엔티티 교체
             savedUserInfo = userRepository.getById(savedUser.getId());
         }
+
+        // 유저 엔티티의 정보로 Principal을 만들어 반환
         return UserPrincipal.create(savedUserInfo);
     }
 

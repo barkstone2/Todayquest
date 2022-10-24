@@ -19,6 +19,7 @@ public class CustomOidcUserService implements OAuth2UserService<OidcUserRequest,
 
     @Override
     public OidcUser loadUser(OidcUserRequest request) throws OAuth2AuthenticationException {
+        // 구글 로그인
         OidcUserService delegate = new OidcUserService();
         OidcUser user = delegate.loadUser(request);
 

@@ -47,7 +47,7 @@ public class ItemService {
 
     public void saveAllWithDirtyChecking(List<Reward> rewards, UserInfo user) {
 
-        // Reward의 ID 값만 가져온다.
+        // Reward의 ID 값만 가져온다. -> 조회 쿼리 X
         List<Long> rewardIds = rewards.stream()
                 .map(r -> r.getId())
                 .collect(Collectors.toList());
@@ -56,12 +56,12 @@ public class ItemService {
         List<Item> dirtyCheckItemList = itemRepository.findAllByRewardIdsAndUserId(rewardIds, user.getId());
         dirtyCheckItemList.stream().forEach(r -> r.addCount());
 
-        // 더티 체킹으로 업데이트한 아이템의 Reward ID 값만 가져온다.
+        // 더티 체킹으로 업데이트한 아이템의 Reward ID 값만 가져온다. -> 조회 쿼리 X
         List<Long> dirtyCheckIds = dirtyCheckItemList.stream()
                 .map(i -> i.getReward().getId())
                 .collect(Collectors.toList());
 
-        // 보상 아이템 중 더티체킹으로 업데이트 하지 않은, 즉 새로 등록할 아이템을 걸러내 새로 등록한다.
+        // 보상 아이템 중 더티체킹으로 업데이트 하지 않은, 즉 새로 등록할 아이템을 걸러내 새로 등록한다. -> ID만 사용해 조회 쿼리 X
         List<Item> saveList = rewards.stream()
                 .filter(r -> !dirtyCheckIds.contains(r.getId()))
                 .map(r -> Item.builder().reward(r).user(user).build())

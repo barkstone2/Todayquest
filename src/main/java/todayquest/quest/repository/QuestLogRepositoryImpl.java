@@ -7,7 +7,6 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import todayquest.quest.entity.QQuestLog;
-import todayquest.quest.entity.QuestState;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
@@ -29,6 +28,7 @@ public class QuestLogRepositoryImpl implements QuestLogRepositoryCustom {
     public Map<String, Long> getQuestAnalytics(Long userId) {
         QQuestLog questLog = QQuestLog.questLog;
 
+        // MySql의 group by 시 자동 file sort 로 인해 null 정렬 추가
         return query.select(questLog.state, questLog.state.count())
                 .from(questLog)
                 .where(questLog.userId.eq(userId))

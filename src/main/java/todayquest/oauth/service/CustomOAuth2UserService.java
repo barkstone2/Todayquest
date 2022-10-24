@@ -19,6 +19,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
+        // 카카오, 네이버 로그인
         OAuth2UserService delegate = new DefaultOAuth2UserService();
         OAuth2User user = delegate.loadUser(request);
 

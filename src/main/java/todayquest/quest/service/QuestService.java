@@ -103,7 +103,11 @@ public class QuestService {
         // 퀘스트의 상태를 완료 상태로 변경한다.
         quest.changeState(QuestState.COMPLETE);
 
-        // 퀘스트에 등록된 Reward 정보를 가져온다.
+        /**
+         * 퀘스트에 등록된 Reward 정보를 가져온다.
+         * QuestReward 테이블을 1+1 조회한 후 Reward ID에 대해서는 조회 쿼리를 날리지 않는다.
+         * -> QuestReward 조회시 Reward ID를 같이 가져 온다.
+         */
         List<Reward> rewardList = quest.getRewards().stream()
                 .map(qr -> qr.getReward())
                 .collect(Collectors.toList());

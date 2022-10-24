@@ -64,6 +64,7 @@ public class QuestController {
             return "quest/save";
         }
 
+        // 유저별 퀘스트 SEQ 처리를 위해 MySQL의 네임드 락을 이용해 save 로직 호출
         userLevelLock.executeWithLock(
                 "QUEST_SEQ" + principal.getUserId(),
                 3,

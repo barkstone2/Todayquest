@@ -25,9 +25,9 @@ import java.util.List;
 @NoArgsConstructor
 public class QuestRequestDto {
 
-    @NotBlank
+    @NotBlank @Size(max = 50)
     private String title;
-    @NotBlank
+    @NotBlank @Size(max = 300)
     private String description;
     @NotNull
     private boolean isRepeat;

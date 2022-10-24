@@ -36,5 +36,9 @@ public class ItemLogService {
         itemLogRepository.saveAll(itemEarnLogs);
     }
 
+    public void saveItemLogs(Long rewardId, Long userId, ItemLogType type) {
+        itemLogRepository.save(ItemLog.builder().rewardId(rewardId).userId(userId).type(type).build());
+    }
+
 
 }

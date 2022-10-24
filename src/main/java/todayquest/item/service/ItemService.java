@@ -6,9 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import todayquest.common.MessageUtil;
 import todayquest.item.dto.ItemResponseDto;
 import todayquest.item.entity.Item;
-import todayquest.item.entity.ItemLog;
 import todayquest.item.entity.ItemLogType;
-import todayquest.item.repository.ItemLogRepository;
 import todayquest.item.repository.ItemRepository;
 import todayquest.reward.entity.Reward;
 import todayquest.user.entity.UserInfo;
@@ -22,7 +20,6 @@ import java.util.stream.Collectors;
 public class ItemService {
 
     private final ItemRepository itemRepository;
-    private final ItemLogRepository itemLogRepository;
     private final ItemLogService itemLogService;
 
     public List<ItemResponseDto> getInventoryItems(Long userId) {
@@ -37,14 +34,14 @@ public class ItemService {
     public ItemResponseDto useItem(Long itemId, Long userId, int count) {
         Item findItem = getItemWithNullCheck(itemId, userId);
         findItem.subtractCount(count);
-        itemLogRepository.save(ItemLog.builder().rewardId(findItem.getReward().getId()).userId(userId).type(ItemLogType.USE).build());
+        itemLogService.saveItemLogs(findItem.getReward().getId(), userId, ItemLogType.USE);
         return ItemResponseDto.createDto(findItem);
     }
 
     public ItemResponseDto abandonItem(Long itemId, Long userId, int count) {
         Item findItem = getItemWithNullCheck(itemId, userId);
         findItem.subtractCount(count);
-        itemLogRepository.save(ItemLog.builder().rewardId(findItem.getReward().getId()).userId(userId).type(ItemLogType.ABANDON).build());
+        itemLogService.saveItemLogs(findItem.getReward().getId(), userId, ItemLogType.ABANDON);
         return ItemResponseDto.createDto(findItem);
     }
 

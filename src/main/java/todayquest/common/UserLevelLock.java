@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.function.Supplier;
 
 /**
  * DataSource 에서 직접 Connection 을 얻어 USER LEVEL LOCK 을 사용하는 클래스
@@ -25,16 +24,16 @@ public class UserLevelLock {
         this.dataSource = dataSource;
     }
 
-    public <T> T executeWithLock(String userLockName,
+    public void executeWithLock(String userLockName,
                                  int timeoutSeconds,
-                                 Supplier<T> supplier) {
+                                 Runnable runnable) {
 
         try (Connection connection = dataSource.getConnection()) {
             try {
                 log.info("start getLock=[{}], timeoutSeconds : [{}], connection=[{}]", userLockName, timeoutSeconds, connection);
                 getLock(connection, userLockName, timeoutSeconds);
                 log.info("success getLock=[{}], timeoutSeconds : [{}], connection=[{}]", userLockName, timeoutSeconds, connection);
-                return supplier.get();
+                runnable.run();
             } finally {
                 log.info("start releaseLock=[{}], connection=[{}]", userLockName, connection);
                 releaseLock(connection, userLockName);

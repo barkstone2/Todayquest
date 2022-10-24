@@ -18,6 +18,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import todayquest.annotation.WithCustomMockUser;
+import todayquest.common.DatabaseCleanup;
 import todayquest.common.MessageUtil;
 import todayquest.quest.entity.Quest;
 import todayquest.quest.entity.QuestDifficulty;
@@ -54,9 +55,11 @@ class QuestControllerTest {
     @Autowired
     UserRepository userRepository;
 
-
     @Autowired
     WebApplicationContext context;
+
+    @Autowired
+    DatabaseCleanup databaseCleanup;
 
     MockMvc mvc;
 
@@ -67,6 +70,7 @@ class QuestControllerTest {
 
     @BeforeEach
     public void setUp() {
+        databaseCleanup.execute();
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())

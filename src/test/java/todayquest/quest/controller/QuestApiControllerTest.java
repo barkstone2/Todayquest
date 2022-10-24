@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import todayquest.annotation.WithCustomMockUser;
+import todayquest.common.DatabaseCleanup;
 import todayquest.quest.entity.Quest;
 import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.entity.QuestState;
@@ -54,6 +55,9 @@ public class QuestApiControllerTest {
     @Autowired
     WebApplicationContext context;
 
+    @Autowired
+    DatabaseCleanup databaseCleanup;
+
     MockMvc mvc;
 
     UserInfo testUser;
@@ -63,6 +67,9 @@ public class QuestApiControllerTest {
 
     @BeforeEach
     public void setUp() {
+
+        databaseCleanup.execute();
+
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .addFilter(new CharacterEncodingFilter("UTF-8", true))

@@ -17,6 +17,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import todayquest.annotation.WithCustomMockUser;
+import todayquest.common.DatabaseCleanup;
 import todayquest.common.MessageUtil;
 import todayquest.reward.dto.RewardResponseDto;
 import todayquest.reward.entity.Reward;
@@ -25,7 +26,6 @@ import todayquest.reward.repository.RewardRepository;
 import todayquest.user.entity.UserInfo;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -53,12 +53,17 @@ public class RewardControllerTest {
     @Autowired
     WebApplicationContext context;
 
+    @Autowired
+    DatabaseCleanup databaseCleanup;
+
     MockMvc mvc;
     UserInfo testUser;
     Reward savedReward;
 
     @BeforeEach
     public void setUp() {
+        databaseCleanup.execute();
+
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())

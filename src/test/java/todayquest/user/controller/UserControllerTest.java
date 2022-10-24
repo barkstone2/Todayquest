@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import todayquest.annotation.WithCustomMockUser;
+import todayquest.common.DatabaseCleanup;
 import todayquest.common.MessageUtil;
 import todayquest.user.dto.UserRequestDto;
 import todayquest.user.entity.ProviderType;
@@ -48,11 +50,20 @@ public class UserControllerTest {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    DatabaseCleanup databaseCleanup;
+
+    @Autowired
+    MessageSource messageSource;
+
+    MessageUtil messageUtil;
+
     MockMvc mvc;
     UserInfo testUser;
 
     @BeforeEach
     public void setUp() {
+        databaseCleanup.execute();
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())

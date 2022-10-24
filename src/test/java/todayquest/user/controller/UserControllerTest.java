@@ -69,7 +69,7 @@ public class UserControllerTest {
                 .apply(springSecurity())
                 .addFilter(new CharacterEncodingFilter("UTF-8", true))
                 .build();
-
+        messageUtil = new MessageUtil(messageSource);
         testUser = UserInfo.builder().id(1L).build();
     }
 

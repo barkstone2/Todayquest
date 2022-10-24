@@ -12,7 +12,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.access.AccessDeniedException;
 import todayquest.common.MessageUtil;
-import todayquest.item.entity.Item;
 import todayquest.item.service.ItemService;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
@@ -22,7 +21,6 @@ import todayquest.quest.entity.QuestState;
 import todayquest.quest.entity.QuestType;
 import todayquest.quest.repository.QuestRepository;
 import todayquest.quest.repository.QuestRewardRepository;
-import todayquest.reward.entity.Reward;
 import todayquest.reward.repository.RewardRepository;
 import todayquest.user.dto.UserPrincipal;
 import todayquest.user.entity.UserInfo;
@@ -31,13 +29,16 @@ import todayquest.user.service.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @DisplayName("퀘스트 서비스 유닛 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +66,7 @@ class QuestServiceTest {
     public void testGetQuestList() throws Exception {
         //given
         Long userId = 1L;
+        QuestState state = QuestState.PROCEED;
 
         List<Quest> entityList = List.of(
                 Quest.builder()
@@ -78,11 +80,14 @@ class QuestServiceTest {
                         .deadLineDate(LocalDate.now())
                         .build());
 
+        when(questRepository.getQuestsList(eq(userId), eq(state), any(PageRequest.class)))
+                .thenReturn(new SliceImpl<>(entityList));
+
         //when
-        when(questRepository.getQuestsList(any(), any(), any())).thenReturn(new SliceImpl<>(entityList));
+        Slice<QuestResponseDto> result = questService.getQuestList(userId, state, PageRequest.of(0, 9));
 
         //then
-        Slice<QuestResponseDto> result = questService.getQuestList(userId, QuestState.PROCEED, PageRequest.of(0, 9));
+        verify(questRepository).getQuestsList(eq(userId), eq(state), any(PageRequest.class));
         assertThat(result.getSize()).isEqualTo(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("test");
     }
@@ -92,13 +97,17 @@ class QuestServiceTest {
     public void testGetListReturnNone() throws Exception {
         //given
         Long userId = 1L;
+        QuestState state = QuestState.PROCEED;
         List<Quest> entityList = List.of();
 
+        when(questRepository.getQuestsList(eq(userId), eq(state), any(PageRequest.class)))
+                .thenReturn(new SliceImpl<>(entityList));
+
         //when
-        when(questRepository.getQuestsList(any(), any(), any())).thenReturn(new SliceImpl<>(entityList));
+        Slice<QuestResponseDto> result = questService.getQuestList(userId, state, PageRequest.of(0, 9));
 
         //then
-        Slice<QuestResponseDto> result = questService.getQuestList(userId, QuestState.PROCEED, PageRequest.of(0, 9));
+        verify(questRepository).getQuestsList(eq(userId), eq(state), any(PageRequest.class));
         assertThat(result.getSize()).isEqualTo(0);
     }
 
@@ -106,6 +115,10 @@ class QuestServiceTest {
     @Test
     public void testSaveQuest() throws Exception {
         //given
+        Long userId = 1L;
+        Long nextSeq = 2L;
+
+        List<Long> rewards = List.of(1L, 2L, 3L);
         QuestRequestDto dto = QuestRequestDto.builder()
                 .title("test")
                 .description("test")
@@ -113,70 +126,102 @@ class QuestServiceTest {
                 .isRepeat(true)
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
-                .rewards(new ArrayList<>())
+                .rewards(rewards)
                 .build();
 
+        UserInfo findUser = UserInfo.builder().id(userId).build();
+        when(userRepository.getById(any()))
+                .thenReturn(findUser);
+        when(questRepository.save(any()))
+                .thenReturn(Quest.builder().build());
+        when(questRepository.getNextSeqByUserId(userId))
+                .thenReturn(nextSeq);
+
         //when
-        UserInfo findUser = UserInfo.builder().build();
-        when(userRepository.getById(any())).thenReturn(findUser);
-        when(questRepository.save(any())).thenReturn(Quest.builder().build());
+        questService.saveQuest(dto, 1L);
 
         //then
-        questService.saveQuest(dto, 1L);
+        verify(userRepository).getById(userId);
+        verify(questRepository).getNextSeqByUserId(userId);
+        verify(questRepository).save(any(Quest.class));
+        verify(rewardRepository).findAllByIdAndUserId(rewards, userId);
+        verify(questRewardRepository).saveAll(any());
     }
-    @DisplayName("본인의 퀘스트 업데이트 테스트")
+
+    @DisplayName("퀘스트 업데이트 성공")
     @Test
     public void testQuestUpdateSuccess() throws Exception {
         //given
+        Long questId = 1L;
+        Long userId = 1L;
+
+        String title = "test";
+        String updateTitle = title + "update";
         Quest entity = Quest.builder()
-                .title("test")
+                .title(title)
                 .description("test")
                 .state(QuestState.PROCEED)
                 .type(QuestType.DAILY)
                 .difficulty(QuestDifficulty.easy)
                 .isRepeat(true)
-                .user(UserInfo.builder().id(1L).build())
+                .user(UserInfo.builder().id(userId).build())
                 .deadLineDate(LocalDate.now())
                 .build();
 
-        //when
-        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(entity));
-        when(rewardRepository.findAllById(any())).thenReturn(new ArrayList<>());
+        when(questRepository.findById(any()))
+                .thenReturn(Optional.ofNullable(entity));
+        when(rewardRepository.findAllById(any()))
+                .thenReturn(new ArrayList<>());
 
-        //then
+        List<Long> rewards = List.of(1L, 2L, 3L);
+
         QuestRequestDto dto = QuestRequestDto.builder()
-                .title("test")
+                .title(updateTitle)
                 .description("test")
                 .difficulty(QuestDifficulty.easy)
                 .isRepeat(true)
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())
+                .rewards(rewards)
                 .build();
 
-        assertThatNoException().isThrownBy(() -> questService.updateQuest(dto, 1L, 1L));
+        //when
+        questService.updateQuest(dto, questId, userId);
+
+        //then
+        verify(questRepository).findById(questId);
+        verify(rewardRepository).findAllById(rewards);
+        verify(questRewardRepository).saveAll(any());
+
+        assertThat(entity.getTitle()).isEqualTo(updateTitle);
     }
 
     @DisplayName("다른 유저의 퀘스트 업데이트 테스트")
     @Test
     public void testQuestUpdateFail() throws Exception {
         //given
+        Long questId = 1L;
+        Long userId = 1L;
+        Long anotherUserId = 2L;
+
+        String title = "test";
+        String updateTitle = title + "update";
+
         Quest entity = Quest.builder()
-                .title("test")
+                .title(title)
                 .description("test")
                 .state(QuestState.PROCEED)
                 .type(QuestType.DAILY)
                 .difficulty(QuestDifficulty.easy)
                 .isRepeat(true)
-                .user(UserInfo.builder().id(1L).build())
+                .user(UserInfo.builder().id(userId).build())
                 .deadLineDate(LocalDate.now())
                 .build();
+        when(questRepository.findById(any()))
+                .thenReturn(Optional.ofNullable(entity));
 
-        //when
-        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(entity));
-
-        //then
         QuestRequestDto dto = QuestRequestDto.builder()
-                .title("test")
+                .title(updateTitle)
                 .description("test")
                 .difficulty(QuestDifficulty.easy)
                 .isRepeat(true)
@@ -184,15 +229,30 @@ class QuestServiceTest {
                 .deadLineTime(LocalTime.now())
                 .build();
 
-        assertThatThrownBy(() -> questService.updateQuest(dto, 1L, 2L))
+
+        //when
+        ThrowingCallable tc = () -> questService.updateQuest(dto, questId, anotherUserId);
+
+        //then
+        assertThatThrownBy(tc)
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessage(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("quest")));
+
+        assertThat(entity.getTitle()).isEqualTo(title);
+        assertThat(entity.getTitle()).isNotEqualTo(updateTitle);
+
+        verify(questRepository).findById(questId);
+        verifyNoInteractions(rewardRepository);
+        verifyNoInteractions(questRewardRepository);
     }
 
     @DisplayName("진행 상태가 아닌 퀘스트 업데이트 테스트")
     @Test
     public void testQuestUpdateStateNotProceed() throws Exception {
         //given
+        Long questId = 1L;
+        Long userId = 1L;
+
         Quest entity = Quest.builder()
                 .title("test")
                 .description("test")
@@ -200,32 +260,38 @@ class QuestServiceTest {
                 .type(QuestType.DAILY)
                 .difficulty(QuestDifficulty.easy)
                 .isRepeat(true)
-                .user(UserInfo.builder().id(1L).build())
-                .deadLineDate(LocalDate.now())
+                .user(UserInfo.builder().id(userId).build())
                 .build();
 
-        //when
-        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(entity));
+        when(questRepository.findById(any()))
+                .thenReturn(Optional.ofNullable(entity));
 
-        //then
         QuestRequestDto dto = QuestRequestDto.builder()
                 .title("test")
                 .description("test")
                 .difficulty(QuestDifficulty.easy)
                 .isRepeat(true)
-                .deadLineDate(LocalDate.now())
-                .deadLineTime(LocalTime.now())
                 .build();
+        //when
+        ThrowingCallable tc = () -> questService.updateQuest(dto, questId, userId);
 
-        assertThatThrownBy(() -> questService.updateQuest(dto, 1L, 1L))
+
+        //then
+        assertThatThrownBy(tc)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage(MessageUtil.getMessage("quest.error.update.invalid.state"));
+
+        verify(questRepository).findById(questId);
+        verifyNoInteractions(rewardRepository);
+        verifyNoInteractions(questRewardRepository);
     }
 
-    @DisplayName("퀘스트 정보 조회 실패")
+    @DisplayName("퀘스트 업데이트 정보 조회 실패")
     @Test
     public void testGetQuestInfoFail() throws Exception {
         //given
+        Long questId = 1L;
+        Long userId = 1L;
         Quest entity = Quest.builder()
                 .title("test")
                 .description("test")
@@ -233,14 +299,13 @@ class QuestServiceTest {
                 .type(QuestType.DAILY)
                 .difficulty(QuestDifficulty.easy)
                 .isRepeat(true)
-                .user(UserInfo.builder().id(1L).build())
+                .user(UserInfo.builder().id(userId).build())
                 .deadLineDate(LocalDate.now())
                 .build();
 
-        //when
-        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(null));
+        when(questRepository.findById(any()))
+                .thenReturn(Optional.ofNullable(null));
 
-        //then
         QuestRequestDto dto = QuestRequestDto.builder()
                 .title("test")
                 .description("test")
@@ -250,9 +315,17 @@ class QuestServiceTest {
                 .deadLineTime(LocalTime.now())
                 .build();
 
-        assertThatThrownBy(() -> questService.updateQuest(dto, 1L, 1L))
+        //when
+        ThrowingCallable tc = () -> questService.updateQuest(dto, questId, userId);
+
+        //then
+        assertThatThrownBy(tc)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage(MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest")));
+
+        verify(questRepository).findById(questId);
+        verifyNoInteractions(rewardRepository);
+        verifyNoInteractions(questRewardRepository);
     }
 
     @DisplayName("퀘스트 삭제 테스트")
@@ -271,11 +344,14 @@ class QuestServiceTest {
                 .user(UserInfo.builder().id(1L).build())
                 .build();
 
+        when(questRepository.findById(any()))
+                .thenReturn(Optional.ofNullable(entity));
+
         //when
-        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(entity));
+        questService.deleteQuest(questId, 1L);
 
         //then
-        assertThatNoException().isThrownBy(() -> questService.deleteQuest(questId, 1L));
+        verify(questRepository).findById(questId);
         assertThat(entity.getState()).isEqualTo(QuestState.DELETE);
     }
 
@@ -288,18 +364,8 @@ class QuestServiceTest {
         Long userId = 1L;
         UserPrincipal principal = UserPrincipal.builder()
                 .userId(userId).build();
-        Map<String, Object> attr = new HashMap<>();
-        attr.put("level", 1);
-        principal.setAttributes(attr);
 
-        int beforeLevel = 1;
-        long beforeExp = 99L;
-        long beforeGold = 0L;
-
-        UserInfo user = UserInfo.builder()
-                .id(userId).level(beforeLevel)
-                .gold(beforeGold).exp(beforeExp)
-                .build();
+        UserInfo user = UserInfo.builder().id(userId).build();
 
         Quest quest = Quest.builder()
                 .title("test")
@@ -311,14 +377,8 @@ class QuestServiceTest {
                 .user(user)
                 .build();
 
-        Reward r1 = Reward.builder().name("r1").id(1L).build();
-        Reward r2 = Reward.builder().name("r2").id(2L).build();
-
-        int beforeCount = 10;
-        Item i1 = Item.builder().reward(r1).count(beforeCount).build();
-        Item i2 = Item.builder().reward(r2).count(1).build();
-
-        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(quest));
+        when(questRepository.findById(any()))
+                .thenReturn(Optional.ofNullable(quest));
 
         //when
         questService.completeQuest(questId, principal);
@@ -331,24 +391,14 @@ class QuestServiceTest {
         assertThat(quest.getState()).isEqualTo(QuestState.COMPLETE);
     }
 
-    @DisplayName("퀘스트 상태 완료로 변경_실패")
+    @DisplayName("퀘스트 상태 완료로 변경_삭제된 퀘스트")
     @Test
     public void testQuestCompleteFail() throws Exception {
         //given
         Long questId = 1L;
         UserPrincipal principal = UserPrincipal.builder()
                 .userId(1L).build();
-        Map<String, Object> attr = new HashMap<>();
-        attr.put("level", 1);
-        principal.setAttributes(attr);
 
-        int beforeLevel = 1;
-        long beforeExp = 99L;
-        long beforeGold = 0L;
-
-        UserInfo user = UserInfo.builder()
-                .id(1L).level(beforeLevel).gold(beforeGold).exp(beforeExp)
-                .build();
         Quest quest = Quest.builder()
                 .title("test")
                 .description("test")
@@ -360,14 +410,19 @@ class QuestServiceTest {
                 .user(UserInfo.builder().id(1L).build())
                 .build();
 
-        //when
+        when(questRepository.findById(any()))
+                .thenReturn(Optional.ofNullable(quest));
 
-        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(quest));
+        //when
+        ThrowingCallable tc = () -> questService.completeQuest(questId, principal);
 
         //then
-        assertThatThrownBy(() -> questService.completeQuest(questId, principal))
+        assertThatThrownBy(tc)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage(MessageUtil.getMessage("quest.error.deleted"));
+        verifyNoMoreInteractions(userService);
+        verifyNoInteractions(itemService);
+        verifyNoInteractions(questLogService);
         assertThat(quest.getState()).isEqualTo(QuestState.DELETE);
     }
 
@@ -377,6 +432,7 @@ class QuestServiceTest {
     public void testDiscardQuest() throws Exception {
         //given
         Long questId = 1L;
+        Long userId = 1L;
 
         Quest quest = Quest.builder()
                 .title("test")
@@ -388,12 +444,14 @@ class QuestServiceTest {
                 .deadLineDate(LocalDate.now())
                 .user(UserInfo.builder().id(1L).build())
                 .build();
+        when(questRepository.findById(any()))
+                .thenReturn(Optional.ofNullable(quest));
 
         //when
-        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(quest));
+        questService.discardQuest(questId, userId);
 
         //then
-        assertThatNoException().isThrownBy(() -> questService.discardQuest(questId, 1L));
+        verify(questLogService).saveQuestLog(questId, userId, QuestState.DISCARD);
         assertThat(quest.getState()).isEqualTo(QuestState.DISCARD);
     }
 
@@ -414,13 +472,17 @@ class QuestServiceTest {
                 .user(UserInfo.builder().id(1L).build())
                 .build();
 
+        when(questRepository.findById(any()))
+                .thenReturn(Optional.ofNullable(quest));
+
         //when
-        when(questRepository.findById(any())).thenReturn(Optional.ofNullable(quest));
+        ThrowingCallable tc = () -> questService.discardQuest(questId, 1L);
 
         //then
-        assertThatThrownBy(() -> questService.discardQuest(questId, 1L))
+        assertThatThrownBy(tc)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage(MessageUtil.getMessage("quest.error.deleted"));
+        verifyNoInteractions(questLogService);
         assertThat(quest.getState()).isEqualTo(QuestState.DELETE);
     }
 

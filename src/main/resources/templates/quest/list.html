@@ -75,7 +75,7 @@
                 </div>
                 <div class="list-group list-group-flush" >
                     <div class="list-item text-truncate" th:each="reward : ${quest.rewards}" th:text="${reward.name}">&nbsp;</div>
-                    <div class="list-item text-truncate" th:each="num : ${#numbers.sequence(1+quest.rewards.size(),3)}">&nbsp;</div>
+                    <div class="list-item text-truncate" th:if="${quest.rewards.size() < 3}" th:each="num : ${#numbers.sequence(1+quest.rewards.size(),3)}">&nbsp;</div>
                 </div>
                 <div class="card-footer" th:with="deadLine=|${#strings.defaultString(quest.deadLineDate, '')} ${#strings.defaultString(quest.deadLineTime, '')}|">
                     <span class="bg-warning rounded p-1 text-white">완료기한</span>

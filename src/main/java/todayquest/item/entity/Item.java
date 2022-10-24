@@ -32,7 +32,7 @@ public class Item extends BaseTimeEntity {
     @JoinColumn(name = "reward_id")
     private Reward reward;
 
-    private int count;
+    private Integer count;
 
     @Builder
     public Item(UserInfo user, Reward reward, int count) {

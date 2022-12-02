@@ -13,10 +13,13 @@ public enum AchievementAction {
     DISCARD("포기", QUEST),
     FAIL("실패", QUEST),
     DELETE("삭제", QUEST),
+
     EARN("획득", ITEM),
     USE("사용", ITEM),
     ABANDON("버림", ITEM),
+
     GET_GOLD("획득", GOLD),
+
     GET_EXP("획득", EXPERIENCE);
 
     private String message;

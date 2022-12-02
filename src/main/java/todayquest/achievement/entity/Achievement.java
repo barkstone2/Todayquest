@@ -1,14 +1,17 @@
 package todayquest.achievement.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
+
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class Achievement {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "achievement_id")
     private Long id;
 
@@ -18,7 +21,10 @@ public class Achievement {
     @Column(length = 300)
     private String description;
 
+    @Enumerated(EnumType.STRING)
     private AchievementType type;
+
+    @Enumerated(EnumType.STRING)
     private AchievementAction action;
 
     @Column(nullable = false)

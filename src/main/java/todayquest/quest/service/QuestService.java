@@ -7,6 +7,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import todayquest.achievement.service.AchievementService;
 import todayquest.common.MessageUtil;
 import todayquest.item.service.ItemService;
 import todayquest.quest.dto.QuestRequestDto;
@@ -41,6 +42,7 @@ public class QuestService {
     private final ItemService itemService;
     private final UserService userService;
     private final QuestLogService questLogService;
+    private final AchievementService achievementService;
 
 
     public Slice<QuestResponseDto> getQuestList(Long userId, QuestState state, Pageable pageable) {
@@ -68,6 +70,9 @@ public class QuestService {
                 .map(r -> QuestReward.builder().reward(r).quest(savedQuest).build())
                 .collect(Collectors.toList());
         questRewardRepository.saveAll(collect);
+        questLogService.saveQuestLog(savedQuest.getId(), userId, QuestState.PROCEED);
+
+        achievementService.checkAndAttainQuestAchievement(userId);
     }
 
     public void updateQuest(QuestRequestDto dto, Long questId, Long userId) {
@@ -89,6 +94,7 @@ public class QuestService {
         Quest quest = findQuestWithValidation(questId);
         checkQuestOwner(quest.getUser().getId(), userId);
         quest.changeState(QuestState.DELETE);
+        achievementService.checkAndAttainQuestAchievement(userId);
     }
 
     public void completeQuest(Long questId, UserPrincipal principal) throws IOException {
@@ -120,6 +126,8 @@ public class QuestService {
 
         // 퀘스트 완료 로그 저장
         questLogService.saveQuestLog(questId, principal.getUserId(), QuestState.COMPLETE);
+
+        achievementService.checkAndAttainQuestAchievement(principal.getUserId());
     }
 
     public void discardQuest(Long questId, Long userId) {
@@ -132,6 +140,7 @@ public class QuestService {
 
         quest.changeState(QuestState.DISCARD);
         questLogService.saveQuestLog(questId, userId, QuestState.DISCARD);
+        achievementService.checkAndAttainQuestAchievement(userId);
     }
 
     private void checkQuestOwner(Long ownerUserId, Long userId) {

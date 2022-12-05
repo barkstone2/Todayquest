@@ -50,6 +50,18 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label th:for="detailQuests" class="col-sm-2 col-form-label align-items-center">세부 퀘스트</label>
+                <div class="col-sm-10">
+                    <div class="row mb-1">
+                        <div class="col-sm-auto">
+                            <div class="btn btn-primary" id="detailQuestAddBtn">추가</div>
+                        </div>
+                    </div>
+                    <div th:errorclass="field-error" th:errors="*{detailQuests}"></div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
                 <label th:for="reward" class="col-sm-2 col-form-label align-items-center">보상 아이템</label>
                 <div class="col-sm-10">
                     <div class="d-flex mb-1" id="rewardSelector">
@@ -133,6 +145,17 @@
             if(rewardRowCount == 3) rewards.setAttribute('disabled', '');
         });
 
+        let detailQuestAddBtn = document.getElementById('detailQuestAddBtn');
+        detailQuestAddBtn.addEventListener('click', function(e) {
+            let detailQuestHtml = createDetailQuestRow();
+            e.target.parentElement.parentElement.before(detailQuestHtml);
+
+            let detailQuestRowCount = document.getElementsByClassName('detail_quest_row').length;
+            if(detailQuestRowCount == 5) {
+                detailQuestAddBtn.classList.toggle('visually-hidden');
+            }
+        })
+
     });
 
     function deleteRewardRow(t) {
@@ -143,5 +166,88 @@
         let rewards = document.getElementById('rewards');
         rewards.removeAttribute('disabled');
     }
+
+    function deleteDetailQuestRow(t) {
+        t.parentElement.parentElement.remove();
+        let detailQuestAddBtn = document.getElementById('detailQuestAddBtn');
+        detailQuestAddBtn.classList.remove('visually-hidden');
+    }
+
+    function observeDetailQuestType(t) {
+        let selectedOption = t.selectedOptions[0].value;
+        let rowNo = t.getAttribute('data-no');
+
+        let countInputHtml = document.createElement('div');
+        countInputHtml.className = 'col-sm-auto';
+        let inputHtml = document.createElement('input');
+        inputHtml.className = 'form-control';
+        inputHtml.type = 'number';
+        inputHtml.id = 'detailQuest' + rowNo;
+        inputHtml.name = 'detailQuest[' + rowNo + '].count';
+        inputHtml.placeholder = '횟수';
+        inputHtml.min = '1';
+        inputHtml.max = '255';
+        countInputHtml.appendChild(inputHtml)
+
+        if(selectedOption == 'COUNT') {
+            t.parentElement.after(countInputHtml);
+        } else {
+            t.parentElement.nextSibling.remove();
+        }
+    }
+
+    function createDetailQuestRow() {
+        let detailQuestHtml = document.createElement('div');
+        detailQuestHtml.className = 'row mb-1 detail_quest_row';
+
+        let titleDiv = document.createElement('div');
+        titleDiv.className = 'col-sm';
+
+        let titleInput = document.createElement('input');
+        titleInput.className = 'form-control';
+        titleInput.name = 'detailQuests.title';
+        titleInput.type = 'text';
+
+        let selectDiv = document.createElement('div');
+        selectDiv.className = 'col-sm-auto';
+
+        let selectInput = document.createElement('select');
+        selectInput.className = 'form-select';
+        selectInput.name = 'detailQuests.type';
+        selectInput.setAttribute('data-no', '0');
+        selectInput.setAttribute('onchange', 'observeDetailQuestType(this)');
+
+        let option1 = document.createElement('option');
+        option1.value = 'CHECK';
+        option1.text = '체크박스';
+
+        let option2 = document.createElement('option');
+        option2.value = 'COUNT';
+        option2.text = '카운트';
+
+        let buttonDiv = document.createElement('div');
+        buttonDiv.className = 'col-sm-auto';
+
+        let deleteButton = document.createElement('div');
+        deleteButton.className = 'btn btn-secondary';
+        deleteButton.textContent = '삭제';
+        deleteButton.setAttribute('onclick', 'deleteDetailQuestRow(this)');
+
+        titleDiv.appendChild(titleInput);
+
+        selectInput.appendChild(option1);
+        selectInput.appendChild(option2);
+        selectDiv.appendChild(selectInput);
+
+        buttonDiv.appendChild(deleteButton);
+
+        detailQuestHtml.appendChild(titleDiv);
+        detailQuestHtml.appendChild(selectDiv);
+        detailQuestHtml.appendChild(buttonDiv);
+
+        return detailQuestHtml;
+    }
+
+
 </script>
 </html>

@@ -150,7 +150,7 @@
             let detailQuestHtml = createDetailQuestRow();
             e.target.parentElement.parentElement.before(detailQuestHtml);
 
-            let detailQuestRowCount = document.getElementsByClassName('detail_quest_row').length;
+            let detailQuestRowCount = document.getElementsByClassName('detail-quest-row').length;
             if(detailQuestRowCount == 5) {
                 detailQuestAddBtn.classList.toggle('visually-hidden');
             }
@@ -182,30 +182,31 @@
         let inputHtml = document.createElement('input');
         inputHtml.className = 'form-control';
         inputHtml.type = 'number';
-        inputHtml.id = 'detailQuest' + rowNo;
-        inputHtml.name = 'detailQuest[' + rowNo + '].count';
+        inputHtml.name = 'detailQuests[' + rowNo + '].count';
         inputHtml.placeholder = '횟수';
         inputHtml.min = '1';
         inputHtml.max = '255';
         countInputHtml.appendChild(inputHtml)
 
         if(selectedOption == 'COUNT') {
-            t.parentElement.after(countInputHtml);
+            t.parentElement.before(countInputHtml);
         } else {
-            t.parentElement.nextSibling.remove();
+            t.parentElement.previousElementSibling.remove();
         }
     }
 
     function createDetailQuestRow() {
+        let detailQuestRowCount = document.getElementsByClassName('detail-quest-row').length;
+
         let detailQuestHtml = document.createElement('div');
-        detailQuestHtml.className = 'row mb-1 detail_quest_row';
+        detailQuestHtml.className = 'row mb-1 detail-quest-row';
 
         let titleDiv = document.createElement('div');
         titleDiv.className = 'col-sm';
 
         let titleInput = document.createElement('input');
         titleInput.className = 'form-control';
-        titleInput.name = 'detailQuests.title';
+        titleInput.name = 'detailQuests[' + detailQuestRowCount + '].title';
         titleInput.type = 'text';
 
         let selectDiv = document.createElement('div');
@@ -213,8 +214,8 @@
 
         let selectInput = document.createElement('select');
         selectInput.className = 'form-select';
-        selectInput.name = 'detailQuests.type';
-        selectInput.setAttribute('data-no', '0');
+        selectInput.name = 'detailQuests[' + detailQuestRowCount + '].type';
+        selectInput.setAttribute('data-no', detailQuestRowCount);
         selectInput.setAttribute('onchange', 'observeDetailQuestType(this)');
 
         let option1 = document.createElement('option');

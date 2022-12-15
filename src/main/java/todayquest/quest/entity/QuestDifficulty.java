@@ -11,11 +11,11 @@ import java.util.stream.Collectors;
 @Getter
 public enum QuestDifficulty {
 
-    veryEasy(1, 10, "매우 쉬움"),
-    easy(2, 20, "쉬움"),
-    normal(3, 30, "보통"),
-    hard(4, 40, "어려움"),
-    veryHard(5, 50, "매우 어려움");
+    VERY_EASY(1, 10, "매우 쉬움"),
+    EASY(2, 20, "쉬움"),
+    NORMAL(3, 30, "보통"),
+    HARD(4, 40, "어려움"),
+    VERY_HARD(5, 50, "매우 어려움");
 
     int experience;
     int gold;

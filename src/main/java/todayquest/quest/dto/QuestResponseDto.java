@@ -33,6 +33,7 @@ public class QuestResponseDto {
     private QuestDifficulty difficulty;
     private List<RewardResponseDto> rewards;
     private LocalDateTime lastModifiedDate;
+    private List<DetailQuestResponseDto> detailQuests;
 
     public static QuestResponseDto createDto(Quest quest) {
         return QuestResponseDto.builder()
@@ -48,6 +49,7 @@ public class QuestResponseDto {
                 .difficulty(quest.getDifficulty())
                 .lastModifiedDate(quest.getLastModifiedDate())
                 .rewards(quest.getRewards().stream().map(r -> RewardResponseDto.createDto(r.getReward())).collect(Collectors.toList()))
+                .detailQuests(quest.getDetailQuests().stream().map(dq -> DetailQuestResponseDto.createDto(dq)).collect(Collectors.toList()))
                 .build();
     }
 

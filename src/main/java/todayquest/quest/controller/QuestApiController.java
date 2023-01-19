@@ -7,11 +7,11 @@ import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import todayquest.quest.dto.DetailQuestResponseDto;
 import todayquest.quest.dto.QuestResponseDto;
 import todayquest.quest.dto.QuestSearchCondition;
+import todayquest.quest.service.DetailQuestService;
 import todayquest.quest.service.QuestService;
 import todayquest.user.dto.UserPrincipal;
 

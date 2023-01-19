@@ -24,9 +24,7 @@ open class DetailQuestService(
             return DetailQuestResponseDto.createDto(detailQuest)
         }
 
-        if(detailQuest.addCount()) {
-            detailQuest.changeState(DetailQuestState.COMPLETE)
-        }
+        detailQuest.addCount()
 
         return DetailQuestResponseDto.createDto(detailQuest)
     }

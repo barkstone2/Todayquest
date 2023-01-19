@@ -23,6 +23,9 @@ public class DetailQuest {
     private String title;
 
     @Column(nullable = false)
+    private Short targetCount;
+
+    @Column(nullable = false)
     private Short count;
 
     @Enumerated(STRING)
@@ -40,5 +43,14 @@ public class DetailQuest {
         this.count = count;
         this.type = type;
         this.state = state;
+    }
+
+    public void resetCount() {
+        this.count = 0;
+    }
+
+    public void addCount() {
+        this.count++;
+        if(count.equals(targetCount)) changeState(DetailQuestState.COMPLETE);
     }
 }

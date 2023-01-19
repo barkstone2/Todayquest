@@ -36,6 +36,10 @@ public class DetailQuest {
     @Column(nullable = false)
     private DetailQuestState state;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quest_id")
+    private Quest quest;
+
     @Builder
     public DetailQuest(Long id, String title, Short count, DetailQuestType type, DetailQuestState state) {
         this.id = id;

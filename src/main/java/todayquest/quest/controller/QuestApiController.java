@@ -21,10 +21,19 @@ import todayquest.user.dto.UserPrincipal;
 @RestController
 public class QuestApiController {
     private final QuestService questService;
+    private final DetailQuestService detailQuestService;
 
     @GetMapping("")
     public ResponseEntity<Slice<QuestResponseDto>> list(QuestSearchCondition condition, @AuthenticationPrincipal UserPrincipal principal) {
         return new ResponseEntity<>(questService.getQuestList(principal.getUserId(), condition.getState(), PageRequest.of(condition.getPage(), 9)), HttpStatus.OK);
     }
 
+    @PutMapping("/{questId}/details/{detailQuestId}")
+    public ResponseEntity<DetailQuestResponseDto> interact(
+            @PathVariable("questId") Long questId,
+            @PathVariable("detailQuestId") Long detailQuestId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        return new ResponseEntity<>(detailQuestService.interact(principal.getUserId(), questId, detailQuestId), HttpStatus.OK);
+    }
 }

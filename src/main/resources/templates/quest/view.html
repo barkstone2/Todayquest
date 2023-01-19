@@ -149,44 +149,8 @@
 </body>
 <script th:inline="javascript">
 
-    document.addEventListener("DOMContentLoaded", function () {
-
-        let difficultySelect = document.getElementById('difficulty');
-
-        difficultySelect.addEventListener("change", function () {
-            let exp = this.options[this.selectedIndex].getAttribute('data-exp');
-            let gold = this.options[this.selectedIndex].getAttribute('data-gold');
-
-            let rewardText = exp + ' Exp, ' + gold + ' Gold';
-
-            if(this.selectedIndex == 0) rewardText = '난이도를 선택하세요.';
-            document.getElementById('diffReward').innerText = rewardText;
-        });
-
-        let rewardDeleteBtns = document.getElementsByClassName('reward-delete-btn');
-
-        for (let i = 0; i < rewardDeleteBtns.length; i++) {
-            rewardDeleteBtns[i].addEventListener('click', function () {
-                let targetId = 'rewardRow' + rewardDeleteBtns[i].getAttribute('data-id');
-                let optionId = 'rewardOption' + rewardDeleteBtns[i].getAttribute('data-id');
-                document.getElementById(targetId).classList.add('visually-hidden');
-                document.getElementById(optionId).classList.remove('d-none');
-
-                let rewards = document.getElementById('rewards');
-                rewards.removeAttribute('disabled');
-            });
-        }
-
-        let rewards = document.getElementById('rewards');
-        rewards.addEventListener('change', function () {
-            let rewardSelector = document.getElementById('rewardSelector');
-
-            let selectedText = rewards.selectedOptions[0].text;
-            let selectedId = rewards.selectedOptions[0].id;
-            let selectedValue = rewards.selectedOptions[0].value;
-
-            if(!selectedId) return;
-
+    const Reward = {
+        createTempRow : function (selectedId, selectedValue, selectedText) {
             let tempRowHtml = document.createElement('div');
             tempRowHtml.className = 'reward-row d-flex mb-1 temp-row';
             tempRowHtml.innerHTML
@@ -196,103 +160,174 @@
                 + '</div>'
                 + '<div class="reward-delete-btn btn btn-secondary ms-1" onclick="deleteRewardRow(this)">삭제</div>';
 
+            return tempRowHtml;
+        },
+
+        hideRowAndShowSelectorOption : function () {
+            let targetId = 'rewardRow' + this.getAttribute('data-id');
+            let optionId = 'rewardOption' + this.getAttribute('data-id');
+            document.getElementById(targetId).classList.add('visually-hidden');
+            document.getElementById(optionId).classList.remove('d-none');
+
+            let rewards = document.getElementById('rewards');
+            rewards.removeAttribute('disabled');
+        },
+
+        appendTempRowAndHideSelectorOption : function () {
+            let rewardSelector = document.getElementById('rewardSelector');
+
+            let selectedText = this.selectedOptions[0].text;
+            let selectedId = this.selectedOptions[0].id;
+            let selectedValue = this.selectedOptions[0].value;
+
+            if(!selectedId) return;
+
+            let tempRowHtml = Reward.createTempRow(selectedId, selectedValue, selectedText);
             rewardSelector.before(tempRowHtml);
 
-            rewards.selectedOptions[0].classList.add('d-none');
-            rewards.selectedIndex = 0;
+            this.selectedOptions[0].classList.add('d-none');
+            this.selectedIndex = 0;
 
             let rewardRowCount = document.getElementsByClassName('reward-row').length;
             let hiddenRewardRowCount = document.getElementsByClassName('reward-row visually-hidden').length;
             rewardRowCount -= hiddenRewardRowCount;
-            if(rewardRowCount == 3) rewards.setAttribute('disabled', '');
-        });
+            if(rewardRowCount == 3) this.setAttribute('disabled', '');
+        },
 
+    }
+
+    const DetailQuest = {
+        hideRowAndShowAddBtn : function () {
+            let targetId = 'detailQuestRow' + this.getAttribute('data-id');
+            document.getElementById(targetId).classList.add('visually-hidden');
+
+            let detailQuestAddBtn = document.getElementById('detailQuestAddBtn');
+            detailQuestAddBtn.removeClass('visually-hidden');
+        },
+
+        appendTempRow : function() {
+            let detailQuestHtml = createDetailQuestRow();
+            this.parentElement.parentElement.before(detailQuestHtml);
+
+            let detailQuestRowCount = document.getElementsByClassName('detail-quest-row').length;
+            if(detailQuestRowCount == 5) {
+                this.classList.toggle('visually-hidden');
+            }
+        },
+
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // 수정 폼 submit 후 BindingResult에 Error 발생 시 수정 폼으로 전환
         if([[${hasError}]]) {
             toggleUpdateForm();
         }
 
+        // 난이도 이벤트 바인딩
+        let difficultySelect = document.getElementById('difficulty');
+        difficultySelect.addEventListener("change", changeDifficultyInfoText);
+
+        // 퀘스트 보상 이벤트 바인딩
+        let rewardDeleteBtns = document.getElementsByClassName('reward-delete-btn');
+        for (let i = 0; i < rewardDeleteBtns.length; i++) {
+            rewardDeleteBtns[i].addEventListener('click', Reward.hideRowAndShowSelectorOption);
+        }
+
+        let rewards = document.getElementById('rewards');
+        rewards.addEventListener('change', Reward.appendTempRowAndHideSelectorOption);
+
+        // 세부 퀘스트 이벤트 바인딩
         let detailQuestDeleteBtns = document.getElementsByClassName('detail-quest-delete-btn');
-
         for (let i = 0; i < detailQuestDeleteBtns.length; i++) {
-            detailQuestDeleteBtns[i].addEventListener('click', function () {
-                let targetId = 'detailQuestRow' + detailQuestDeleteBtns[i].getAttribute('data-id');
-                document.getElementById(targetId).classList.add('visually-hidden');
-
-                let detailQuestAddBtn = document.getElementById('detailQuestAddBtn');
-                detailQuestAddBtn.removeClass('visually-hidden');
-            });
+            detailQuestDeleteBtns[i].addEventListener('click', DetailQuest.hideRowAndShowAddBtn);
         }
 
         let detailQuestAddBtn = document.getElementById('detailQuestAddBtn');
-        detailQuestAddBtn.addEventListener('click', function(e) {
-            let detailQuestHtml = createDetailQuestRow();
-            e.target.parentElement.parentElement.before(detailQuestHtml);
-
-            let detailQuestRowCount = document.getElementsByClassName('detail-quest-row').length;
-            if(detailQuestRowCount == 5) {
-                detailQuestAddBtn.classList.toggle('visually-hidden');
-            }
-        })
-
+        detailQuestAddBtn.addEventListener('click', DetailQuest.appendTempRow);
     });
 
+    function changeDifficultyInfoText() {
+        let rewardText = createRewardText(this);
+
+        if(this.selectedIndex == 0) rewardText = '난이도를 선택하세요.';
+        document.getElementById('diffReward').innerText = rewardText;
+    }
+
+    function createRewardText(target) {
+        let exp = target.options[target.selectedIndex].getAttribute('data-exp');
+        let gold = target.options[target.selectedIndex].getAttribute('data-gold');
+        let rewardText = exp + ' Exp, ' + gold + ' Gold';
+        return rewardText;
+    }
 
     let inputData = new Array();
-    function restoreInputValue() {
+
+    function restoreInputValue(inputs) {
+        for (let i = 0; i < inputs.length; i++) {
+            let type = inputs[i].getAttribute('type');
+            if (type === 'checkbox') {
+                inputs[i].checked = inputData[i];
+                continue;
+            }
+
+            inputs[i].value = inputData[i];
+        }
+
+        inputData = new Array();
+
+        let difficulty = document.getElementById('difficulty');
+        document.getElementById('diffReward').innerText = createRewardText(difficulty);
+
+        let countCols = document.getElementsByClassName('count-col');
+        for (let i = 0; i < countCols.length; i++) {
+            countCols[i].classList.remove('visually-hidden');
+        }
+    }
+
+    function saveInputValues(inputs) {
+        for (let i = 0; i < inputs.length; i++) {
+            let type = inputs[i].getAttribute('type');
+            let value = inputs[i].value;
+            if (type === 'checkbox') value = inputs[i].checked;
+            inputData.push(value);
+        }
+    }
+
+    function toggleInputValue() {
         let updateBtn = document.getElementById('updateBtn');
         let inputs = document.getElementById('questForm').getElementsByClassName('form-item');
 
         if (updateBtn.classList.contains('btn-on')) {
-
-            for (let i = 0; i < inputs.length; i++) {
-                let type = inputs[i].getAttribute('type');
-                let value = inputs[i].value;
-                if(type == 'checkbox') value = inputs[i].checked;
-                inputData.push(value);
-            }
+            saveInputValues(inputs);
         } else {
-            for (let i = 0; i < inputs.length; i++) {
-                let type = inputs[i].getAttribute('type');
-                if(type == 'checkbox') {
-                    inputs[i].checked = inputData[i];
-                } else {
-                    inputs[i].value = inputData[i];
-                }
-            }
-
-            inputData = new Array();
-
-            let diff = document.getElementById('difficulty');
-            let exp = diff.options[diff.selectedIndex].getAttribute('data-exp');
-            let gold = diff.options[diff.selectedIndex].getAttribute('data-gold');
-            let rewardText = exp + ' Exp, ' + gold + ' Gold';
-            document.getElementById('diffReward').innerText = rewardText;
-
-            let countCols = document.getElementsByClassName('count-col');
-            for (let i = 0; i < countCols.length; i++) {
-                countCols[i].classList.remove('visually-hidden');
-            }
+            restoreInputValue(inputs);
         }
 
     }
 
+    function toggleClassIfItemContained(iterableNodes, attributeName, findItem, className) {
+        for (let j = 0; j < iterableNodes.length; j++) {
+            if(findItem.value === iterableNodes[j].getAttribute(attributeName)) {
+                findItem.classList.add(className);
+                return;
+            }
+        }
+
+        findItem.classList.remove(className);
+    }
 
     function toggleUpdateForm() {
 
+        // 공통 요소 처리 로직
         let deleteBtn = document.getElementById('deleteBtn');
         let cancelBtn = document.getElementById('cancelBtn');
         let updateBtn = document.getElementById('updateBtn');
-
-        let rewardDeleteBtns = document.getElementsByClassName('reward-delete-btn');
-        let rewardRows = document.getElementsByClassName('reward-row');
-        let rewardSelector = document.getElementById('rewardSelector');
-        let rewards = document.getElementById('rewards');
-
-        let detailQuestDeleteBtns = document.getElementsByClassName('detail-quest-delete-btn');
-        let detailQuestRows = document.getElementsByClassName('detail-quest-row');
-        let detailQuestAddBtn = document.getElementById('detailQuestAddBtn');
-
         let inputs = document.getElementById('questForm').getElementsByClassName('form-item');
+
+        updateBtn.classList.toggle('btn-on');
+        cancelBtn.classList.toggle('d-none');
+        deleteBtn.classList.toggle('d-none');
 
         for (let i = 0; i < inputs.length; i++) {
             let type = inputs[i].getAttribute('type');
@@ -301,10 +336,11 @@
             inputs[i].toggleAttribute('disabled');
         }
 
-        updateBtn.classList.toggle('btn-on');
-        cancelBtn.classList.toggle('d-none');
-        deleteBtn.classList.toggle('d-none');
-
+        // 퀘스트 보상 요소 처리 로직
+        let rewardDeleteBtns = document.getElementsByClassName('reward-delete-btn');
+        let rewardRows = document.getElementsByClassName('reward-row');
+        let rewardSelector = document.getElementById('rewardSelector');
+        let rewards = document.getElementById('rewards');
 
         rewardSelector.classList.toggle('visually-hidden');
 
@@ -315,36 +351,34 @@
             rewardDeleteBtns[i].classList.toggle('visually-hidden');
         }
 
-        if(detailQuestRows.length == 5 || !updateBtn.classList.contains('btn-on')) detailQuestAddBtn.classList.add('visually-hidden');
+        // 세부 퀘스트 요소 처리 로직
+        let detailQuestDeleteBtns = document.getElementsByClassName('detail-quest-delete-btn');
+        let detailQuestRows = document.getElementsByClassName('detail-quest-row');
+        let detailQuestAddBtn = document.getElementById('detailQuestAddBtn');
+
+        if(detailQuestRows.length === 5 || !updateBtn.classList.contains('btn-on')) detailQuestAddBtn.classList.add('visually-hidden');
         else detailQuestAddBtn.classList.remove('visually-hidden');
 
         for (let i = 0; i < detailQuestDeleteBtns.length; i++) {
             detailQuestDeleteBtns[i].classList.toggle('invisible');
         }
 
+        // 업데이트 폼일 때 처리 로직
         if (updateBtn.classList.contains('btn-on')) {
             updateBtn.innerText = '저장';
             updateBtn.setAttribute('onclick', `submitQuestForm('PUT')`);
 
-            let rewardsInputs = document.getElementsByName('rewards');
-
+            // 퀘스트 보상 선택 여부에 따라 display 상태 변경
             let options = rewards.options;
             for (let i = 0; i < options.length; i++) {
-                let isSelected = false;
-                for (let j = 0; j < rewardsInputs.length; j++) {
-                    if(options[i].value == rewardRows[j].getAttribute('data-id')) {
-                        isSelected = true;
-                        break;
-                    }
-                }
-                if(isSelected) options[i].classList.add('d-none');
-                else options[i].classList.remove('d-none');
+                toggleClassIfItemContained(rewardRows, 'data-id', options[i], 'd-none');
             }
 
-        } else {
+        } else { // 상세보기 폼일 때 처리 로직
             updateBtn.innerText = '수정';
             updateBtn.setAttribute('onclick', `toggleUpdateForm()`);
 
+            // 삭제 상태가 DB에 반영되지 않은 요소들 복구
             for (let i = 0; i < rewardRows.length; i++) {
                 rewardRows[i].classList.remove('visually-hidden');
             }
@@ -353,13 +387,15 @@
                 detailQuestRows[i].classList.remove('visually-hidden');
             }
 
+            // 임시 row 제거
             let tempRows = document.getElementsByClassName('temp-row');
             while (tempRows.length > 0) {
                 tempRows[0].remove();
             }
         }
 
-        restoreInputValue();
+        // 변경 전 데이터 저장 및 복구 함수
+        toggleInputValue();
     }
 
     function submitQuestForm(method, uri) {
@@ -371,20 +407,19 @@
             let rewardRows = document.getElementsByClassName('reward-row');
 
             for (let i = 0; i < rewardRows.length; i++) {
+                if (!rewardRows[i].classList.contains('visually-hidden')) continue;
 
-                if (rewardRows[i].classList.contains('visually-hidden')) {
-                    let targetId = 'reward' + rewardRows[i].getAttribute('data-id');
-                    document.getElementById(targetId).remove();
-                }
+                let targetId = 'reward' + rewardRows[i].getAttribute('data-id');
+                document.getElementById(targetId).remove();
             }
 
             let detailQuestRows = document.getElementsByClassName('detail-quest-row');
 
             for (let i = 0; i < detailQuestRows.length; i++) {
-                if (detailQuestRows[i].classList.contains('visually-hidden')) {
-                    let targetId = 'detailQuestRow' + detailQuestRows[i].getAttribute('data-id');
-                    document.getElementById(targetId).remove();
-                }
+                if (!detailQuestRows[i].classList.contains('visually-hidden')) continue;
+
+                let targetId = 'detailQuestRow' + detailQuestRows[i].getAttribute('data-id');
+                document.getElementById(targetId).remove();
             }
 
         } else if (method == 'DELETE') {
@@ -416,23 +451,20 @@
         let countInputHtml = document.createElement('div');
         countInputHtml.className = 'col-sm-auto temp-row';
         countInputHtml.id = 'tempCount' + rowNo;
-        let inputHtml = document.createElement('input');
-        inputHtml.className = 'form-control form-item';
-        inputHtml.type = 'number';
-        inputHtml.name = 'detailQuests[' + rowNo + '].count';
-        inputHtml.placeholder = '횟수';
-        inputHtml.min = '1';
-        inputHtml.max = '255';
-        countInputHtml.appendChild(inputHtml)
+        countInputHtml.innerHTML = '<input class="form-control form-item" type="number" name="detailQuests[' + rowNo + '].count" placeholder="횟수" min="1" max="255">';
 
         if(selectedOption == 'COUNT') {
             t.parentElement.before(countInputHtml);
         } else {
             let countInput = document.getElementById('countInput' + rowNo);
             let tempCountInput = document.getElementById('tempCount' + rowNo);
+
+            // 세부 퀘스트 기존 타입이 카운트인 경우 카운트 input show
             if (countInput != null) {
                 countInput.parentElement.classList.add('visually-hidden');
             }
+
+            // 임시 카운트 input 존재 시 remove
             if(tempCountInput != null) {
                 tempCountInput.remove();
             }
@@ -444,51 +476,19 @@
 
         let detailQuestHtml = document.createElement('div');
         detailQuestHtml.className = 'row mb-1 detail-quest-row temp-row';
-
-        let titleDiv = document.createElement('div');
-        titleDiv.className = 'col-sm';
-
-        let titleInput = document.createElement('input');
-        titleInput.className = 'form-control';
-        titleInput.name = 'detailQuests[' + detailQuestRowCount + '].title';
-        titleInput.type = 'text';
-
-        let selectDiv = document.createElement('div');
-        selectDiv.className = 'col-sm-auto';
-
-        let selectInput = document.createElement('select');
-        selectInput.className = 'form-select';
-        selectInput.name = 'detailQuests[' + detailQuestRowCount + '].type';
-        selectInput.setAttribute('data-no', detailQuestRowCount);
-        selectInput.setAttribute('onchange', 'observeDetailQuestType(this)');
-
-        let option1 = document.createElement('option');
-        option1.value = 'CHECK';
-        option1.text = '체크박스';
-
-        let option2 = document.createElement('option');
-        option2.value = 'COUNT';
-        option2.text = '카운트';
-
-        let buttonDiv = document.createElement('div');
-        buttonDiv.className = 'col-sm-auto';
-
-        let deleteButton = document.createElement('div');
-        deleteButton.className = 'btn btn-secondary';
-        deleteButton.textContent = '삭제';
-        deleteButton.setAttribute('onclick', 'deleteDetailQuestRow(this)');
-
-        titleDiv.appendChild(titleInput);
-
-        selectInput.appendChild(option1);
-        selectInput.appendChild(option2);
-        selectDiv.appendChild(selectInput);
-
-        buttonDiv.appendChild(deleteButton);
-
-        detailQuestHtml.appendChild(titleDiv);
-        detailQuestHtml.appendChild(selectDiv);
-        detailQuestHtml.appendChild(buttonDiv);
+        detailQuestHtml.innerHTML
+            = '<div class="col-sm">'
+            + '<input class="form-control" name="detailQuests[' + detailQuestRowCount + '].title" type="text">'
+            + '</div>'
+            + '<div class="col-sm-auto">'
+            + '<select class="form-select" name="detailQuests[' + detailQuestRowCount + '].type" data-no="' + detailQuestRowCount + '" onChange="observeDetailQuestType(this)">'
+            + '<option value="CHECK">체크박스</option>'
+            + '<option value="COUNT">카운트</option>'
+            + '</select>'
+            + '</div>'
+            + '<div class="col-sm-auto">'
+            + '<div class="btn btn-secondary" onClick="deleteDetailQuestRow(this)">삭제</div>'
+            + '</div>';
 
         return detailQuestHtml;
     }

@@ -57,9 +57,9 @@ public class QuestApiControllerUnitTest {
 
     @BeforeEach
     void init() {
-        QuestResponseDto quest1 = QuestResponseDto.builder().questId(1L).state(QuestState.PROCEED).title("title1").description("desc1").isRepeat(true).deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now()).difficulty(QuestDifficulty.easy).state(QuestState.PROCEED).rewards(new ArrayList<>()).build();
+        QuestResponseDto quest1 = QuestResponseDto.builder().questId(1L).state(QuestState.PROCEED).title("title1").description("desc1").isRepeat(true).deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now()).difficulty(QuestDifficulty.EASY).state(QuestState.PROCEED).rewards(new ArrayList<>()).build();
 
-        QuestResponseDto quest2 = QuestResponseDto.builder().questId(2L).state(QuestState.PROCEED).title("title2").description("desc2").isRepeat(true).deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now()).difficulty(QuestDifficulty.easy).state(QuestState.PROCEED).rewards(new ArrayList<>()).build();
+        QuestResponseDto quest2 = QuestResponseDto.builder().questId(2L).state(QuestState.PROCEED).title("title2").description("desc2").isRepeat(true).deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now()).difficulty(QuestDifficulty.EASY).state(QuestState.PROCEED).rewards(new ArrayList<>()).build();
 
         List<QuestResponseDto> list = new LinkedList<>();
         list.add(quest1);

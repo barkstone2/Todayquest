@@ -26,7 +26,7 @@ class QuestResponseDtoTest {
                 .user(UserInfo.builder().build())
                 .state(QuestState.PROCEED)
                 .type(QuestType.DAILY)
-                .difficulty(QuestDifficulty.easy)
+                .difficulty(QuestDifficulty.EASY)
                 .build();
 
         //when

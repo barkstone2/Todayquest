@@ -27,7 +27,7 @@ class QuestTest {
                 .isRepeat(true)
                 .deadLineDate(LocalDate.of(1111, 11, 11))
                 .deadLineTime(LocalTime.of(11, 11))
-                .difficulty(QuestDifficulty.easy)
+                .difficulty(QuestDifficulty.EASY)
                 .rewards(List.of(1L,2L,3L,4L))
                 .build();
 
@@ -36,7 +36,7 @@ class QuestTest {
                 .description("test")
                 .state(QuestState.PROCEED)
                 .type(QuestType.DAILY)
-                .difficulty(QuestDifficulty.easy)
+                .difficulty(QuestDifficulty.EASY)
                 .isRepeat(true)
                 .user(UserInfo.builder().build())
                 .deadLineDate(LocalDate.now())
@@ -81,7 +81,7 @@ class QuestTest {
                 .isRepeat(true)
                 .deadLineDate(LocalDate.of(1111, 11, 11))
                 .deadLineTime(LocalTime.of(11, 11))
-                .difficulty(QuestDifficulty.easy)
+                .difficulty(QuestDifficulty.EASY)
                 .rewards(List.of(1L, 2L))
                 .build();
 
@@ -90,7 +90,7 @@ class QuestTest {
                 .description("test")
                 .state(QuestState.PROCEED)
                 .type(QuestType.DAILY)
-                .difficulty(QuestDifficulty.easy)
+                .difficulty(QuestDifficulty.EASY)
                 .isRepeat(true)
                 .user(UserInfo.builder().build())
                 .deadLineDate(LocalDate.now())

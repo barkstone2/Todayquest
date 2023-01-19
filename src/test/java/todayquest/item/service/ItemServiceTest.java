@@ -1,7 +1,5 @@
 package todayquest.item.service;
 
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,31 +8,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
-import org.springframework.core.io.ResourceLoader;
 import todayquest.common.MessageUtil;
 import todayquest.item.dto.ItemResponseDto;
 import todayquest.item.entity.Item;
-import todayquest.item.entity.ItemLog;
 import todayquest.item.entity.ItemLogType;
-import todayquest.item.repository.ItemLogRepository;
 import todayquest.item.repository.ItemRepository;
-import todayquest.quest.repository.QuestRepository;
-import todayquest.quest.repository.QuestRewardRepository;
-import todayquest.quest.service.QuestService;
 import todayquest.reward.entity.Reward;
 import todayquest.reward.entity.RewardGrade;
-import todayquest.reward.repository.RewardRepository;
 import todayquest.user.entity.UserInfo;
-import todayquest.user.repository.UserRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.ThrowableAssert.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import static org.mockito.Mockito.*;
 
 @DisplayName("아이템 서비스 유닛 테스트")

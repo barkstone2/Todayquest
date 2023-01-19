@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.quest.dto.QuestRequestDto;
-import todayquest.quest.entity.Quest;
 import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.repository.QuestRepository;
 import todayquest.quest.service.QuestService;
@@ -18,7 +17,6 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -46,7 +44,7 @@ public class UserLevelLockTest {
         QuestRequestDto dto = QuestRequestDto.builder()
                 .title("test")
                 .description("test")
-                .difficulty(QuestDifficulty.easy)
+                .difficulty(QuestDifficulty.EASY)
                 .isRepeat(true)
                 .deadLineDate(LocalDate.now())
                 .deadLineTime(LocalTime.now())

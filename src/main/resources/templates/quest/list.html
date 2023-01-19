@@ -66,8 +66,18 @@
 
                     <!-- TODO 세부 퀘스트 목록 퀘스트 객체에서 가져오도록 변경할 것 -->
                     <div class="mb-1" style="height: 216px;">
-                        <ul class="list-unstyled mb-1">
-<!--                            <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100">아이스크림 하나 먹기텍스트길이테스트길어지면 어떻게되나테스트가나다라마바사</li>-->
+                        <ul class="list-unstyled mb-1" >
+                            <th:block th:each="detailQuest : ${quest.detailQuests}">
+                                <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100" th:text="${detailQuest.title}">
+                                    세부 퀘스트
+                                </li>
+                                <th:block th:switch="${detailQuest.type}">
+                                    <span class="border border-1 rounded p-1 text-truncate d-inline-block mw-100"
+                                          th:case="${detailQuest.type.CHECK}" th:text="체크박스">체크박스</span>
+                                    <span class="border border-1 rounded p-1 text-truncate d-inline-block mw-100"
+                                          th:case="${detailQuest.type.COUNT}" th:text="|0/${detailQuest.count}|"></span>
+                                </th:block>
+                            </th:block>
                         </ul>
                     </div>
                     <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|경험치 ${quest.difficulty.getExperience()}|">경험치 50</span>

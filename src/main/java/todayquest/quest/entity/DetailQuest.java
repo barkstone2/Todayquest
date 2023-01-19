@@ -3,6 +3,7 @@ package todayquest.quest.entity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import todayquest.quest.dto.DetailQuestRequestDto;
 
 import javax.persistence.*;
 
@@ -51,8 +52,19 @@ public class DetailQuest {
         this.count = count;
     }
 
+    public void updateDetailQuest(DetailQuestRequestDto newDetailQuest) {
+        this.title = newDetailQuest.getTitle();
+        this.type = newDetailQuest.getType();
+        this.targetCount = newDetailQuest.getType() == DetailQuestType.COUNT ? newDetailQuest.getCount() : 1;
+        resetCount();
+    }
+
     public void resetCount() {
         this.count = 0;
+    }
+
+    public void changeState(DetailQuestState state) {
+        this.state = state;
     }
 
     public void addCount() {

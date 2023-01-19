@@ -12,7 +12,7 @@ import static lombok.AccessLevel.PROTECTED;
 
 @Getter
 @NoArgsConstructor(access = PROTECTED)
-@Entity
+@Entity(name = "detail_quest")
 public class DetailQuest {
 
     @Id @GeneratedValue(strategy = IDENTITY)

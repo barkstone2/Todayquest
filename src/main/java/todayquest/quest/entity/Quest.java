@@ -69,6 +69,8 @@ public class Quest extends BaseTimeEntity {
     @OneToMany(mappedBy = "quest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestReward> rewards = new ArrayList<>();
 
+    @OneToMany(mappedBy = "quest", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DetailQuest> detailQuests = new ArrayList<>();
 
     @Builder
     public Quest(String title, String description, UserInfo user, Long seq, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime,

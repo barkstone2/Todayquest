@@ -12,9 +12,11 @@ import todayquest.common.MessageUtil;
 import todayquest.item.service.ItemService;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
+import todayquest.quest.entity.DetailQuest;
 import todayquest.quest.entity.Quest;
 import todayquest.quest.entity.QuestReward;
 import todayquest.quest.entity.QuestState;
+import todayquest.quest.repository.DetailQuestRepository;
 import todayquest.quest.repository.QuestRepository;
 import todayquest.quest.repository.QuestRewardRepository;
 import todayquest.reward.entity.Reward;
@@ -38,6 +40,7 @@ public class QuestService {
     private final UserRepository userRepository;
     private final RewardRepository rewardRepository;
     private final QuestRewardRepository questRewardRepository;
+    private final DetailQuestRepository detailQuestRepository;
 
     private final ItemService itemService;
     private final UserService userService;
@@ -70,6 +73,14 @@ public class QuestService {
                 .map(r -> QuestReward.builder().reward(r).quest(savedQuest).build())
                 .collect(Collectors.toList());
         questRewardRepository.saveAll(collect);
+
+        List<DetailQuest> detailQuests = dto.getDetailQuests()
+                .stream()
+                .map(dq -> dq.mapToEntity(savedQuest))
+                .collect(Collectors.toList());
+
+        detailQuestRepository.saveAll(detailQuests);
+
         questLogService.saveQuestLog(savedQuest.getId(), userId, QuestState.PROCEED);
 
         achievementService.checkAndAttainQuestAchievement(userId);
@@ -84,8 +95,12 @@ public class QuestService {
         }
 
         List<Reward> updateRewards = rewardRepository.findAllById(dto.getRewards());
+
         List<QuestReward> newRewards = quest.updateQuestEntity(dto, updateRewards);
+        List<DetailQuest> newDetailQuests = quest.updateDetailQuests(dto.getDetailQuests());
+
         questRewardRepository.saveAll(newRewards);
+        detailQuestRepository.saveAll(newDetailQuests);
     }
 
 

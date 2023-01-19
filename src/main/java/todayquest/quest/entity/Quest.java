@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import todayquest.common.BaseTimeEntity;
+import todayquest.quest.dto.DetailQuestRequestDto;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.reward.entity.Reward;
 import todayquest.user.entity.UserInfo;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static javax.persistence.FetchType.LAZY;
 
@@ -127,5 +129,32 @@ public class Quest extends BaseTimeEntity {
         this.state = state;
     }
 
+    public List<DetailQuest> updateDetailQuests(List<DetailQuestRequestDto> detailQuestRequestDtos) {
+        List<DetailQuestRequestDto> newDetailQuests = new ArrayList<>();
+
+        int updateCount = detailQuestRequestDtos.size();
+
+        for (int i = 0; i < updateCount; i++) {
+            DetailQuestRequestDto newDetailQuest = detailQuestRequestDtos.get(i);
+
+            try {
+                detailQuests.get(i).updateDetailQuest(newDetailQuest);
+            } catch (IndexOutOfBoundsException e) {
+                newDetailQuests.add(newDetailQuest);
+            }
+        }
+
+        int overCount = detailQuests.size() - updateCount;
+        if (overCount > 0) {
+            for (int i = updateCount; i < updateCount + overCount; i++) {
+                detailQuests.remove(updateCount);
+            }
+        }
+
+        return newDetailQuests
+                .stream()
+                .map(dto -> dto.mapToEntity(this))
+                .collect(Collectors.toList());
+    }
 }
 

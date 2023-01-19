@@ -41,12 +41,14 @@ public class DetailQuest {
     private Quest quest;
 
     @Builder
-    public DetailQuest(Long id, String title, Short count, DetailQuestType type, DetailQuestState state) {
+    public DetailQuest(Long id, String title, Short targetCount, DetailQuestType type, DetailQuestState state, Quest quest, Short count) {
         this.id = id;
         this.title = title;
-        this.count = count;
+        this.targetCount = targetCount;
         this.type = type;
         this.state = state;
+        this.quest = quest;
+        this.count = count;
     }
 
     public void resetCount() {

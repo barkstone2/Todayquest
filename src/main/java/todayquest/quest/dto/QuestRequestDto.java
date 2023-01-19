@@ -42,6 +42,9 @@ public class QuestRequestDto {
     @Size(max = 3)
     private List<Long> rewards = new ArrayList<>();
 
+    @Size(max = 5)
+    private List<DetailQuestRequestDto> detailQuests = new ArrayList<>();
+
     public Quest mapToEntity(Long nextSeq, UserInfo userInfo) {
         return Quest.builder()
                 .title(getTitle())
@@ -58,7 +61,7 @@ public class QuestRequestDto {
     }
 
     @Builder
-    public QuestRequestDto(String title, String description, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime, QuestDifficulty difficulty, QuestState state, List<Long> rewards) {
+    public QuestRequestDto(String title, String description, boolean isRepeat, LocalDate deadLineDate, LocalTime deadLineTime, QuestDifficulty difficulty, QuestState state, List<Long> rewards, List<DetailQuestRequestDto> detailQuests) {
 
         this.title = title;
         this.description = description;
@@ -68,6 +71,7 @@ public class QuestRequestDto {
         this.difficulty = difficulty;
         this.state = state;
         this.rewards = rewards;
+        this.detailQuests = detailQuests;
     }
 
     public QuestResponseDto mapToResponseDto(List<RewardResponseDto> rewards) {

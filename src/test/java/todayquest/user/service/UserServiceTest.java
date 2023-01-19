@@ -203,7 +203,7 @@ class UserServiceTest {
         principal.setAttributes(new HashMap<>());
         principal.synchronizeUserInfo(user);
 
-        QuestDifficulty clearInfo = QuestDifficulty.easy;
+        QuestDifficulty clearInfo = QuestDifficulty.EASY;
 
         when(resourceLoader.getResource(anyString())).thenReturn(new ClassPathResource("data/exp_table.json"));
 

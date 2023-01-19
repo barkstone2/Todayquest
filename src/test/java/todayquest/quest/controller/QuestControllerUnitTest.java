@@ -75,7 +75,7 @@ class QuestControllerUnitTest {
                 .questId(1L).state(QuestState.PROCEED).title("title1")
                 .description("desc1").isRepeat(true)
                 .deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now())
-                .difficulty(QuestDifficulty.easy)
+                .difficulty(QuestDifficulty.EASY)
                 .state(QuestState.PROCEED)
                 .rewards(new ArrayList<>())
                 .build();
@@ -84,7 +84,7 @@ class QuestControllerUnitTest {
                 .questId(2L).state(QuestState.PROCEED).title("title2")
                 .description("desc2").isRepeat(true)
                 .deadLineDate(LocalDate.now()).deadLineTime(LocalTime.now())
-                .difficulty(QuestDifficulty.easy)
+                .difficulty(QuestDifficulty.EASY)
                 .state(QuestState.PROCEED)
                 .rewards(new ArrayList<>())
                 .build();
@@ -156,7 +156,7 @@ class QuestControllerUnitTest {
         map.add("title", "save title");
         map.add("description", "save description");
         map.add("repeat", "true");
-        map.add("difficulty", QuestDifficulty.easy.name());
+        map.add("difficulty", QuestDifficulty.EASY.name());
 
         //when
         //then
@@ -196,7 +196,7 @@ class QuestControllerUnitTest {
         map.add("title", "save title");
         map.add("description", "save description");
         map.add("repeat", "true");
-        map.add("difficulty", QuestDifficulty.easy.name());
+        map.add("difficulty", QuestDifficulty.EASY.name());
 
         //when
         //then
@@ -221,7 +221,7 @@ class QuestControllerUnitTest {
         map.add("title", "");
         map.add("description", "save description");
         map.add("repeat", "true");
-        map.add("difficulty", QuestDifficulty.easy.name());
+        map.add("difficulty", QuestDifficulty.EASY.name());
         map.add("state", QuestState.PROCEED.name());
 
         //when

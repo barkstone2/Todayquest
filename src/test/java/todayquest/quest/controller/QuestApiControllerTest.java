@@ -82,7 +82,7 @@ public class QuestApiControllerTest {
                         .user(testUser).title("t")
                         .description("d").state(QuestState.PROCEED)
                         .seq(1L)
-                        .difficulty(QuestDifficulty.easy)
+                        .difficulty(QuestDifficulty.EASY)
                         .type(QuestType.DAILY)
                         .isRepeat(true)
                         .build());

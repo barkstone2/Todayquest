@@ -143,7 +143,7 @@ public class RewardRepositoryTest {
         //given
         Quest quest = Quest.builder()
                 .title("title").description("desc")
-                .difficulty(QuestDifficulty.easy).isRepeat(true)
+                .difficulty(QuestDifficulty.EASY).isRepeat(true)
                 .user(userInfo).state(QuestState.PROCEED)
                 .type(QuestType.DAILY).seq(1L).build();
         Quest savedQuest = questRepository.save(quest);
@@ -186,7 +186,7 @@ public class RewardRepositoryTest {
         //given
         Quest quest = Quest.builder()
                 .title("title").description("desc")
-                .difficulty(QuestDifficulty.easy).isRepeat(true)
+                .difficulty(QuestDifficulty.EASY).isRepeat(true)
                 .user(userInfo).state(QuestState.DISCARD)
                 .type(QuestType.DAILY).seq(1L).build();
         Quest savedQuest = questRepository.save(quest);

@@ -83,7 +83,7 @@ class QuestControllerTest {
                         .user(testUser).title("t")
                         .description("d").state(QuestState.PROCEED)
                         .seq(1L)
-                        .difficulty(QuestDifficulty.easy)
+                        .difficulty(QuestDifficulty.EASY)
                         .type(QuestType.DAILY)
                         .isRepeat(true)
                 .build());
@@ -177,7 +177,7 @@ class QuestControllerTest {
         map.add("title", "save title");
         map.add("description", "save description");
         map.add("repeat", "true");
-        map.add("difficulty", QuestDifficulty.easy.name());
+        map.add("difficulty", QuestDifficulty.EASY.name());
 
         //when
         //then
@@ -202,7 +202,7 @@ class QuestControllerTest {
         map.add("title", "save title");
         map.add("description", "");
         map.add("repeat", "true");
-        map.add("difficulty", QuestDifficulty.easy.name());
+        map.add("difficulty", QuestDifficulty.EASY.name());
 
         //when
         //then
@@ -230,7 +230,7 @@ class QuestControllerTest {
         map.add("description", "update description");
         map.add("repeat", "true");
         map.add("reward", "reward1");
-        map.add("difficulty", QuestDifficulty.easy.name());
+        map.add("difficulty", QuestDifficulty.EASY.name());
 
         //when
         mvc.perform(
@@ -266,7 +266,7 @@ class QuestControllerTest {
         map.add("repeat", "true");
         map.add("reward", "reward1");
         map.add("state", QuestState.PROCEED.name());
-        map.add("difficulty", QuestDifficulty.easy.name());
+        map.add("difficulty", QuestDifficulty.EASY.name());
 
         //when
         mvc.perform(
@@ -305,7 +305,7 @@ class QuestControllerTest {
                 .state(QuestState.PROCEED)
                 .type(QuestType.DAILY)
                 .isRepeat(true)
-                .difficulty(QuestDifficulty.easy)
+                .difficulty(QuestDifficulty.EASY)
                 .user(anotherUser)
                 .seq(1L)
                 .build();
@@ -320,7 +320,7 @@ class QuestControllerTest {
         map.add("title", beforeTitle + "update");
         map.add("description", "update description");
         map.add("repeat", "true");
-        map.add("difficulty", QuestDifficulty.easy.name());
+        map.add("difficulty", QuestDifficulty.EASY.name());
 
         //when
         Exception exception = mvc.perform(
@@ -352,7 +352,7 @@ class QuestControllerTest {
         map.add("title", beforeTitle + "update");
         map.add("description", "update description");
         map.add("repeat", "true");
-        map.add("difficulty", QuestDifficulty.easy.name());
+        map.add("difficulty", QuestDifficulty.EASY.name());
 
         //when
         Exception exception = mvc.perform(
@@ -411,7 +411,7 @@ class QuestControllerTest {
                 .state(QuestState.PROCEED)
                 .type(QuestType.DAILY)
                 .isRepeat(true)
-                .difficulty(QuestDifficulty.easy)
+                .difficulty(QuestDifficulty.EASY)
                 .user(anotherUser)
                 .seq(1L)
                 .build();

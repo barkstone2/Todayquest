@@ -20,7 +20,7 @@ class QuestRequestDtoTest {
                 .isRepeat(true)
                 .deadLineDate(LocalDate.of(1111, 11, 11))
                 .deadLineTime(LocalTime.of(11, 11))
-                .difficulty(QuestDifficulty.easy)
+                .difficulty(QuestDifficulty.EASY)
                 .rewards(List.of(1L))
                 .build();
     }

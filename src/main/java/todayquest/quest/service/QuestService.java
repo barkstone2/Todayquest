@@ -70,7 +70,7 @@ public class QuestService {
 
         List<Reward> rewards = rewardRepository.findAllByIdAndUserId(dto.getRewards(), userId);
         List<QuestReward> collect = rewards.stream()
-                .map(r -> QuestReward.builder().reward(r).quest(savedQuest).build())
+                .map(r -> new QuestReward(savedQuest, r))
                 .collect(Collectors.toList());
         questRewardRepository.saveAll(collect);
 

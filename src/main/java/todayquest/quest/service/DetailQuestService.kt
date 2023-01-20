@@ -9,7 +9,7 @@ import todayquest.quest.repository.DetailQuestRepository
 
 @Transactional
 @Service
-open class DetailQuestService(
+class DetailQuestService(
     private val detailQuestRepository: DetailQuestRepository
 ) {
 

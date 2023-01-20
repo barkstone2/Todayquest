@@ -56,11 +56,7 @@ public class UserService {
                 tempNickName = createRandomNickname();
             }
 
-            UserInfo newUserInfo = UserInfo.builder()
-                    .oauth2Id(id)
-                    .nickname(tempNickName)
-                    .providerType(providerType)
-                    .build();
+            UserInfo newUserInfo = new UserInfo(id, tempNickName, providerType);
 
             // Dynamic Insert로 처리한 컬럼의 default 값을 반환하지 않음
             UserInfo savedUser = userRepository.saveAndFlush(newUserInfo);

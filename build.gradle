@@ -12,7 +12,12 @@ plugins {
 
 	/* 1-1. querydsl plugin 추가 */
 	id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
-    id 'org.jetbrains.kotlin.jvm' version '1.8.0'
+
+	/* kotlin */
+	id 'org.jetbrains.kotlin.jvm' version '1.8.0'
+	id "org.jetbrains.kotlin.kapt" version "1.8.0"
+	id "org.jetbrains.kotlin.plugin.jpa" version "1.8.0"
+	id "org.jetbrains.kotlin.plugin.spring" version "1.8.0"
 }
 
 group = 'todayquest'
@@ -56,7 +61,19 @@ dependencies {
 	/* 1-2. querydsl dependencies 추가 */
 	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
 	annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+	/* kotlin */
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+	implementation "org.jetbrains.kotlin:kotlin-reflect"
+	kapt "com.querydsl:querydsl-apt:${queryDslVersion}"
+
+}
+
+
+allOpen {
+	annotation("javax.persistence.Entity")
+	annotation("javax.persistence.Embeddable")
+	annotation("javax.persistence.MappedSuperclass")
 }
 
 tasks.named('test') {

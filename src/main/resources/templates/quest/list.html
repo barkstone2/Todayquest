@@ -32,6 +32,41 @@
             text-overflow: ellipsis;
             overflow: hidden;
         }
+        .doodle-checkbox {
+            display: block;
+            background-image : url("/image/empty-checkbox.png");
+            background-size: 34px, 34px;
+            width: 34px;
+            height: 34px;
+        }
+
+        .doodle-checkbox:hover {
+            background-image : url("/image/empty-checkbox-hover.png");
+            background-size: 34px, 34px;
+        }
+
+        .doodle-checkbox.on {
+            display: block;
+            background-image : url("/image/checkbox.png");
+            background-size: 34px, 34px;
+            width: 34px;
+            height: 34px;
+        }
+
+        .doodle-checkbox.on:hover {
+            background-image : url("/image/checkbox-hover.png");
+            background-size: 34px, 34px;
+        }
+
+        .detail-quest-count:hover {
+            background-color: #99CCFF !important;
+        }
+
+        .detail-quest-complete {
+            background-color: #39b47b;
+            text-decoration: line-through;
+        }
+
     </style>
 </head>
 <body class="container">

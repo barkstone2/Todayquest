@@ -6,8 +6,10 @@ import todayquest.quest.entity.DetailQuestType
 import todayquest.quest.entity.Quest
 
 data class DetailQuestRequestDto(
+    var id: Long? = null,
     var title: String? = null,
     var targetCount: Short? = null,
+    var count: Short? = null,
     var type: DetailQuestType? = null,
     var state: DetailQuestState? = null,
 ) {

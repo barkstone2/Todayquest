@@ -99,21 +99,28 @@
                     <h5 class="card-title text-truncate" th:text="${quest.title}">퀘스트 제목</h5>
                     <p class="card-text border-start border-2 ps-3 text-box" th:text="${quest.description}">퀘스트 설명</p>
 
-                    <!-- TODO 세부 퀘스트 목록 퀘스트 객체에서 가져오도록 변경할 것 -->
                     <div class="mb-1" style="height: 216px;">
-                        <ul class="list-unstyled mb-1" >
-                            <th:block th:each="detailQuest : ${quest.detailQuests}">
-                                <li class="border border-1 rounded p-1 text-truncate d-inline-block mw-100" th:text="${detailQuest.title}">
-                                    세부 퀘스트
-                                </li>
-                                <th:block th:switch="${detailQuest.type}">
-                                    <span class="border border-1 rounded p-1 text-truncate d-inline-block mw-100"
-                                          th:case="${detailQuest.type.CHECK}" th:text="체크박스">체크박스</span>
-                                    <span class="border border-1 rounded p-1 text-truncate d-inline-block mw-100"
-                                          th:case="${detailQuest.type.COUNT}" th:text="|0/${detailQuest.count}|"></span>
-                                </th:block>
+                        <div class="row mb-1 ps-3" th:each="detailQuest : ${quest.detailQuests}"
+                             th:with="isComplete=${detailQuest.state == detailQuest.state.COMPLETE}">
+                            <span class="col-9 border border-1 rounded p-1 text-truncate"
+                                  th:classappend="${isComplete ? 'detail-quest-complete' : ''}"
+                                  th:text="${detailQuest.title}">
+                                세부 퀘스트
+                            </span>
+                            <th:block th:switch="${detailQuest.type}">
+                                <span class="col-3 justify-content-center align-items-center d-flex" th:case="${detailQuest.type.CHECK}">
+                                    <span class="detail-quest-interact-btn doodle-checkbox"
+                                          th:classappend="${isComplete ? 'on' : ''}"
+                                          th:data-detail-id="${detailQuest.id}" th:data-quest-id="${quest.questId}"></span>
+                                </span>
+                                <span class="col-3 justify-content-center align-items-center d-flex" th:case="${detailQuest.type.COUNT}">
+                                    <span class="border border-1 rounded p-1 text-center detail-quest-count detail-quest-interact-btn"
+                                          th:classappend="${isComplete ? 'detail-quest-complete' : ''}"
+                                          th:data-detail-id="${detailQuest.id}" th:data-quest-id="${quest.questId}"
+                                          th:text="|${detailQuest.count}/${detailQuest.targetCount}|"></span>
+                                </span>
                             </th:block>
-                        </ul>
+                        </div>
                     </div>
                     <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|경험치 ${quest.difficulty.getExperience()}|">경험치 50</span>
                     <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|골드 ${quest.difficulty.getGold()}|">골드 100</span>

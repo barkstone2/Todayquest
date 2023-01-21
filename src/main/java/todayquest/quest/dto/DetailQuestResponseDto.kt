@@ -5,16 +5,18 @@ import todayquest.quest.entity.DetailQuestState
 import todayquest.quest.entity.DetailQuestType
 
 data class DetailQuestResponseDto(
+    val id: Long? = null,
     val title: String? = null,
-    var targetCount: Short? = null,
-    var count: Short? = null,
-    var type: DetailQuestType? = null,
-    var state: DetailQuestState? = null,
+    val targetCount: Short? = null,
+    val count: Short? = null,
+    val type: DetailQuestType? = null,
+    val state: DetailQuestState? = null,
 ) {
 
     companion object {
         fun createDto(dq: DetailQuest): DetailQuestResponseDto {
             return DetailQuestResponseDto(
+                id = dq.id,
                 title = dq.title,
                 targetCount = dq.targetCount,
                 count = dq.count,

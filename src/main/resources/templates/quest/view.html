@@ -507,7 +507,7 @@
         let countInputHtml = document.createElement('div');
         countInputHtml.className = 'col-sm-auto temp-row';
         countInputHtml.id = 'tempCount' + rowNo;
-        countInputHtml.innerHTML = '<input class="form-control form-item" type="number" name="detailQuests[' + rowNo + '].count" placeholder="횟수" min="1" max="255">';
+        countInputHtml.innerHTML = '<input class="form-control form-item" type="number" name="detailQuests[' + rowNo + '].targetCount" placeholder="횟수" min="1" max="255">';
 
         if(selectedOption == 'COUNT') {
             t.parentElement.before(countInputHtml);

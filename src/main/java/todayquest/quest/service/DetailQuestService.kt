@@ -19,7 +19,6 @@ class DetailQuestService(
         if(detailQuest.quest.user.id != userId) throw IllegalArgumentException()
 
         if(detailQuest.state == DetailQuestState.COMPLETE) {
-            detailQuest.changeState(DetailQuestState.PROCEED)
             detailQuest.resetCount()
             return DetailQuestResponseDto.createDto(detailQuest)
         }

@@ -51,11 +51,20 @@ class DetailQuest(
         title = newDetailQuest.title!!
         type = newDetailQuest.type!!
         targetCount = if (newDetailQuest.type == DetailQuestType.COUNT) newDetailQuest.targetCount!! else 1
-        resetCount()
+
+        if(newDetailQuest.id != this.id || newDetailQuest.type != this.type) resetCount()
+
+        if(count < targetCount) state = DetailQuestState.PROCEED
+        else {
+            state = DetailQuestState.COMPLETE
+            count = targetCount
+        }
+
     }
 
     fun resetCount() {
         count = 0
+        state = DetailQuestState.PROCEED
     }
 
     fun changeState(state: DetailQuestState?) {

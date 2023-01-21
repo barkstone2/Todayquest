@@ -53,7 +53,7 @@ public class QuestController {
         model.addAttribute("rewards", quest.getRewards());
         model.addAttribute("detailQuests", quest.getDetailQuests());
         model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
-        model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
+        model.addAttribute("rewardOptions", rewardService.getRewardList(principal.getUserId()));
         return "quest/view";
     }
 

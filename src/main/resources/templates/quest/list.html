@@ -140,6 +140,61 @@
 </body>
 <script th:inline="javascript">
 
+    function interactDetailQuest(eventTarget, evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        let questId = eventTarget.getAttribute("data-quest-id");
+        let detailQuestId = eventTarget.getAttribute("data-detail-id");
+
+        let url = "/api/quests/" + questId + "/details/" + detailQuestId;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("put", url);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader("Accept", 'application/json');
+        let token = document.getElementsByName('_csrf')[0].getAttribute('content');
+        let header = document.getElementsByName('_csrf_header')[0].getAttribute('content');
+        xhr.setRequestHeader(header, token);
+
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                const result = JSON.parse(xhr.response);
+
+                let titleWrap = eventTarget.parentElement.previousElementSibling;
+
+                let className;
+                if(result.type === 'CHECK') {
+                    className = 'on';
+                } else {
+                    className = 'detail-quest-complete';
+                    eventTarget.textContent = result['count'] + "/" + result['targetCount'];
+                }
+
+                if(result.state === 'COMPLETE') {
+                    eventTarget.classList.add(className);
+                    titleWrap.classList.add('detail-quest-complete');
+                } else {
+                    eventTarget.classList.remove(className);
+                    titleWrap.classList.remove('detail-quest-complete');
+                }
+
+            } else {
+                alert(xhr.response.message);
+            }
+        }
+
+        xhr.send();
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        let detailQuestInteractBtns = document.getElementsByClassName("detail-quest-interact-btn");
+        for (let i = 0; i < detailQuestInteractBtns.length; i++) {
+            detailQuestInteractBtns[i].addEventListener("click", evt => interactDetailQuest(detailQuestInteractBtns[i], evt))
+        }
+    })
+
+
     let stateSelector = document.getElementById('state');
     stateSelector.addEventListener('change', function () {
         location.href = "?state=" + stateSelector.value;

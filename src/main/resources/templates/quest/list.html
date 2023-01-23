@@ -103,7 +103,7 @@
                               th:text="${#temporals.format(quest.lastModifiedDate, 'yyyy-MM-dd HH:mm:ss')}"></span>
                     </div>
                     <div class="col-2 d-flex justify-content-center completed-quest-element">
-                        <span class="btn-success p-1 m-1 rounded complete-btn" th:data-quest-id="${quest.questId}">완료</span>
+                        <span class="btn-success p-1 m-1 rounded quest-complete-btn" th:data-quest-id="${quest.questId}">완료</span>
                     </div>
                 </div>
                 <div class="card-body">
@@ -208,10 +208,44 @@
         xhr.send();
     }
 
+    function completeQuest(eventTarget, evt) {
+        if (!confirm('퀘스트를 완료하시겠습니까?\n완료 시 되돌릴 수 없습니다.')) {
+            return;
+        }
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        let questId = eventTarget.getAttribute("data-quest-id");
+
+        let url = "/quests/" + questId;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("post", url);
+        let token = document.getElementsByName('_csrf')[0].getAttribute('content');
+        let header = document.getElementsByName('_csrf_header')[0].getAttribute('content');
+        xhr.setRequestHeader(header, token);
+
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                alert('퀘스트를 완료했습니다.');
+                location.reload();
+            } else {
+                alert('퀘스트 완료에 실패했습니다.');
+            }
+        }
+
+        xhr.send();
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         let detailQuestInteractBtns = document.getElementsByClassName("detail-quest-interact-btn");
         for (let i = 0; i < detailQuestInteractBtns.length; i++) {
             detailQuestInteractBtns[i].addEventListener("click", evt => interactDetailQuest(detailQuestInteractBtns[i], evt))
+        }
+
+        let questCompleteBtns = document.getElementsByClassName('quest-complete-btn');
+        for (let i = 0; i < questCompleteBtns.length; i++) {
+            questCompleteBtns[i].addEventListener('click', evt => completeQuest(questCompleteBtns[i], evt));
         }
     })
 
@@ -236,7 +270,6 @@
         xhr.onload = () => {
             if (xhr.status === 200) {
                 const result = JSON.parse(xhr.response);
-                console.log(result);
                 hasNext = !result.last;
                 currentPage = result.number;
 

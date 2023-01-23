@@ -67,6 +67,10 @@
             text-decoration: line-through;
         }
 
+        .proceed-quest .completed-quest-element {
+            display: none !important;
+        }
+
     </style>
 </head>
 <body class="container">
@@ -87,13 +91,20 @@
             등록된 퀘스트가 없습니다.
         </div>
         <div class="col" th:each="quest : ${questList.getContent()}">
-            <a class="card text-reset text-decoration-none" th:href="|/quests/${quest.questId}|">
-                <div class="card-header">
-                    <span class="p-1 fw-semi-bold" th:text="|#${quest.seq}|"></span>
-                    <span class="rounded bg-danger text-white p-1" th:text="${quest.difficulty.getText()}">퀘스트 난이도</span>
-                    <span th:class="|${quest.state.cssClassInfo} p-1 m-1|" th:text="${quest.state.message}">퀘스트 상태</span>
-                    <span class="p-1 fw-semi-bold" th:if="${quest.state == quest.state.COMPLETE || quest.state == quest.state.DISCARD}"
-                          th:text="${#temporals.format(quest.lastModifiedDate, 'yyyy-MM-dd HH:mm:ss')}"></span>
+            <a th:class="|card text-reset text-decoration-none card${quest.questId}|"
+               th:href="|/quests/${quest.questId}|"
+               th:classappend="${quest.canComplete ? '' : 'proceed-quest'}">
+                <div class="card-header d-flex">
+                    <div class="col-10 d-flex">
+                        <span class="p-1 m-1 fw-semi-bold" th:text="|#${quest.seq}|"></span>
+                        <span class="rounded bg-danger text-white p-1 m-1" th:text="${quest.difficulty.getText()}">퀘스트 난이도</span>
+                        <span th:class="|${quest.state.cssClassInfo} p-1 m-1|" th:text="${quest.state.message}">퀘스트 상태</span>
+                        <span class="p-1 fw-semi-bold" th:if="${quest.state == quest.state.COMPLETE || quest.state == quest.state.DISCARD}"
+                              th:text="${#temporals.format(quest.lastModifiedDate, 'yyyy-MM-dd HH:mm:ss')}"></span>
+                    </div>
+                    <div class="col-2 d-flex justify-content-center completed-quest-element">
+                        <span class="btn-success p-1 m-1 rounded complete-btn" th:data-quest-id="${quest.questId}">완료</span>
+                    </div>
                 </div>
                 <div class="card-body">
                     <h5 class="card-title text-truncate" th:text="${quest.title}">퀘스트 제목</h5>

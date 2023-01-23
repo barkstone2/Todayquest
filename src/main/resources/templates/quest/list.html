@@ -192,6 +192,14 @@
                     titleWrap.classList.remove('detail-quest-complete');
                 }
 
+                let questCard = document.getElementsByClassName('card'+questId)[0];
+
+                if(canComplete) {
+                    questCard.classList.remove('proceed-quest');
+                } else {
+                    questCard.classList.add('proceed-quest');
+                }
+
             } else {
                 alert(xhr.response.message);
             }

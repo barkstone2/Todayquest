@@ -171,18 +171,20 @@
         xhr.onload = () => {
             if (xhr.status === 200) {
                 const result = JSON.parse(xhr.response);
+                let detailQuest = result['detailQuest'];
+                let canComplete = result['canComplete'];
 
                 let titleWrap = eventTarget.parentElement.previousElementSibling;
 
                 let className;
-                if(result.type === 'CHECK') {
+                if(detailQuest.type === 'CHECK') {
                     className = 'on';
                 } else {
                     className = 'detail-quest-complete';
-                    eventTarget.textContent = result['count'] + "/" + result['targetCount'];
+                    eventTarget.textContent = detailQuest['count'] + "/" + detailQuest['targetCount'];
                 }
 
-                if(result.state === 'COMPLETE') {
+                if(detailQuest.state === 'COMPLETE') {
                     eventTarget.classList.add(className);
                     titleWrap.classList.add('detail-quest-complete');
                 } else {

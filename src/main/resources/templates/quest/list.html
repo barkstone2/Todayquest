@@ -287,17 +287,22 @@
 
         let cardAnchor = document.createElement("a");
         cardAnchor.className = "card text-reset text-decoration-none";
+        cardAnchor.classList.add('card' + quest.questId);
+        if(!quest['canComplete']) cardAnchor.classList.add('proceed-quest');
         cardAnchor.href = "/quests/" + quest.questId;
 
         let cardHeader = document.createElement("div");
-        cardHeader.className = "card-header";
+        cardHeader.className = "card-header d-flex";
+
+        let headerDiv1 = document.createElement("div");
+        headerDiv1.className = "col-10 d-flex";
 
         let headerEl1 = document.createElement("span");
-        headerEl1.className = "p-1 fw-semi-bold";
+        headerEl1.className = "p-1 m-1 fw-semi-bold";
         headerEl1.textContent = "#" + quest.seq;
 
         let headerEl2 = document.createElement("span");
-        headerEl2.className="rounded bg-danger text-white p-1";
+        headerEl2.className="rounded bg-danger text-white p-1 m-1";
         headerEl2.textContent=quest.difficulty.text;
 
         let headerEl3 = document.createElement("span");
@@ -306,9 +311,23 @@
         headerEl3.classList.add("m-1");
         headerEl3.textContent=quest.state.message;
 
-        cardHeader.appendChild(headerEl1);
-        cardHeader.appendChild(headerEl2);
-        cardHeader.appendChild(headerEl3);
+        headerDiv1.appendChild(headerEl1);
+        headerDiv1.appendChild(headerEl2);
+        headerDiv1.appendChild(headerEl3);
+
+        let headerDiv2 = document.createElement("div");
+        headerDiv2.className = "col-2 d-flex justify-content-center completed-quest-element";
+
+        let headerCompleteBtn = document.createElement('span');
+        headerCompleteBtn.className = "btn-success p-1 m-1 rounded quest-complete-btn";
+        headerCompleteBtn.textContent = "완료";
+        headerCompleteBtn.setAttribute('data-quest-id', quest.questId);
+        headerCompleteBtn.addEventListener('click', evt => completeQuest(headerCompleteBtn, evt));
+
+        headerDiv2.appendChild(headerCompleteBtn);
+
+        cardHeader.appendChild(headerDiv1);
+        cardHeader.appendChild(headerDiv2);
 
         cardAnchor.appendChild(cardHeader);
 
@@ -324,9 +343,46 @@
         bodyEl2.className="card-text border-start border-2 ps-3 text-box"
         bodyEl2.textContent=quest.description;
 
-        let bodyEl3 = document.createElement("div");
-        bodyEl3.className="mb-1";
-        bodyEl3.style.height="216px";
+        // 세부 퀘스트 HTML 생성
+        let detailQuestsWrap = document.createElement("div");
+        detailQuestsWrap.className="mb-1";
+        detailQuestsWrap.style.height="216px";
+
+        let detailQuests = quest.detailQuests;
+        for (let i = 0; i < detailQuests.length; i++) {
+            let detailQuest = detailQuests[i];
+
+            let detailQuestRow = document.createElement('div');
+            detailQuestRow.className = 'row mb-1 ps-3';
+
+            let detailQuestNameSpan = document.createElement('span');
+            detailQuestNameSpan.className = 'col-9 border border-1 rounded p-1 text-truncate';
+            if(detailQuest.state === 'COMPLETE') detailQuestNameSpan.classList.add('detail-quest-complete');
+            detailQuestNameSpan.textContent = detailQuest.title;
+
+            let detailQuestInteractBtnWrap = document.createElement('span');
+            detailQuestInteractBtnWrap.className = 'col-3 justify-content-center align-items-center d-flex';
+
+            let detailQuestInteractBtn = document.createElement('span');
+            detailQuestInteractBtn.className = quest.type === 'CHECK'
+                ? 'border border-1 rounded p-1 text-center detail-quest-count detail-quest-interact-btn'
+                : 'detail-quest-interact-btn doodle-checkbox';
+            detailQuestInteractBtn.setAttribute('data-quest-id', quest.questId);
+            detailQuestInteractBtn.setAttribute('data-detail-id', detailQuest.id);
+
+            if(detailQuest.state === 'COMPLETE') {
+                detailQuestInteractBtn.classList.add(quest.type === 'CHECK' ? 'detail-quest-complete' : 'on');
+            }
+
+            detailQuestInteractBtn.addEventListener("click", evt => interactDetailQuest(detailQuestInteractBtn, evt))
+
+            detailQuestInteractBtnWrap.appendChild(detailQuestInteractBtn);
+
+            detailQuestRow.appendChild(detailQuestNameSpan);
+            detailQuestRow.appendChild(detailQuestInteractBtnWrap);
+
+            detailQuestsWrap.appendChild(detailQuestRow);
+        }
 
         let bodyEl4 = document.createElement("span");
         bodyEl4.className="border border-1 rounded p-1 bg-light fw-semi-bold";
@@ -338,7 +394,7 @@
 
         cardBody.appendChild(bodyEl1);
         cardBody.appendChild(bodyEl2);
-        cardBody.appendChild(bodyEl3);
+        cardBody.appendChild(detailQuestsWrap);
         cardBody.appendChild(bodyEl4);
         cardBody.append(" ");
         cardBody.appendChild(bodyEl5);

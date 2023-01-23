@@ -15,6 +15,9 @@ import todayquest.quest.service.DetailQuestService;
 import todayquest.quest.service.QuestService;
 import todayquest.user.dto.UserPrincipal;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/quests")
@@ -29,11 +32,19 @@ public class QuestApiController {
     }
 
     @PutMapping("/{questId}/details/{detailQuestId}")
-    public ResponseEntity<DetailQuestResponseDto> interact(
+    public ResponseEntity<Map<String, Object>> interact(
             @PathVariable("questId") Long questId,
             @PathVariable("detailQuestId") Long detailQuestId,
             @AuthenticationPrincipal UserPrincipal principal) {
 
-        return new ResponseEntity<>(detailQuestService.interact(principal.getUserId(), questId, detailQuestId), HttpStatus.OK);
+        DetailQuestResponseDto interactDetail = detailQuestService.interact(principal.getUserId(), questId, detailQuestId);
+        QuestResponseDto parentQuest = questService.getQuestInfo(questId, principal.getUserId());
+        boolean canComplete = parentQuest.getCanComplete();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("detailQuest", interactDetail);
+        result.put("canComplete", canComplete);
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

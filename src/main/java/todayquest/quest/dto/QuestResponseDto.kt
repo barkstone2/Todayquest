@@ -1,10 +1,7 @@
 package todayquest.quest.dto
 
 import org.springframework.format.annotation.DateTimeFormat
-import todayquest.quest.entity.Quest
-import todayquest.quest.entity.QuestDifficulty
-import todayquest.quest.entity.QuestState
-import todayquest.quest.entity.QuestType
+import todayquest.quest.entity.*
 import todayquest.reward.dto.RewardResponseDto
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -26,6 +23,7 @@ data class QuestResponseDto(
     var rewards: List<RewardResponseDto>? = null,
     var lastModifiedDate: LocalDateTime? = null,
     var detailQuests: List<DetailQuestResponseDto>? = null,
+    var canComplete : Boolean? = null,
 ) {
 
     companion object {
@@ -53,6 +51,7 @@ data class QuestResponseDto(
                         it
                     )
                 }.toCollection(mutableListOf()),
+                canComplete = quest.detailQuests.all { dq -> dq.state == DetailQuestState.COMPLETE }
             )
         }
     }

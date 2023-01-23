@@ -56,12 +56,16 @@
             background-color: #39b47b !important;
             text-decoration: line-through;
         }
+
+        .proceed-quest .completed-quest-element {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <header th:replace="~{layout/head_menu :: user_menu}"></header>
-    <div class="position-relative" style="max-width: 700px; min-width: 400px;">
+    <div class="position-relative" id="formWrap" style="max-width: 700px; min-width: 400px;" th:classappend="${quest.canComplete ? '' : 'proceed-quest'}">
         <form method="post" id="questForm" class="view-form" th:object="${quest}" th:action="@{|/quests/${questId}|}">
             <h1>퀘스트 조회</h1>
             <input type="hidden" name="_method" value="post"/>
@@ -205,7 +209,7 @@
                 </div>
             </div>
 
-            <button th:if="${quest.state.name()=='PROCEED'}" type="button" class="btn btn-success mb-2" id="completeBtn" onclick="submitQuestForm('POST')">완료</button>
+            <button th:if="${quest.state.name()=='PROCEED'}" type="button" class="btn btn-success mb-2 completed-quest-element" id="completeBtn" onclick="submitQuestForm('POST')">완료</button>
             <button th:if="${quest.state.name()=='PROCEED'}" type="button" class="btn btn-primary mb-2" id="updateBtn" onclick="toggleUpdateForm()">수정</button>
             <button type="button" class="btn btn-secondary mb-2 update-form-element" onclick="toggleUpdateForm()">취소</button>
             <button th:if="${quest.state.name()=='PROCEED'}" type="button" class="btn btn-danger mb-2 view-form-element" onclick="submitQuestForm('DELETE', '/discard');">포기</button>
@@ -585,23 +589,33 @@
         xhr.onload = () => {
             if (xhr.status === 200) {
                 const result = JSON.parse(xhr.response);
+                let detailQuest = result['detailQuest'];
+                let canComplete = result['canComplete'];
 
                 let titleWrap = eventTarget.parentElement.previousElementSibling.lastElementChild;
 
                 let className;
-                if(result.type === 'CHECK') {
+                if(detailQuest.type === 'CHECK') {
                     className = 'on';
                 } else {
                     className = 'detail-quest-complete';
-                    eventTarget.textContent = result['count'] + "/" + result['targetCount'];
+                    eventTarget.textContent = detailQuest['count'] + "/" + detailQuest['targetCount'];
                 }
 
-                if(result.state === 'COMPLETE') {
+                if(detailQuest.state === 'COMPLETE') {
                     eventTarget.classList.add(className);
                     titleWrap.classList.add('detail-quest-complete');
                 } else {
                     eventTarget.classList.remove(className);
                     titleWrap.classList.remove('detail-quest-complete');
+                }
+
+                let formWarp = document.getElementById('formWrap');
+
+                if(canComplete) {
+                    formWarp.classList.remove('proceed-quest');
+                } else {
+                    formWarp.classList.add('proceed-quest');
                 }
 
             } else {

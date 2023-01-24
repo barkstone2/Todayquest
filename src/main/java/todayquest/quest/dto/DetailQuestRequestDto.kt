@@ -11,7 +11,7 @@ data class DetailQuestRequestDto(
     var targetCount: Short? = null,
     var count: Short? = null,
     var type: DetailQuestType? = null,
-    var state: DetailQuestState? = null,
+    var state: DetailQuestState? = DetailQuestState.PROCEED,
 ) {
 
     fun mapToEntity(quest: Quest): DetailQuest {

@@ -5,15 +5,16 @@ import todayquest.quest.entity.Quest
 import todayquest.quest.entity.QuestDifficulty
 import todayquest.quest.entity.QuestState
 import todayquest.quest.entity.QuestType
-import todayquest.reward.dto.RewardResponseDto
 import todayquest.user.entity.UserInfo
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
 
 data class QuestRequestDto(
+    var questId: Long? = null,
     @field:NotBlank @field:Size(max = 50)
     var title: String? = null,
 
@@ -37,7 +38,9 @@ data class QuestRequestDto(
     var rewards: MutableList<Long> = mutableListOf(),
 
     @field:Size(max = 5)
-    var detailQuests: MutableList<DetailQuestRequestDto> = mutableListOf()
+    var detailQuests: MutableList<DetailQuestRequestDto> = mutableListOf(),
+    var lastModifiedDate: LocalDateTime? = null,
+    var canComplete : Boolean? = null,
 ) {
 
     fun mapToEntity(nextSeq: Long, userInfo: UserInfo): Quest {
@@ -55,15 +58,4 @@ data class QuestRequestDto(
             )
     }
 
-    fun mapToResponseDto(rewards: List<RewardResponseDto>): QuestResponseDto {
-        return QuestResponseDto(
-            title = title,
-            description = description,
-            difficulty = difficulty,
-            deadLineTime = deadLineTime,
-            deadLineDate = deadLineDate,
-            isRepeat = isRepeat,
-            rewards = rewards,
-        )
-    }
 }

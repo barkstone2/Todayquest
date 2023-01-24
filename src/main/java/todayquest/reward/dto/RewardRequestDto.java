@@ -16,6 +16,7 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 public class RewardRequestDto {
 
+    private Long id;
     @NotBlank @Size(max = 30)
     private String name;
     @NotBlank @Size(max = 100)

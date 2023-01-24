@@ -15,6 +15,7 @@ import todayquest.quest.dto.QuestSearchCondition;
 import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.entity.QuestState;
 import todayquest.quest.service.QuestService;
+import todayquest.quest.validator.DetailQuestValidator;
 import todayquest.reward.service.RewardService;
 import todayquest.user.dto.UserPrincipal;
 
@@ -30,6 +31,8 @@ public class QuestController {
     private final QuestService questService;
     private final RewardService rewardService;
     private final UserLevelLock userLevelLock;
+
+    private final DetailQuestValidator detailQuestValidator;
 
     @GetMapping("")
     public String list(@ModelAttribute("searchCondition") QuestSearchCondition condition, @AuthenticationPrincipal UserPrincipal principal, Model model) {
@@ -59,6 +62,8 @@ public class QuestController {
 
     @PostMapping("/save")
     public String save(@Valid @ModelAttribute("quest") QuestRequestDto dto, BindingResult bindingResult, @AuthenticationPrincipal UserPrincipal principal, Model model) {
+        detailQuestValidator.validate(dto, bindingResult);
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
             model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
@@ -77,6 +82,8 @@ public class QuestController {
 
     @PutMapping("/{questId}")
     public String update(@Valid @ModelAttribute("quest") QuestRequestDto dto, BindingResult bindingResult, @PathVariable("questId") Long questId, @AuthenticationPrincipal UserPrincipal principal, Model model) {
+        detailQuestValidator.validate(dto, bindingResult);
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("rewards", rewardService.getRewardListByIds(dto.getRewards(), principal.getUserId()));
             model.addAttribute("difficultyList", QuestDifficulty.getEnumList());

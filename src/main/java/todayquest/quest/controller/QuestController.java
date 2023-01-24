@@ -54,7 +54,6 @@ public class QuestController {
         QuestResponseDto quest = questService.getQuestInfo(questId, principal.getUserId());
         model.addAttribute("quest", quest);
         model.addAttribute("rewards", quest.getRewards());
-        model.addAttribute("detailQuests", quest.getDetailQuests());
         model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
         model.addAttribute("rewardOptions", rewardService.getRewardList(principal.getUserId()));
         return "quest/view";
@@ -87,7 +86,7 @@ public class QuestController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("rewards", rewardService.getRewardListByIds(dto.getRewards(), principal.getUserId()));
             model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
-            model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
+            model.addAttribute("rewardOptions", rewardService.getRewardList(principal.getUserId()));
             model.addAttribute("hasError", true);
             return "quest/view";
         }

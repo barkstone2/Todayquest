@@ -52,12 +52,39 @@
             <div class="row mb-3">
                 <label th:for="detailQuests" class="col-sm-2 col-form-label align-items-center">세부 퀘스트</label>
                 <div class="col-sm-10">
+                    <div class="row mb-1 detail-quest-row"
+                         th:each="detailQuest : ${quest.detailQuests}"
+                         th:id="|detailQuestRow${detailQuestStat.index}|"
+                         th:data-id="${detailQuestStat.index}">
+                        <div class="col-sm">
+                            <input class="form-item form-control"
+                                   th:name="|detailQuests[${detailQuestStat.index}].title|"
+                                   th:value="${detailQuest.title}"
+                                   th:errorclass="field-error"
+                                   type="text">
+                        </div>
+                        <div class="col-sm-auto count-col" th:if="${detailQuest.type == detailQuest.type.COUNT}">
+                            <input class="form-item form-control" type="number" th:id="|countInput${detailQuestStat.index}|" th:name="|detailQuests[${detailQuestStat.index}].targetCount|" th:value="${detailQuest.targetCount}" th:errorclass="field-error" placeholder="횟수" min="1" max="255">
+                        </div>
+                        <div class="col-sm-auto">
+                            <select class="form-item form-select" th:name="|detailQuests[${detailQuestStat.index}].type|" th:data-no="${detailQuestStat.index}" onchange="observeDetailQuestType(this)">
+                                <option value="CHECK" th:selected="${detailQuest.type == detailQuest.type.CHECK}">체크박스</option>
+                                <option value="COUNT" th:selected="${detailQuest.type == detailQuest.type.COUNT}">카운트</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-auto update-form-element">
+                            <div class="btn btn-secondary" th:data-id="${detailQuestStat.index}" onclick="deleteDetailQuestRow(this)">삭제</div>
+                        </div>
+                        <div class="field-error"
+                             th:if="${#fields.hasErrors('detailQuests[' + detailQuestStat.index + ']')}"
+                             th:each="err : ${#fields.errors('detailQuests[' + detailQuestStat.index + ']')}"
+                             th:text="${err}"></div>
+                    </div>
                     <div class="row mb-1">
                         <div class="col-sm-auto">
                             <div class="btn btn-primary" id="detailQuestAddBtn">추가</div>
                         </div>
                     </div>
-                    <div th:errorclass="field-error" th:errors="*{detailQuests}"></div>
                 </div>
             </div>
 

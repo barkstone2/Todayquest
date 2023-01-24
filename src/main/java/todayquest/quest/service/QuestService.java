@@ -12,10 +12,7 @@ import todayquest.common.MessageUtil;
 import todayquest.item.service.ItemService;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
-import todayquest.quest.entity.DetailQuest;
-import todayquest.quest.entity.Quest;
-import todayquest.quest.entity.QuestReward;
-import todayquest.quest.entity.QuestState;
+import todayquest.quest.entity.*;
 import todayquest.quest.repository.DetailQuestRepository;
 import todayquest.quest.repository.QuestRepository;
 import todayquest.quest.repository.QuestRewardRepository;
@@ -119,6 +116,10 @@ public class QuestService {
 
         if(quest.getState().equals(QuestState.DELETE)) {
             throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.deleted"));
+        }
+
+        if(quest.getDetailQuests().stream().anyMatch(dq -> !dq.getState().equals(DetailQuestState.COMPLETE))) {
+            throw new IllegalStateException(MessageUtil.getMessage("quest.error.complete.invalid"));
         }
 
         // 퀘스트의 상태를 완료 상태로 변경한다.

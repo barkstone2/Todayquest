@@ -14,13 +14,13 @@ import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
 
 data class QuestRequestDto(
-    @NotBlank @Size(max = 50)
+    @field:NotBlank @field:Size(max = 50)
     var title: String? = null,
 
-    @NotBlank @Size(max = 300)
+    @field:NotBlank @field:Size(max = 300)
     var description: String? = null,
 
-    @NotNull
+    @field:NotNull
     var isRepeat: Boolean = false,
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -29,14 +29,14 @@ data class QuestRequestDto(
     @DateTimeFormat(pattern = "HH:mm")
     var deadLineTime: LocalTime? = null,
 
-    @NotNull
+    @field:NotNull
     var difficulty: QuestDifficulty = QuestDifficulty.EASY,
     var state: QuestState? = null,
 
-    @Size(max = 3)
+    @field:Size(max = 3)
     var rewards: MutableList<Long> = mutableListOf(),
 
-    @Size(max = 5)
+    @field:Size(max = 5)
     var detailQuests: MutableList<DetailQuestRequestDto> = mutableListOf()
 ) {
 

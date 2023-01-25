@@ -13,9 +13,9 @@ data class QuestResponseDto(
     var description: String? = null,
     var seq: Long? = null,
     var isRepeat: Boolean = false,
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @field:DateTimeFormat(pattern = "yyyy-MM-dd")
     var deadLineDate: LocalDate? = null,
-    @DateTimeFormat(pattern = "HH:mm")
+    @field:DateTimeFormat(pattern = "HH:mm")
     var deadLineTime: LocalTime? = null,
     var state: QuestState? = null,
     var type: QuestType? = null,

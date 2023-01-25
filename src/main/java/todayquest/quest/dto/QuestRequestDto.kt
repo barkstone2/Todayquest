@@ -24,10 +24,10 @@ data class QuestRequestDto(
     @field:NotNull
     var isRepeat: Boolean = false,
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @field:DateTimeFormat(pattern = "yyyy-MM-dd")
     var deadLineDate: LocalDate? = null,
 
-    @DateTimeFormat(pattern = "HH:mm")
+    @field:DateTimeFormat(pattern = "HH:mm")
     var deadLineTime: LocalTime? = null,
 
     @field:NotNull

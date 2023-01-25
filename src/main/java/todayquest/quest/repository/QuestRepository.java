@@ -11,6 +11,6 @@ import todayquest.quest.entity.QuestState;
 
 @Repository
 public interface QuestRepository extends JpaRepository<Quest, Long>, QuestRepositoryCustom {
-    @Query("select q from Quest q where q.user.id = :userId and q.state= :state order by q.deadLineDate nulls last, q.deadLineDate nulls last")
+    @Query("select q from Quest q where q.user.id = :userId and q.state= :state")
     Slice<Quest> getQuestsList(@Param("userId") Long userId, @Param("state") QuestState state, Pageable pageable);
 }

@@ -1,7 +1,10 @@
 package todayquest.quest.dto
 
 import org.springframework.format.annotation.DateTimeFormat
-import todayquest.quest.entity.*
+import todayquest.quest.entity.DetailQuestState
+import todayquest.quest.entity.Quest
+import todayquest.quest.entity.QuestDifficulty
+import todayquest.quest.entity.QuestState
 import todayquest.reward.dto.RewardResponseDto
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -12,13 +15,11 @@ data class QuestResponseDto(
     var title: String? = null,
     var description: String? = null,
     var seq: Long? = null,
-    var isRepeat: Boolean = false,
     @field:DateTimeFormat(pattern = "yyyy-MM-dd")
     var deadLineDate: LocalDate? = null,
     @field:DateTimeFormat(pattern = "HH:mm")
     var deadLineTime: LocalTime? = null,
     var state: QuestState? = null,
-    var type: QuestType? = null,
     var difficulty: QuestDifficulty? = null,
     var rewards: List<RewardResponseDto>? = null,
     var lastModifiedDate: LocalDateTime? = null,
@@ -34,11 +35,9 @@ data class QuestResponseDto(
                 title = quest.title,
                 description = quest.description,
                 seq = quest.seq,
-                isRepeat = quest.isRepeat,
                 deadLineDate = quest.deadLineDate,
                 deadLineTime = quest.deadLineTime,
                 state = quest.state,
-                type = quest.type,
                 difficulty = quest.difficulty,
                 lastModifiedDate = quest.lastModifiedDate,
                 rewards = quest.rewards.map {

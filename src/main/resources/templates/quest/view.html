@@ -229,15 +229,6 @@
                     <input class="form-item form-control" type="time" th:field="*{deadLineTime}" disabled>
                 </div>
             </div>
-            <div class="row mb-3">
-                <label th:for="repeat" class="col-sm-2 col-form-label">반복여부</label>
-                <div class="col-auto align-self-center">
-                    <div class="form-check form-switch">
-                        <input class="form-item form-control form-check-input" type="checkbox" th:field="*{repeat}" th:errorclass="field-error" disabled>
-                        <div th:errorclass="field-error" th:errors="*{repeat}"></div>
-                    </div>
-                </div>
-            </div>
 
             <button th:if="${quest.state.name()=='PROCEED'}" type="button" class="btn btn-success mb-2 completed-quest-element" id="completeBtn" onclick="submitQuestForm('POST')">완료</button>
             <button th:if="${quest.state.name()=='PROCEED'}" type="button" class="btn btn-primary mb-2" id="updateBtn" onclick="toggleUpdateForm()">수정</button>

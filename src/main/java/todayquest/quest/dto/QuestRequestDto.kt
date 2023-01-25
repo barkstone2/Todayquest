@@ -4,7 +4,6 @@ import org.springframework.format.annotation.DateTimeFormat
 import todayquest.quest.entity.Quest
 import todayquest.quest.entity.QuestDifficulty
 import todayquest.quest.entity.QuestState
-import todayquest.quest.entity.QuestType
 import todayquest.user.entity.UserInfo
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -20,9 +19,6 @@ data class QuestRequestDto(
 
     @field:NotBlank @field:Size(max = 300)
     var description: String? = null,
-
-    @field:NotNull
-    var isRepeat: Boolean = false,
 
     @field:DateTimeFormat(pattern = "yyyy-MM-dd")
     var deadLineDate: LocalDate? = null,
@@ -49,11 +45,9 @@ data class QuestRequestDto(
             description = description,
             user = userInfo,
             seq = nextSeq,
-            isRepeat = isRepeat,
             deadLineDate = deadLineDate,
             deadLineTime = deadLineTime,
             state = QuestState.PROCEED,
-            type = QuestType.DAILY,
             difficulty = difficulty
             )
     }

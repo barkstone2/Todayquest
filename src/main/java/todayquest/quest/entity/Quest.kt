@@ -15,11 +15,9 @@ class Quest(
     description: String?,
     user: UserInfo,
     seq: Long,
-    isRepeat: Boolean = false,
     deadLineDate: LocalDate?,
     deadLineTime: LocalTime?,
     state: QuestState = QuestState.PROCEED,
-    type: QuestType = QuestType.DAILY,
     difficulty: QuestDifficulty,
 ) : BaseTimeEntity() {
 
@@ -43,14 +41,6 @@ class Quest(
     val seq: Long = seq
 
     /**
-     * QuestType 정보와 조합해 반복 주기를 설정한다.
-     * 마찬가지로 배치 처리가 필요할 듯 하다.
-     */
-    @Column(nullable = false)
-    var isRepeat = isRepeat
-        protected set
-
-    /**
      * 현재 일간 퀘스트만 사용하므로 시간 정보만 받아서 처리, 날짜 정보는 앞단에서 오늘 날짜와 동일하게 처리한다.
      * 추후 주간, 월간, 연간 퀘스트 추가 시 이 필드에 날짜 정보를 입력 받아 배치 처리에 사용한다.
      */
@@ -63,10 +53,6 @@ class Quest(
     @Column(nullable = false)
     var state: QuestState = state
         protected set
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    val type: QuestType = type
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -87,7 +73,6 @@ class Quest(
     fun updateQuestEntity(dto: QuestRequestDto, updateRewards: List<Reward>): MutableList<QuestReward> {
         title = dto.title ?: throw IllegalArgumentException("퀘스트 이름은 비어있을 수 없습니다.")
         description = dto.description
-        isRepeat = dto.isRepeat
         deadLineDate = dto.deadLineDate
         deadLineTime = dto.deadLineTime
         difficulty = dto.difficulty

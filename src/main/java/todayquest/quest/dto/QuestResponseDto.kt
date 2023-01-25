@@ -15,10 +15,6 @@ data class QuestResponseDto(
     var title: String? = null,
     var description: String? = null,
     var seq: Long? = null,
-    @field:DateTimeFormat(pattern = "yyyy-MM-dd")
-    var deadLineDate: LocalDate? = null,
-    @field:DateTimeFormat(pattern = "HH:mm")
-    var deadLineTime: LocalTime? = null,
     var state: QuestState? = null,
     var difficulty: QuestDifficulty? = null,
     var rewards: List<RewardResponseDto>? = null,
@@ -35,8 +31,6 @@ data class QuestResponseDto(
                 title = quest.title,
                 description = quest.description,
                 seq = quest.seq,
-                deadLineDate = quest.deadLineDate,
-                deadLineTime = quest.deadLineTime,
                 state = quest.state,
                 difficulty = quest.difficulty,
                 lastModifiedDate = quest.lastModifiedDate,

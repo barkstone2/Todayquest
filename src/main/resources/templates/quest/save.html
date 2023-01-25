@@ -102,18 +102,6 @@
                     <div th:errorclass="field-error" th:errors="*{rewards}"></div>
                 </div>
             </div>
-            <div class="row mb-3">
-                <label th:for="deadLineDate" class="col-sm-2 col-form-label">마감일</label>
-                <div class="col-auto">
-                    <input class="form-item form-control" type="date" th:field="*{deadLineDate}">
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label th:for="deadLineTime" class="col-sm-2 col-form-label">마감시간</label>
-                <div class="col-auto">
-                    <input class="form-item form-control" type="time" th:field="*{deadLineTime}">
-                </div>
-            </div>
             <button type="submit" class="btn btn-primary">등록</button>
             <a class="btn btn-success" id="listBtn" href="/quests">목록</a>
         </form>

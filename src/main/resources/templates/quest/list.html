@@ -153,11 +153,7 @@
                     <div class="list-item text-truncate" th:each="reward : ${quest.rewards}" th:text="${reward.name}">&nbsp;</div>
                     <div class="list-item text-truncate" th:if="${quest.rewards.size() < 3}" th:each="num : ${#numbers.sequence(1+quest.rewards.size(),3)}">&nbsp;</div>
                 </div>
-                <div class="card-footer d-flex" th:with="deadLine=|${#strings.defaultString(quest.deadLineDate, '')} ${#strings.defaultString(quest.deadLineTime, '')}|">
-                    <div class="col-10 d-flex align-items-center">
-                        <span class="bg-warning rounded p-1 m-1 text-white">완료기한</span>
-                        <span class="p-1 m-1 fw-semi-bold" th:text="|${#strings.defaultString(deadLine, '없음')}|"></span>
-                    </div>
+                <div class="card-footer d-flex">
                     <div class="col-2 d-flex justify-content-center completed-quest-element"
                         th:if="${isProceedQuest}">
                         <span class="btn-success p-1 m-1 rounded quest-complete-btn" th:data-quest-id="${quest.questId}">완료</span>
@@ -478,14 +474,7 @@
         let cardFooter = document.createElement("div");
         cardFooter.className="card-footer";
 
-        let footerEl1 = document.createElement("span");
-        footerEl1.className="bg-warning rounded p-1 text-white";
-        footerEl1.textContent="완료기한";
-
-        let footerEl2 = document.createElement("span");
-        footerEl2.className="m-1 fw-semi-bold";
-        let deadLineText = (quest.deadLineDate != null ? quest.deadLineDate : "") + " " + (quest.deadLineTime != null ? quest.deadLineTime.substring(0, 5) : "");
-        footerEl2.textContent= deadLineText.trim() == "" ? "없음" : deadLineText.trim();
+        //TODO 완료 버튼 추가
 
         cardFooter.appendChild(footerEl1);
         cardFooter.appendChild(footerEl2);

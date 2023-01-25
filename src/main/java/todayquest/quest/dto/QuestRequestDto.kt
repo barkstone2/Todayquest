@@ -20,12 +20,6 @@ data class QuestRequestDto(
     @field:NotBlank @field:Size(max = 300)
     var description: String? = null,
 
-    @field:DateTimeFormat(pattern = "yyyy-MM-dd")
-    var deadLineDate: LocalDate? = null,
-
-    @field:DateTimeFormat(pattern = "HH:mm")
-    var deadLineTime: LocalTime? = null,
-
     @field:NotNull
     var difficulty: QuestDifficulty = QuestDifficulty.EASY,
     var state: QuestState? = null,
@@ -45,8 +39,6 @@ data class QuestRequestDto(
             description = description,
             user = userInfo,
             seq = nextSeq,
-            deadLineDate = deadLineDate,
-            deadLineTime = deadLineTime,
             state = QuestState.PROCEED,
             difficulty = difficulty
             )

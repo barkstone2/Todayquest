@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import todayquest.exception.ErrorResponse;
 import todayquest.quest.dto.DetailQuestResponseDto;
 import todayquest.quest.dto.QuestResponseDto;
 import todayquest.quest.dto.QuestSearchCondition;
@@ -46,5 +47,11 @@ public class QuestApiController {
         result.put("canComplete", canComplete);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({IllegalArgumentException.class})
+    public ErrorResponse illegalExHandle(IllegalArgumentException e) {
+        return new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }

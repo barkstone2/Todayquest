@@ -30,6 +30,22 @@
             height: 34px;
         }
 
+        .doodle-checkbox-readonly {
+            display: block;
+            background-image : url("/image/empty-checkbox.png");
+            background-size: 34px, 34px;
+            width: 34px;
+            height: 34px;
+        }
+
+        .doodle-checkbox-readonly.on {
+            display: block;
+            background-image : url("/image/checkbox.png");
+            background-size: 34px, 34px;
+            width: 34px;
+            height: 34px;
+        }
+
         .doodle-checkbox:hover {
             background-image : url("/image/empty-checkbox-hover.png");
             background-size: 34px, 34px;
@@ -121,10 +137,11 @@
             </div>
             <div class="row mb-3">
                 <label th:for="detailQuests" class="col-sm-2 col-form-label align-items-center">세부 퀘스트</label>
-                <div class="col-sm-10">
+                <div class="col-sm-10"
+                    th:with="isProceedQuest=${quest.state == quest.state.PROCEED}">
                     <div class="row mb-1 detail-quest-row"
                          th:each="detailQuest : ${quest.detailQuests}"
-                         th:with="isComplete=${detailQuest.state == detailQuest.state.COMPLETE}"
+                         th:with="isCompleteDetail=${detailQuest.state == detailQuest.state.COMPLETE}"
                          th:id="|detailQuestRow${detailQuestStat.index}|"
                          th:data-id="${detailQuestStat.index}">
                         <div class="col-sm">
@@ -133,18 +150,19 @@
                             <input class="form-item form-control"
                                    th:name="|detailQuests[${detailQuestStat.index}].title|"
                                    th:value="${detailQuest.title}"
-                                   th:classappend="${isComplete ? 'detail-quest-complete' : ''}"
+                                   th:classappend="${isCompleteDetail ? 'detail-quest-complete' : ''}"
                                    th:errorclass="field-error"
                                    type="text" disabled>
                         </div>
-                        <span class="col-2 justify-content-center align-items-center d-flex view-form-element" th:switch="${detailQuest.type}" >
+                        <span class="col-2 justify-content-center align-items-center d-flex view-form-element"
+                              th:switch="${detailQuest.type}">
                             <span th:case="${detailQuest.type.CHECK}"
-                                  class="detail-quest-interact-btn doodle-checkbox"
-                                  th:classappend="${isComplete ? 'on' : ''}"
+                                  th:class="|${isProceedQuest ? 'doodle-checkbox' : 'doodle-checkbox-readonly'}|"
+                                  th:classappend="|${isCompleteDetail ? 'on' : ''} ${isProceedQuest ? 'detail-quest-interact-btn' : ''}|"
                                   th:data-detail-id="${detailQuest.id}" th:data-quest-id="${questId}"></span>
                             <span th:case="${detailQuest.type.COUNT}"
-                                  class="border border-1 rounded p-1 text-center detail-quest-count detail-quest-interact-btn"
-                                  th:classappend="${isComplete ? 'detail-quest-complete' : ''}"
+                                  th:class="|border border-1 rounded p-1 text-center ${isProceedQuest ? 'detail-quest-count' : ''}|"
+                                  th:classappend="|${isCompleteDetail ? 'detail-quest-complete' : ''} ${isProceedQuest ? 'detail-quest-interact-btn' : ''}|"
                                   th:data-detail-id="${detailQuest.id}" th:data-quest-id="${questId}"
                                   th:text="|${detailQuest.count}/${detailQuest.targetCount}|"></span>
                         </span>
@@ -631,7 +649,8 @@
                 }
 
             } else {
-                alert(xhr.response.message);
+                const errorResponse = JSON.parse(xhr.response);
+                alert(errorResponse.message);
             }
         }
 

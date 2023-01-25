@@ -118,8 +118,12 @@ public class QuestService {
             throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.deleted"));
         }
 
+        if(!quest.getState().equals(QuestState.PROCEED)) {
+            throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.not-proceed"));
+        }
+
         if(quest.getDetailQuests().stream().anyMatch(dq -> !dq.getState().equals(DetailQuestState.COMPLETE))) {
-            throw new IllegalStateException(MessageUtil.getMessage("quest.error.complete.invalid"));
+            throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.complete.detail"));
         }
 
         // 퀘스트의 상태를 완료 상태로 변경한다.

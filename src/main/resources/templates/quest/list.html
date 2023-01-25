@@ -71,6 +71,22 @@
             display: none !important;
         }
 
+        .doodle-checkbox-readonly {
+            display: block;
+            background-image : url("/image/empty-checkbox.png");
+            background-size: 34px, 34px;
+            width: 34px;
+            height: 34px;
+        }
+
+        .doodle-checkbox-readonly.on {
+            display: block;
+            background-image : url("/image/checkbox.png");
+            background-size: 34px, 34px;
+            width: 34px;
+            height: 34px;
+        }
+
     </style>
 </head>
 <body class="container">
@@ -92,41 +108,38 @@
         </div>
         <div class="col" th:each="quest : ${questList.getContent()}">
             <a th:class="|card text-reset text-decoration-none card${quest.questId}|"
+               th:classappend="${quest.canComplete ? '' : 'proceed-quest'}"
                th:href="|/quests/${quest.questId}|"
-               th:classappend="${quest.canComplete ? '' : 'proceed-quest'}">
-                <div class="card-header d-flex">
-                    <div class="col-10 d-flex">
-                        <span class="p-1 m-1 fw-semi-bold" th:text="|#${quest.seq}|"></span>
-                        <span class="rounded bg-danger text-white p-1 m-1" th:text="${quest.difficulty.getText()}">퀘스트 난이도</span>
-                        <span th:class="|${quest.state.cssClassInfo} p-1 m-1|" th:text="${quest.state.message}">퀘스트 상태</span>
-                        <span class="p-1 fw-semi-bold" th:if="${quest.state == quest.state.COMPLETE || quest.state == quest.state.DISCARD}"
-                              th:text="${#temporals.format(quest.lastModifiedDate, 'yyyy-MM-dd HH:mm:ss')}"></span>
-                    </div>
-                    <div class="col-2 d-flex justify-content-center completed-quest-element">
-                        <span class="btn-success p-1 m-1 rounded quest-complete-btn" th:data-quest-id="${quest.questId}">완료</span>
-                    </div>
+               th:with="isProceedQuest=${quest.state == quest.state.PROCEED}">
+                <div class="card-header">
+                    <span class="p-1 m-1 fw-semi-bold" th:text="|#${quest.seq}|"></span>
+                    <span class="rounded bg-danger text-white p-1 m-1" th:text="${quest.difficulty.getText()}">퀘스트 난이도</span>
+                    <span th:class="|${quest.state.cssClassInfo} p-1 m-1|" th:text="${quest.state.message}">퀘스트 상태</span>
+                    <span class="p-1 fw-semi-bold" th:if="${quest.state == quest.state.COMPLETE || quest.state == quest.state.DISCARD}"
+                          th:text="${#temporals.format(quest.lastModifiedDate, 'yyyy-MM-dd HH:mm:ss')}"></span>
                 </div>
                 <div class="card-body">
                     <h5 class="card-title text-truncate" th:text="${quest.title}">퀘스트 제목</h5>
                     <p class="card-text border-start border-2 ps-3 text-box" th:text="${quest.description}">퀘스트 설명</p>
 
                     <div class="mb-1" style="height: 216px;">
-                        <div class="row mb-1 ps-3" th:each="detailQuest : ${quest.detailQuests}"
-                             th:with="isComplete=${detailQuest.state == detailQuest.state.COMPLETE}">
+                        <div class="row mb-1 ps-3"
+                             th:each="detailQuest : ${quest.detailQuests}"
+                             th:with="isCompleteDetail=${detailQuest.state == detailQuest.state.COMPLETE}">
                             <span class="col-9 border border-1 rounded p-1 text-truncate"
-                                  th:classappend="${isComplete ? 'detail-quest-complete' : ''}"
+                                  th:classappend="${isCompleteDetail ? 'detail-quest-complete' : ''}"
                                   th:text="${detailQuest.title}">
                                 세부 퀘스트
                             </span>
                             <th:block th:switch="${detailQuest.type}">
                                 <span class="col-3 justify-content-center align-items-center d-flex" th:case="${detailQuest.type.CHECK}">
-                                    <span class="detail-quest-interact-btn doodle-checkbox"
-                                          th:classappend="${isComplete ? 'on' : ''}"
+                                    <span th:class="|${isProceedQuest ? 'doodle-checkbox' : 'doodle-checkbox-readonly'}|"
+                                          th:classappend="|${isCompleteDetail ? 'on' : ''} ${isProceedQuest ? 'detail-quest-interact-btn' : ''}|"
                                           th:data-detail-id="${detailQuest.id}" th:data-quest-id="${quest.questId}"></span>
                                 </span>
                                 <span class="col-3 justify-content-center align-items-center d-flex" th:case="${detailQuest.type.COUNT}">
-                                    <span class="border border-1 rounded p-1 text-center detail-quest-count detail-quest-interact-btn"
-                                          th:classappend="${isComplete ? 'detail-quest-complete' : ''}"
+                                    <span th:class="|border border-1 rounded p-1 text-center ${isProceedQuest ? 'detail-quest-count' : ''}|"
+                                          th:classappend="|${isCompleteDetail ? 'detail-quest-complete' : ''} ${isProceedQuest ? 'detail-quest-interact-btn' : ''}|"
                                           th:data-detail-id="${detailQuest.id}" th:data-quest-id="${quest.questId}"
                                           th:text="|${detailQuest.count}/${detailQuest.targetCount}|"></span>
                                 </span>
@@ -140,9 +153,15 @@
                     <div class="list-item text-truncate" th:each="reward : ${quest.rewards}" th:text="${reward.name}">&nbsp;</div>
                     <div class="list-item text-truncate" th:if="${quest.rewards.size() < 3}" th:each="num : ${#numbers.sequence(1+quest.rewards.size(),3)}">&nbsp;</div>
                 </div>
-                <div class="card-footer" th:with="deadLine=|${#strings.defaultString(quest.deadLineDate, '')} ${#strings.defaultString(quest.deadLineTime, '')}|">
-                    <span class="bg-warning rounded p-1 text-white">완료기한</span>
-                    <span class="m-1 fw-semi-bold" th:text="|${#strings.defaultString(deadLine, '없음')}|"></span>
+                <div class="card-footer d-flex" th:with="deadLine=|${#strings.defaultString(quest.deadLineDate, '')} ${#strings.defaultString(quest.deadLineTime, '')}|">
+                    <div class="col-10 d-flex align-items-center">
+                        <span class="bg-warning rounded p-1 m-1 text-white">완료기한</span>
+                        <span class="p-1 m-1 fw-semi-bold" th:text="|${#strings.defaultString(deadLine, '없음')}|"></span>
+                    </div>
+                    <div class="col-2 d-flex justify-content-center completed-quest-element"
+                        th:if="${isProceedQuest}">
+                        <span class="btn-success p-1 m-1 rounded quest-complete-btn" th:data-quest-id="${quest.questId}">완료</span>
+                    </div>
                 </div>
             </a>
         </div>
@@ -201,7 +220,8 @@
                 }
 
             } else {
-                alert(xhr.response.message);
+                const errorResponse = JSON.parse(xhr.response);
+                alert(errorResponse.message);
             }
         }
 
@@ -209,11 +229,12 @@
     }
 
     function completeQuest(eventTarget, evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+
         if (!confirm('퀘스트를 완료하시겠습니까?\n완료 시 되돌릴 수 없습니다.')) {
             return;
         }
-        evt.stopPropagation();
-        evt.preventDefault();
 
         let questId = eventTarget.getAttribute("data-quest-id");
 
@@ -397,9 +418,17 @@
             detailQuestInteractBtnWrap.className = 'col-3 justify-content-center align-items-center d-flex';
 
             let detailQuestInteractBtn = document.createElement('span');
-            detailQuestInteractBtn.className = quest.type === 'CHECK'
-                ? 'border border-1 rounded p-1 text-center detail-quest-count detail-quest-interact-btn'
-                : 'detail-quest-interact-btn doodle-checkbox';
+            if(quest.state === 'PROCEED') {
+                detailQuestInteractBtn.className = quest.type === 'CHECK'
+                    ? 'border border-1 rounded p-1 text-center detail-quest-count'
+                    : 'doodle-checkbox';
+                detailQuestInteractBtn.classList.add('detail-quest-interact-btn')
+            } else {
+                detailQuestInteractBtn.className = quest.type === 'CHECK'
+                    ? 'border border-1 rounded p-1 text-center'
+                    : 'doodle-checkbox-readonly';
+            }
+
             detailQuestInteractBtn.setAttribute('data-quest-id', quest.questId);
             detailQuestInteractBtn.setAttribute('data-detail-id', detailQuest.id);
 

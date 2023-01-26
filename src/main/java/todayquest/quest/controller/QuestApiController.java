@@ -36,9 +36,10 @@ public class QuestApiController {
     public ResponseEntity<Map<String, Object>> interact(
             @PathVariable("questId") Long questId,
             @PathVariable("detailQuestId") Long detailQuestId,
+            @RequestBody(required = false) Short count,
             @AuthenticationPrincipal UserPrincipal principal) {
 
-        DetailQuestResponseDto interactDetail = detailQuestService.interact(principal.getUserId(), questId, detailQuestId);
+        DetailQuestResponseDto interactDetail = detailQuestService.interact(principal.getUserId(), questId, detailQuestId, count);
         QuestResponseDto parentQuest = questService.getQuestInfo(questId, principal.getUserId());
         boolean canComplete = parentQuest.getCanComplete();
 

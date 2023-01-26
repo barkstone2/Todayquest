@@ -154,9 +154,11 @@
                     <div class="list-item text-truncate" th:if="${quest.rewards.size() < 3}" th:each="num : ${#numbers.sequence(1+quest.rewards.size(),3)}">&nbsp;</div>
                 </div>
                 <div class="card-footer d-flex">
-                    <div class="col-2 d-flex justify-content-center completed-quest-element"
-                        th:if="${isProceedQuest}">
-                        <span class="btn-success p-1 m-1 rounded quest-complete-btn" th:data-quest-id="${quest.questId}">완료</span>
+                    <div class="col-9">
+                        <span class="btn p-1 m-1">&nbsp;</span>
+                    </div>
+                    <div class="col-3 d-flex justify-content-center completed-quest-element">
+                        <span class="btn-success p-1 m-1 rounded quest-complete-btn" th:if="${isProceedQuest}" th:data-quest-id="${quest.questId}">완료하기</span>
                     </div>
                 </div>
             </a>
@@ -405,6 +407,8 @@
     };
 
     function createQuestCard(quest) {
+        let questState = quest.state;
+
         let cardFrame = document.createElement("div");
         cardFrame.className = "col";
 
@@ -415,10 +419,7 @@
         cardAnchor.href = "/quests/" + quest.questId;
 
         let cardHeader = document.createElement("div");
-        cardHeader.className = "card-header d-flex";
-
-        let headerDiv1 = document.createElement("div");
-        headerDiv1.className = "col-10 d-flex";
+        cardHeader.className = "card-header";
 
         let headerEl1 = document.createElement("span");
         headerEl1.className = "p-1 m-1 fw-semi-bold";
@@ -429,28 +430,14 @@
         headerEl2.textContent=quest.difficulty.text;
 
         let headerEl3 = document.createElement("span");
-        headerEl3.className= quest.state.cssClassInfo;
+        headerEl3.className= questState.cssClassInfo;
         headerEl3.classList.add("p-1");
         headerEl3.classList.add("m-1");
-        headerEl3.textContent=quest.state.message;
+        headerEl3.textContent=questState.message;
 
-        headerDiv1.appendChild(headerEl1);
-        headerDiv1.appendChild(headerEl2);
-        headerDiv1.appendChild(headerEl3);
-
-        let headerDiv2 = document.createElement("div");
-        headerDiv2.className = "col-2 d-flex justify-content-center completed-quest-element";
-
-        let headerCompleteBtn = document.createElement('span');
-        headerCompleteBtn.className = "btn-success p-1 m-1 rounded quest-complete-btn";
-        headerCompleteBtn.textContent = "완료";
-        headerCompleteBtn.setAttribute('data-quest-id', quest.questId);
-        headerCompleteBtn.addEventListener('click', evt => completeQuest(headerCompleteBtn, evt));
-
-        headerDiv2.appendChild(headerCompleteBtn);
-
-        cardHeader.appendChild(headerDiv1);
-        cardHeader.appendChild(headerDiv2);
+        cardHeader.appendChild(headerEl1);
+        cardHeader.appendChild(headerEl2);
+        cardHeader.appendChild(headerEl3);
 
         cardAnchor.appendChild(cardHeader);
 
@@ -487,7 +474,7 @@
             detailQuestInteractBtnWrap.className = 'col-3 justify-content-center align-items-center d-flex';
 
             let detailQuestInteractBtn = document.createElement('span');
-            if(quest.state === 'PROCEED') {
+            if(questState.message === '진행') {
                 detailQuestInteractBtn.className = quest.type === 'CHECK'
                     ? 'border border-1 rounded p-1 text-center detail-quest-count'
                     : 'doodle-checkbox';
@@ -545,9 +532,29 @@
         cardAnchor.appendChild(rewardList);
 
         let cardFooter = document.createElement("div");
-        cardFooter.className="card-footer";
+        cardFooter.className="card-footer d-flex";
 
-        //TODO 완료 버튼 추가
+        let footerEl1 = document.createElement('div');
+        footerEl1.className = "col-9";
+
+        let emptyBtn = document.createElement('span');
+        emptyBtn.className = "btn p-1 m-1";
+        emptyBtn.innerHTML = '&nbsp;'
+
+        footerEl1.appendChild(emptyBtn)
+
+        let footerEl2 = document.createElement('div');
+        footerEl2.className = "col-3 d-flex justify-content-center completed-quest-element";
+
+        let completeBtn = document.createElement('span');
+        completeBtn.className = "btn-success p-1 m-1 rounded quest-complete-btn";
+        completeBtn.setAttribute('data-quest-id', quest.questId);
+        completeBtn.textContent = "완료하기";
+
+        if(questState.message === '진행') {
+            completeBtn.addEventListener('click', evt => completeQuest(completeBtn, evt));
+            footerEl2.appendChild(completeBtn);
+        }
 
         cardFooter.appendChild(footerEl1);
         cardFooter.appendChild(footerEl2);

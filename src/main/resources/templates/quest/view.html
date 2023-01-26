@@ -225,6 +225,24 @@
             <a class="btn btn-dark mb-2" id="listBtn" href="/quests">목록</a>
         </form>
     </div>
+    <!-- Modal -->
+    <div class="modal fade" id="detailQuestCountModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="detailQuestCountModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="detailQuestCountModalLabel">횟수를 입력하세요.</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <input class="form-item form-control" type="number" id="interactCount" placeholder="횟수" min="1" max="255">
+                </div>
+                <div class="modal-footer" id="modalFooter">
+                    <button type="button" class="btn btn-primary" id="detailQuestCountSubmitBtn">저장</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 <script th:inline="javascript">
@@ -577,9 +595,46 @@
         detailQuestAddBtn.classList.remove('visually-hidden');
     }
 
-    function interactDetailQuest(eventTarget, evt) {
+    let pressEventDone;
+    let isPressed;
+
+    function showCountInputPopup(eventTarget, evt) {
+        let interactCountModal = new bootstrap.Modal(document.getElementById('detailQuestCountModal'));
+        interactCountModal.toggle();
+
+        let interactCountSubmitBtn = document.getElementById('detailQuestCountSubmitBtn');
+
+        interactCountSubmitBtn.removeEventListener('click', interactDetailQuest);
+        interactCountSubmitBtn.addEventListener('click', () => {
+            let interactCount = document.getElementById('interactCount').value;
+            interactDetailQuest(eventTarget, evt, interactCount)
+        })
+    }
+
+    function interactDetailQuestDelegate(eventTarget, evt) {
         evt.stopPropagation();
         evt.preventDefault();
+
+        if(isPressed) {
+            setTimeout(function() {
+                if(isPressed) {
+                    pressEventDone = true
+                    showCountInputPopup(eventTarget, evt);
+                }
+            }, 1000)
+        }else if(!pressEventDone) {
+            pressEventDone = true
+            interactDetailQuest(eventTarget, evt)
+        }
+
+    }
+
+    function interactDetailQuest(eventTarget, evt, count) {
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        let body;
+        if(count != null) body = JSON.stringify(count);
 
         let questId = eventTarget.getAttribute("data-quest-id");
         let detailQuestId = eventTarget.getAttribute("data-detail-id");
@@ -632,13 +687,30 @@
             }
         }
 
-        xhr.send();
+        xhr.send(body);
     }
 
     document.addEventListener("DOMContentLoaded", function() {
         let detailQuestInteractBtns = document.getElementsByClassName("detail-quest-interact-btn");
         for (let i = 0; i < detailQuestInteractBtns.length; i++) {
-            detailQuestInteractBtns[i].addEventListener("click", evt => interactDetailQuest(detailQuestInteractBtns[i], evt))
+            let btn = detailQuestInteractBtns[i];
+            let isCountBtn = btn.classList.contains('detail-quest-count');
+
+            if(!isCountBtn) {
+                btn.addEventListener('click', evt => interactDetailQuest(btn, evt))
+                continue;
+            }
+
+            btn.addEventListener("mousedown", evt => {
+                isPressed = true;
+                pressEventDone = false;
+                interactDetailQuestDelegate(btn, evt)
+            })
+
+            btn.addEventListener("mouseup", evt => {
+                isPressed = false;
+                interactDetailQuestDelegate(btn, evt)
+            })
         }
     })
 

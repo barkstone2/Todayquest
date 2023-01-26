@@ -16,7 +16,7 @@ class DetailQuestService(
     private val questRepository: QuestRepository
 ) {
 
-    fun interact(userId: Long, questId: Long, detailQuestId: Long) : DetailQuestResponseDto {
+    fun interact(userId: Long, questId: Long, detailQuestId: Long, count: Short?) : DetailQuestResponseDto {
         val detailQuest = detailQuestRepository.findByIdOrNull(detailQuestId) ?: throw IllegalArgumentException("비정상적인 접근입니다.")
         if(detailQuest.quest.id != questId) throw IllegalArgumentException("비정상적인 접근입니다.")
         if(detailQuest.quest.user.id != userId) throw IllegalArgumentException("비정상적인 접근입니다.")
@@ -24,6 +24,11 @@ class DetailQuestService(
         val parentQuest = questRepository.getById(questId)
 
         if(parentQuest.state != QuestState.PROCEED) throw IllegalArgumentException("이미 완료된 퀘스트입니다.")
+
+        if(count != null) {
+            detailQuest.changeCount(count)
+            return DetailQuestResponseDto.createDto(detailQuest)
+        }
 
         if(detailQuest.state == DetailQuestState.COMPLETE) {
             detailQuest.resetCount()

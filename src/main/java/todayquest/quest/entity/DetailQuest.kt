@@ -76,6 +76,15 @@ class DetailQuest(
         if (count == targetCount) changeState(DetailQuestState.COMPLETE)
     }
 
+    fun changeCount(count: Short) {
+        this.count = if(count > targetCount) targetCount else count
+
+        when {
+            count < targetCount -> changeState(DetailQuestState.PROCEED)
+            else -> changeState(DetailQuestState.COMPLETE)
+        }
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

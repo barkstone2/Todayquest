@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import todayquest.common.MessageUtil;
+import todayquest.exception.ErrorResponse;
 import todayquest.item.service.ItemLogService;
 import todayquest.quest.service.QuestLogService;
 import todayquest.user.dto.UserPrincipal;
@@ -49,22 +50,23 @@ public class UserController {
     }
 
     @ResponseBody
+    @GetMapping("")
+    public String nicknameDuplicateCheck(@RequestParam String nickname) {
+        return userService.isDuplicateNickname(nickname) ? "중복된 닉네임입니다." : "닉네임을 사용할 수 있습니다.";
+    }
+
+    @ResponseBody
     @PutMapping("")
     public ResponseEntity<String> changeUserSettings(@Valid @RequestBody UserRequestDto dto, @AuthenticationPrincipal UserPrincipal principal) {
+        userService.changeUserSettings(principal, dto);
 
-        String nickname = dto.getNickname().trim();
-        boolean isDuplicated = userService.isDuplicateNickname(nickname);
-        ResponseEntity<String> responseEntity;
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(MessageUtil.getMessage("user.settings.changed"));
+    }
 
-        if (isDuplicated) {
-            responseEntity = ResponseEntity.status(HttpStatus.CONFLICT).contentType(MediaType.APPLICATION_JSON).body(MessageUtil.getMessage("nickname.duplicate"));
-        } else {
-            userService.changeUserSettings(principal, dto);
-
-            responseEntity = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(MessageUtil.getMessage("nickname.changed"));
-        }
-
-        return responseEntity;
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler({IllegalStateException.class})
+    public ErrorResponse illegalExHandle(IllegalStateException e) {
+        return new ErrorResponse(e.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

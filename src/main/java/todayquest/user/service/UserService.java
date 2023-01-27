@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import todayquest.common.MessageUtil;
 import todayquest.quest.entity.QuestDifficulty;
 import todayquest.user.dto.UserPrincipal;
 import todayquest.user.dto.UserRequestDto;
@@ -81,13 +82,21 @@ public class UserService {
     public void changeUserSettings(UserPrincipal principal, UserRequestDto dto) {
         UserInfo findUser = userRepository.getById(principal.getUserId());
 
-        String nickname = dto.getNickname().trim();
+        String nickname = dto.getNickname();
+        if(nickname != null) {
+            String nicknameTrim = nickname.trim();
+            boolean isDuplicated = isDuplicateNickname(nicknameTrim);
+            if (isDuplicated) {
+                throw new IllegalStateException(MessageUtil.getMessage("nickname.duplicate"));
+            }
+
+            findUser.updateNickname(nicknameTrim);
+            principal.setNickname(nicknameTrim);
+        }
+
         LocalTime resetTime = LocalTime.of(dto.getResetTime(), 0, 0);
 
-        findUser.updateNickname(nickname);
         findUser.changeResetTime(resetTime);
-
-        principal.setNickname(nickname);
         principal.updateResetTime(resetTime);
     }
 

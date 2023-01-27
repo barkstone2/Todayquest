@@ -12,4 +12,6 @@ public class UserRequestDto {
     @Pattern(regexp = "^([a-zA-Z0-9가-힣[^\\sㄱ-ㅎㅏ-ㅡ]]+)([a-zA-Z0-9가-힣\\s]*)([a-zA-Z0-9가-힣[^\\sㄱ-ㅎㅏ-ㅡ]]+)$", message = "{nickname.pattern}")
     @Size(max = 20, message = "{nickname.size}")
     private String nickname;
+
+    private Integer resetTime;
 }

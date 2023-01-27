@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ public class UserPrincipal implements OAuth2User, OidcUser, UserDetails {
         attr.put("level", userInfo.getLevel());
         attr.put("gold", userInfo.getGold());
         attr.put("exp", userInfo.getExp());
+        attr.put("resetTime", userInfo.getResetTime().getHour());
 
         return UserPrincipal.builder()
                 .userId(userInfo.getId())
@@ -68,6 +70,10 @@ public class UserPrincipal implements OAuth2User, OidcUser, UserDetails {
         attributes.put("level", user.getLevel());
         attributes.put("exp", user.getExp());
         attributes.put("gold", user.getGold());
+    }
+
+    public void updateResetTime(LocalTime resetTime) {
+        attributes.put("resetTime", resetTime.getHour());
     }
 
     @Override

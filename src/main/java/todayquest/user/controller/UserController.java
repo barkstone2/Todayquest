@@ -50,16 +50,17 @@ public class UserController {
 
     @ResponseBody
     @PutMapping("")
-    public ResponseEntity<String> changeNickname(@Valid @RequestBody UserRequestDto user, @AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<String> changeUserSettings(@Valid @RequestBody UserRequestDto dto, @AuthenticationPrincipal UserPrincipal principal) {
 
-        String nickname = user.getNickname().trim();
+        String nickname = dto.getNickname().trim();
         boolean isDuplicated = userService.isDuplicateNickname(nickname);
         ResponseEntity<String> responseEntity;
 
         if (isDuplicated) {
             responseEntity = ResponseEntity.status(HttpStatus.CONFLICT).contentType(MediaType.APPLICATION_JSON).body(MessageUtil.getMessage("nickname.duplicate"));
         } else {
-            userService.changeNickname(principal, nickname);
+            userService.changeUserSettings(principal, dto);
+
             responseEntity = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(MessageUtil.getMessage("nickname.changed"));
         }
 

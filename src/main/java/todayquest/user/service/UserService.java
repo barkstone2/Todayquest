@@ -13,12 +13,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.quest.entity.QuestDifficulty;
 import todayquest.user.dto.UserPrincipal;
+import todayquest.user.dto.UserRequestDto;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 
 import javax.persistence.EntityManager;
 import java.io.IOException;
+import java.time.LocalTime;
 import java.util.Map;
 import java.util.Random;
 
@@ -76,10 +78,17 @@ public class UserService {
         return userRepository.existsByNickname(nickname);
     }
 
-    public void changeNickname(UserPrincipal principal, String nickname) {
+    public void changeUserSettings(UserPrincipal principal, UserRequestDto dto) {
         UserInfo findUser = userRepository.getById(principal.getUserId());
+
+        String nickname = dto.getNickname().trim();
+        LocalTime resetTime = LocalTime.of(dto.getResetTime(), 0, 0);
+
         findUser.updateNickname(nickname);
+        findUser.changeResetTime(resetTime);
+
         principal.setNickname(nickname);
+        principal.updateResetTime(resetTime);
     }
 
     public void earnExpAndGold(UserInfo user, QuestDifficulty clearInfo, UserPrincipal principal) throws IOException {

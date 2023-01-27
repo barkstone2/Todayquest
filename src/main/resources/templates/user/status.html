@@ -28,6 +28,13 @@
         #settingBtn {
             cursor: pointer;
         }
+
+        .view-mode .nickname-change-element {
+            display: none !important;
+        }
+        .change-mode .nickname-view-element {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="container">
@@ -230,17 +237,20 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="settingModalLabel">설정</h3>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
                 </div>
                 <div class="modal-body" id="modalBody">
-                    <div class="row mb-3">
-                        <label for="newNickname" class="col-4 col-form-label">닉네임</label>
-                        <div class="col-8">
-                            <input class="form-control form-text" type="text" id="newNickname" size="20" th:value="${#authentication.name}">
+                    <div id="nicknameWrap" class="row mb-3 view-mode">
+                        <label for="newNickname" class="col-3 col-form-label">닉네임</label>
+                        <div class="col-6">
+                            <input class="form-control" type="text" id="newNickname" size="20" th:value="${#authentication.name}" readonly>
+                        </div>
+                        <div class="col-3">
+                            <div class="btn btn-success nickname-view-element" id="nicknameChangeBtn">변경</div>
+                            <div class="btn btn-success nickname-change-element" id="nicknameDuplicateCheckBtn">중복체크</div>
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="resetTime" class="col-4 col-form-label">초기화 시간</label>
+                        <label for="resetTime" class="col-3 col-form-label">초기화 시간</label>
                         <div class="col-auto">
                             <select class="form-select form-control" id="resetTime">
                                 <option th:each="i: ${#numbers.sequence(0, 23)}"
@@ -253,7 +263,7 @@
                 </div>
                 <div class="modal-footer" id="modalFooter">
                     <button type="button" class="btn btn-primary" id="settingSubmitBtn">저장</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-secondary" id="settingModalCloseBtn">취소</button>
                 </div>
             </div>
         </div>
@@ -264,22 +274,45 @@
 </body>
 <script th:inline="javascript">
 
+    function changeNicknameInputMode(isChangeMode) {
+        let nicknameInput = document.getElementById('newNickname');
+        let nicknameWrap = document.getElementById('nicknameWrap');
+
+        if(isChangeMode) {
+            nicknameInput.removeAttribute('readonly')
+            nicknameWrap.classList.remove('view-mode');
+            nicknameWrap.classList.add('change-mode');
+        } else {
+            nicknameInput.setAttribute('readonly', '')
+            nicknameWrap.classList.add('view-mode');
+            nicknameWrap.classList.remove('change-mode');
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         let settingBtn = document.getElementById('settingBtn');
+        let settingModal = new bootstrap.Modal(document.getElementById('settingModal'));
         settingBtn.addEventListener('click', function() {
-            let settingModal = new bootstrap.Modal(document.getElementById('settingModal'));
             settingModal.toggle();
         });
 
         let settingSubmitBtn = document.getElementById('settingSubmitBtn');
 
         settingSubmitBtn.addEventListener('click', function () {
-            let nickname = document.getElementById('newNickname').value;
-            let resetTime = document.getElementById('resetTime').value;
+            let nicknameWrap = document.getElementById('nicknameWrap');
+            let isNicknameChangeMode = nicknameWrap.classList.contains('change-mode');
 
-            if(nickname === '') {
-                alert('닉네임을 입력해 주세요.');
-                return;
+            let resetTime = document.getElementById('resetTime').value;
+            let param = new Object();
+            param['resetTime'] = resetTime
+
+            if(isNicknameChangeMode) {
+                let nickname = document.getElementById('newNickname').value;
+                if(nickname === '') {
+                    alert('닉네임을 입력해 주세요.');
+                    return;
+                }
+                param['nickname'] = nickname
             }
 
             let xhr = new XMLHttpRequest();
@@ -297,7 +330,36 @@
                 }
             };
 
-            xhr.send(JSON.stringify({nickname:nickname, resetTime:resetTime}));
+            xhr.send(JSON.stringify(param));
+        });
+
+        let nicknameChangeBtn = document.getElementById('nicknameChangeBtn');
+        nicknameChangeBtn.addEventListener('click', () => changeNicknameInputMode(true))
+
+        let modalCloseBtn = document.getElementById('settingModalCloseBtn');
+        modalCloseBtn.addEventListener('click', function() {
+            settingModal.hide()
+            changeNicknameInputMode(false)
+        })
+
+        let nicknameDuplicateCheckBtn = document.getElementById('nicknameDuplicateCheckBtn');
+        nicknameDuplicateCheckBtn.addEventListener('click', function() {
+            let nickname = document.getElementById('newNickname').value;
+
+            if(nickname === '') {
+                alert('닉네임을 입력해 주세요.');
+                return;
+            }
+
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', '/user?nickname=' + nickname);
+            xhr.setRequestHeader('Accept', 'application/json');
+
+            xhr.onload = () => {
+                alert(xhr.response);
+            };
+
+            xhr.send();
         });
     });
 

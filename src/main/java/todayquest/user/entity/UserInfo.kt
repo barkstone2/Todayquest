@@ -3,6 +3,7 @@ package todayquest.user.entity
 import org.hibernate.annotations.DynamicInsert
 import todayquest.common.BaseTimeEntity
 import todayquest.quest.entity.QuestDifficulty
+import java.time.LocalTime
 import javax.persistence.*
 
 @DynamicInsert
@@ -30,6 +31,10 @@ class UserInfo(
     @Column(nullable = false)
     val providerType: ProviderType = providerType
 
+    @Column(nullable = false)
+    var resetTime: LocalTime = LocalTime.of(6,0,0)
+        protected set
+
     var level: Int = 1
         protected set
     var exp: Long = 0
@@ -39,6 +44,10 @@ class UserInfo(
 
     fun updateNickname(nickname: String) {
         this.nickname = nickname
+    }
+
+    fun changeResetTime(newResetTime:LocalTime) {
+        resetTime = newResetTime
     }
 
     fun earnExpAndGold(clearInfo: QuestDifficulty, targetExp: Long) {

@@ -25,13 +25,18 @@
                 border-top: 1px solid #dee2e6!important
             }
         }
-
+        #settingBtn {
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="container">
 <header th:replace="~{layout/head_menu :: user_menu}"></header>
 <h1>상태창</h1>
-    <div class="container">
+    <div class="container position-absolute">
+        <div class="position-absolute top-0 end-0 m-2">
+            <img src="/image/settings.png" width="48px" height="48px" id="settingBtn"/>
+        </div>
         <div class="row border">
             <div class="col-md-3 p-2">
                 <div class="row text-center">
@@ -48,9 +53,6 @@
                     <div class="col-3 align-self-center text-center">닉네임</div>
                     <div class="col row">
                         <div class="col-auto align-self-center" th:text="${#authentication.name}">닉네임</div>
-                    </div>
-                    <div class="col-auto align-self-center">
-                        <div class="col btn-sm btn-secondary" style="cursor:pointer;" id="nicknameChangeBtn">닉네임 변경</div>
                     </div>
                 </div>
                 <div class="row col p-2">
@@ -222,58 +224,84 @@
 
     </div>
 
-<!-- Modal -->
-<div class="modal fade" id="nicknameModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="nicknameModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="nicknameModalLabel">닉네임 변경</h3>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <input class="form-control form-text" type="text" id="newNickname" size="20">
-            </div>
-            <div class="modal-footer" id="modalFooter">
-                <button type="button" class="btn btn-primary" id="nicknameSubmitBtn">변경하기</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+    <!-- Modal -->
+    <div class="modal fade" id="settingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="settingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="settingModalLabel">설정</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <div class="row mb-3">
+                        <label for="newNickname" class="col-4 col-form-label">닉네임</label>
+                        <div class="col-8">
+                            <input class="form-control form-text" type="text" id="newNickname" size="20" th:value="${#authentication.name}">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="resetTime" class="col-4 col-form-label">초기화 시간</label>
+                        <div class="col-auto">
+                            <select class="form-select form-control" id="resetTime">
+                                <option th:each="i: ${#numbers.sequence(0, 23)}"
+                                        th:value="${i}"
+                                        th:selected="${#authentication.principal.attributes['resetTime'] == i}"
+                                        th:text="|${i}시|"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="modalFooter">
+                    <button type="button" class="btn btn-primary" id="settingSubmitBtn">저장</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                </div>
             </div>
         </div>
     </div>
+
 </div>
 
 </body>
 <script th:inline="javascript">
 
-    document.getElementById('nicknameChangeBtn').onclick = function () {
-        let nicknameModal = new bootstrap.Modal(document.getElementById('nicknameModal'));
-        nicknameModal.toggle();
-    };
+    document.addEventListener("DOMContentLoaded", function() {
+        let settingBtn = document.getElementById('settingBtn');
+        settingBtn.addEventListener('click', function() {
+            let settingModal = new bootstrap.Modal(document.getElementById('settingModal'));
+            settingModal.toggle();
+        });
 
-    document.getElementById('nicknameSubmitBtn').onclick = function () {
-        let nickname = document.getElementById('newNickname').value;
+        let settingSubmitBtn = document.getElementById('settingSubmitBtn');
 
-        if(nickname === '') {
-            alert('닉네임을 입력해 주세요.');
-            return;
-        }
+        settingSubmitBtn.addEventListener('click', function () {
+            let nickname = document.getElementById('newNickname').value;
+            let resetTime = document.getElementById('resetTime').value;
 
-        let xhr = new XMLHttpRequest();
-        let token = document.getElementsByName('_csrf')[0].getAttribute('content');
-        let header = document.getElementsByName('_csrf_header')[0].getAttribute('content');
-        xhr.open('PUT', '/user');
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.setRequestHeader('Accept', 'application/json');
-        xhr.setRequestHeader(header, token);
-
-        xhr.onload = () => {
-            alert(xhr.response);
-            if (xhr.status === 200) {
-                location.reload();
+            if(nickname === '') {
+                alert('닉네임을 입력해 주세요.');
+                return;
             }
-        };
 
-        xhr.send(JSON.stringify({nickname:nickname}));
-    };
+            let xhr = new XMLHttpRequest();
+            let token = document.getElementsByName('_csrf')[0].getAttribute('content');
+            let header = document.getElementsByName('_csrf_header')[0].getAttribute('content');
+            xhr.open('PUT', '/user');
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.setRequestHeader(header, token);
+
+            xhr.onload = () => {
+                alert(xhr.response);
+                if (xhr.status === 200) {
+                    location.reload();
+                }
+            };
+
+            xhr.send(JSON.stringify({nickname:nickname, resetTime:resetTime}));
+        });
+    });
+
+
 
 
 </script>

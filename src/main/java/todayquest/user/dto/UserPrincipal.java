@@ -36,6 +36,7 @@ public class UserPrincipal implements OAuth2User, OidcUser, UserDetails {
         attr.put("gold", userInfo.getGold());
         attr.put("exp", userInfo.getExp());
         attr.put("resetTime", userInfo.getResetTime().getHour());
+        attr.put("coreTime", userInfo.getCoreTime().getHour());
 
         return UserPrincipal.builder()
                 .userId(userInfo.getId())
@@ -72,8 +73,9 @@ public class UserPrincipal implements OAuth2User, OidcUser, UserDetails {
         attributes.put("gold", user.getGold());
     }
 
-    public void updateResetTime(LocalTime resetTime) {
-        attributes.put("resetTime", resetTime.getHour());
+    public void changeUserSettings(UserRequestDto dto) {
+        attributes.put("resetTime", dto.getResetTime());
+        attributes.put("coreTime", dto.getCoreTime());
     }
 
     @Override

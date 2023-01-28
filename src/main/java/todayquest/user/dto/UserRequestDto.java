@@ -14,4 +14,17 @@ public class UserRequestDto {
     private String nickname;
 
     private Integer resetTime;
+    private Integer coreTime;
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public Integer getResetTime() {
+        return resetTime;
+    }
+
+    public Integer getCoreTime() {
+        return coreTime;
+    }
 }

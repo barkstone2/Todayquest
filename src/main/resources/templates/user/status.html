@@ -35,6 +35,10 @@
         .change-mode .nickname-view-element {
             display: none !important;
         }
+        .tooltip {
+            font-size: 10px;
+            max-width: 300px;
+        }
     </style>
 </head>
 <body class="container">
@@ -260,6 +264,29 @@
                             </select>
                         </div>
                     </div>
+                    <div class="row mb-3">
+                        <label for="coreTime" class="col-3 col-form-label">
+                            코어타임
+                            <img src="/image/question-mark.png"
+                                 id="resetTimeToolTip"
+                                 width="24px" height="24px"
+                                 data-bs-toggle="tooltip"
+                                 data-bs-placement="top"
+                                 data-bs-html="true"
+                                 data-bs-title="
+                                 <span>오늘 진행할 퀘스트를 등록하는 시간이에요.<br>
+                                 코어타임에 등록한 퀘스트를 클리어 해야 경험치를 획득할 수 있어요.<br>
+                                 설정한 시간 + 1시간까지가 코어타임으로 설정돼요.</span>"/>
+                        </label>
+                        <div class="col-auto">
+                            <select class="form-select form-control" id="coreTime">
+                                <option th:each="i: ${#numbers.sequence(0, 23)}"
+                                        th:value="${i}"
+                                        th:selected="${#authentication.principal.attributes['coreTime'] == i}"
+                                        th:text="|${i}시|"></option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer" id="modalFooter">
                     <button type="button" class="btn btn-primary" id="settingSubmitBtn">저장</button>
@@ -273,6 +300,11 @@
 
 </body>
 <script th:inline="javascript">
+
+    document.addEventListener("DOMContentLoaded", function (){
+        let resetTimeToolTip = document.getElementById('resetTimeToolTip');
+        new bootstrap.Tooltip(resetTimeToolTip, );
+    })
 
     function changeNicknameInputMode(isChangeMode) {
         let nicknameInput = document.getElementById('newNickname');
@@ -303,8 +335,10 @@
             let isNicknameChangeMode = nicknameWrap.classList.contains('change-mode');
 
             let resetTime = document.getElementById('resetTime').value;
-            let param = new Object();
+            let coreTime = document.getElementById('coreTime').value;
+            let param = {};
             param['resetTime'] = resetTime
+            param['coreTime'] = coreTime
 
             if(isNicknameChangeMode) {
                 let nickname = document.getElementById('newNickname').value;

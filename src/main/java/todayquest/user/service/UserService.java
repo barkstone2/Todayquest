@@ -94,10 +94,8 @@ public class UserService {
             principal.setNickname(nicknameTrim);
         }
 
-        LocalTime resetTime = LocalTime.of(dto.getResetTime(), 0, 0);
-
-        findUser.changeResetTime(resetTime);
-        principal.updateResetTime(resetTime);
+        findUser.changeUserSettings(dto);
+        principal.changeUserSettings(dto);
     }
 
     public void earnExpAndGold(UserInfo user, QuestDifficulty clearInfo, UserPrincipal principal) throws IOException {

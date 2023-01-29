@@ -70,4 +70,10 @@ class UserInfo(
         }
     }
 
+    fun isNowCoreTime() : Boolean {
+        val now = LocalTime.now()
+        if (coreTime.isAfter(now) || now.isAfter(coreTime.plusHours(1))) return false;
+        return true
+    }
+
 }

@@ -62,6 +62,10 @@ public class QuestService {
     public void saveQuest(QuestRequestDto dto, Long userId) {
         UserInfo findUser = userRepository.getById(userId);
 
+        if (findUser.isNowCoreTime()) {
+            dto.setType(QuestType.MAIN);
+        }
+
         Long nextSeq = questRepository.getNextSeqByUserId(userId);
         Quest savedQuest = questRepository.save(dto.mapToEntity(nextSeq, findUser));
 

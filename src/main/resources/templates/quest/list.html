@@ -475,12 +475,12 @@
 
             let detailQuestInteractBtn = document.createElement('span');
             if(questState.message === '진행') {
-                detailQuestInteractBtn.className = quest.type === 'CHECK'
+                detailQuestInteractBtn.className = detailQuest.type === 'CHECK'
                     ? 'border border-1 rounded p-1 text-center detail-quest-count'
                     : 'doodle-checkbox';
                 detailQuestInteractBtn.classList.add('detail-quest-interact-btn')
             } else {
-                detailQuestInteractBtn.className = quest.type === 'CHECK'
+                detailQuestInteractBtn.className = detailQuest.type === 'CHECK'
                     ? 'border border-1 rounded p-1 text-center'
                     : 'doodle-checkbox-readonly';
             }
@@ -489,7 +489,7 @@
             detailQuestInteractBtn.setAttribute('data-detail-id', detailQuest.id);
 
             if(detailQuest.state === 'COMPLETE') {
-                detailQuestInteractBtn.classList.add(quest.type === 'CHECK' ? 'detail-quest-complete' : 'on');
+                detailQuestInteractBtn.classList.add(detailQuest.type === 'CHECK' ? 'detail-quest-complete' : 'on');
             }
 
             detailQuestInteractBtn.addEventListener("click", evt => interactDetailQuest(detailQuestInteractBtn, evt))

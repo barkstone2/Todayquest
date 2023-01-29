@@ -11,6 +11,7 @@ import java.time.LocalTime
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
+import todayquest.quest.entity.QuestType
 
 data class QuestRequestDto(
     var questId: Long? = null,
@@ -31,6 +32,7 @@ data class QuestRequestDto(
     var detailQuests: MutableList<DetailQuestRequestDto> = mutableListOf(),
     var lastModifiedDate: LocalDateTime? = null,
     var canComplete : Boolean? = null,
+    var type: QuestType = QuestType.SUB
 ) {
 
     fun mapToEntity(nextSeq: Long, userInfo: UserInfo): Quest {
@@ -40,7 +42,8 @@ data class QuestRequestDto(
             user = userInfo,
             seq = nextSeq,
             state = QuestState.PROCEED,
-            difficulty = difficulty
+            difficulty = difficulty,
+            type = type
             )
     }
 

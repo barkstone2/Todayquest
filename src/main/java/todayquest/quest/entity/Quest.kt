@@ -17,6 +17,7 @@ class Quest(
     seq: Long,
     state: QuestState = QuestState.PROCEED,
     difficulty: QuestDifficulty,
+    type: QuestType,
 ) : BaseTimeEntity() {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,6 +38,10 @@ class Quest(
 
     @Column(name = "user_quest_seq", nullable = false)
     val seq: Long = seq
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    val type: QuestType = type
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

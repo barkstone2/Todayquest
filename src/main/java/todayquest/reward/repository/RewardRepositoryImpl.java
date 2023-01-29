@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import todayquest.reward.entity.QReward;
 import todayquest.reward.entity.Reward;
 
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 
 @RequiredArgsConstructor

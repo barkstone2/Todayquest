@@ -19,7 +19,7 @@ import todayquest.quest.validator.DetailQuestValidator;
 import todayquest.reward.service.RewardService;
 import todayquest.user.dto.UserPrincipal;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.io.IOException;
 
 @Slf4j

@@ -21,7 +21,7 @@ import todayquest.user.dto.UserPrincipal;
 import todayquest.user.dto.UserRequestDto;
 import todayquest.user.service.UserService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.Map;
 

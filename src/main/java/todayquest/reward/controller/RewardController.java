@@ -11,7 +11,7 @@ import todayquest.reward.entity.RewardGrade;
 import todayquest.reward.service.RewardService;
 import todayquest.user.dto.UserPrincipal;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @RequiredArgsConstructor
 @RequestMapping("/rewards")

@@ -7,7 +7,7 @@ import todayquest.reward.entity.Reward
 import todayquest.user.entity.UserInfo
 import java.time.LocalDate
 import java.time.LocalTime
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 class Quest(

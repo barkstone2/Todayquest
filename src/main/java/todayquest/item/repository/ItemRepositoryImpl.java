@@ -1,12 +1,12 @@
 package todayquest.item.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import todayquest.item.entity.Item;
 import todayquest.item.entity.QItem;
 
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
 import java.util.List;
 
 @RequiredArgsConstructor

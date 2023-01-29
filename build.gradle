@@ -5,9 +5,9 @@ buildscript {
 }
 
 plugins {
-	id 'org.springframework.boot' version '2.6.11'
-	id 'io.spring.dependency-management' version '1.0.13.RELEASE'
 	id 'java'
+	id 'org.springframework.boot' version '3.0.2'
+	id 'io.spring.dependency-management' version '1.1.0'
 
 	/* kotlin */
 	id 'org.jetbrains.kotlin.jvm' version '1.8.0'
@@ -18,7 +18,7 @@ plugins {
 
 group = 'todayquest'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+sourceCompatibility = '17'
 
 repositories {
 	mavenCentral()
@@ -32,7 +32,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-devtools'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'mysql:mysql-connector-java'
@@ -48,7 +48,7 @@ dependencies {
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 
-	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta"
 
 	/* kotlin */
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
@@ -58,9 +58,9 @@ dependencies {
 
 
 allOpen {
-	annotation("javax.persistence.Entity")
-	annotation("javax.persistence.Embeddable")
-	annotation("javax.persistence.MappedSuperclass")
+	annotation("jakarta.persistence.Entity")
+	annotation("jakarta.persistence.Embeddable")
+	annotation("jakarta.persistence.MappedSuperclass")
 }
 
 tasks.named('test') {
@@ -73,11 +73,11 @@ kapt {
 
 compileKotlin {
 	kotlinOptions {
-		jvmTarget = "11"
+		jvmTarget = "17"
 	}
 }
 compileTestKotlin {
 	kotlinOptions {
-		jvmTarget = "11"
+		jvmTarget = "17"
 	}
 }

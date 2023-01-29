@@ -5,7 +5,7 @@ import todayquest.common.BaseTimeEntity
 import todayquest.quest.entity.QuestDifficulty
 import todayquest.user.dto.UserRequestDto
 import java.time.LocalTime
-import javax.persistence.*
+import jakarta.persistence.*
 
 @DynamicInsert
 @Entity

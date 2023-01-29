@@ -1,10 +1,10 @@
 package todayquest.quest.entity
 
 import todayquest.quest.dto.DetailQuestRequestDto
-import javax.persistence.*
-import javax.persistence.EnumType.*
-import javax.persistence.FetchType.*
-import javax.persistence.GenerationType.IDENTITY
+import jakarta.persistence.*
+import jakarta.persistence.EnumType.*
+import jakarta.persistence.FetchType.*
+import jakarta.persistence.GenerationType.IDENTITY
 
 @Entity
 @Table(name = "detail_quest")

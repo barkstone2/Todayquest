@@ -1,7 +1,7 @@
 package todayquest.quest.entity
 
 import todayquest.reward.entity.Reward
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * 퀘스트 - 리워드 다대다 매핑 엔티티

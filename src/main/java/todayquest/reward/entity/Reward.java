@@ -1,13 +1,12 @@
 package todayquest.reward.entity;
 
+import jakarta.persistence.*;
 import lombok.*;
 import todayquest.common.BaseTimeEntity;
 import todayquest.reward.dto.RewardRequestDto;
 import todayquest.user.entity.UserInfo;
 
-import javax.persistence.*;
-
-import static javax.persistence.FetchType.LAZY;
+import static jakarta.persistence.FetchType.LAZY;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

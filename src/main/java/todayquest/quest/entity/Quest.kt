@@ -1,13 +1,11 @@
 package todayquest.quest.entity
 
+import jakarta.persistence.*
 import todayquest.common.BaseTimeEntity
 import todayquest.quest.dto.DetailQuestRequestDto
 import todayquest.quest.dto.QuestRequestDto
 import todayquest.reward.entity.Reward
 import todayquest.user.entity.UserInfo
-import java.time.LocalDate
-import java.time.LocalTime
-import jakarta.persistence.*
 
 @Entity
 class Quest(
@@ -16,7 +14,6 @@ class Quest(
     user: UserInfo,
     seq: Long,
     state: QuestState = QuestState.PROCEED,
-    difficulty: QuestDifficulty,
     type: QuestType,
 ) : BaseTimeEntity() {
 
@@ -48,11 +45,6 @@ class Quest(
     var state: QuestState = state
         protected set
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    var difficulty: QuestDifficulty = difficulty
-        protected set
-
     // 퀘스트에서 제거되면 매핑 엔티티 삭제
     @OneToMany(mappedBy = "quest", cascade = [CascadeType.ALL], orphanRemoval = true)
     private val _rewards: MutableList<QuestReward> = mutableListOf()
@@ -67,7 +59,6 @@ class Quest(
     fun updateQuestEntity(dto: QuestRequestDto, updateRewards: List<Reward>): MutableList<QuestReward> {
         title = dto.title ?: throw IllegalArgumentException("퀘스트 이름은 비어있을 수 없습니다.")
         description = dto.description
-        difficulty = dto.difficulty
         return updateRewardList(updateRewards)
     }
 

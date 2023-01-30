@@ -2,6 +2,7 @@ package todayquest.user.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -12,16 +13,13 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.common.MessageUtil;
-import todayquest.quest.entity.QuestDifficulty;
 import todayquest.user.dto.UserPrincipal;
 import todayquest.user.dto.UserRequestDto;
 import todayquest.user.entity.ProviderType;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 
-import jakarta.persistence.EntityManager;
 import java.io.IOException;
-import java.time.LocalTime;
 import java.util.Map;
 import java.util.Random;
 
@@ -98,7 +96,7 @@ public class UserService {
         principal.changeUserSettings(dto);
     }
 
-    public void earnExpAndGold(UserInfo user, QuestDifficulty clearInfo, UserPrincipal principal) throws IOException {
+    public void earnExpAndGold(UserInfo user, UserPrincipal principal) throws IOException {
         // 경험치 테이블을 읽어온다.
         Resource resource = resourceLoader.getResource("classpath:data/exp_table.json");
         ObjectMapper om = new ObjectMapper();
@@ -106,7 +104,7 @@ public class UserService {
         Long targetExp = expTable.get(user.getLevel());
 
         // 사용자의 경험치와 골드를 증가시킨다.
-        user.earnExpAndGold(clearInfo, targetExp);
+        user.earnExpAndGold(targetExp);
 
         // 로그인된 세션의 정보를 동기화한다.
         principal.synchronizeUserInfo(user);

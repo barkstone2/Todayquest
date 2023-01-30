@@ -1,5 +1,6 @@
 package todayquest.quest.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -12,14 +13,12 @@ import todayquest.common.UserLevelLock;
 import todayquest.quest.dto.QuestRequestDto;
 import todayquest.quest.dto.QuestResponseDto;
 import todayquest.quest.dto.QuestSearchCondition;
-import todayquest.quest.entity.QuestDifficulty;
 import todayquest.quest.entity.QuestState;
 import todayquest.quest.service.QuestService;
 import todayquest.quest.validator.DetailQuestValidator;
 import todayquest.reward.service.RewardService;
 import todayquest.user.dto.UserPrincipal;
 
-import jakarta.validation.Valid;
 import java.io.IOException;
 
 @Slf4j
@@ -44,7 +43,6 @@ public class QuestController {
     @GetMapping("/save")
     public String saveForm(Model model, @AuthenticationPrincipal UserPrincipal principal) {
         model.addAttribute("quest", new QuestRequestDto());
-        model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
         model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
         return "quest/save";
     }
@@ -54,7 +52,6 @@ public class QuestController {
         QuestResponseDto quest = questService.getQuestInfo(questId, principal.getUserId());
         model.addAttribute("quest", quest);
         model.addAttribute("rewards", quest.getRewards());
-        model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
         model.addAttribute("rewardOptions", rewardService.getRewardList(principal.getUserId()));
         return "quest/view";
     }
@@ -64,7 +61,6 @@ public class QuestController {
         detailQuestValidator.validate(dto, bindingResult);
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
             model.addAttribute("rewardList", rewardService.getRewardList(principal.getUserId()));
             return "quest/save";
         }
@@ -85,7 +81,6 @@ public class QuestController {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("rewards", rewardService.getRewardListByIds(dto.getRewards(), principal.getUserId()));
-            model.addAttribute("difficultyList", QuestDifficulty.getEnumList());
             model.addAttribute("rewardOptions", rewardService.getRewardList(principal.getUserId()));
             model.addAttribute("hasError", true);
             return "quest/view";

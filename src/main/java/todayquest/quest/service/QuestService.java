@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.achievement.service.AchievementService;
@@ -53,8 +52,8 @@ public class QuestService {
     }
 
     public QuestResponseDto getQuestInfo(Long questId, Long userId) {
-        Quest quest = findQuestWithValidation(questId);
-        checkQuestOwner(quest.getUser().getId(), userId);
+        Quest quest = findQuestIfNullThrow(questId);
+        quest.checkIsQuestOfValidUser(userId);
 
         return QuestResponseDto.createDto(quest);
     }
@@ -88,12 +87,9 @@ public class QuestService {
     }
 
     public void updateQuest(QuestRequestDto dto, Long questId, Long userId) {
-        Quest quest = findQuestWithValidation(questId);
-        checkQuestOwner(quest.getUser().getId(), userId);
-
-        if (!quest.getState().equals(QuestState.PROCEED)) {
-            throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.update.invalid.state"));
-        }
+        Quest quest = findQuestIfNullThrow(questId);
+        quest.checkIsQuestOfValidUser(userId);
+        quest.checkIsProceedingQuest();
 
         List<Reward> updateRewards = rewardRepository.findAllById(dto.getRewards());
 
@@ -107,31 +103,17 @@ public class QuestService {
 
 
     public void deleteQuest(Long questId, Long userId) {
-        Quest quest = findQuestWithValidation(questId);
-        checkQuestOwner(quest.getUser().getId(), userId);
-        quest.changeState(QuestState.DELETE);
+        Quest quest = findQuestIfNullThrow(questId);
+        quest.checkIsQuestOfValidUser(userId);
+        quest.deleteQuest();
         achievementService.checkAndAttainQuestAchievement(userId);
     }
 
     public void completeQuest(Long questId, UserPrincipal principal) throws IOException {
-        Quest quest = findQuestWithValidation(questId);
+        Quest quest = findQuestIfNullThrow(questId);
         UserInfo questOwner = quest.getUser();
-        checkQuestOwner(quest.getUser().getId(), principal.getUserId());
-
-        if(quest.getState().equals(QuestState.DELETE)) {
-            throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.deleted"));
-        }
-
-        if(!quest.getState().equals(QuestState.PROCEED)) {
-            throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.not-proceed"));
-        }
-
-        if(quest.getDetailQuests().stream().anyMatch(dq -> !dq.getState().equals(DetailQuestState.COMPLETE))) {
-            throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.complete.detail"));
-        }
-
-        // 퀘스트의 상태를 완료 상태로 변경한다.
-        quest.changeState(QuestState.COMPLETE);
+        quest.checkIsQuestOfValidUser(principal.getUserId());
+        quest.completeQuest();
 
         /**
          * 퀘스트에 등록된 Reward 정보를 가져온다.
@@ -139,7 +121,7 @@ public class QuestService {
          * -> QuestReward 조회시 Reward ID를 같이 가져 온다.
          */
         List<Reward> rewardList = quest.getRewards().stream()
-                .map(qr -> qr.getReward())
+                .map(QuestReward::getReward)
                 .collect(Collectors.toList());
 
         // 아이템 획득 처리
@@ -155,26 +137,18 @@ public class QuestService {
     }
 
     public void discardQuest(Long questId, Long userId) {
-        Quest quest = findQuestWithValidation(questId);
-        checkQuestOwner(quest.getUser().getId(), userId);
+        Quest quest = findQuestIfNullThrow(questId);
+        quest.checkIsQuestOfValidUser(userId);
 
-        if(quest.getState().equals(QuestState.DELETE)) {
-            throw new IllegalArgumentException(MessageUtil.getMessage("quest.error.deleted"));
-        }
+        quest.discardQuest();
 
-        quest.changeState(QuestState.DISCARD);
         questLogService.saveQuestLog(questId, userId, QuestState.DISCARD);
         achievementService.checkAndAttainQuestAchievement(userId);
     }
 
-    private void checkQuestOwner(Long ownerUserId, Long userId) {
-        if (!ownerUserId.equals(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied", MessageUtil.getMessage("quest")));
-    }
-
-    private Quest findQuestWithValidation(Long questId) {
+    private Quest findQuestIfNullThrow(Long questId) {
         Optional<Quest> findQuest = questRepository.findById(questId);
-        Quest quest = findQuest.orElseThrow(() -> new IllegalArgumentException(
+        return findQuest.orElseThrow(() -> new IllegalArgumentException(
                 MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))));
-        return quest;
     }
 }

@@ -1,7 +1,9 @@
 package todayquest.quest.entity
 
 import jakarta.persistence.*
+import org.springframework.security.access.AccessDeniedException
 import todayquest.common.BaseTimeEntity
+import todayquest.common.MessageUtil
 import todayquest.quest.dto.DetailQuestRequestDto
 import todayquest.quest.dto.QuestRequestDto
 import todayquest.reward.entity.Reward
@@ -85,10 +87,6 @@ class Quest(
         return newRewards
     }
 
-    fun changeState(state: QuestState) {
-        this.state = state
-    }
-
     fun updateDetailQuests(detailQuestRequestDtos: List<DetailQuestRequestDto>): List<DetailQuest> {
         val newDetailQuests: MutableList<DetailQuestRequestDto> = mutableListOf()
 
@@ -111,6 +109,44 @@ class Quest(
 
         return newDetailQuests.map { it.mapToEntity(this) }
             .toCollection(mutableListOf())
+    }
+
+    fun completeQuest() {
+        require(state != QuestState.DELETE) { MessageUtil.getMessage("quest.error.deleted") }
+        require(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
+        require(
+            detailQuests.stream()
+                .allMatch(DetailQuest::isCompletedDetailQuest)
+        ) { MessageUtil.getMessage("quest.error.complete.detail") }
+
+        state = QuestState.COMPLETE
+    }
+
+    fun deleteQuest() {
+        state = QuestState.DELETE
+    }
+
+    fun discardQuest() {
+        require(state != QuestState.DELETE) { MessageUtil.getMessage("quest.error.deleted") }
+        state = QuestState.DISCARD
+    }
+
+    fun failQuest() {
+        state = QuestState.FAIL
+    }
+
+    fun checkIsProceedingQuest() {
+        require(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.update.invalid.state") }
+    }
+
+    fun checkIsQuestOfValidUser(userId: Long) {
+        if (user.id != userId) throw AccessDeniedException(
+            MessageUtil.getMessage(
+                "exception.access.denied",
+                MessageUtil.getMessage("quest")
+            )
+        )
+
     }
 
 }

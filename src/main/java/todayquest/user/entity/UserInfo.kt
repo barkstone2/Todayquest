@@ -55,9 +55,9 @@ class UserInfo(
         coreTime = LocalTime.of(dto.coreTime, 0, 0)
     }
 
-    fun earnExpAndGold(targetExp: Long) {
-        gold += 1
-        exp += 1
+    fun earnExpAndGold(exp: Long, gold: Long, targetExp: Long) {
+        this.gold += gold
+        this.exp += exp
         levelUpCheck(targetExp)
     }
 

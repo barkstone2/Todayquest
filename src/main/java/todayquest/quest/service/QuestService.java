@@ -146,7 +146,7 @@ public class QuestService {
         itemService.saveAllWithDirtyChecking(rewardList, questOwner);
 
         // 경험치 골드 획득 처리
-        userService.earnExpAndGold(questOwner, principal);
+        userService.earnExpAndGold(quest.getType() ,questOwner, principal);
 
         // 퀘스트 완료 로그 저장
         questLogService.saveQuestLog(questId, principal.getUserId(), QuestState.COMPLETE);

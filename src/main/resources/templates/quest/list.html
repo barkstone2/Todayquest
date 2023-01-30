@@ -113,7 +113,9 @@
                th:with="isProceedQuest=${quest.state == quest.state.PROCEED}">
                 <div class="card-header">
                     <span class="p-1 m-1 fw-semi-bold" th:text="|#${quest.seq}|"></span>
-                    <span class="rounded bg-danger text-white p-1 m-1" th:text="${quest.difficulty.getText()}">퀘스트 난이도</span>
+                    <span class="rounded text-white p-1 m-1"
+                          th:text="${quest.type.getTitle()}"
+                          th:classappend="${quest.type == quest.type.MAIN ? 'bg-warning' : 'bg-secondary'}">퀘스트 타입</span>
                     <span th:class="|${quest.state.cssClassInfo} p-1 m-1|" th:text="${quest.state.message}">퀘스트 상태</span>
                     <span class="p-1 fw-semi-bold" th:if="${quest.state == quest.state.COMPLETE || quest.state == quest.state.DISCARD}"
                           th:text="${#temporals.format(quest.lastModifiedDate, 'yyyy-MM-dd HH:mm:ss')}"></span>
@@ -146,8 +148,6 @@
                             </th:block>
                         </div>
                     </div>
-                    <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|경험치 ${quest.difficulty.getExperience()}|">경험치 50</span>
-                    <span class="border border-1 rounded p-1 bg-light fw-semi-bold" th:text="|골드 ${quest.difficulty.getGold()}|">골드 100</span>
                 </div>
                 <div class="list-group list-group-flush" >
                     <div class="list-item text-truncate" th:each="reward : ${quest.rewards}" th:text="${reward.name}">&nbsp;</div>
@@ -426,8 +426,10 @@
         headerEl1.textContent = "#" + quest.seq;
 
         let headerEl2 = document.createElement("span");
-        headerEl2.className="rounded bg-danger text-white p-1 m-1";
-        headerEl2.textContent=quest.difficulty.text;
+        headerEl2.className="rounded text-white p-1 m-1";
+        headerEl2.textContent=quest.type['title'];
+        if(quest.type === 'MAIN') headerEl2.classList.add('bg-warning')
+        else headerEl2.classList.add('bg-secondary')
 
         let headerEl3 = document.createElement("span");
         headerEl3.className= questState.cssClassInfo;
@@ -501,21 +503,9 @@
 
             detailQuestsWrap.appendChild(detailQuestRow);
         }
-
-        let bodyEl4 = document.createElement("span");
-        bodyEl4.className="border border-1 rounded p-1 bg-light fw-semi-bold";
-        bodyEl4.textContent="경험치 "+quest.difficulty.experience;
-
-        let bodyEl5 = document.createElement("span");
-        bodyEl5.className="border border-1 rounded p-1 bg-light fw-semi-bold";
-        bodyEl5.textContent="골드 "+quest.difficulty.gold;
-
         cardBody.appendChild(bodyEl1);
         cardBody.appendChild(bodyEl2);
         cardBody.appendChild(detailQuestsWrap);
-        cardBody.appendChild(bodyEl4);
-        cardBody.append(" ");
-        cardBody.appendChild(bodyEl5);
 
         cardAnchor.appendChild(cardBody);
 

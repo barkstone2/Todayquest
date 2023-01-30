@@ -1,17 +1,12 @@
 package todayquest.quest.dto
 
-import org.springframework.format.annotation.DateTimeFormat
-import todayquest.quest.entity.Quest
-import todayquest.quest.entity.QuestDifficulty
-import todayquest.quest.entity.QuestState
-import todayquest.user.entity.UserInfo
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
+import todayquest.quest.entity.Quest
+import todayquest.quest.entity.QuestState
 import todayquest.quest.entity.QuestType
+import todayquest.user.entity.UserInfo
+import java.time.LocalDateTime
 
 data class QuestRequestDto(
     var questId: Long? = null,
@@ -21,8 +16,6 @@ data class QuestRequestDto(
     @field:NotBlank @field:Size(max = 300)
     var description: String? = null,
 
-    @field:NotNull
-    var difficulty: QuestDifficulty = QuestDifficulty.EASY,
     var state: QuestState? = null,
 
     @field:Size(max = 3)
@@ -42,7 +35,6 @@ data class QuestRequestDto(
             user = userInfo,
             seq = nextSeq,
             state = QuestState.PROCEED,
-            difficulty = difficulty,
             type = type
             )
     }

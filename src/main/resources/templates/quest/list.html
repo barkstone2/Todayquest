@@ -428,7 +428,7 @@
         let headerEl2 = document.createElement("span");
         headerEl2.className="rounded text-white p-1 m-1";
         headerEl2.textContent=quest.type['title'];
-        if(quest.type === 'MAIN') headerEl2.classList.add('bg-warning')
+        if(quest.type.title === '메인') headerEl2.classList.add('bg-warning')
         else headerEl2.classList.add('bg-secondary')
 
         let headerEl3 = document.createElement("span");

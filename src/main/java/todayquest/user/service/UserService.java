@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.common.MessageUtil;
+import todayquest.quest.entity.QuestType;
 import todayquest.user.dto.UserPrincipal;
 import todayquest.user.dto.UserRequestDto;
 import todayquest.user.entity.ProviderType;
@@ -96,15 +97,20 @@ public class UserService {
         principal.changeUserSettings(dto);
     }
 
-    public void earnExpAndGold(UserInfo user, UserPrincipal principal) throws IOException {
+    public void earnExpAndGold(QuestType type, UserInfo user, UserPrincipal principal) throws IOException {
         // 경험치 테이블을 읽어온다.
         Resource resource = resourceLoader.getResource("classpath:data/exp_table.json");
         ObjectMapper om = new ObjectMapper();
         Map<Integer, Long> expTable = om.readValue(resource.getInputStream(), new TypeReference<>() {});
         Long targetExp = expTable.get(user.getLevel());
 
+        Long earnGold = 1L;
+        Long earnExp = 0L;
+
+        if(type.equals(QuestType.MAIN)) earnExp = 1L;
+
         // 사용자의 경험치와 골드를 증가시킨다.
-        user.earnExpAndGold(targetExp);
+        user.earnExpAndGold(earnExp, earnGold, targetExp);
 
         // 로그인된 세션의 정보를 동기화한다.
         principal.synchronizeUserInfo(user);

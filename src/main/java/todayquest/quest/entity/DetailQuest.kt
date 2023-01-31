@@ -1,10 +1,10 @@
 package todayquest.quest.entity
 
-import todayquest.quest.dto.DetailQuestRequestDto
 import jakarta.persistence.*
 import jakarta.persistence.EnumType.*
 import jakarta.persistence.FetchType.*
 import jakarta.persistence.GenerationType.IDENTITY
+import todayquest.quest.dto.DetailQuestRequestDto
 
 @Entity
 @Table(name = "detail_quest")
@@ -19,7 +19,7 @@ class DetailQuest(
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "detail_quest_id")
-    val id: Long? = null
+    val id: Long = 0
 
     @Column(nullable = false, length = 100)
     var title: String = title

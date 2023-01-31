@@ -1,6 +1,8 @@
 package todayquest.quest.entity
 
 import jakarta.persistence.*
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
 import org.springframework.security.access.AccessDeniedException
 import todayquest.common.BaseTimeEntity
 import todayquest.common.MessageUtil
@@ -21,7 +23,7 @@ class Quest(
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "quest_id")
-    val id: Long? = null
+    val id: Long = 0
 
     @Column(length = 50, nullable = false)
     var title: String = title
@@ -47,12 +49,13 @@ class Quest(
     var state: QuestState = state
         protected set
 
-    // 퀘스트에서 제거되면 매핑 엔티티 삭제
+    @Fetch(FetchMode.SUBSELECT)
     @OneToMany(mappedBy = "quest", cascade = [CascadeType.ALL], orphanRemoval = true)
     private val _rewards: MutableList<QuestReward> = mutableListOf()
     val rewards : List<QuestReward>
         get() = _rewards.toList()
 
+    @Fetch(FetchMode.SUBSELECT)
     @OneToMany(mappedBy = "quest", cascade = [CascadeType.ALL], orphanRemoval = true)
     private val _detailQuests: MutableList<DetailQuest> = mutableListOf()
     val detailQuests : List<DetailQuest>
@@ -148,5 +151,21 @@ class Quest(
         )
 
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Quest
+
+        if (id != other.id) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+
 
 }

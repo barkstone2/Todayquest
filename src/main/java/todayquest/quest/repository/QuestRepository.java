@@ -1,5 +1,6 @@
 package todayquest.quest.repository;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,8 +10,14 @@ import org.springframework.stereotype.Repository;
 import todayquest.quest.entity.Quest;
 import todayquest.quest.entity.QuestState;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 @Repository
 public interface QuestRepository extends JpaRepository<Quest, Long>, QuestRepositoryCustom {
     @Query("select q from Quest q where q.user.id = :userId and q.state= :state")
     Slice<Quest> getQuestsList(@Param("userId") Long userId, @Param("state") QuestState state, Pageable pageable);
+
+    @Query("select q from Quest q where q.state = :state and q.createdDate <= :targetDate and q.user.resetTime = :resetTime")
+    Page<Quest> getQuestsForBatch(@Param("state") QuestState state, @Param("targetDate") LocalDateTime targetDate, @Param("resetTime") LocalTime resetTime, Pageable pageable);
 }

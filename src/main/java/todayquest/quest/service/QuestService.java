@@ -81,7 +81,7 @@ public class QuestService {
 
         detailQuestRepository.saveAll(detailQuests);
 
-        questLogService.saveQuestLog(savedQuest.getId(), userId, QuestState.PROCEED);
+        questLogService.saveQuestLog(savedQuest);
 
         achievementService.checkAndAttainQuestAchievement(userId);
     }
@@ -131,7 +131,7 @@ public class QuestService {
         userService.earnExpAndGold(quest.getType() ,questOwner, principal);
 
         // 퀘스트 완료 로그 저장
-        questLogService.saveQuestLog(questId, principal.getUserId(), QuestState.COMPLETE);
+        questLogService.saveQuestLog(quest);
 
         achievementService.checkAndAttainQuestAchievement(principal.getUserId());
     }
@@ -142,7 +142,7 @@ public class QuestService {
 
         quest.discardQuest();
 
-        questLogService.saveQuestLog(questId, userId, QuestState.DISCARD);
+        questLogService.saveQuestLog(quest);
         achievementService.checkAndAttainQuestAchievement(userId);
     }
 

@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.domain.Sort
 import org.springframework.transaction.PlatformTransactionManager
+import todayquest.job.BatchStepListener
 import todayquest.quest.entity.Quest
 import todayquest.quest.entity.QuestState
 import todayquest.quest.repository.QuestRepository
@@ -32,6 +33,7 @@ class BatchConfig(
     private val jobRepository: JobRepository,
     private val transactionManager: PlatformTransactionManager,
     private val questRepository: QuestRepository,
+    private val batchStepListener: BatchStepListener,
 ) {
 
     @Bean
@@ -49,6 +51,7 @@ class BatchConfig(
             .reader(questReader())
             .processor(questProcessor())
             .writer(questWriter())
+            .listener(batchStepListener)
             .build()
         step.isAllowStartIfComplete = true
         return step

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import todayquest.common.MessageUtil;
 import todayquest.exception.ErrorResponse;
 import todayquest.item.service.ItemLogService;
+import todayquest.quest.dto.QuestLogSearchCondition;
 import todayquest.quest.service.QuestLogService;
 import todayquest.user.dto.UserPrincipal;
 import todayquest.user.dto.UserRequestDto;
@@ -36,7 +37,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/status")
-    public String myPage(@AuthenticationPrincipal UserPrincipal principal, Model model) throws IOException {
+    public String myPage(@ModelAttribute("searchCondition") QuestLogSearchCondition condition, @AuthenticationPrincipal UserPrincipal principal, Model model) throws IOException {
 
         // 경험치 테이블을 읽어온다.
         Resource resource = resourceLoader.getResource("classpath:data/exp_table.json");
@@ -44,7 +45,7 @@ public class UserController {
         Map<Integer, Long> expTable = om.readValue(resource.getInputStream(), new TypeReference<>() {});
 
         model.addAttribute("targetExp", expTable.get(principal.getLevel()));
-        model.addAttribute("questLog", questLogService.getQuestLog(principal.getUserId()));
+        model.addAttribute("questStatistic", questLogService.getQuestStatistic(principal.getUserId(), condition));
         model.addAttribute("itemLog", itemLogService.getItemLog(principal.getUserId()));
         return "user/status";
     }

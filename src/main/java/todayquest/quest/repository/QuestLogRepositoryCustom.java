@@ -1,10 +1,10 @@
 package todayquest.quest.repository;
 
-import org.springframework.data.repository.query.Param;
-import todayquest.quest.entity.QuestState;
+import todayquest.quest.dto.QuestLogSearchCondition;
 
 import java.util.Map;
 
 public interface QuestLogRepositoryCustom {
-    Map<String, Long> getQuestAnalytics(Long userId);
+    Map<String, Long> getQuestStatisticByState(Long userId, QuestLogSearchCondition condition);
+    Map<String, Long> getQuestStatisticByType(Long userId, QuestLogSearchCondition condition);
 }

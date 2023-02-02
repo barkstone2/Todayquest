@@ -10,7 +10,7 @@ import jakarta.persistence.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity
+@Entity(name = "quest_log")
 public class QuestLog extends BaseLogEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,16 +19,30 @@ public class QuestLog extends BaseLogEntity {
 
     @Column(nullable = false)
     private Long userId;
+
     @Column(nullable = false)
     private Long questId;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private QuestState state;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private QuestType type;
+
     @Builder
-    public QuestLog(Long userId, Long questId, QuestState state) {
+    public QuestLog(Long userId, Long questId, QuestState state, QuestType type) {
         this.userId = userId;
         this.questId = questId;
         this.state = state;
+        this.type = type;
+    }
+
+    public QuestLog(Quest quest) {
+        this.userId = quest.getUser().getId();
+        this.questId = quest.getId();
+        this.state = quest.getState();
+        this.type = quest.getType();
     }
 }

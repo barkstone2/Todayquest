@@ -8,6 +8,7 @@ import todayquest.quest.dto.QuestLogSearchCondition;
 import todayquest.quest.repository.QuestLogRepository;
 import todayquest.quest.entity.Quest;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -20,8 +21,8 @@ public class QuestLogService {
         questLogRepository.save(new QuestLog(quest));
     }
 
-    public Map<String, Map<String, Long>> getQuestStatistic(Long userId, QuestLogSearchCondition condition) {
-        Map<String, Long> questStatisticByState = questLogRepository.getQuestStatisticByState(userId, condition);
+    public Map<String, Map> getQuestStatistic(Long userId, QuestLogSearchCondition condition) {
+        Map<LocalDate, Map<String, Long>> questStatisticByState = questLogRepository.getQuestStatisticByState(userId, condition);
         Map<String, Long> questStatisticByType = questLogRepository.getQuestStatisticByType(userId, condition);
 
         questStatisticByType.compute("RATIO", (key, value) -> {

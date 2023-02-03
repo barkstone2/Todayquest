@@ -1,32 +1,70 @@
 package todayquest.quest.dto
 
-import java.time.DayOfWeek
+import todayquest.common.firstDayOfQuarter
+import todayquest.common.lastDayOfQuarter
+import todayquest.quest.entity.QuestState
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Period
 import java.time.temporal.TemporalAdjusters
+import java.util.*
+import java.util.function.Function
+import java.util.stream.Collectors
 
 
 class QuestLogSearchCondition(
-    private var searchType: QuestLogSearchType = QuestLogSearchType.DAILY,
+    var searchType: QuestLogSearchType = QuestLogSearchType.DAILY,
     private var startDate: LocalDate = LocalDate.now()
 ) {
 
+    fun getSelectedDate() : LocalDate {
+        return startDate
+    }
+
     fun getStartDate() : LocalDateTime {
+
         return when (searchType) {
-            QuestLogSearchType.WEEKLY -> startDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay()
-            QuestLogSearchType.MONTHLY -> startDate.with(TemporalAdjusters.firstDayOfMonth()).atStartOfDay()
-            QuestLogSearchType.YEARLY -> startDate.with(TemporalAdjusters.firstDayOfYear()).atStartOfDay()
-            else -> startDate.atStartOfDay()
+            QuestLogSearchType.WEEKLY -> startDate.firstDayOfQuarter()
+            QuestLogSearchType.MONTHLY -> startDate.with(TemporalAdjusters.firstDayOfYear()).atStartOfDay()
+            else -> startDate.with(TemporalAdjusters.firstDayOfMonth()).atStartOfDay()
         }
     }
 
     fun getEndDate() : LocalDateTime {
         return when (searchType) {
-            QuestLogSearchType.WEEKLY -> startDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(6).atTime(23, 59, 59)
-            QuestLogSearchType.MONTHLY -> startDate.with(TemporalAdjusters.lastDayOfMonth()).atTime(23, 59, 59)
-            QuestLogSearchType.YEARLY -> startDate.with(TemporalAdjusters.lastDayOfYear()).atTime(23, 59, 59)
-            else -> startDate.atTime(23, 59, 59)
+            QuestLogSearchType.WEEKLY -> startDate.lastDayOfQuarter()
+            QuestLogSearchType.MONTHLY -> startDate.with(TemporalAdjusters.lastDayOfYear()).atTime(23, 59, 59)
+            else -> startDate.with(TemporalAdjusters.lastDayOfMonth()).atTime(23, 59, 59)
         }
+    }
+
+    private fun getPeriodDependingOnType() : Period{
+        return when(searchType) {
+            QuestLogSearchType.WEEKLY -> Period.ofWeeks(1)
+            QuestLogSearchType.MONTHLY -> Period.ofMonths(1)
+            else -> Period.ofDays(1)
+        }
+    }
+
+    fun createResponseCollectionByType() : MutableMap<LocalDate, Map<String, Long>> {
+
+        val startDayFromCondition = LocalDate.from(this.getStartDate())
+        val endDayFromCondition = LocalDate.from(this.getEndDate())
+
+        val stateCountMap = Arrays
+            .stream(QuestState.values())
+            .collect(
+                Collectors.toMap(QuestState::name) { _ -> 0L }
+            )
+
+        return startDayFromCondition
+            .datesUntil(endDayFromCondition.plusDays(1), getPeriodDependingOnType())
+            .collect(
+                Collectors.toMap(
+                    Function.identity(),
+                    Function { stateCountMap.toMutableMap() },
+                )
+            )
     }
 
 }

@@ -64,6 +64,12 @@ public class UserController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(MessageUtil.getMessage("user.settings.changed"));
     }
 
+    @ResponseBody
+    @GetMapping("/statistic/quest")
+    public ResponseEntity<Map<String, Map>> getQuestStatistics(QuestLogSearchCondition condition, @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(questLogService.getQuestStatistic(principal.getUserId(), condition));
+    }
+
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler({IllegalStateException.class})
     public ErrorResponse illegalExHandle(IllegalStateException e) {

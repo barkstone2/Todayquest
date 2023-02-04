@@ -3,10 +3,10 @@ package todayquest.quest.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import todayquest.quest.entity.QuestLog;
 import todayquest.quest.dto.QuestLogSearchCondition;
-import todayquest.quest.repository.QuestLogRepository;
 import todayquest.quest.entity.Quest;
+import todayquest.quest.entity.QuestLog;
+import todayquest.quest.repository.QuestLogRepository;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -23,20 +23,36 @@ public class QuestLogService {
 
     public Map<String, Map> getQuestStatistic(Long userId, QuestLogSearchCondition condition) {
         Map<LocalDate, Map<String, Long>> questStatisticByState = questLogRepository.getQuestStatisticByState(userId, condition);
-        Map<String, Long> questStatisticByType = questLogRepository.getQuestStatisticByType(userId, condition);
 
-        questStatisticByType.compute("RATIO", (key, value) -> {
-            long main = questStatisticByType.get("MAIN");
-            long sub = questStatisticByType.get("SUB");
+        for (Map<String, Long> stateMap : questStatisticByState.values()) {
+            stateMap.compute("RATIO", (key, value)-> {
+                long allQuestCount = stateMap.values().stream().mapToLong(v -> v).sum();
+                Long completeCount = stateMap.get("COMPLETE");
 
-            if (main + sub == 0) {
-                return 0L;
-            }
+                if(allQuestCount == 0) return 0L;
 
-            double ratio = (double) main / (main + sub);
-            double percent = ratio * 100;
-            return Math.round(percent);
-        });
+                double ratio = (double) completeCount / allQuestCount;
+                double percent = ratio * 100;
+                return Math.round(percent);
+            });
+        }
+
+        Map<LocalDate, Map<String, Long>> questStatisticByType = questLogRepository.getQuestStatisticByType(userId, condition);
+
+        for (Map<String, Long> typeMap : questStatisticByType.values()) {
+            typeMap.compute("RATIO", (key, value) -> {
+                long main = typeMap.get("MAIN");
+                long sub = typeMap.get("SUB");
+
+                if (main + sub == 0) {
+                    return 0L;
+                }
+
+                double ratio = (double) main / (main + sub);
+                double percent = ratio * 100;
+                return Math.round(percent);
+            });
+        }
 
         return Map.of("state", questStatisticByState, "type", questStatisticByType);
     }

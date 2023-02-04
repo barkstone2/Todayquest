@@ -3,6 +3,7 @@ package todayquest.quest.dto
 import todayquest.common.firstDayOfQuarter
 import todayquest.common.lastDayOfQuarter
 import todayquest.quest.entity.QuestState
+import todayquest.quest.entity.QuestType
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
@@ -48,21 +49,42 @@ class QuestLogSearchCondition(
 
     fun createResponseCollectionByType() : MutableMap<LocalDate, Map<String, Long>> {
 
+        val countMap = Arrays
+            .stream(QuestType.values())
+            .collect(
+                Collectors.toMap(QuestType::name) { _ -> 0L }
+            )
+
         val startDayFromCondition = LocalDate.from(this.getStartDate())
         val endDayFromCondition = LocalDate.from(this.getEndDate())
-
-        val stateCountMap = Arrays
-            .stream(QuestState.values())
-            .collect(
-                Collectors.toMap(QuestState::name) { _ -> 0L }
-            )
 
         return startDayFromCondition
             .datesUntil(endDayFromCondition.plusDays(1), getPeriodDependingOnType())
             .collect(
                 Collectors.toMap(
                     Function.identity(),
-                    Function { stateCountMap.toMutableMap() },
+                    Function { countMap.toMutableMap() },
+                )
+            )
+    }
+
+    fun createResponseCollectionByState() : MutableMap<LocalDate, Map<String, Long>> {
+
+        val countMap = Arrays
+            .stream(QuestState.values())
+            .collect(
+                Collectors.toMap(QuestState::name) { _ -> 0L }
+            )
+
+        val startDayFromCondition = LocalDate.from(this.getStartDate())
+        val endDayFromCondition = LocalDate.from(this.getEndDate())
+
+        return startDayFromCondition
+            .datesUntil(endDayFromCondition.plusDays(1), getPeriodDependingOnType())
+            .collect(
+                Collectors.toMap(
+                    Function.identity(),
+                    Function { countMap.toMutableMap() },
                 )
             )
     }

@@ -7,5 +7,5 @@ import java.util.Map;
 
 public interface QuestLogRepositoryCustom {
     Map<LocalDate, Map<String, Long>> getQuestStatisticByState(Long userId, QuestLogSearchCondition condition);
-    Map<String, Long> getQuestStatisticByType(Long userId, QuestLogSearchCondition condition);
+    Map<LocalDate, Map<String, Long>> getQuestStatisticByType(Long userId, QuestLogSearchCondition condition);
 }

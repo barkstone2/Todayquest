@@ -618,9 +618,6 @@
         xhr.open("put", url);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.setRequestHeader("Accept", 'application/json');
-        let token = document.getElementsByName('_csrf')[0].getAttribute('content');
-        let header = document.getElementsByName('_csrf_header')[0].getAttribute('content');
-        xhr.setRequestHeader(header, token);
 
         xhr.onload = () => {
             if (xhr.status === 200) {

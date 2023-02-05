@@ -74,6 +74,11 @@ public class UserService {
         return UserPrincipal.create(savedUserInfo);
     }
 
+    public UserPrincipal getUserInfoById(Long id) {
+        UserInfo userInfo = userRepository.getReferenceById(id);
+        return UserPrincipal.create(userInfo);
+    }
+
     public boolean isDuplicateNickname(String nickname) {
         return userRepository.existsByNickname(nickname);
     }

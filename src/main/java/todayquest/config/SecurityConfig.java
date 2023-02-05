@@ -5,9 +5,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import todayquest.oauth.service.CustomOAuth2UserService;
-import todayquest.oauth.service.CustomOidcUserService;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import todayquest.jwt.JwtAuthorizationFilter;
+import todayquest.jwt.JwtTokenProvider;
+import todayquest.oauth.CustomOAuth2UserService;
+import todayquest.oauth.CustomOidcUserService;
+import todayquest.oauth.OAuth2SuccessHandler;
 
 @RequiredArgsConstructor
 @Configuration
@@ -17,9 +22,16 @@ public class SecurityConfig {
     private static final String[] ALLOWED_URL = {"/", "/css/**", "/js/**", "/image/**"};
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOidcUserService customOidcUserService;
+    private final JwtAuthorizationFilter jwtAuthorizationFilter;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        http
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
         http.authorizeHttpRequests()
                 .requestMatchers(ALLOWED_URL).permitAll()
                 .anyRequest().authenticated();
@@ -27,15 +39,18 @@ public class SecurityConfig {
         http.logout()
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID");
+                .deleteCookies("JSESSIONID")
+                .deleteCookies(JwtTokenProvider.ACCESS_TOKEN_NAME);
 
-        http.oauth2Login() // oauth2Login 설정 시작
+        http
+                .oauth2Login() // oauth2Login 설정 시작
                 .loginPage("/")
+                .successHandler(oAuth2SuccessHandler)
                 .userInfoEndpoint() // oauth2Login 성공 이후의 설정을 시작
                 .oidcUserService(customOidcUserService)
-                .userService(customOAuth2UserService)
-                .and().defaultSuccessUrl("/user/status");
+                .userService(customOAuth2UserService);
+
+        http.addFilterBefore(jwtAuthorizationFilter, BasicAuthenticationFilter.class); // 토큰 체크 필터 추가
 
         return http.build();
     }

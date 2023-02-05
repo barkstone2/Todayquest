@@ -1,4 +1,4 @@
-package todayquest.oauth.service;
+package todayquest.oauth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

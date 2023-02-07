@@ -1,5 +1,6 @@
 package todayquest.jwt;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,18 +36,24 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         }
 
         try {
-            String jwt = jwtTokenProvider.getJwtFromRequest(request);
 
-            if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
-                Long userId = jwtTokenProvider.getUserIdFromToken(jwt);
-
-                UserDetails userDetails = userService.getUserInfoById(userId);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            String accessToken = jwtTokenProvider.getJwtFromRequest(request, JwtTokenProvider.ACCESS_TOKEN_NAME);
+            if(!jwtTokenProvider.isValidToken(accessToken)) {
+                String refreshToken = jwtTokenProvider.getJwtFromRequest(request, JwtTokenProvider.REFRESH_TOKEN_NAME);
+                accessToken = jwtTokenProvider.refreshAccessToken(refreshToken);
+                response.addCookie(jwtTokenProvider.createAccessTokenCookie(accessToken));
             }
-        } catch (Exception ex) {
-            logger.error("Could not set user authentication in security context", ex);
+
+            Long userId = jwtTokenProvider.getUserIdFromToken(accessToken);
+
+            UserDetails userDetails = userService.getUserInfoById(userId);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        } catch (JwtException ex) {
+            request.setAttribute("message", "로그인 정보가 만료되었어요. 다시 로그인 해주세요.");
+            response.sendRedirect("/logout");
         }
 
         filterChain.doFilter(request, response);

@@ -1,5 +1,6 @@
 package todayquest.oauth;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,18 +25,22 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             throws IOException {
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
 
-        String accessToken = jwtTokenProvider.createAccessToken(principal.getUserId());
-        String refreshToken = jwtTokenProvider.createRefreshToken();
+        String targetUrl = UriComponentsBuilder.fromUriString("/user/status")
+                .build().toUriString();
+
+        String accessToken;
+        String refreshToken = jwtTokenProvider.getJwtFromRequest(request, JwtTokenProvider.REFRESH_TOKEN_NAME);
+
+        try {
+            accessToken = jwtTokenProvider.refreshAccessToken(refreshToken);
+        } catch (JwtException e) {
+            accessToken = jwtTokenProvider.createAccessToken(principal.getUserId());
+            refreshToken = jwtTokenProvider.createRefreshToken(principal.getUserId());
+
+            response.addCookie(jwtTokenProvider.createRefreshTokenCookie(refreshToken));
+        }
 
         response.addCookie(jwtTokenProvider.createAccessTokenCookie(accessToken));
-        response.addCookie(jwtTokenProvider.createRefreshTokenCookie(refreshToken));
-
-        String targetUrl;
-        log.info("토큰 발행 시작");
-
-        targetUrl = UriComponentsBuilder.fromUriString("/user/status")
-                .queryParam(JwtTokenProvider.ACCESS_TOKEN_NAME, accessToken)
-                .build().toUriString();
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

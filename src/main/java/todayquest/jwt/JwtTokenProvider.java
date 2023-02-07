@@ -1,9 +1,6 @@
 package todayquest.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,26 +43,24 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public boolean isValidToken(String jwtToken) {
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(Decoders.BASE64.decode(secretKey))
+                    .build()
+                    .parseClaimsJws(jwtToken);
+            return !claims.getBody().getExpiration().before(new Date());
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
-    public boolean validateToken(String jwtToken) {
+    public long getUserIdFromToken(String jwtToken) throws ExpiredJwtException {
+
         Jws<Claims> claims = Jwts.parserBuilder()
                 .setSigningKey(Decoders.BASE64.decode(secretKey))
                 .build()
                 .parseClaimsJws(jwtToken);
-        return !claims.getBody().getExpiration().before(new Date());
-    }
-
-    public long getUserIdFromToken(String jwtToken) throws Exception{
-
-        Jws<Claims> claims;
-        try{
-            claims = Jwts.parserBuilder()
-                    .setSigningKey(Decoders.BASE64.decode(secretKey))
-                    .build()
-                    .parseClaimsJws(jwtToken);
-        } catch (Exception ignored) {
-            throw new Exception();
-        }
 
         return claims.getBody().get("id", Long.class);
     }

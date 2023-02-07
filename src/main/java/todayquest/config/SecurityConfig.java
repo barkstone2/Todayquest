@@ -20,7 +20,7 @@ import todayquest.oauth.OAuth2SuccessHandler;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private static final String[] ALLOWED_URL = {"/", "/css/**", "/js/**", "/image/**"};
+    private static final String[] ALLOWED_URL = {"/", "/css/**", "/js/**", "/image/**", "/error", "/user/login"};
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOidcUserService customOidcUserService;
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
@@ -32,6 +32,7 @@ public class SecurityConfig {
         http
                 .csrf()
                     .csrfTokenRepository(new CookieCsrfTokenRepository())
+                    .ignoringRequestMatchers(ALLOWED_URL)
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 

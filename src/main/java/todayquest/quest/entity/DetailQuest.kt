@@ -1,5 +1,7 @@
 package todayquest.quest.entity
 
+import org.springframework.security.access.AccessDeniedException
+import todayquest.common.MessageUtil
 import jakarta.persistence.*
 import jakarta.persistence.EnumType.*
 import jakarta.persistence.FetchType.*
@@ -87,6 +89,11 @@ class DetailQuest(
 
     fun isCompletedDetailQuest() : Boolean {
         return state == DetailQuestState.COMPLETE
+    }
+
+    fun checkIsValidRequest(questId: Long, userId: Long) {
+        if(quest.id != questId || quest.user.id != userId)
+            throw AccessDeniedException(MessageUtil.getMessage("exception.access.denied"))
     }
 
     override fun equals(other: Any?): Boolean {

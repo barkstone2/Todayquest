@@ -93,6 +93,8 @@ class Quest(
 
     fun discardQuest() {
         require(state != QuestState.DELETE) { MessageUtil.getMessage("quest.error.deleted") }
+        require(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
+
         state = QuestState.DISCARD
     }
 
@@ -101,20 +103,21 @@ class Quest(
     }
 
     fun checkIsProceedingQuest() {
-        require(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.update.invalid.state") }
+        require(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
     }
 
     fun checkIsQuestOfValidUser(userId: Long) {
-        if (user.id != userId) throw AccessDeniedException(
-            MessageUtil.getMessage(
-                "exception.access.denied",
-                MessageUtil.getMessage("quest")
-            )
-        )
+        if (user.id != userId)
+            throw AccessDeniedException(MessageUtil.getMessage("exception.access.denied"))
+    }
 
     fun canComplete(): Boolean {
         return detailQuests.stream()
             .allMatch(DetailQuest::isCompletedDetailQuest)
+    }
+
+    fun isMainQuest(): Boolean {
+        return type == QuestType.MAIN
     }
 
     override fun equals(other: Any?): Boolean {

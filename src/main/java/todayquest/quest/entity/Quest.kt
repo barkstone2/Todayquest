@@ -1,14 +1,10 @@
 package todayquest.quest.entity
 
 import jakarta.persistence.*
-import org.hibernate.annotations.Fetch
-import org.hibernate.annotations.FetchMode
 import org.springframework.security.access.AccessDeniedException
 import todayquest.common.BaseTimeEntity
 import todayquest.common.MessageUtil
-import todayquest.quest.dto.DetailQuestRequestDto
-import todayquest.quest.dto.QuestRequestDto
-import todayquest.reward.entity.Reward
+import todayquest.quest.dto.*
 import todayquest.user.entity.UserInfo
 
 @Entity
@@ -49,45 +45,14 @@ class Quest(
     var state: QuestState = state
         protected set
 
-    @Fetch(FetchMode.SUBSELECT)
-    @OneToMany(mappedBy = "quest", cascade = [CascadeType.ALL], orphanRemoval = true)
-    private val _rewards: MutableList<QuestReward> = mutableListOf()
-    val rewards : List<QuestReward>
-        get() = _rewards.toList()
-
-    @Fetch(FetchMode.SUBSELECT)
     @OneToMany(mappedBy = "quest", cascade = [CascadeType.ALL], orphanRemoval = true)
     private val _detailQuests: MutableList<DetailQuest> = mutableListOf()
     val detailQuests : List<DetailQuest>
         get() = _detailQuests.toList()
 
-    fun updateQuestEntity(dto: QuestRequestDto, updateRewards: List<Reward>): MutableList<QuestReward> {
-        title = dto.title ?: throw IllegalArgumentException("퀘스트 이름은 비어있을 수 없습니다.")
+    fun updateQuestEntity(dto: QuestRequest) {
+        title = dto.title
         description = dto.description
-        return updateRewardList(updateRewards)
-    }
-
-    private fun updateRewardList(updateRewards: List<Reward>): MutableList<QuestReward> {
-        val newRewards: MutableList<QuestReward> = mutableListOf()
-        val updateCount = updateRewards.size
-
-        for (i in 0 until updateCount) {
-            val newReward = QuestReward(reward = updateRewards[i], quest = this)
-            try {
-                _rewards[i].updateReward(updateRewards[i])
-            } catch (e: IndexOutOfBoundsException) {
-                newRewards.add(newReward)
-            }
-        }
-
-        val overCount: Int = _rewards.size - updateCount
-        if (overCount > 0) {
-            for (i in updateCount until updateCount + overCount) {
-                // 새로 변경된 rewards의 길이 index에서 요소를 계속 삭제
-                _rewards.removeAt(updateCount)
-            }
-        }
-        return newRewards
     }
 
     fun updateDetailQuests(detailQuestRequestDtos: List<DetailQuestRequestDto>): List<DetailQuest> {

@@ -50,8 +50,8 @@ public class QuestService {
         return QuestResponse.createDto(quest);
     }
 
-    public void saveQuest(QuestRequest dto, Long userId) {
-        UserInfo findUser = userRepository.getById(userId);
+    public QuestResponse saveQuest(QuestRequest dto, Long userId) {
+        UserInfo findUser = userRepository.getReferenceById(userId);
 
         if (findUser.isNowCoreTime()) {
             dto.toMainQuest();
@@ -68,9 +68,10 @@ public class QuestService {
         detailQuestRepository.saveAll(detailQuests);
         questLogService.saveQuestLog(savedQuest);
 
+        return QuestResponse.createDto(savedQuest);
     }
 
-    public void updateQuest(QuestRequest dto, Long questId, Long userId) {
+    public QuestResponse updateQuest(QuestRequest dto, Long questId, Long userId) {
         Quest quest = findQuestIfNullThrow(questId);
         quest.checkIsQuestOfValidUser(userId);
         quest.checkIsProceedingQuest();
@@ -82,9 +83,9 @@ public class QuestService {
         quest.updateQuestEntity(dto);
 
         detailQuestRepository.saveAll(newDetailQuests);
+
+        return QuestResponse.createDto(quest);
     }
-
-
 
     public void deleteQuest(Long questId, Long userId) {
         Quest quest = findQuestIfNullThrow(questId);

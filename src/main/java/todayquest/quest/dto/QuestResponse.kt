@@ -4,7 +4,6 @@ import todayquest.quest.entity.DetailQuestState
 import todayquest.quest.entity.Quest
 import todayquest.quest.entity.QuestState
 import todayquest.quest.entity.QuestType
-import todayquest.reward.dto.RewardResponseDto
 import java.time.LocalDateTime
 
 data class QuestResponseDto(
@@ -13,7 +12,8 @@ data class QuestResponseDto(
     var description: String? = null,
     var seq: Long? = null,
     var state: QuestState? = null,
-    var rewards: List<RewardResponseDto>? = null,
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     var lastModifiedDate: LocalDateTime? = null,
     var detailQuests: List<DetailQuestResponseDto>? = null,
     var canComplete : Boolean? = null,
@@ -30,11 +30,6 @@ data class QuestResponseDto(
                 seq = quest.seq,
                 state = quest.state,
                 lastModifiedDate = quest.lastModifiedDate,
-                rewards = quest.rewards.map {
-                    RewardResponseDto.createDto(
-                        it.reward
-                    )
-                }.toCollection(mutableListOf()),
                 detailQuests = quest.detailQuests.map {
                     DetailQuestResponseDto.createDto(
                         it

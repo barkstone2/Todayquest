@@ -15,7 +15,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import todayquest.common.MessageUtil;
 import todayquest.exception.ErrorResponse;
-import todayquest.item.service.ItemLogService;
 import todayquest.quest.dto.QuestLogSearchCondition;
 import todayquest.quest.service.QuestLogService;
 import todayquest.user.dto.UserPrincipal;
@@ -46,7 +45,6 @@ public class UserController {
 
         model.addAttribute("targetExp", expTable.get(principal.getLevel()));
         model.addAttribute("questStatistic", questLogService.getQuestStatistic(principal.getUserId(), condition));
-        model.addAttribute("itemLog", itemLogService.getItemLog(principal.getUserId()));
         return "user/status";
     }
 

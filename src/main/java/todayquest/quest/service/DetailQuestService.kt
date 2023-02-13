@@ -17,17 +17,17 @@ class DetailQuestService(
 
     fun interact(userId: Long, questId: Long, detailQuestId: Long, request: DetailInteractRequest?) : DetailResponse {
         val detailQuest = detailQuestRepository.findByIdOrNull(detailQuestId) ?: throw IllegalArgumentException("비정상적인 접근입니다.")
-        if(detailQuest.quest.id != questId) throw IllegalArgumentException("비정상적인 접근입니다.")
-        if(detailQuest.quest.user.id != userId) throw IllegalArgumentException("비정상적인 접근입니다.")
+        detailQuest.checkIsValidRequest(questId, userId)
 
-        val parentQuest = questRepository.getById(questId)
+        val parentQuest = questRepository.getReferenceById(questId)
+        parentQuest.checkIsProceedingQuest()
 
         if(request != null) {
             detailQuest.changeCount(request.count)
             return DetailResponse.createDto(detailQuest, parentQuest.canComplete())
         }
 
-        if(detailQuest.state == DetailQuestState.COMPLETE) {
+        if(detailQuest.isCompletedDetailQuest()) {
             detailQuest.resetCount()
             return DetailResponse.createDto(detailQuest)
         }

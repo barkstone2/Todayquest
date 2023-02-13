@@ -12,7 +12,6 @@ import todayquest.quest.dto.QuestResponse;
 import todayquest.quest.entity.DetailQuest;
 import todayquest.quest.entity.Quest;
 import todayquest.quest.entity.QuestState;
-import todayquest.quest.entity.QuestType;
 import todayquest.quest.repository.DetailQuestRepository;
 import todayquest.quest.repository.QuestRepository;
 import todayquest.user.dto.UserPrincipal;
@@ -55,7 +54,7 @@ public class QuestService {
         UserInfo findUser = userRepository.getById(userId);
 
         if (findUser.isNowCoreTime()) {
-            dto.setType(QuestType.MAIN);
+            dto.toMainQuest();
         }
 
         Long nextSeq = questRepository.getNextSeqByUserId(userId);
@@ -76,7 +75,7 @@ public class QuestService {
         quest.checkIsQuestOfValidUser(userId);
         quest.checkIsProceedingQuest();
 
-        List<Reward> updateRewards = rewardRepository.findAllById(dto.getRewards());
+        if(quest.isMainQuest()) dto.toMainQuest();
 
         List<DetailQuest> newDetailQuests = quest.updateDetailQuests(dto.getDetails());
 

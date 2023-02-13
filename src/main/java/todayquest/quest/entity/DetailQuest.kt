@@ -4,7 +4,7 @@ import jakarta.persistence.*
 import jakarta.persistence.EnumType.*
 import jakarta.persistence.FetchType.*
 import jakarta.persistence.GenerationType.IDENTITY
-import todayquest.quest.dto.DetailQuestRequestDto
+import todayquest.quest.dto.DetailRequest
 
 @Entity
 @Table(name = "detail_quest")
@@ -47,9 +47,9 @@ class DetailQuest(
     @JoinColumn(name = "quest_id")
     val quest: Quest = quest
 
-    fun updateDetailQuest(newDetailQuest: DetailQuestRequestDto) {
-        title = newDetailQuest.title!!
-        type = newDetailQuest.type!!
+    fun updateDetailQuest(newDetailQuest: DetailRequest) {
+        title = newDetailQuest.title
+        type = newDetailQuest.type
         targetCount = if (newDetailQuest.type == DetailQuestType.COUNT) newDetailQuest.targetCount!! else 1
 
         if(newDetailQuest.id != this.id || newDetailQuest.type != this.type) resetCount()
@@ -101,7 +101,7 @@ class DetailQuest(
     }
 
     override fun hashCode(): Int {
-        return id?.hashCode() ?: 0
+        return id.hashCode()
     }
 
 }

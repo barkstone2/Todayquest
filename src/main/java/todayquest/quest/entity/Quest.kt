@@ -55,12 +55,12 @@ class Quest(
         description = dto.description
     }
 
-    fun updateDetailQuests(detailQuestRequestDtos: List<DetailQuestRequestDto>): List<DetailQuest> {
-        val newDetailQuests: MutableList<DetailQuestRequestDto> = mutableListOf()
+    fun updateDetailQuests(detailRequests: List<DetailRequest>): List<DetailQuest> {
+        val newDetailQuests: MutableList<DetailRequest> = mutableListOf()
 
-        val updateCount = detailQuestRequestDtos.size
+        val updateCount = detailRequests.size
         for (i in 0 until updateCount) {
-            val newDetailQuest = detailQuestRequestDtos[i]
+            val newDetailQuest = detailRequests[i]
             try {
                 _detailQuests[i].updateDetailQuest(newDetailQuest)
             } catch (e: IndexOutOfBoundsException) {
@@ -82,10 +82,7 @@ class Quest(
     fun completeQuest() {
         require(state != QuestState.DELETE) { MessageUtil.getMessage("quest.error.deleted") }
         require(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
-        require(
-            detailQuests.stream()
-                .allMatch(DetailQuest::isCompletedDetailQuest)
-        ) { MessageUtil.getMessage("quest.error.complete.detail") }
+        require(canComplete()) { MessageUtil.getMessage("quest.error.complete.detail") }
 
         state = QuestState.COMPLETE
     }
@@ -115,6 +112,9 @@ class Quest(
             )
         )
 
+    fun canComplete(): Boolean {
+        return detailQuests.stream()
+            .allMatch(DetailQuest::isCompletedDetailQuest)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -131,6 +131,5 @@ class Quest(
     override fun hashCode(): Int {
         return id.hashCode()
     }
-
 
 }

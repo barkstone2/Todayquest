@@ -7,10 +7,12 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.common.MessageUtil;
-import todayquest.item.service.ItemService;
-import todayquest.quest.dto.QuestRequestDto;
-import todayquest.quest.dto.QuestResponseDto;
-import todayquest.quest.entity.*;
+import todayquest.quest.dto.QuestRequest;
+import todayquest.quest.dto.QuestResponse;
+import todayquest.quest.entity.DetailQuest;
+import todayquest.quest.entity.Quest;
+import todayquest.quest.entity.QuestState;
+import todayquest.quest.entity.QuestType;
 import todayquest.quest.repository.DetailQuestRepository;
 import todayquest.quest.repository.QuestRepository;
 import todayquest.user.dto.UserPrincipal;
@@ -35,22 +37,21 @@ public class QuestService {
     private final UserService userService;
     private final QuestLogService questLogService;
 
-
-    public Slice<QuestResponseDto> getQuestList(Long userId, QuestState state, Pageable pageable) {
+    public Slice<QuestResponse> getQuestList(Long userId, QuestState state, Pageable pageable) {
 
         PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
         return questRepository.getQuestsList(userId, state, pageRequest)
-                .map(QuestResponseDto::createDto);
+                .map(QuestResponse::createDto);
     }
 
-    public QuestResponseDto getQuestInfo(Long questId, Long userId) {
+    public QuestResponse getQuestInfo(Long questId, Long userId) {
         Quest quest = findQuestIfNullThrow(questId);
         quest.checkIsQuestOfValidUser(userId);
 
-        return QuestResponseDto.createDto(quest);
+        return QuestResponse.createDto(quest);
     }
 
-    public void saveQuest(QuestRequestDto dto, Long userId) {
+    public void saveQuest(QuestRequest dto, Long userId) {
         UserInfo findUser = userRepository.getById(userId);
 
         if (findUser.isNowCoreTime()) {
@@ -60,7 +61,7 @@ public class QuestService {
         Long nextSeq = questRepository.getNextSeqByUserId(userId);
         Quest savedQuest = questRepository.save(dto.mapToEntity(nextSeq, findUser));
 
-        List<DetailQuest> detailQuests = dto.getDetailQuests()
+        List<DetailQuest> detailQuests = dto.getDetails()
                 .stream()
                 .map(dq -> dq.mapToEntity(savedQuest))
                 .collect(Collectors.toList());
@@ -70,14 +71,14 @@ public class QuestService {
 
     }
 
-    public void updateQuest(QuestRequestDto dto, Long questId, Long userId) {
+    public void updateQuest(QuestRequest dto, Long questId, Long userId) {
         Quest quest = findQuestIfNullThrow(questId);
         quest.checkIsQuestOfValidUser(userId);
         quest.checkIsProceedingQuest();
 
         List<Reward> updateRewards = rewardRepository.findAllById(dto.getRewards());
 
-        List<DetailQuest> newDetailQuests = quest.updateDetailQuests(dto.getDetailQuests());
+        List<DetailQuest> newDetailQuests = quest.updateDetailQuests(dto.getDetails());
 
         quest.updateQuestEntity(dto);
 

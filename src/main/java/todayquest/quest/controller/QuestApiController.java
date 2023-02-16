@@ -112,7 +112,7 @@ public class QuestApiController {
     public ResponseEntity<ResponseData<DetailResponse>> interactWithDetailQuest(
             @Min(1) @PathVariable("questId") Long questId,
             @Min(1) @PathVariable("detailQuestId") Long detailQuestId,
-            @RequestBody(required = false) DetailInteractRequest dto,
+            @Valid @RequestBody(required = false) DetailInteractRequest dto,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
 

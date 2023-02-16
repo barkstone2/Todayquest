@@ -9,10 +9,10 @@ import todayquest.quest.entity.DetailQuestType
 import todayquest.quest.entity.Quest
 
 class DetailRequest(
-    id: Long?,
     title: String,
     type: DetailQuestType,
     targetCount: Short,
+    id: Long? = null,
 ) {
 
     var id = id

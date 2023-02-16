@@ -1,11 +1,13 @@
 package todayquest.quest.dto;
 
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import todayquest.quest.entity.QuestState;
 
 @Data
 public class QuestSearchCondition {
 
+    @Min(0)
     private int page;
     private QuestState state;
 

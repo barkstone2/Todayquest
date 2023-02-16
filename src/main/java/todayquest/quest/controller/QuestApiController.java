@@ -46,12 +46,12 @@ public class QuestApiController {
     }
 
     @GetMapping("/{questId}")
-    public ResponseEntity<QuestResponse> getQuest(
+    public ResponseEntity<ResponseData<QuestResponse>> getQuest(
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         QuestResponse quest = questService.getQuestInfo(questId, principal.getUserId());
-        return ResponseEntity.ok(quest);
+        return ResponseEntity.ok(new ResponseData<>(quest));
     }
 
     @PostMapping("")
@@ -66,7 +66,7 @@ public class QuestApiController {
                 () -> questService.saveQuest(dto, principal.getUserId())
         );
 
-        return new ResponseEntity<>(new ResponseData<>(savedQuest), HttpStatus.OK);
+        return ResponseEntity.ok(new ResponseData<>(savedQuest));
     }
 
     @PatchMapping("/{questId}")
@@ -87,7 +87,7 @@ public class QuestApiController {
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         questService.deleteQuest(questId, principal.getUserId());
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok(new ResponseData<>());
     }
 
     @PatchMapping("/{questId}/complete")
@@ -96,7 +96,7 @@ public class QuestApiController {
             @AuthenticationPrincipal UserPrincipal principal
     ) throws IOException {
         questService.completeQuest(questId, principal);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok(new ResponseData<>());
     }
 
     @PatchMapping("/{questId}/discard")
@@ -105,7 +105,7 @@ public class QuestApiController {
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         questService.discardQuest(questId, principal.getUserId());
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok(new ResponseData<>());
     }
 
     @PatchMapping(value = "/{questId}/details/{detailQuestId}", consumes = {"application/json"})
@@ -118,7 +118,7 @@ public class QuestApiController {
 
         DetailResponse interactDetail = detailQuestService.interact(principal.getUserId(), questId, detailQuestId, dto);
 
-        return new ResponseEntity<>(new ResponseData<>(interactDetail), HttpStatus.OK);
+        return ResponseEntity.ok(new ResponseData<>(interactDetail));
     }
 
 }

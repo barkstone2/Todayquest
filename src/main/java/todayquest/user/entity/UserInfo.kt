@@ -18,7 +18,7 @@ class UserInfo(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    val id: Long? = null
+    val id: Long = 0
 
     @Column(nullable = false)
     val oauth2Id: String = oauth2Id

@@ -15,6 +15,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import todayquest.common.ResponseData;
+import todayquest.common.RestPage;
 import todayquest.common.UserLevelLock;
 import todayquest.exception.ErrorResponse;
 import todayquest.quest.dto.*;
@@ -35,18 +36,18 @@ public class QuestApiController {
     private final UserLevelLock userLevelLock;
 
     @GetMapping("")
-    public ResponseEntity<Slice<QuestResponse>> getQuestList(
-            QuestSearchCondition condition,
+    public ResponseEntity<ResponseData<RestPage<QuestResponse>>> getQuestList(
+            @Valid QuestSearchCondition condition,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
 
-        return ResponseEntity.ok(
-                questService.getQuestList(
-                    principal.getUserId(),
-                    condition.getState(),
-                    PageRequest.of(condition.getPage(), 9)
-                )
+        RestPage<QuestResponse> questList = questService.getQuestList(
+                principal.getUserId(),
+                condition.getState(),
+                PageRequest.of(condition.getPage(), 9)
         );
+
+        return ResponseEntity.ok(new ResponseData<>(questList));
     }
 
     @GetMapping("/{questId}")

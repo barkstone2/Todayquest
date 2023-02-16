@@ -1,15 +1,14 @@
 package todayquest.quest.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import todayquest.common.ResponseData;
 import todayquest.common.RestPage;
@@ -20,8 +19,8 @@ import todayquest.quest.service.QuestService;
 import todayquest.user.dto.UserPrincipal;
 
 import java.io.IOException;
-import java.util.List;
 
+@Validated
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/quests")
@@ -48,7 +47,7 @@ public class QuestApiController {
 
     @GetMapping("/{questId}")
     public ResponseEntity<QuestResponse> getQuest(
-            @PathVariable("questId") Long questId,
+            @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         QuestResponse quest = questService.getQuestInfo(questId, principal.getUserId());
@@ -73,7 +72,7 @@ public class QuestApiController {
     @PatchMapping("/{questId}")
     public ResponseEntity<ResponseData<QuestResponse>> update(
             @Valid @RequestBody QuestRequest dto,
-            @PathVariable("questId") Long questId,
+            @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
 
@@ -84,7 +83,7 @@ public class QuestApiController {
 
     @PatchMapping("/{questId}/delete")
     public ResponseEntity<ResponseData<Void>> delete(
-            @PathVariable("questId") Long questId,
+            @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         questService.deleteQuest(questId, principal.getUserId());
@@ -93,7 +92,7 @@ public class QuestApiController {
 
     @PatchMapping("/{questId}/complete")
     public ResponseEntity<ResponseData<Void>> complete(
-            @PathVariable("questId") Long questId,
+            @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) throws IOException {
         questService.completeQuest(questId, principal);
@@ -102,7 +101,7 @@ public class QuestApiController {
 
     @PatchMapping("/{questId}/discard")
     public ResponseEntity<ResponseData<Void>> discard(
-            @PathVariable("questId") Long questId,
+            @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         questService.discardQuest(questId, principal.getUserId());
@@ -111,8 +110,8 @@ public class QuestApiController {
 
     @PatchMapping(value = "/{questId}/details/{detailQuestId}", consumes = {"application/json"})
     public ResponseEntity<ResponseData<DetailResponse>> interactWithDetailQuest(
-            @PathVariable("questId") Long questId,
-            @PathVariable("detailQuestId") Long detailQuestId,
+            @Min(1) @PathVariable("questId") Long questId,
+            @Min(1) @PathVariable("detailQuestId") Long detailQuestId,
             @RequestBody(required = false) DetailInteractRequest dto,
             @AuthenticationPrincipal UserPrincipal principal
     ) {

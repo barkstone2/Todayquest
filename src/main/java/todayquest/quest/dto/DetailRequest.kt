@@ -36,4 +36,9 @@ class DetailRequest(
             quest = quest
         )
     }
+
+    override fun toString(): String {
+        return "DetailRequest(id=$id, title='$title', type=$type, targetCount=$targetCount)"
+    }
+
 }

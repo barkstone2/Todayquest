@@ -42,4 +42,9 @@ class QuestRequest(
             type = type
         )
     }
+
+    override fun toString(): String {
+        return "QuestRequest(title='$title', description='$description', details=$details, type=$type)"
+    }
+
 }

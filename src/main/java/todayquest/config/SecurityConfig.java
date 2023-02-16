@@ -11,20 +11,14 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import todayquest.jwt.JwtAuthorizationFilter;
 import todayquest.jwt.JwtTokenProvider;
-import todayquest.oauth.CustomOAuth2UserService;
-import todayquest.oauth.CustomOidcUserService;
-import todayquest.oauth.OAuth2SuccessHandler;
 
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private static final String[] ALLOWED_URL = {"/", "/css/**", "/js/**", "/image/**", "/error", "/user/login"};
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final CustomOidcUserService customOidcUserService;
+    private static final String[] ALLOWED_URL = {"/", "/css/**", "/js/**", "/image/**", "/error", "/auth/**"};
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
-    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -42,19 +36,11 @@ public class SecurityConfig {
 
         http.logout()
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
                 .deleteCookies("JSESSIONID")
-                .deleteCookies(JwtTokenProvider.ACCESS_TOKEN_NAME);
+                .deleteCookies(JwtTokenProvider.ACCESS_TOKEN_NAME)
+                .deleteCookies(JwtTokenProvider.REFRESH_TOKEN_NAME);
 
-        http
-                .oauth2Login() // oauth2Login 설정 시작
-                .loginPage("/")
-                .successHandler(oAuth2SuccessHandler)
-                .userInfoEndpoint() // oauth2Login 성공 이후의 설정을 시작
-                .oidcUserService(customOidcUserService)
-                .userService(customOAuth2UserService);
-
-        http.addFilterBefore(jwtAuthorizationFilter, BasicAuthenticationFilter.class); // 토큰 체크 필터 추가
+        http.addFilterBefore(jwtAuthorizationFilter, BasicAuthenticationFilter.class);
 
         return http.build();
     }

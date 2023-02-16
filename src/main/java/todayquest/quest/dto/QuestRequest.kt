@@ -11,8 +11,7 @@ import todayquest.user.entity.UserInfo
 class QuestRequest(
     title: String,
     description: String,
-    rewards: MutableList<Long>?,
-    details: MutableList<DetailRequest>?
+    details: MutableList<DetailRequest>? = null
 ) {
 
     @NotBlank(message = "{NotBlank.quest.title}")
@@ -22,10 +21,6 @@ class QuestRequest(
     @NotBlank(message = "{NotBlank.quest.description}")
     @Size(max = 300, message = "{Size.quest.description}")
     val description = description
-
-    @Valid
-    @Size(max = 3, message = "{Size.quest.rewards}")
-    val rewards = rewards ?: mutableListOf()
 
     @Valid
     @Size(max = 5, message = "{Size.quest.details}")

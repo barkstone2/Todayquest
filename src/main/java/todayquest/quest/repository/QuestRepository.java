@@ -16,7 +16,7 @@ import java.time.LocalTime;
 @Repository
 public interface QuestRepository extends JpaRepository<Quest, Long>, QuestRepositoryCustom {
     @Query("select q from Quest q where q.user.id = :userId and q.state= :state")
-    Slice<Quest> getQuestsList(@Param("userId") Long userId, @Param("state") QuestState state, Pageable pageable);
+    Page<Quest> getQuestsList(@Param("userId") Long userId, @Param("state") QuestState state, Pageable pageable);
 
     @Query("select q from Quest q where q.state = :state and q.createdDate <= :targetDate and q.user.resetTime = :resetTime")
     Page<Quest> getQuestsForBatch(@Param("state") QuestState state, @Param("targetDate") LocalDateTime targetDate, @Param("resetTime") LocalTime resetTime, Pageable pageable);

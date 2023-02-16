@@ -36,11 +36,15 @@ public class QuestService {
     private final UserService userService;
     private final QuestLogService questLogService;
 
-    public Slice<QuestResponse> getQuestList(Long userId, QuestState state, Pageable pageable) {
+    public RestPage<QuestResponse> getQuestList(Long userId, QuestState state, Pageable pageable) {
 
         PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-        return questRepository.getQuestsList(userId, state, pageRequest)
-                .map(QuestResponse::createDto);
+
+        return new RestPage<>(
+                questRepository
+                        .getQuestsList(userId, state, pageRequest)
+                        .map(QuestResponse::createDto)
+        );
     }
 
     public QuestResponse getQuestInfo(Long questId, Long userId) {

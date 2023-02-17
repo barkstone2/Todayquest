@@ -1,7 +1,6 @@
 package todayquest.quest.dto
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import todayquest.quest.entity.DetailQuestState
 import todayquest.quest.entity.Quest
 import todayquest.quest.entity.QuestState
 import todayquest.quest.entity.QuestType
@@ -34,7 +33,7 @@ data class QuestResponse(
                 detailQuests = quest.detailQuests.map {
                     DetailResponse.createDto(it)
                 }.toCollection(mutableListOf()),
-                canComplete = quest.detailQuests.all { dq -> dq.state == DetailQuestState.COMPLETE },
+                canComplete = quest.canComplete(),
                 type = quest.type,
             )
         }

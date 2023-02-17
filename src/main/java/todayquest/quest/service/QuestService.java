@@ -97,13 +97,12 @@ public class QuestService {
         quest.deleteQuest();
     }
 
-    public void completeQuest(Long questId, UserPrincipal principal) throws IOException {
+    public void completeQuest(Long questId, Long userId) throws IOException {
         Quest quest = findQuestIfNullThrow(questId);
-        UserInfo questOwner = quest.getUser();
-        quest.checkIsQuestOfValidUser(principal.getUserId());
+        quest.checkIsQuestOfValidUser(userId);
         quest.completeQuest();
 
-        userService.earnExpAndGold(quest.getType() ,questOwner, principal);
+        userService.earnExpAndGold(quest.getType(), quest.getUser());
         questLogService.saveQuestLog(quest);
     }
 

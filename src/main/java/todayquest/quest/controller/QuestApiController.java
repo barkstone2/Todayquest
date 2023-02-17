@@ -95,7 +95,7 @@ public class QuestApiController {
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) throws IOException {
-        questService.completeQuest(questId, principal);
+        questService.completeQuest(questId, principal.getUserId());
         return ResponseEntity.ok(new ResponseData<>());
     }
 

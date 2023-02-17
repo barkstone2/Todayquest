@@ -1,10 +1,11 @@
 package todayquest.user.entity
 
+import jakarta.persistence.*
 import org.hibernate.annotations.DynamicInsert
 import todayquest.common.BaseTimeEntity
+import todayquest.quest.entity.QuestType
 import todayquest.user.dto.UserRequestDto
 import java.time.LocalTime
-import jakarta.persistence.*
 
 @DynamicInsert
 @Entity
@@ -55,9 +56,12 @@ class UserInfo(
         coreTime = LocalTime.of(dto.coreTime, 0, 0)
     }
 
-    fun earnExpAndGold(exp: Long, gold: Long, targetExp: Long) {
-        this.gold += gold
-        this.exp += exp
+    fun earnExpAndGold(type: QuestType, targetExp: Long) {
+        val rewardGold = 1L
+        var rewardExp = if (type == QuestType.MAIN) 1L else 0L
+
+        this.gold += rewardGold
+        this.exp += rewardExp
         levelUpCheck(targetExp)
     }
 

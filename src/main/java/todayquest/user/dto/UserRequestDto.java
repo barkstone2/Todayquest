@@ -1,9 +1,8 @@
 package todayquest.user.dto;
 
-import lombok.Data;
-
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
 
 @Data
 public class UserRequestDto {
@@ -26,5 +25,17 @@ public class UserRequestDto {
 
     public Integer getCoreTime() {
         return coreTime;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public UserRequestDto() {
+    }
+
+    public UserRequestDto(Integer resetTime, Integer coreTime) {
+        this.resetTime = resetTime;
+        this.coreTime = coreTime;
     }
 }

@@ -76,6 +76,16 @@ class RestApiExceptionHandler {
         return handleBindingResult(e.bindingResult)
     }
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(
+        IllegalStateException::class
+    )
+    fun serverError(e: IllegalStateException): ResponseData<Void> {
+        log.error("[exceptionHandle] ex", e)
+        val errorResponse = ErrorResponse(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseData(errorResponse)
+    }
+
     private fun <T> handleBindingResult(bindingResult: BindingResult): ResponseData<T> {
         val fieldErrors = bindingResult.fieldErrors
         val errorResponse = ErrorResponse(MessageUtil.getMessage("exception.badRequest"), HttpStatus.BAD_REQUEST)

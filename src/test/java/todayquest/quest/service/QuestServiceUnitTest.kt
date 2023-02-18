@@ -12,10 +12,9 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.access.AccessDeniedException
 import todayquest.common.MessageUtil
+import todayquest.quest.dto.DetailInteractRequest
 import todayquest.quest.dto.QuestRequest
-import todayquest.quest.dto.QuestResponse
 import todayquest.quest.entity.*
-import todayquest.quest.repository.DetailQuestRepository
 import todayquest.quest.repository.QuestRepository
 import todayquest.user.entity.ProviderType
 import todayquest.user.entity.UserInfo
@@ -35,9 +34,6 @@ class QuestServiceUnitTest {
 
     @Mock
     lateinit var userRepository: UserRepository
-
-    @Mock
-    lateinit var detailQuestRepository: DetailQuestRepository
 
     @Mock
     lateinit var userService: UserService
@@ -203,7 +199,6 @@ class QuestServiceUnitTest {
             val nextSeq = 5L
             val mockUser = Mockito.mock(UserInfo::class.java)
             val mockQuest = Mockito.mock(Quest::class.java)
-            val response = QuestResponse.createDto(quest)
 
             doReturn(mockUser).`when`(userRepository).getReferenceById(eq(userId))
             doReturn(nextSeq).`when`(questRepository).getNextSeqByUserId(eq(userId))
@@ -211,13 +206,11 @@ class QuestServiceUnitTest {
             doReturn(quest).`when`(questRepository).save(eq(mockQuest))
 
             //when
-            val saveQuest = questService.saveQuest(mockDto, userId)
+            questService.saveQuest(mockDto, userId)
 
             //then
-            then(detailQuestRepository).should().saveAll(any<List<DetailQuest>>())
+            then(mockQuest).should().updateDetailQuests(any())
             then(questLogService).should().saveQuestLog(eq(quest))
-            assertThat(saveQuest).isEqualTo(response)
-            assertThat(saveQuest.title).isEqualTo(quest.title)
         }
 
     }
@@ -337,9 +330,7 @@ class QuestServiceUnitTest {
             questService.updateQuest(request, questId, userId)
 
             //then
-            then(mockQuest).should().updateDetailQuests(eq(request.details))
             then(mockQuest).should().updateQuestEntity(eq(request))
-            then(detailQuestRepository).should().saveAll(any<List<DetailQuest>>())
         }
     }
 
@@ -593,5 +584,60 @@ class QuestServiceUnitTest {
             then(questLogService).should().saveQuestLog(eq(mockQuest))
         }
     }
+
+    @DisplayName("세부 퀘스트 상호 작용 시")
+    @Nested
+    inner class DetailQuestInteractTest {
+
+        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 IllegalArgument 예외를 던진다")
+        @Test
+        fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
+            //given
+            val questId = 0L
+            val userId = userInfo.id
+            doReturn(Optional.ofNullable(null)).`when`(questRepository).findById(eq(questId))
+
+            //when
+            val call = { questService.interactWithDetailQuest(userId, questId, 1L, DetailInteractRequest()) }
+
+            //then
+            assertThrows<IllegalArgumentException> { call() }
+        }
+
+        @DisplayName("타인의 퀘스트 요청 시 AccessDenied 예외를 던진다")
+        @Test
+        fun `타인의 퀘스트 요청 시 오류가 발생한다`() {
+            //given
+            val questId = 0L
+            val userId = 1L
+            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
+
+            //when
+            val call = { questService.interactWithDetailQuest(userId, questId, 1L, DetailInteractRequest()) }
+
+            //then
+            assertThrows<AccessDeniedException> { call() }
+        }
+
+        @DisplayName("정상 호출일 경우 세부 퀘스트 상호 작용 로직이 호출된다")
+        @Test
+        fun `세부 퀘스트 상호 작용 로직이 호출된다`() {
+            //given
+            val questId = 0L
+            val userId = userInfo.id
+            val detailQuestId = 0L
+            val mockQuest = Mockito.mock(Quest::class.java)
+
+            doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
+            doNothing().`when`(mockQuest).checkIsQuestOfValidUser(any())
+
+            //when
+            questService.interactWithDetailQuest(userId, questId, detailQuestId, DetailInteractRequest())
+
+            //then
+            then(mockQuest).should().interactWithDetailQuest(eq(detailQuestId), any())
+        }
+    }
+
 
 }

@@ -30,7 +30,6 @@ import todayquest.config.SecurityConfig
 import todayquest.jwt.JwtAuthorizationFilter
 import todayquest.quest.dto.*
 import todayquest.quest.entity.DetailQuestType
-import todayquest.quest.service.DetailQuestService
 import todayquest.quest.service.QuestService
 import java.math.BigInteger
 import java.util.function.Supplier
@@ -98,9 +97,6 @@ class QuestApiControllerUnitTest {
 
     @MockBean
     lateinit var questService: QuestService
-
-    @MockBean
-    lateinit var detailService: DetailQuestService
 
     @MockBean
     lateinit var userLevelLock: UserLevelLock
@@ -177,7 +173,7 @@ class QuestApiControllerUnitTest {
                 .andExpect(jsonPath("$.errorResponse").doesNotExist())
         }
 
-        @DisplayName("page 번호가 0보다 큰 int 범위의 숫자면 아니면 400 BAD_REQUEST가 반환된다")
+        @DisplayName("page 번호가 0보다 큰 int 범위의 숫자가 아니면 400 BAD_REQUEST가 반환된다")
         @ArgumentsSource(InvalidIntegerSources::class)
         @ParameterizedTest(name = "{0} 값이 들어오면 400을 반환한다")
         fun `page 번호가 숫자가 아니면 400 BAD_REQUEST가 반환된다`(page: Any) {
@@ -201,7 +197,6 @@ class QuestApiControllerUnitTest {
 
 
     }
-
 
     @DisplayName("퀘스트 조회 시")
     @Nested
@@ -552,7 +547,7 @@ class QuestApiControllerUnitTest {
         @ParameterizedTest(name = "{0} 값이 들어오면 200을 반환한다")
         fun `PathVariable 값이 올바르다면 200 OK가 반환된다`(questId: Long) {
             //given
-            `when`(detailService.interact(anyLong(), anyLong(), anyLong(), any()))
+            `when`(questService.interactWithDetailQuest(anyLong(), anyLong(), anyLong(), any()))
                 .thenReturn(detailResponse)
 
             //when
@@ -600,7 +595,7 @@ class QuestApiControllerUnitTest {
         fun `RequestBody 값이 유효하다면 200 OK가 반환된다`(count: Short) {
             //given
             val questId = 1L
-            `when`(detailService.interact(anyLong(), anyLong(), anyLong(), any()))
+            `when`(questService.interactWithDetailQuest(anyLong(), anyLong(), anyLong(), any()))
                 .thenReturn(detailResponse)
 
             val interactRequest = DetailInteractRequest(count)
@@ -626,7 +621,7 @@ class QuestApiControllerUnitTest {
         fun `RequestBody를 생략하면 200 OK가 반환된다`() {
             //given
             val questId = 1L
-            `when`(detailService.interact(anyLong(), anyLong(), anyLong(), any()))
+            `when`(questService.interactWithDetailQuest(anyLong(), anyLong(), anyLong(), any()))
                 .thenReturn(detailResponse)
 
             //when
@@ -651,7 +646,7 @@ class QuestApiControllerUnitTest {
         fun `RequestBody 값이 유효하지 않다면 400 BAD_REQUEST가 반환된다`(count: String?) {
             //given
             val questId = 1L
-            `when`(detailService.interact(anyLong(), anyLong(), anyLong(), any()))
+            `when`(questService.interactWithDetailQuest(anyLong(), anyLong(), anyLong(), any()))
                 .thenReturn(detailResponse)
 
             //when

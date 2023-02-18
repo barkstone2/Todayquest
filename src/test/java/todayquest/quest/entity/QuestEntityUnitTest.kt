@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.springframework.security.access.AccessDeniedException
 import todayquest.common.MessageUtil
+import todayquest.quest.dto.DetailInteractRequest
 import todayquest.quest.dto.DetailRequest
 import todayquest.quest.dto.QuestRequest
 import todayquest.user.entity.ProviderType
@@ -57,9 +58,9 @@ class QuestEntityUnitTest {
     @DisplayName("세부 퀘스트 수정 시")
     inner class DetailQuestUpdateTest {
 
-        @DisplayName("신규 세부 퀘스트가 리스트로 반환된다")
+        @DisplayName("신규 세부 퀘스트가 추가된다")
         @Test
-        fun `신규 세부 퀘스트가 리스트로 반환된다`() {
+        fun `신규 세부 퀘스트가 추가된다`() {
             //given
             val quest = Quest("init", "init", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
@@ -75,12 +76,11 @@ class QuestEntityUnitTest {
             )
 
             //when
-            val newDetails = quest.updateDetailQuests(detailRequests)
+            quest.updateDetailQuests(detailRequests)
 
             //then
-            assertThat(newDetails.size).isEqualTo(detailRequests.size - details.size)
-            assertThat(newDetails).matches { newDetails[0].title != detailRequests[0].title }
-            assertThat(newDetails).allMatch { detail -> detailRequests.subList(1, detailRequests.size).any{ request -> detail.title == request.title } }
+            assertThat(quest.detailQuests.size).isEqualTo(detailRequests.size)
+            assertThat(quest.detailQuests).allMatch { detail -> detailRequests.any{ request -> detail.title == request.title } }
         }
 
         @DisplayName("기존 세부 퀘스트가 수정된다")
@@ -106,10 +106,9 @@ class QuestEntityUnitTest {
             )
 
             //when
-            val newDetails = quest.updateDetailQuests(detailRequests)
+            quest.updateDetailQuests(detailRequests)
 
             //then
-            assertThat(newDetails.size).isEqualTo(0)
             assertThat(details).allMatch { detail -> detailRequests.any { dto -> detail.title == dto.title } }
         }
 
@@ -133,10 +132,9 @@ class QuestEntityUnitTest {
             )
 
             //when
-            val newDetails = quest.updateDetailQuests(detailRequests)
+            quest.updateDetailQuests(detailRequests)
 
             //then
-            assertThat(newDetails.size).isEqualTo(0)
             assertThat(details.size).isEqualTo(detailRequests.size)
         }
     }
@@ -426,7 +424,122 @@ class QuestEntityUnitTest {
             //then
             assertThat(isMainQuest).isFalse
         }
+    }
 
+
+    @DisplayName("세부 퀘스트 상호 작용 시")
+    @Nested
+    inner class InteractWithDetailQuestTest {
+
+        @DisplayName("ID가 일치하는 세부 퀘스트가 없다면 IllegalArgument 예외를 던진다")
+        @Test
+        fun `ID가 일치하는 세부 퀘스트가 없다면 IllegalArgument 예외를 던진다`() {
+            //given
+            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
+            detailQuests.isAccessible = true
+
+            val details = mutableListOf(DetailQuest("init1", 1, DetailQuestType.CHECK, DetailQuestState.COMPLETE, quest))
+            detailQuests.set(quest, details)
+
+            //when
+            val call = { quest.interactWithDetailQuest(1) }
+
+            //then
+            assertThrows<IllegalArgumentException> { call() }
+        }
+
+        @DisplayName("퀘스트가 진행 상태가 아니라면 IllegalArgument 예외를 던진다")
+        @Test
+        fun `퀘스트가 진행 상태가 아니라면 IllegalArgument 예외를 던진다`() {
+            //given
+            val quest = Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN)
+            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
+            detailQuests.isAccessible = true
+
+            val details = mutableListOf(DetailQuest("init1", 1, DetailQuestType.CHECK, DetailQuestState.COMPLETE, quest))
+            detailQuests.set(quest, details)
+
+            //when
+            val call = { quest.interactWithDetailQuest(0) }
+
+            //then
+            assertThrows<IllegalArgumentException> { call() }
+        }
+
+        @DisplayName("REQUEST가 NULL이 아니면 REQUEST의 COUNT로 변경한다")
+        @Test
+        fun `REQUEST가 NULL이 아니면 REQUEST의 COUNT로 변경한다`() {
+            //given
+            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+            val interactRequest = DetailInteractRequest(3)
+            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
+            detailQuests.isAccessible = true
+
+            val details = mutableListOf(DetailQuest("init1", 5, DetailQuestType.COUNT, DetailQuestState.PROCEED, quest))
+            detailQuests.set(quest, details)
+
+            //when
+            val interactResult = quest.interactWithDetailQuest(0, interactRequest)
+
+            //then
+            assertThat(interactResult.count).isEqualTo(interactRequest.count)
+            assertThat(details[0].count).isEqualTo(interactRequest.count)
+        }
+
+        @DisplayName("세부 퀘스트가 완료 상태면 카운트를 리셋하고 진행 상태로 변경한다")
+        @Test
+        fun `세부 퀘스트가 완료 상태면 카운트를 리셋하고 진행 상태로 변경한다`() {
+            //given
+            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
+            detailQuests.isAccessible = true
+
+            val targetCount: Short = 5
+            val detail = DetailQuest("init1", targetCount, DetailQuestType.COUNT, DetailQuestState.COMPLETE, quest)
+            detail.changeCount(targetCount)
+
+            val beforeCount = detail.count
+
+            val details = mutableListOf(detail)
+            detailQuests.set(quest, details)
+
+            //when
+            val interactResult = quest.interactWithDetailQuest(0)
+
+            //then
+            assertThat(beforeCount).isNotEqualTo(0)
+            assertThat(interactResult.count).isEqualTo(0)
+            assertThat(interactResult.state).isEqualTo(DetailQuestState.PROCEED)
+            assertThat(details[0].count).isEqualTo(0)
+            assertThat(details[0].state).isEqualTo(DetailQuestState.PROCEED)
+        }
+
+
+        @DisplayName("다른 경우에 해당하지 않으면 카운트를 1 증가시킨다")
+        @Test
+        fun `다른 경우에 해당하지 않으면 카운트를 1 증가시킨다`() {
+            //given
+            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
+            detailQuests.isAccessible = true
+
+            val targetCount: Short = 5
+            val detail = DetailQuest("init1", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED, quest)
+
+            val beforeCount = detail.count
+
+            val details = mutableListOf(detail)
+            detailQuests.set(quest, details)
+
+            //when
+            val interactResult = quest.interactWithDetailQuest(0)
+
+            //then
+            val afterCount: Short = (beforeCount + 1).toShort()
+            assertThat(interactResult.count).isEqualTo(afterCount)
+            assertThat(details[0].count).isEqualTo(afterCount)
+        }
     }
 
 }

@@ -6,23 +6,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.common.MessageUtil;
+import todayquest.common.RestPage;
+import todayquest.quest.dto.DetailInteractRequest;
+import todayquest.quest.dto.DetailResponse;
 import todayquest.quest.dto.QuestRequest;
 import todayquest.quest.dto.QuestResponse;
-import todayquest.common.RestPage;
-import todayquest.quest.entity.DetailQuest;
 import todayquest.quest.entity.Quest;
 import todayquest.quest.entity.QuestState;
-import todayquest.quest.repository.DetailQuestRepository;
 import todayquest.quest.repository.QuestRepository;
-import todayquest.user.dto.UserPrincipal;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 import todayquest.user.service.UserService;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Transactional
 @RequiredArgsConstructor
@@ -31,7 +27,6 @@ public class QuestService {
 
     private final QuestRepository questRepository;
     private final UserRepository userRepository;
-    private final DetailQuestRepository detailQuestRepository;
 
     private final UserService userService;
     private final QuestLogService questLogService;
@@ -62,17 +57,15 @@ public class QuestService {
         }
 
         Long nextSeq = questRepository.getNextSeqByUserId(userId);
-        Quest savedQuest = questRepository.save(dto.mapToEntity(nextSeq, findUser));
 
-        List<DetailQuest> detailQuests = dto.getDetails()
-                .stream()
-                .map(dq -> dq.mapToEntity(savedQuest))
-                .collect(Collectors.toList());
+        Quest quest = dto.mapToEntity(nextSeq, findUser);
+        questRepository.save(quest);
 
-        detailQuestRepository.saveAll(detailQuests);
-        questLogService.saveQuestLog(savedQuest);
+        quest.updateDetailQuests(dto.getDetails());
 
-        return QuestResponse.createDto(savedQuest);
+        questLogService.saveQuestLog(quest);
+
+        return QuestResponse.createDto(quest);
     }
 
     public QuestResponse updateQuest(QuestRequest dto, Long questId, Long userId) {
@@ -82,11 +75,7 @@ public class QuestService {
 
         if(quest.isMainQuest()) dto.toMainQuest();
 
-        List<DetailQuest> newDetailQuests = quest.updateDetailQuests(dto.getDetails());
-
         quest.updateQuestEntity(dto);
-
-        detailQuestRepository.saveAll(newDetailQuests);
 
         return QuestResponse.createDto(quest);
     }
@@ -97,7 +86,7 @@ public class QuestService {
         quest.deleteQuest();
     }
 
-    public void completeQuest(Long questId, Long userId) throws IOException {
+    public void completeQuest(Long questId, Long userId) {
         Quest quest = findQuestIfNullThrow(questId);
         quest.checkIsQuestOfValidUser(userId);
         quest.completeQuest();
@@ -113,6 +102,13 @@ public class QuestService {
         quest.discardQuest();
 
         questLogService.saveQuestLog(quest);
+    }
+
+    public DetailResponse interactWithDetailQuest(Long userId, Long questId, Long detailQuestId, DetailInteractRequest request) {
+        Quest quest = findQuestIfNullThrow(questId);
+        quest.checkIsQuestOfValidUser(userId);
+
+        return quest.interactWithDetailQuest(detailQuestId, request);
     }
 
     private Quest findQuestIfNullThrow(Long questId) {

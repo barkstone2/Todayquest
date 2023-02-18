@@ -14,7 +14,6 @@ import todayquest.common.ResponseData;
 import todayquest.common.RestPage;
 import todayquest.common.UserLevelLock;
 import todayquest.quest.dto.*;
-import todayquest.quest.service.DetailQuestService;
 import todayquest.quest.service.QuestService;
 import todayquest.user.dto.UserPrincipal;
 
@@ -27,7 +26,6 @@ import java.io.IOException;
 @RestController
 public class QuestApiController {
     private final QuestService questService;
-    private final DetailQuestService detailQuestService;
     private final UserLevelLock userLevelLock;
 
     @GetMapping("")
@@ -116,7 +114,7 @@ public class QuestApiController {
             @AuthenticationPrincipal UserPrincipal principal
     ) {
 
-        DetailResponse interactDetail = detailQuestService.interact(principal.getUserId(), questId, detailQuestId, dto);
+        DetailResponse interactDetail = questService.interactWithDetailQuest(principal.getUserId(), questId, detailQuestId, dto);
 
         return ResponseEntity.ok(new ResponseData<>(interactDetail));
     }

@@ -53,10 +53,11 @@ class Quest(
     fun updateQuestEntity(dto: QuestRequest) {
         title = dto.title
         description = dto.description
+        updateDetailQuests(dto.details)
     }
 
-    fun updateDetailQuests(detailRequests: List<DetailRequest>): List<DetailQuest> {
-        val newDetailQuests: MutableList<DetailRequest> = mutableListOf()
+    fun updateDetailQuests(detailRequests: List<DetailRequest>) {
+        val newDetailQuests: MutableList<DetailQuest> = mutableListOf()
 
         val updateCount = detailRequests.size
         for (i in 0 until updateCount) {
@@ -64,7 +65,7 @@ class Quest(
             try {
                 _detailQuests[i].updateDetailQuest(newDetailQuest)
             } catch (e: IndexOutOfBoundsException) {
-                newDetailQuests.add(newDetailQuest)
+                newDetailQuests.add(newDetailQuest.mapToEntity(this))
             }
         }
 
@@ -75,8 +76,7 @@ class Quest(
             }
         }
 
-        return newDetailQuests.map { it.mapToEntity(this) }
-            .toCollection(mutableListOf())
+        _detailQuests.addAll(newDetailQuests)
     }
 
     fun completeQuest() {
@@ -118,6 +118,27 @@ class Quest(
 
     fun isMainQuest(): Boolean {
         return type == QuestType.MAIN
+    }
+
+    fun interactWithDetailQuest(detailQuestId: Long, request: DetailInteractRequest? = null): DetailResponse {
+        val detailQuest = _detailQuests.firstOrNull { it.id == detailQuestId }
+            ?: throw IllegalArgumentException(MessageUtil.getMessage("exception.badRequest"))
+
+        checkIsProceedingQuest()
+
+        if(request != null) {
+            detailQuest.changeCount(request.count)
+            return DetailResponse.createDto(detailQuest, canComplete())
+        }
+
+        if(detailQuest.isCompletedDetailQuest()) {
+            detailQuest.resetCount()
+            return DetailResponse.createDto(detailQuest)
+        }
+
+        detailQuest.addCount()
+
+        return DetailResponse.createDto(detailQuest, canComplete())
     }
 
     override fun equals(other: Any?): Boolean {

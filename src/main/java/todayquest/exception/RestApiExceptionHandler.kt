@@ -38,7 +38,8 @@ class RestApiExceptionHandler {
     @ExceptionHandler(
         AccessDeniedException::class
     )
-    fun accessDenied(e: IllegalArgumentException): ResponseData<Void> {
+    fun accessDenied(e: AccessDeniedException): ResponseData<Void> {
+        log.error("[exceptionHandle] ex", e)
         val errorResponse = ErrorResponse(e.message, HttpStatus.FORBIDDEN)
         return ResponseData(errorResponse)
     }

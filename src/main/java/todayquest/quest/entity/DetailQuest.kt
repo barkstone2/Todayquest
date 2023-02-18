@@ -1,7 +1,5 @@
 package todayquest.quest.entity
 
-import org.springframework.security.access.AccessDeniedException
-import todayquest.common.MessageUtil
 import jakarta.persistence.*
 import jakarta.persistence.EnumType.*
 import jakarta.persistence.FetchType.*
@@ -69,31 +67,22 @@ class DetailQuest(
         state = DetailQuestState.PROCEED
     }
 
-    fun changeState(state: DetailQuestState?) {
-        this.state = state!!
-    }
-
     fun addCount() {
         count++
-        if (count == targetCount) changeState(DetailQuestState.COMPLETE)
+        if (count == targetCount) state = DetailQuestState.COMPLETE
     }
 
     fun changeCount(count: Short) {
         this.count = if(count > targetCount) targetCount else count
 
-        when {
-            count < targetCount -> changeState(DetailQuestState.PROCEED)
-            else -> changeState(DetailQuestState.COMPLETE)
+        state = when {
+            count < targetCount -> DetailQuestState.PROCEED
+            else -> DetailQuestState.COMPLETE
         }
     }
 
     fun isCompletedDetailQuest() : Boolean {
         return state == DetailQuestState.COMPLETE
-    }
-
-    fun checkIsValidRequest(questId: Long, userId: Long) {
-        if(quest.id != questId || quest.user.id != userId)
-            throw AccessDeniedException(MessageUtil.getMessage("exception.access.denied"))
     }
 
     override fun equals(other: Any?): Boolean {

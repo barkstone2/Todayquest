@@ -1,11 +1,8 @@
 package todayquest.user.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.common.MessageUtil;
@@ -15,8 +12,6 @@ import todayquest.user.dto.UserRequestDto;
 import todayquest.user.entity.UserInfo;
 import todayquest.user.repository.UserRepository;
 
-import java.io.IOException;
-import java.util.Map;
 import java.util.Random;
 
 @Transactional
@@ -26,7 +21,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final EntityManager em;
-    private final ResourceLoader resourceLoader;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public UserPrincipal getUserInfoById(Long id) {
         UserInfo userInfo = userRepository.getReferenceById(id);
@@ -56,25 +51,17 @@ public class UserService {
         principal.changeUserSettings(dto);
     }
 
-    public void earnExpAndGold(QuestType type, UserInfo user) throws IOException {
-        // 경험치 테이블을 읽어온다.
-        Resource resource = resourceLoader.getResource("classpath:data/exp_table.json");
-        ObjectMapper om = new ObjectMapper();
-        Map<Integer, Long> expTable = om.readValue(resource.getInputStream(), new TypeReference<>() {});
-        Long targetExp = expTable.get(user.getLevel());
-
+    public void earnExpAndGold(QuestType type, UserInfo user) {
+        Long targetExp = redisTemplate.<String, Long>opsForHash().get("exp_table", user.getLevel());
+        if(targetExp == null) throw new IllegalStateException(MessageUtil.getMessage("exception.server.error"));
         user.earnExpAndGold(type, targetExp);
     }
 
     public String createRandomNickname() {
-        String[] nickNamePrefixPool = {"행복한", "즐거운", "아름다운", "기쁜", "빨간", "까만", "노란", "파란", "슬픈"};
-        String[] nickNamePostfixPool = {"바지", "자동차", "비행기", "로봇", "강아지", "고양이", "트럭", "장갑", "신발", "토끼"};
+        String nicknamePrefix = redisTemplate.opsForSet().randomMember("nickname_prefix");
+        String nicknamePostfix = redisTemplate.opsForSet().randomMember("nickname_postfix");
 
-        String tempNickName =
-                nickNamePrefixPool[new Random().nextInt(nickNamePrefixPool.length)] +
-                nickNamePostfixPool[new Random().nextInt(nickNamePostfixPool.length)]
-                + new Random().nextInt(1_000_000_000);
-
-        return tempNickName;
+        return nicknamePrefix + nicknamePostfix +
+                new Random().nextInt(1_000_000_000);
     }
 }

@@ -15,4 +15,9 @@ public class QuestSearchCondition {
         this.state = QuestState.PROCEED;
         this.page = 0;
     }
+
+    public QuestSearchCondition(int page, QuestState state) {
+        this.page = page;
+        this.state = state;
+    }
 }

@@ -7,8 +7,8 @@ import todayquest.quest.entity.DetailQuestType
 data class DetailResponse(
     val id: Long? = null,
     val title: String? = null,
-    val targetCount: Short? = null,
-    val count: Short? = null,
+    val targetCount: Int? = null,
+    val count: Int? = null,
     val type: DetailQuestType? = null,
     val state: DetailQuestState? = null,
     var canCompleteParent: Boolean? = false,

@@ -11,7 +11,7 @@ import todayquest.quest.entity.Quest
 class DetailRequest(
     title: String,
     type: DetailQuestType,
-    targetCount: Short,
+    targetCount: Int,
     id: Long? = null,
 ) {
 

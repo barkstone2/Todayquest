@@ -495,7 +495,7 @@ class QuestEntityUnitTest {
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
-            val targetCount: Short = 5
+            val targetCount = 5
             val detail = DetailQuest("init1", targetCount, DetailQuestType.COUNT, DetailQuestState.COMPLETE, quest)
             detail.changeCount(targetCount)
 
@@ -524,7 +524,7 @@ class QuestEntityUnitTest {
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
-            val targetCount: Short = 5
+            val targetCount = 5
             val detail = DetailQuest("init1", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED, quest)
 
             val beforeCount = detail.count
@@ -536,7 +536,7 @@ class QuestEntityUnitTest {
             val interactResult = quest.interactWithDetailQuest(0)
 
             //then
-            val afterCount: Short = (beforeCount + 1).toShort()
+            val afterCount = beforeCount + 1
             assertThat(interactResult.count).isEqualTo(afterCount)
             assertThat(details[0].count).isEqualTo(afterCount)
         }

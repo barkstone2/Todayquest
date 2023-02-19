@@ -62,6 +62,8 @@ dependencies {
 	/* kotlin */
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 	implementation "org.jetbrains.kotlin:kotlin-reflect"
+	testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+	testImplementation "org.mockito.kotlin:mockito-kotlin:4.1.0"
 	kapt "com.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
 }
 

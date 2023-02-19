@@ -589,10 +589,10 @@ class QuestApiControllerUnitTest {
                 .andReturn()
         }
 
-        @ValueSource(shorts = [1, 3, 5, 255])
+        @ValueSource(ints = [1, 3, 5, 255])
         @DisplayName("RequestBody 값이 유효하다면 200 OK가 반환된다")
         @ParameterizedTest(name = "{0} 값이 들어오면 200을 반환한다")
-        fun `RequestBody 값이 유효하다면 200 OK가 반환된다`(count: Short) {
+        fun `RequestBody 값이 유효하다면 200 OK가 반환된다`(count: Int) {
             //given
             val questId = 1L
             `when`(questService.interactWithDetailQuest(anyLong(), anyLong(), anyLong(), any()))

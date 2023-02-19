@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,9 @@ public class QuestApiController {
     private final QuestService questService;
     private final UserLevelLock userLevelLock;
 
+    @Value("${quest.page.size}")
+    private int pageSize;
+
     @GetMapping("")
     public ResponseEntity<ResponseData<RestPage<QuestResponse>>> getQuestList(
             @Valid QuestSearchCondition condition,
@@ -37,7 +41,7 @@ public class QuestApiController {
         RestPage<QuestResponse> questList = questService.getQuestList(
                 principal.getUserId(),
                 condition.getState(),
-                PageRequest.of(condition.getPage(), 9)
+                PageRequest.of(condition.getPage(), pageSize)
         );
 
         return ResponseEntity.ok(new ResponseData<>(questList));

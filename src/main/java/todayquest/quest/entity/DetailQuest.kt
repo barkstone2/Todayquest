@@ -10,7 +10,7 @@ import todayquest.quest.dto.DetailRequest
 @Table(name = "detail_quest")
 class DetailQuest(
     title: String,
-    targetCount: Short,
+    targetCount: Int,
     type: DetailQuestType,
     state: DetailQuestState,
     quest: Quest,
@@ -26,11 +26,11 @@ class DetailQuest(
         protected set
 
     @Column(nullable = false)
-    var targetCount: Short = targetCount
+    var targetCount: Int = targetCount
         protected set
 
     @Column(nullable = false)
-    var count: Short = 0
+    var count: Int = 0
         protected set
 
     @Enumerated(STRING)
@@ -50,7 +50,7 @@ class DetailQuest(
     fun updateDetailQuest(newDetailQuest: DetailRequest) {
         title = newDetailQuest.title
         type = newDetailQuest.type
-        targetCount = if (newDetailQuest.type == DetailQuestType.COUNT) newDetailQuest.targetCount!! else 1
+        targetCount = if (newDetailQuest.type == DetailQuestType.COUNT) newDetailQuest.targetCount else 1
 
         if(newDetailQuest.id != this.id || newDetailQuest.type != this.type) resetCount()
 
@@ -72,7 +72,7 @@ class DetailQuest(
         if (count == targetCount) state = DetailQuestState.COMPLETE
     }
 
-    fun changeCount(count: Short) {
+    fun changeCount(count: Int) {
         this.count = if(count > targetCount) targetCount else count
 
         state = when {

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.any
+import org.mockito.kotlin.*
 import org.springframework.security.access.AccessDeniedException
 import todayquest.common.MessageUtil
 import todayquest.quest.dto.DetailInteractRequest
@@ -58,15 +58,19 @@ class QuestEntityUnitTest {
     @DisplayName("세부 퀘스트 수정 시")
     inner class DetailQuestUpdateTest {
 
-        @DisplayName("신규 세부 퀘스트가 추가된다")
+        @DisplayName("신규 세부 퀘스트가 리스트에 추가된다")
         @Test
-        fun `신규 세부 퀘스트가 추가된다`() {
+        fun `신규 세부 퀘스트가 리스트에 추가된다`() {
             //given
             val quest = Quest("init", "init", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
-            val details = mutableListOf(DetailQuest("init1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest))
+            val mockDetail = Mockito.mock(DetailQuest::class.java)
+
+            val details = Mockito.mock(MutableList::class.java)
+
             detailQuests.set(quest, details)
 
             val detailRequests = listOf(
@@ -75,12 +79,18 @@ class QuestEntityUnitTest {
                 DetailRequest("d3", DetailQuestType.CHECK, 1),
             )
 
+            val currentDetailsSize = 1
+            doReturn(mockDetail).`when`(details)[argThat { i -> i < currentDetailsSize }]
+            doThrow(ArrayIndexOutOfBoundsException::class).`when`(details)[argThat { i -> i >= currentDetailsSize }]
+            doReturn(currentDetailsSize).`when`(details).size
+
             //when
             quest.updateDetailQuests(detailRequests)
 
             //then
-            assertThat(quest.detailQuests.size).isEqualTo(detailRequests.size)
-            assertThat(quest.detailQuests).allMatch { detail -> detailRequests.any{ request -> detail.title == request.title } }
+            verify(mockDetail, times(currentDetailsSize)).updateDetailQuest(any())
+            verify(details, never()).removeAt(any())
+            verify(details).addAll(argThat { list -> list.size == detailRequests.size - currentDetailsSize})
         }
 
         @DisplayName("기존 세부 퀘스트가 수정된다")
@@ -92,11 +102,10 @@ class QuestEntityUnitTest {
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
-            val details = mutableListOf(
-                DetailQuest("init1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest),
-                DetailQuest("init2", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest),
-                DetailQuest("init3", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest),
-            )
+            val mockDetail = Mockito.mock(DetailQuest::class.java)
+
+            val details = Mockito.mock(MutableList::class.java)
+
             detailQuests.set(quest, details)
 
             val detailRequests = listOf(
@@ -105,37 +114,50 @@ class QuestEntityUnitTest {
                 DetailRequest("d3", DetailQuestType.CHECK, 1),
             )
 
+            doReturn(mockDetail).`when`(details)[any()]
+            doReturn(detailRequests.size).`when`(details).size
+
             //when
             quest.updateDetailQuests(detailRequests)
 
             //then
-            assertThat(details).allMatch { detail -> detailRequests.any { dto -> detail.title == dto.title } }
+            verify(mockDetail, times(detailRequests.size)).updateDetailQuest(any())
+            verify(details, never()).removeAt(any())
+            verify(details).addAll(argThat { list -> list.isEmpty() })
         }
 
-        @DisplayName("기존 세부 퀘스트가 더 많다면 삭제된다")
+        @DisplayName("기존 세부 퀘스트가 더 많다면 오버된 세부 퀘스트는 삭제된다")
         @Test
-        fun `기존 세부 퀘스트가 더 많다면 삭제된다`() {
+        fun `기존 세부 퀘스트가 더 많다면 오버된 세부 퀘스트는 삭제된다`() {
+            //given
             val quest = Quest("init", "init", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
 
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
-            val details = mutableListOf(
-                DetailQuest("init1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest),
-                DetailQuest("init2", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest),
-                DetailQuest("init3", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest),
-            )
+            val mockDetail = Mockito.mock(DetailQuest::class.java)
+
+            val details = Mockito.mock(MutableList::class.java)
+
             detailQuests.set(quest, details)
 
             val detailRequests = listOf(
                 DetailRequest("d1", DetailQuestType.CHECK, 1),
+                DetailRequest("d2", DetailQuestType.CHECK, 1),
+                DetailRequest("d3", DetailQuestType.CHECK, 1),
             )
+
+            val currentDetailsSize = 5
+            doReturn(mockDetail).`when`(details)[any()]
+            doReturn(currentDetailsSize).`when`(details).size
 
             //when
             quest.updateDetailQuests(detailRequests)
 
             //then
-            assertThat(details.size).isEqualTo(detailRequests.size)
+            verify(mockDetail, times(detailRequests.size)).updateDetailQuest(any())
+            verify(details, times(currentDetailsSize - detailRequests.size)).removeAt(any())
+            verify(details).addAll(argThat { list -> list.isEmpty() })
         }
     }
 
@@ -171,20 +193,45 @@ class QuestEntityUnitTest {
 
         @DisplayName("세부 퀘스트가 모두 완료되지 않았다면 IllegalArgument 예외를 던진다")
         @Test
-        fun `퀘스트 완료가 불가능한 상태면 IllegalArgument 예외 발생`() {
+        fun `세부 퀘스트가 모두 완료되지 않았다면 IllegalArgument 예외 발생`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
-            val details = mutableListOf(DetailQuest("init1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest))
+            val mockDetail = Mockito.mock(DetailQuest::class.java)
+            val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
+
+            doReturn(false).`when`(mockDetail).isCompletedDetailQuest()
 
             //when
             val call = { quest.completeQuest() }
 
             //then
             assertThrows<IllegalArgumentException> { call() }
+        }
+
+        @DisplayName("세부 퀘스트가 모두 완료됐다면 완료 상태로 변경된다")
+        @Test
+        fun `세부 퀘스트가 모두 완료됐다면 완료 상태로 변경된다`() {
+            //given
+            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
+            detailQuests.isAccessible = true
+
+            val mockDetail = Mockito.mock(DetailQuest::class.java)
+            val details = mutableListOf(mockDetail)
+            detailQuests.set(quest, details)
+
+            doReturn(true).`when`(mockDetail).isCompletedDetailQuest()
+
+            //when
+            quest.completeQuest()
+
+            //then
+            assertThat(quest.state).isEqualTo(QuestState.COMPLETE)
+
         }
 
         @DisplayName("퀘스트 완료가 가능한 상태면 완료 상태로 변경된다")
@@ -365,8 +412,11 @@ class QuestEntityUnitTest {
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
-            val details = mutableListOf(DetailQuest("init1", 1, DetailQuestType.CHECK, DetailQuestState.COMPLETE, quest))
+            val mockDetail = Mockito.mock(DetailQuest::class.java)
+            val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
+
+            doReturn(true).`when`(mockDetail).isCompletedDetailQuest()
 
             //when
             val canComplete = quest.canComplete()
@@ -384,8 +434,11 @@ class QuestEntityUnitTest {
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
-            val details = mutableListOf(DetailQuest("init1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest))
+            val mockDetail = Mockito.mock(DetailQuest::class.java)
+            val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
+
+            doReturn(false).`when`(mockDetail).isCompletedDetailQuest()
 
             //when
             val canComplete = quest.canComplete()
@@ -436,11 +489,6 @@ class QuestEntityUnitTest {
         fun `ID가 일치하는 세부 퀘스트가 없다면 IllegalArgument 예외를 던진다`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
-            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
-            detailQuests.isAccessible = true
-
-            val details = mutableListOf(DetailQuest("init1", 1, DetailQuestType.CHECK, DetailQuestState.COMPLETE, quest))
-            detailQuests.set(quest, details)
 
             //when
             val call = { quest.interactWithDetailQuest(1) }
@@ -454,11 +502,6 @@ class QuestEntityUnitTest {
         fun `퀘스트가 진행 상태가 아니라면 IllegalArgument 예외를 던진다`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN)
-            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
-            detailQuests.isAccessible = true
-
-            val details = mutableListOf(DetailQuest("init1", 1, DetailQuestType.CHECK, DetailQuestState.COMPLETE, quest))
-            detailQuests.set(quest, details)
 
             //when
             val call = { quest.interactWithDetailQuest(0) }
@@ -467,78 +510,71 @@ class QuestEntityUnitTest {
             assertThrows<IllegalArgumentException> { call() }
         }
 
-        @DisplayName("REQUEST가 NULL이 아니면 REQUEST의 COUNT로 변경한다")
+        @DisplayName("REQUEST가 NULL이 아니면 changeCount가 호출된다")
         @Test
-        fun `REQUEST가 NULL이 아니면 REQUEST의 COUNT로 변경한다`() {
+        fun `REQUEST가 NULL이 아니면 changeCount가 호출된다`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
             val interactRequest = DetailInteractRequest(3)
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
-            val details = mutableListOf(DetailQuest("init1", 5, DetailQuestType.COUNT, DetailQuestState.PROCEED, quest))
+            val mockDetail = Mockito.mock(DetailQuest::class.java)
+            val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
 
             //when
-            val interactResult = quest.interactWithDetailQuest(0, interactRequest)
+            quest.interactWithDetailQuest(0, interactRequest)
 
             //then
-            assertThat(interactResult.count).isEqualTo(interactRequest.count)
-            assertThat(details[0].count).isEqualTo(interactRequest.count)
+            verify(mockDetail, times(1)).changeCount(any())
+            verify(mockDetail, never()).resetCount()
+            verify(mockDetail, never()).addCount()
         }
 
-        @DisplayName("세부 퀘스트가 완료 상태면 카운트를 리셋하고 진행 상태로 변경한다")
+        @DisplayName("세부 퀘스트가 완료 상태면 resetCount가 호출된다")
         @Test
-        fun `세부 퀘스트가 완료 상태면 카운트를 리셋하고 진행 상태로 변경한다`() {
+        fun `세부 퀘스트가 완료 상태면 resetCount가 호출된다`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
-            val targetCount = 5
-            val detail = DetailQuest("init1", targetCount, DetailQuestType.COUNT, DetailQuestState.COMPLETE, quest)
-            detail.changeCount(targetCount)
-
-            val beforeCount = detail.count
-
-            val details = mutableListOf(detail)
+            val mockDetail = Mockito.mock(DetailQuest::class.java)
+            val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
 
+            doReturn(true).`when`(mockDetail).isCompletedDetailQuest()
+
             //when
-            val interactResult = quest.interactWithDetailQuest(0)
+            quest.interactWithDetailQuest(0)
 
             //then
-            assertThat(beforeCount).isNotEqualTo(0)
-            assertThat(interactResult.count).isEqualTo(0)
-            assertThat(interactResult.state).isEqualTo(DetailQuestState.PROCEED)
-            assertThat(details[0].count).isEqualTo(0)
-            assertThat(details[0].state).isEqualTo(DetailQuestState.PROCEED)
+            verify(mockDetail, never()).changeCount(any())
+            verify(mockDetail, times(1)).resetCount()
+            verify(mockDetail, never()).addCount()
         }
 
 
-        @DisplayName("다른 경우에 해당하지 않으면 카운트를 1 증가시킨다")
+        @DisplayName("다른 경우에 해당하지 않으면 addCount가 호출된다")
         @Test
-        fun `다른 경우에 해당하지 않으면 카운트를 1 증가시킨다`() {
+        fun `다른 경우에 해당하지 않으면 addCount가 호출된다`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
-            val targetCount = 5
-            val detail = DetailQuest("init1", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED, quest)
-
-            val beforeCount = detail.count
-
-            val details = mutableListOf(detail)
+            val mockDetail = Mockito.mock(DetailQuest::class.java)
+            val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
 
             //when
-            val interactResult = quest.interactWithDetailQuest(0)
+            quest.interactWithDetailQuest(0)
 
             //then
-            val afterCount = beforeCount + 1
-            assertThat(interactResult.count).isEqualTo(afterCount)
-            assertThat(details[0].count).isEqualTo(afterCount)
+            verify(mockDetail, never()).changeCount(any())
+            verify(mockDetail, never()).resetCount()
+            verify(mockDetail, times(1)).addCount()
         }
     }
 

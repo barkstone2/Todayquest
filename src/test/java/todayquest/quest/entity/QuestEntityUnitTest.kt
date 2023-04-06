@@ -165,9 +165,9 @@ class QuestEntityUnitTest {
     @Nested
     inner class QuestCompleteTest {
 
-        @DisplayName("퀘스트가 삭제된 상태면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트가 삭제된 상태면 IllegalState 예외를 던진다")
         @Test
-        fun `퀘스트가 삭제된 상태면 IllegalArgument 예외 발생`() {
+        fun `퀘스트가 삭제된 상태면 IllegalState 예외 발생`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.SUB)
 
@@ -175,12 +175,12 @@ class QuestEntityUnitTest {
             val call = { quest.completeQuest() }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
-        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalState 예외를 던진다")
         @Test
-        fun `퀘스트가 진행 상태가 아니면 IllegalArgument 예외 발생`() {
+        fun `퀘스트가 진행 상태가 아니면 IllegalState 예외 발생`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
 
@@ -188,12 +188,12 @@ class QuestEntityUnitTest {
             val call = { quest.completeQuest() }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
-        @DisplayName("세부 퀘스트가 모두 완료되지 않았다면 IllegalArgument 예외를 던진다")
+        @DisplayName("세부 퀘스트가 모두 완료되지 않았다면 IllegalState 예외를 던진다")
         @Test
-        fun `세부 퀘스트가 모두 완료되지 않았다면 IllegalArgument 예외 발생`() {
+        fun `세부 퀘스트가 모두 완료되지 않았다면 IllegalState 예외 발생`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
@@ -209,7 +209,7 @@ class QuestEntityUnitTest {
             val call = { quest.completeQuest() }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
         @DisplayName("세부 퀘스트가 모두 완료됐다면 완료 상태로 변경된다")
@@ -266,9 +266,9 @@ class QuestEntityUnitTest {
     @DisplayName("퀘스트 포기 시")
     inner class QuestDiscardTest {
 
-        @DisplayName("퀘스트가 삭제된 상태면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트가 삭제된 상태면 IllegalState 예외를 던진다")
         @Test
-        fun `퀘스트가 삭제된 상태면 IllegalArgument 예외 발생`() {
+        fun `퀘스트가 삭제된 상태면 IllegalState 예외 발생`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.SUB)
 
@@ -276,12 +276,12 @@ class QuestEntityUnitTest {
             val call = { quest.discardQuest() }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
-        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalState 예외를 던진다")
         @Test
-        fun `퀘스트가 진행 상태가 아니면 IllegalArgument 예외 발생`() {
+        fun `퀘스트가 진행 상태가 아니면 IllegalState 예외 발생`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
 
@@ -289,7 +289,7 @@ class QuestEntityUnitTest {
             val call = { quest.discardQuest() }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
 
@@ -325,17 +325,17 @@ class QuestEntityUnitTest {
     @Nested
     inner class QuestProceedingCheckTest {
 
-        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalState 예외를 던진다")
         @Test
-        fun `퀘스트가 진행 상태가 아니면 IllegalArgument 예외를 던진다`() {
+        fun `퀘스트가 진행 상태가 아니면 IllegalState 예외를 던진다`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
 
             //when
-            val call = { quest.checkIsProceedingQuest() }
+            val call = { quest.checkStateIsProceedOrThrow() }
 
             //then
-            assertThrows<IllegalArgumentException>(call)
+            assertThrows<IllegalStateException>(call)
         }
 
         @DisplayName("퀘스트가 진행 상태면 오류를 던지지 않는다")
@@ -345,7 +345,7 @@ class QuestEntityUnitTest {
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
 
             //when
-            val call = { quest.checkIsProceedingQuest() }
+            val call = { quest.checkStateIsProceedOrThrow() }
 
             //then
             assertDoesNotThrow(call)
@@ -364,7 +364,7 @@ class QuestEntityUnitTest {
             val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
 
             //when
-            val call = { quest.checkIsQuestOfValidUser(1L) }
+            val call = { quest.checkOwnershipOrThrow(1L) }
 
             //then
             assertThrows<AccessDeniedException>(call)
@@ -378,7 +378,7 @@ class QuestEntityUnitTest {
             val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
 
             //when
-            val call = { quest.checkIsQuestOfValidUser(userInfo.id) }
+            val call = { quest.checkOwnershipOrThrow(userInfo.id) }
 
             //then
             assertDoesNotThrow(call)
@@ -484,9 +484,9 @@ class QuestEntityUnitTest {
     @Nested
     inner class InteractWithDetailQuestTest {
 
-        @DisplayName("ID가 일치하는 세부 퀘스트가 없다면 IllegalArgument 예외를 던진다")
+        @DisplayName("ID가 일치하는 세부 퀘스트가 없다면 IllegalState 예외를 던진다")
         @Test
-        fun `ID가 일치하는 세부 퀘스트가 없다면 IllegalArgument 예외를 던진다`() {
+        fun `ID가 일치하는 세부 퀘스트가 없다면 IllegalState 예외를 던진다`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
 
@@ -494,12 +494,12 @@ class QuestEntityUnitTest {
             val call = { quest.interactWithDetailQuest(1) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
-        @DisplayName("퀘스트가 진행 상태가 아니라면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트가 진행 상태가 아니라면 IllegalState 예외를 던진다")
         @Test
-        fun `퀘스트가 진행 상태가 아니라면 IllegalArgument 예외를 던진다`() {
+        fun `퀘스트가 진행 상태가 아니라면 IllegalState 예외를 던진다`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN)
 
@@ -507,7 +507,7 @@ class QuestEntityUnitTest {
             val call = { quest.interactWithDetailQuest(0) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
         @DisplayName("REQUEST가 NULL이 아니면 changeCount가 호출된다")

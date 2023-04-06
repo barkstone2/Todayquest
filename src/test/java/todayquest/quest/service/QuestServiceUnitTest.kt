@@ -1,5 +1,6 @@
 package todayquest.quest.service
 
+import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
@@ -97,7 +98,7 @@ class QuestServiceUnitTest {
     @Nested
     inner class GetQuestTest {
 
-        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 EntityNotFound 예외를 던진다")
         @Test
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
@@ -109,7 +110,7 @@ class QuestServiceUnitTest {
             val call = { questService.getQuestInfo(questId, userId) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<EntityNotFoundException> { call() }
         }
 
         @DisplayName("타인의 퀘스트 조회 시 AccessDenied 예외를 던진다")
@@ -219,7 +220,7 @@ class QuestServiceUnitTest {
     @Nested
     inner class QuestUpdateTest {
 
-        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 EntityNotFound 예외를 던진다")
         @Test
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
@@ -232,7 +233,7 @@ class QuestServiceUnitTest {
             val call = { questService.updateQuest(request, questId, userId) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<EntityNotFoundException> { call() }
         }
 
         @DisplayName("타인의 퀘스트 요청 시 AccessDenied 예외를 던진다")
@@ -252,7 +253,7 @@ class QuestServiceUnitTest {
         }
 
 
-        @DisplayName("진행중인 퀘스트가 아니라면 IllegalArgument 예외를 던진다")
+        @DisplayName("진행중인 퀘스트가 아니라면 IllegalState 예외를 던진다")
         @Test
         fun `진행중인 퀘스트가 아니라면 오류가 발생한다`() {
             //given
@@ -267,7 +268,7 @@ class QuestServiceUnitTest {
             val call = { questService.updateQuest(request, questId, userId) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
         @DisplayName("기존 퀘스트가 메인 퀘스트라면 dto의 타입을 변경한다")
@@ -280,8 +281,8 @@ class QuestServiceUnitTest {
             val mockQuest = Mockito.mock(Quest::class.java)
 
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkIsQuestOfValidUser(any())
-            doNothing().`when`(mockQuest).checkIsProceedingQuest()
+            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
+            doNothing().`when`(mockQuest).checkStateIsProceedOrThrow()
             doReturn(true).`when`(mockQuest).isMainQuest()
 
             //when
@@ -301,8 +302,8 @@ class QuestServiceUnitTest {
             val mockQuest = Mockito.mock(Quest::class.java)
 
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkIsQuestOfValidUser(any())
-            doNothing().`when`(mockQuest).checkIsProceedingQuest()
+            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
+            doNothing().`when`(mockQuest).checkStateIsProceedOrThrow()
             doReturn(false).`when`(mockQuest).isMainQuest()
 
             //when
@@ -322,8 +323,8 @@ class QuestServiceUnitTest {
             val mockQuest = Mockito.mock(Quest::class.java)
 
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkIsQuestOfValidUser(any())
-            doNothing().`when`(mockQuest).checkIsProceedingQuest()
+            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
+            doNothing().`when`(mockQuest).checkStateIsProceedOrThrow()
             doReturn(false).`when`(mockQuest).isMainQuest()
 
             //when
@@ -337,7 +338,7 @@ class QuestServiceUnitTest {
     @DisplayName("퀘스트 삭제 시")
     @Nested
     inner class QuestDeleteTest {
-        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 EntityNotFound 예외를 던진다")
         @Test
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
@@ -349,7 +350,7 @@ class QuestServiceUnitTest {
             val call = { questService.deleteQuest(questId, userId) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<EntityNotFoundException> { call() }
         }
 
         @DisplayName("타인의 퀘스트 요청 시 AccessDenied 예외를 던진다")
@@ -376,7 +377,7 @@ class QuestServiceUnitTest {
             val mockQuest = Mockito.mock(Quest::class.java)
 
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkIsQuestOfValidUser(any())
+            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
 
             //when
             questService.deleteQuest(questId, userId)
@@ -389,7 +390,7 @@ class QuestServiceUnitTest {
     @DisplayName("퀘스트 완료 시")
     @Nested
     inner class QuestCompleteTest {
-        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 EntityNotFound 예외를 던진다")
         @Test
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
@@ -401,7 +402,7 @@ class QuestServiceUnitTest {
             val call = { questService.completeQuest(questId, userId) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<EntityNotFoundException> { call() }
         }
 
         @DisplayName("타인의 퀘스트 요청 시 AccessDenied 예외를 던진다")
@@ -419,9 +420,9 @@ class QuestServiceUnitTest {
             assertThrows<AccessDeniedException> { call() }
         }
 
-        @DisplayName("퀘스트가 삭제된 상태면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트가 삭제된 상태면 IllegalState 예외를 던진다")
         @Test
-        fun `퀘스트가 삭제된 상태면 IllegalArgument 예외 발생`() {
+        fun `퀘스트가 삭제된 상태면 IllegalState 예외 발생`() {
             //given
             val questId = 0L
             val userId = userInfo.id
@@ -432,12 +433,12 @@ class QuestServiceUnitTest {
             val call = { questService.completeQuest(questId, userId) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
-        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalState 예외를 던진다")
         @Test
-        fun `퀘스트가 진행 상태가 아니면 IllegalArgument 예외 발생`() {
+        fun `퀘스트가 진행 상태가 아니면 IllegalState 예외 발생`() {
             //given
             val questId = 0L
             val userId = userInfo.id
@@ -448,12 +449,12 @@ class QuestServiceUnitTest {
             val call = { questService.completeQuest(questId, userId) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
-        @DisplayName("세부 퀘스트가 모두 완료되지 않았다면 IllegalArgument 예외를 던진다")
+        @DisplayName("세부 퀘스트가 모두 완료되지 않았다면 IllegalState 예외를 던진다")
         @Test
-        fun `퀘스트 완료가 불가능한 상태면 IllegalArgument 예외 발생`() {
+        fun `퀘스트 완료가 불가능한 상태면 IllegalState 예외 발생`() {
             //given
             val questId = 0L
             val userId = userInfo.id
@@ -471,7 +472,7 @@ class QuestServiceUnitTest {
             val call = { questService.completeQuest(questId, userId) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
         @DisplayName("정상 호출일 경우 퀘스트 완료 로직이 호출된다")
@@ -484,7 +485,7 @@ class QuestServiceUnitTest {
             val mockUser = Mockito.mock(UserInfo::class.java)
 
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkIsQuestOfValidUser(any())
+            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
             doReturn(mockUser).`when`(mockQuest).user
 
             //when
@@ -502,7 +503,7 @@ class QuestServiceUnitTest {
     @Nested
     inner class QuestDiscardTest {
 
-        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 EntityNotFound 예외를 던진다")
         @Test
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
@@ -514,7 +515,7 @@ class QuestServiceUnitTest {
             val call = { questService.discardQuest(questId, userId) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<EntityNotFoundException> { call() }
         }
 
         @DisplayName("타인의 퀘스트 요청 시 AccessDenied 예외를 던진다")
@@ -532,9 +533,9 @@ class QuestServiceUnitTest {
             assertThrows<AccessDeniedException> { call() }
         }
 
-        @DisplayName("퀘스트가 삭제된 상태면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트가 삭제된 상태면 IllegalState 예외를 던진다")
         @Test
-        fun `퀘스트가 삭제된 상태면 IllegalArgument 예외 발생`() {
+        fun `퀘스트가 삭제된 상태면 IllegalState 예외 발생`() {
             //given
             val questId = 0L
             val userId = userInfo.id
@@ -545,12 +546,12 @@ class QuestServiceUnitTest {
             val call = { questService.discardQuest(questId, userId) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
-        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalState 예외를 던진다")
         @Test
-        fun `퀘스트가 진행 상태가 아니면 IllegalArgument 예외 발생`() {
+        fun `퀘스트가 진행 상태가 아니면 IllegalState 예외 발생`() {
             //given
             val questId = 0L
             val userId = userInfo.id
@@ -561,7 +562,7 @@ class QuestServiceUnitTest {
             val call = { questService.discardQuest(questId, userId) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<IllegalStateException> { call() }
         }
 
 
@@ -574,7 +575,7 @@ class QuestServiceUnitTest {
             val mockQuest = Mockito.mock(Quest::class.java)
 
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkIsQuestOfValidUser(any())
+            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
 
             //when
             questService.discardQuest(questId, userId)
@@ -589,7 +590,7 @@ class QuestServiceUnitTest {
     @Nested
     inner class DetailQuestInteractTest {
 
-        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 IllegalArgument 예외를 던진다")
+        @DisplayName("퀘스트 ID에 해당하는 퀘스트가 없으면 EntityNotFound 예외를 던진다")
         @Test
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
@@ -601,7 +602,7 @@ class QuestServiceUnitTest {
             val call = { questService.interactWithDetailQuest(userId, questId, 1L, DetailInteractRequest()) }
 
             //then
-            assertThrows<IllegalArgumentException> { call() }
+            assertThrows<EntityNotFoundException> { call() }
         }
 
         @DisplayName("타인의 퀘스트 요청 시 AccessDenied 예외를 던진다")
@@ -629,7 +630,7 @@ class QuestServiceUnitTest {
             val mockQuest = Mockito.mock(Quest::class.java)
 
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkIsQuestOfValidUser(any())
+            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
 
             //when
             questService.interactWithDetailQuest(userId, questId, detailQuestId, DetailInteractRequest())

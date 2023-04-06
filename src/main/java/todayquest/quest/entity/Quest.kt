@@ -80,9 +80,9 @@ class Quest(
     }
 
     fun completeQuest() {
-        require(state != QuestState.DELETE) { MessageUtil.getMessage("quest.error.deleted") }
-        require(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
-        require(canComplete()) { MessageUtil.getMessage("quest.error.complete.detail") }
+        check(state != QuestState.DELETE) { MessageUtil.getMessage("quest.error.deleted") }
+        check(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
+        check(canComplete()) { MessageUtil.getMessage("quest.error.complete.detail") }
 
         state = QuestState.COMPLETE
     }
@@ -92,8 +92,8 @@ class Quest(
     }
 
     fun discardQuest() {
-        require(state != QuestState.DELETE) { MessageUtil.getMessage("quest.error.deleted") }
-        require(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
+        check(state != QuestState.DELETE) { MessageUtil.getMessage("quest.error.deleted") }
+        check(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
 
         state = QuestState.DISCARD
     }
@@ -102,11 +102,11 @@ class Quest(
         state = QuestState.FAIL
     }
 
-    fun checkIsProceedingQuest() {
-        require(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
+    fun checkStateIsProceedOrThrow() {
+        check(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
     }
 
-    fun checkIsQuestOfValidUser(userId: Long) {
+    fun checkOwnershipOrThrow(userId: Long) {
         if (user.id != userId)
             throw AccessDeniedException(MessageUtil.getMessage("exception.access.denied"))
     }
@@ -122,9 +122,9 @@ class Quest(
 
     fun interactWithDetailQuest(detailQuestId: Long, request: DetailInteractRequest? = null): DetailResponse {
         val detailQuest = _detailQuests.firstOrNull { it.id == detailQuestId }
-            ?: throw IllegalArgumentException(MessageUtil.getMessage("exception.badRequest"))
+            ?: throw IllegalStateException(MessageUtil.getMessage("exception.badRequest"))
 
-        checkIsProceedingQuest()
+        checkStateIsProceedOrThrow()
 
         if(request != null) {
             detailQuest.changeCount(request.count)
@@ -147,9 +147,7 @@ class Quest(
 
         other as Quest
 
-        if (id != other.id) return false
-
-        return true
+        return id == other.id
     }
 
     override fun hashCode(): Int {

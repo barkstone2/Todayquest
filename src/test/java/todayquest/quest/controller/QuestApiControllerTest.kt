@@ -342,9 +342,9 @@ class QuestApiControllerTest @Autowired constructor(
         }
 
 
-        @DisplayName("존재하지 않는 퀘스트 요청 시 BAD_REQUEST가 반환된다")
+        @DisplayName("존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다")
         @Test
-        fun `존재하지 않는 퀘스트 요청 시 BAD_REQUEST가 반환된다`() {
+        fun `존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
             //given
             val savedQuest = questRepository.save(Quest("제목", "1", testUser, 1L, QuestState.PROCEED, QuestType.MAIN))
             val questId = savedQuest.id + 1
@@ -362,7 +362,7 @@ class QuestApiControllerTest @Autowired constructor(
 
             //then
             val body = request
-                .andExpect(status().isBadRequest)
+                .andExpect(status().isNotFound)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andReturn()
                 .response
@@ -844,9 +844,9 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(error?.message).isEqualTo(errorMessage)
         }
 
-        @DisplayName("존재하지 않는 퀘스트 요청 시 BAD_REQUEST가 반환된다")
+        @DisplayName("존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다")
         @Test
-        fun `존재하지 않는 퀘스트 요청 시 BAD_REQUEST가 반환된다`() {
+        fun `존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/1"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
@@ -867,7 +867,7 @@ class QuestApiControllerTest @Autowired constructor(
 
             //then
             val body = request
-                .andExpect(status().isBadRequest)
+                .andExpect(status().isNotFound)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andReturn()
                 .response
@@ -1074,9 +1074,9 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(error?.message).isEqualTo(errorMessage)
         }
 
-        @DisplayName("존재하지 않는 퀘스트 요청 시 BAD_REQUEST가 반환된다")
+        @DisplayName("존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다")
         @Test
-        fun `존재하지 않는 퀘스트 요청 시 BAD_REQUEST가 반환된다`() {
+        fun `존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/1/delete"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
@@ -1091,7 +1091,7 @@ class QuestApiControllerTest @Autowired constructor(
 
             //then
             val body = request
-                .andExpect(status().isBadRequest)
+                .andExpect(status().isNotFound)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andReturn()
                 .response
@@ -1706,9 +1706,9 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(error?.message).isEqualTo(errorMessage)
         }
 
-        @DisplayName("존재하지 않는 퀘스트 요청 시 BAD_REQUEST가 반환된다")
+        @DisplayName("존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다")
         @Test
-        fun `존재하지 않는 퀘스트 요청 시 BAD_REQUEST가 반환된다`() {
+        fun `존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/1/details/1"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
@@ -1723,7 +1723,7 @@ class QuestApiControllerTest @Autowired constructor(
 
             //then
             val body = request
-                .andExpect(status().isBadRequest)
+                .andExpect(status().isNotFound)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andReturn()
                 .response

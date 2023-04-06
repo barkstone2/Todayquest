@@ -252,7 +252,7 @@ class QuestRepositoryUnitTest {
                 questRepository.save(Quest("1", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)),
                 questRepository.save(Quest("2", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
             )
-            questRepository.flush()
+
             val targetDate = LocalDateTime.now()
 
             val afterList = listOf(

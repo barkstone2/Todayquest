@@ -6,6 +6,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.common.MessageUtil;
+import todayquest.exception.DuplicateNicknameException;
+import todayquest.exception.RedisDataNotFoundException;
 import todayquest.quest.entity.QuestType;
 import todayquest.user.dto.UserPrincipal;
 import todayquest.user.dto.UserRequestDto;
@@ -24,7 +26,8 @@ public class UserService {
     private final RedisTemplate<String, String> redisTemplate;
 
     public UserPrincipal getUserInfoById(Long id) {
-        UserInfo userInfo = userRepository.getReferenceById(id);
+        UserInfo userInfo = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException(MessageUtil.getMessage("exception.badRequest")));
         return UserPrincipal.create(userInfo);
     }
 
@@ -33,14 +36,14 @@ public class UserService {
     }
 
     public void changeUserSettings(UserPrincipal principal, UserRequestDto dto) {
-        UserInfo findUser = userRepository.getById(principal.getUserId());
+        UserInfo findUser = userRepository.getReferenceById(principal.getUserId());
 
         String nickname = dto.getNickname();
         if(nickname != null) {
             String nicknameTrim = nickname.trim();
             boolean isDuplicated = isDuplicateNickname(nicknameTrim);
             if (isDuplicated) {
-                throw new IllegalStateException(MessageUtil.getMessage("nickname.duplicate"));
+                throw new DuplicateNicknameException(MessageUtil.getMessage("nickname.duplicate"));
             }
 
             findUser.updateNickname(nicknameTrim);
@@ -53,7 +56,7 @@ public class UserService {
 
     public void earnExpAndGold(QuestType type, UserInfo user) {
         Long targetExp = redisTemplate.<String, Long>opsForHash().get("exp_table", user.getLevel());
-        if(targetExp == null) throw new IllegalStateException(MessageUtil.getMessage("exception.server.error"));
+        if(targetExp == null) throw new RedisDataNotFoundException(MessageUtil.getMessage("exception.server.error"));
         user.earnExpAndGold(type, targetExp);
     }
 

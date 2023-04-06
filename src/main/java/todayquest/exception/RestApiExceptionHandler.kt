@@ -1,5 +1,6 @@
 package todayquest.exception
 
+import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -29,8 +30,19 @@ class RestApiExceptionHandler {
     @ExceptionHandler(
         NoHandlerFoundException::class
     )
-    fun notFound(): ResponseData<Void> {
+    fun handlerNotFound(e: NoHandlerFoundException): ResponseData<Void> {
+        log.error("[exceptionHandle] ex", e)
         val errorResponse = ErrorResponse(MessageUtil.getMessage("exception.notFound"), HttpStatus.NOT_FOUND)
+        return ResponseData(errorResponse)
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(
+        EntityNotFoundException::class
+    )
+    fun entityNotFound(e: EntityNotFoundException): ResponseData<Void> {
+        log.error("[exceptionHandle] ex", e)
+        val errorResponse = ErrorResponse(e.message, HttpStatus.NOT_FOUND)
         return ResponseData(errorResponse)
     }
 
@@ -46,7 +58,17 @@ class RestApiExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(
-        IllegalArgumentException::class
+        IllegalStateException::class,
+    )
+    fun illegalState(e: IllegalStateException): ResponseData<Void> {
+        log.error("[exceptionHandle] ex", e)
+        val errorResponse = ErrorResponse(e.message, HttpStatus.BAD_REQUEST)
+        return ResponseData(errorResponse)
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(
+        IllegalArgumentException::class,
     )
     fun illegalExHandle(e: IllegalArgumentException): ResponseData<Void> {
         log.error("[exceptionHandle] ex", e)
@@ -74,14 +96,25 @@ class RestApiExceptionHandler {
         MethodArgumentNotValidException::class,
     )
     fun bindingResultError(e: MethodArgumentNotValidException): ResponseData<Void> {
+        log.error("[exceptionHandle]", e)
         return handleBindingResult(e.bindingResult)
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(
+        DuplicateNicknameException::class
+    )
+    fun duplicateNickname(e: DuplicateNicknameException): ResponseData<Void> {
+        log.error("[exceptionHandle] ex", e)
+        val errorResponse = ErrorResponse(e.message, HttpStatus.CONFLICT)
+        return ResponseData(errorResponse)
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(
-        IllegalStateException::class
+        RedisDataNotFoundException::class
     )
-    fun serverError(e: IllegalStateException): ResponseData<Void> {
+    fun serverError(e: RedisDataNotFoundException): ResponseData<Void> {
         log.error("[exceptionHandle] ex", e)
         val errorResponse = ErrorResponse(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
         return ResponseData(errorResponse)

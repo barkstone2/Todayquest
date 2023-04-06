@@ -1,5 +1,6 @@
 package todayquest.quest.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -43,8 +44,8 @@ public class QuestService {
     }
 
     public QuestResponse getQuestInfo(Long questId, Long userId) {
-        Quest quest = findQuestIfNullThrow(questId);
-        quest.checkIsQuestOfValidUser(userId);
+        Quest quest = findByIdOrThrow(questId);
+        quest.checkOwnershipOrThrow(userId);
 
         return QuestResponse.createDto(quest);
     }
@@ -69,9 +70,9 @@ public class QuestService {
     }
 
     public QuestResponse updateQuest(QuestRequest dto, Long questId, Long userId) {
-        Quest quest = findQuestIfNullThrow(questId);
-        quest.checkIsQuestOfValidUser(userId);
-        quest.checkIsProceedingQuest();
+        Quest quest = findByIdOrThrow(questId);
+        quest.checkOwnershipOrThrow(userId);
+        quest.checkStateIsProceedOrThrow();
 
         if(quest.isMainQuest()) dto.toMainQuest();
 
@@ -81,14 +82,14 @@ public class QuestService {
     }
 
     public void deleteQuest(Long questId, Long userId) {
-        Quest quest = findQuestIfNullThrow(questId);
-        quest.checkIsQuestOfValidUser(userId);
+        Quest quest = findByIdOrThrow(questId);
+        quest.checkOwnershipOrThrow(userId);
         quest.deleteQuest();
     }
 
     public void completeQuest(Long questId, Long userId) {
-        Quest quest = findQuestIfNullThrow(questId);
-        quest.checkIsQuestOfValidUser(userId);
+        Quest quest = findByIdOrThrow(questId);
+        quest.checkOwnershipOrThrow(userId);
         quest.completeQuest();
 
         userService.earnExpAndGold(quest.getType(), quest.getUser());
@@ -96,8 +97,8 @@ public class QuestService {
     }
 
     public void discardQuest(Long questId, Long userId) {
-        Quest quest = findQuestIfNullThrow(questId);
-        quest.checkIsQuestOfValidUser(userId);
+        Quest quest = findByIdOrThrow(questId);
+        quest.checkOwnershipOrThrow(userId);
 
         quest.discardQuest();
 
@@ -105,15 +106,15 @@ public class QuestService {
     }
 
     public DetailResponse interactWithDetailQuest(Long userId, Long questId, Long detailQuestId, DetailInteractRequest request) {
-        Quest quest = findQuestIfNullThrow(questId);
-        quest.checkIsQuestOfValidUser(userId);
+        Quest quest = findByIdOrThrow(questId);
+        quest.checkOwnershipOrThrow(userId);
 
         return quest.interactWithDetailQuest(detailQuestId, request);
     }
 
-    private Quest findQuestIfNullThrow(Long questId) {
+    private Quest findByIdOrThrow(Long questId) {
         Optional<Quest> findQuest = questRepository.findById(questId);
-        return findQuest.orElseThrow(() -> new IllegalArgumentException(
+        return findQuest.orElseThrow(() -> new EntityNotFoundException(
                 MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))));
     }
 }

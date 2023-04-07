@@ -40,8 +40,6 @@ class UserInfo(
     var coreTime: LocalTime = LocalTime.of(8, 0, 0)
         protected set
 
-    var level: Int = 1
-        protected set
     var exp: Long = 0
         protected set
     var gold: Long = 0
@@ -56,21 +54,15 @@ class UserInfo(
         coreTime = LocalTime.of(dto.coreTime, 0, 0)
     }
 
-    fun earnExpAndGold(type: QuestType, targetExp: Long) {
-        val rewardGold = 1L
-        var rewardExp = if (type == QuestType.MAIN) 1L else 0L
+    fun updateExpAndGold(questType: QuestType, earnedExp: Int, earnedGold: Int) {
 
-        this.gold += rewardGold
-        this.exp += rewardExp
-        levelUpCheck(targetExp)
-    }
-
-    private fun levelUpCheck(targetExp: Long) {
-        if (level == 100) return
-        if (exp >= targetExp) {
-            level += 1
-            exp -= targetExp
+        val multiplier = when (questType) {
+            QuestType.MAIN -> 2
+            else -> 1
         }
+
+        this.gold += earnedGold * multiplier
+        this.exp += earnedExp * multiplier
     }
 
     fun isNowCoreTime() : Boolean {
@@ -79,4 +71,32 @@ class UserInfo(
         return true
     }
 
+    fun calculateLevel(expTable: Map<String, Long>): Triple<Int, Long, Long> {
+        var level = 1
+        var remainingExp = exp
+        var requiredExp = 0L
+
+        expTable.keys.sorted().forEach { key ->
+            requiredExp = expTable[key] ?: return@forEach
+
+            if (requiredExp == 0L) return@forEach
+
+            if (remainingExp >= requiredExp) {
+                remainingExp -= requiredExp
+                level++
+            } else {
+                return Triple(level, remainingExp, requiredExp)
+            }
+        }
+
+        return Triple(level, remainingExp, requiredExp)
+    }
+
+    fun getResetHour(): Int {
+        return resetTime.hour
+    }
+
+    fun getCoreHour(): Int {
+        return coreTime.hour
+    }
 }

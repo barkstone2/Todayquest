@@ -14,25 +14,14 @@ class UserPrincipal(
     val providerType: ProviderType,
     private var authorities: MutableCollection<GrantedAuthority>,
     var level: Int,
-    var exp: Long,
+    var currentExp: Long,
+    var requireExp: Long,
     var gold: Long,
     var resetTime: Int,
     var coreTime: Int,
 ) : UserDetails {
     var accessToken: String? = null
     var refreshToken: String? = null
-
-
-    fun synchronizeUserInfo(user: UserInfo) {
-        level = user.level
-        exp = user.exp
-        gold = user.gold
-    }
-
-    fun changeUserSettings(dto: UserRequestDto) {
-        resetTime = dto.resetTime
-        coreTime = dto.coreTime
-    }
 
     @JsonIgnore
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
@@ -70,18 +59,21 @@ class UserPrincipal(
 
     companion object {
         @JvmStatic
-        fun create(userInfo: UserInfo): UserPrincipal {
+        fun create(userInfo: UserInfo, expTable: Map<String, Long>): UserPrincipal {
+
+            val (currentLevel, currentExp, requireExp) = userInfo.calculateLevel(expTable)
 
             return UserPrincipal(
-                userInfo.id,
-                userInfo.nickname,
-                userInfo.providerType,
-                mutableListOf(SimpleGrantedAuthority(RoleType.USER.code)),
-                userInfo.level,
-                userInfo.exp,
-                userInfo.gold,
-                userInfo.resetTime.hour,
-                userInfo.coreTime.hour,
+                userId = userInfo.id,
+                nickname = userInfo.nickname,
+                providerType = userInfo.providerType,
+                authorities = mutableListOf(SimpleGrantedAuthority(RoleType.USER.code)),
+                level = currentLevel,
+                currentExp = currentExp,
+                requireExp = requireExp,
+                gold = userInfo.gold,
+                resetTime = userInfo.getResetHour(),
+                coreTime = userInfo.getCoreHour(),
             )
         }
     }

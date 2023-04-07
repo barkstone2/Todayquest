@@ -83,9 +83,16 @@ public class UserService {
     }
 
     public void earnExpAndGold(QuestType type, UserInfo user) {
-        Long targetExp = redisTemplate.<String, Long>opsForHash().get("exp_table", user.getLevel());
-        if(targetExp == null) throw new RedisDataNotFoundException(MessageUtil.getMessage("exception.server.error"));
-        user.earnExpAndGold(type, targetExp);
+        Map<String, Integer> settings = redisTemplate.<String, Integer>opsForHash().entries(redisKeyProperties.getSettings());
+
+        Integer questClearExp = settings.get(redisKeyProperties.getQuestClearExp());
+        Integer questClearGold = settings.get(redisKeyProperties.getQuestClearGold());
+
+        if (questClearExp == null || questClearGold == null) {
+            throw new RedisDataNotFoundException(MessageUtil.getMessage("exception.server.error"));
+        }
+
+        user.updateExpAndGold(type, questClearExp, questClearGold);
     }
 
     public String createRandomNickname() {

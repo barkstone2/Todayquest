@@ -95,9 +95,9 @@ public class UserService {
         user.updateExpAndGold(type, questClearExp, questClearGold);
     }
 
-    public String createRandomNickname() {
-        String nicknamePrefix = redisTemplate.opsForSet().randomMember("nickname_prefix");
-        String nicknamePostfix = redisTemplate.opsForSet().randomMember("nickname_postfix");
+    private String createRandomNickname() {
+        String nicknamePrefix = redisTemplate.opsForSet().randomMember(redisKeyProperties.getNicknamePrefix());
+        String nicknamePostfix = redisTemplate.opsForSet().randomMember(redisKeyProperties.getNicknamePostfix());
 
         return nicknamePrefix + nicknamePostfix +
                 new Random().nextInt(1_000_000_000);

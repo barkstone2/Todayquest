@@ -52,7 +52,7 @@ public class UserService {
         return UserPrincipal.create(savedUserInfo, expTable);
     }
 
-    public UserPrincipal getUserInfoById(Long id) {
+    public UserPrincipal getUserById(Long id) {
         UserInfo userInfo = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException(MessageUtil.getMessage("exception.badRequest")));
 

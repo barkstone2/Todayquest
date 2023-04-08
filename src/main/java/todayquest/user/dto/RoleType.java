@@ -1,12 +1,7 @@
 package todayquest.user.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.Arrays;
 
-@Getter
-@AllArgsConstructor
 public enum RoleType {
     USER("ROLE_USER", "일반 사용자 권한"),
     ADMIN("ROLE_ADMIN", "관리자 권한"),
@@ -14,6 +9,19 @@ public enum RoleType {
 
     private final String code;
     private final String displayName;
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    RoleType(String code, String displayName) {
+        this.code = code;
+        this.displayName = displayName;
+    }
 
     public static RoleType of(String code) {
         return Arrays.stream(RoleType.values())

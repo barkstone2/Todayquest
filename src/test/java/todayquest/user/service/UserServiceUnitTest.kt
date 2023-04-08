@@ -10,6 +10,7 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.*
+import org.springframework.data.redis.core.BoundHashOperations
 import org.springframework.data.redis.core.HashOperations
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.SetOperations
@@ -195,19 +196,16 @@ class UserServiceUnitTest {
             val settingsKey = "key"
             doReturn(settingsKey).`when`(redisKeyProperties).settings
 
-            val mockOps = mock<HashOperations<String, String, Int>>()
-            doReturn(mockOps).`when`(redisTemplate).opsForHash<String, Int>()
-
-            val mockSettings = mock<Map<String, Int>>()
-            doReturn(mockSettings).`when`(mockOps).entries(settingsKey)
+            val mockOps = mock<BoundHashOperations<String, String, Long>>()
+            doReturn(mockOps).`when`(redisTemplate).boundHashOps<String, Long>(settingsKey)
 
             val expKey = "expKey"
             val goldKey = "goldKey"
             doReturn(expKey).`when`(redisKeyProperties).questClearExp
             doReturn(goldKey).`when`(redisKeyProperties).questClearGold
 
-            doReturn(null).`when`(mockSettings)[expKey]
-            doReturn(null).`when`(mockSettings)[goldKey]
+            doReturn(null).`when`(mockOps)[expKey]
+            doReturn(null).`when`(mockOps)[goldKey]
 
             val mockUser = mock<UserInfo>()
 
@@ -227,19 +225,16 @@ class UserServiceUnitTest {
             val settingsKey = "key"
             doReturn(settingsKey).`when`(redisKeyProperties).settings
 
-            val mockOps = mock<HashOperations<String, String, Int>>()
-            doReturn(mockOps).`when`(redisTemplate).opsForHash<String, Int>()
-
-            val mockSettings = mock<Map<String, Int>>()
-            doReturn(mockSettings).`when`(mockOps).entries(settingsKey)
+            val mockOps = mock<BoundHashOperations<String, String, Long>>()
+            doReturn(mockOps).`when`(redisTemplate).boundHashOps<String, Long>(settingsKey)
 
             val expKey = "expKey"
             val goldKey = "goldKey"
             doReturn(expKey).`when`(redisKeyProperties).questClearExp
             doReturn(goldKey).`when`(redisKeyProperties).questClearGold
 
-            doReturn(0).`when`(mockSettings)[expKey]
-            doReturn(0).`when`(mockSettings)[goldKey]
+            doReturn(0L).`when`(mockOps)[expKey]
+            doReturn(0L).`when`(mockOps)[goldKey]
 
             val mockUser = mock<UserInfo>()
 

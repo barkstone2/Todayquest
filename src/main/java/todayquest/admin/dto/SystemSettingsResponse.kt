@@ -1,7 +1,7 @@
 package todayquest.admin.dto
 
 class SystemSettingsResponse(
-    val questClearExp: Int,
-    val questClearGold: Int,
-    val maxRewardCount: Int,
+    val questClearExp: Int = 0,
+    val questClearGold: Int = 0,
+    val maxRewardCount: Int = 0,
 )

@@ -59,7 +59,7 @@ class UserInfo(
         coreTime = LocalTime.of(dto.coreTime, 0, 0)
     }
 
-    fun updateExpAndGold(questType: QuestType, earnedExp: Int, earnedGold: Int) {
+    fun updateExpAndGold(questType: QuestType, earnedExp: Long, earnedGold: Long) {
 
         val multiplier = when (questType) {
             QuestType.MAIN -> 2

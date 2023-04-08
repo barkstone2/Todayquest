@@ -14,12 +14,12 @@ class AdminService(
 ) {
 
     fun getSystemSettings(): SystemSettingsResponse {
-        val systemSettings = redisTemplate.opsForHash<String, Int>().entries(redisKeyProperties.settings)
+        val ops = redisTemplate.boundHashOps<String, Int>(redisKeyProperties.settings)
 
         return SystemSettingsResponse(
-            questClearExp = systemSettings[redisKeyProperties.questClearExp]!!,
-            questClearGold = systemSettings[redisKeyProperties.questClearGold]!!,
-            maxRewardCount = systemSettings[redisKeyProperties.maxRewardCount]!!
+            questClearExp = ops[redisKeyProperties.questClearExp]!!,
+            questClearGold = ops[redisKeyProperties.questClearGold]!!,
+            maxRewardCount = ops[redisKeyProperties.maxRewardCount]!!
         )
     }
 
@@ -31,21 +31,21 @@ class AdminService(
         ops.put(redisKeyProperties.maxRewardCount, settingsRequest.maxRewardCount)
     }
 
-    fun getExpTable(): Map<String, Long> {
-        return redisTemplate.opsForHash<String, Long>().entries(redisKeyProperties.expTable)
+    fun getExpTable(): Map<Int, Long> {
+        return redisTemplate.boundHashOps<Int, Long>(redisKeyProperties.expTable).entries()!!
     }
 
-    fun updateExpTable(expTable: Map<String, Long>) {
-        val keys = expTable.keys.mapNotNull { it.toIntOrNull() }.sorted()
+    fun updateExpTable(expTable: Map<Int, Long>) {
+        val keys = expTable.keys.sorted()
         val expectedKeys = (1..keys.size).toList()
         require(keys == expectedKeys) { MessageUtil.getMessage("admin.exception.exp_table.invalid") }
 
         // 마지막 값을 제외한 value가 0인 경우 오류 발생
         val exceptLastKeys = keys.subList(0, keys.size-1)
-        require(exceptLastKeys.none { expTable[it.toString()] == 0L }) { MessageUtil.getMessage("admin.exception.exp_table.zero_value") }
+        require(exceptLastKeys.none { expTable[it] == 0L }) { MessageUtil.getMessage("admin.exception.exp_table.zero_value") }
 
         redisTemplate.delete(redisKeyProperties.expTable)
-        redisTemplate.opsForHash<String, Long>().putAll(redisKeyProperties.expTable, expTable)
+        redisTemplate.boundHashOps<Int, Long>(redisKeyProperties.expTable).putAll(expTable)
     }
 
 

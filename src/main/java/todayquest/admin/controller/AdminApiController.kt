@@ -30,14 +30,14 @@ class AdminApiController (
 
 
     @GetMapping("/exp-table")
-    fun getExpTable(): ResponseEntity<ResponseData<Map<String, Long>>> {
+    fun getExpTable(): ResponseEntity<ResponseData<Map<Int, Long>>> {
         return ResponseEntity.ok(ResponseData(adminService.getExpTable()))
     }
 
 
     @PutMapping("/exp-table")
     fun updateExpTable(
-        @RequestBody expTable: Map<String, Long>,
+        @RequestBody expTable: Map<Int, Long>,
     ) {
         adminService.updateExpTable(expTable)
     }

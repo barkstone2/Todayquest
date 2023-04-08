@@ -4,6 +4,7 @@ import jakarta.persistence.*
 import org.hibernate.annotations.DynamicInsert
 import todayquest.common.BaseTimeEntity
 import todayquest.quest.entity.QuestType
+import todayquest.user.dto.RoleType
 import todayquest.user.dto.UserRequestDto
 import java.time.LocalTime
 
@@ -45,6 +46,10 @@ class UserInfo(
     var gold: Long = 0
         protected set
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var role: RoleType = RoleType.USER
+
     fun updateNickname(nickname: String) {
         this.nickname = nickname
     }
@@ -71,7 +76,7 @@ class UserInfo(
         return true
     }
 
-    fun calculateLevel(expTable: Map<String, Long>): Triple<Int, Long, Long> {
+    fun calculateLevel(expTable: Map<Int, Long>): Triple<Int, Long, Long> {
         var level = 1
         var remainingExp = exp
         var requiredExp = 0L

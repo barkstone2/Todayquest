@@ -11,6 +11,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import todayquest.jwt.JwtAuthorizationFilter;
 import todayquest.jwt.JwtTokenProvider;
+import todayquest.user.dto.RoleType;
 
 @RequiredArgsConstructor
 @Configuration
@@ -18,6 +19,7 @@ import todayquest.jwt.JwtTokenProvider;
 public class SecurityConfig {
 
     private static final String[] ALLOWED_URL = {"/", "/css/**", "/js/**", "/image/**", "/error", "/auth/**"};
+    private static final String[] ADMIN_URL = {"/admin/**"};
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
 
     @Bean
@@ -32,6 +34,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests()
                 .requestMatchers(ALLOWED_URL).permitAll()
+                .requestMatchers(ADMIN_URL).hasRole(RoleType.ADMIN.name())
                 .anyRequest().authenticated();
 
         http.logout()

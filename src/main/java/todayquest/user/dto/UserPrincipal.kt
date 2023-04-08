@@ -67,7 +67,7 @@ class UserPrincipal(
                 userId = userInfo.id,
                 nickname = userInfo.nickname,
                 providerType = userInfo.providerType,
-                authorities = mutableListOf(SimpleGrantedAuthority(RoleType.USER.code)),
+                authorities = mutableListOf(SimpleGrantedAuthority(userInfo.role.code)),
                 level = currentLevel,
                 currentExp = currentExp,
                 requireExp = requireExp,

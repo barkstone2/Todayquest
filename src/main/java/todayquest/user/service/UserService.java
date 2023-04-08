@@ -2,6 +2,7 @@ package todayquest.user.service;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,10 +84,10 @@ public class UserService {
     }
 
     public void earnExpAndGold(QuestType type, UserInfo user) {
-        Map<String, Integer> settings = redisTemplate.<String, Integer>opsForHash().entries(redisKeyProperties.getSettings());
+        BoundHashOperations<String, String, Long> ops = redisTemplate.boundHashOps(redisKeyProperties.getSettings());
 
-        Integer questClearExp = settings.get(redisKeyProperties.getQuestClearExp());
-        Integer questClearGold = settings.get(redisKeyProperties.getQuestClearGold());
+        Long questClearExp = ops.get(redisKeyProperties.getQuestClearExp());
+        Long questClearGold = ops.get(redisKeyProperties.getQuestClearGold());
 
         if (questClearExp == null || questClearGold == null) {
             throw new RedisDataNotFoundException(MessageUtil.getMessage("exception.server.error"));

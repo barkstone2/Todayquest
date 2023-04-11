@@ -1,14 +1,38 @@
 package todayquest.quest.dto
 
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.*
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers
+import org.mockito.MockedStatic
+import org.mockito.Mockito
+import todayquest.common.MessageUtil
 import todayquest.quest.entity.*
 import todayquest.user.entity.ProviderType
 import todayquest.user.entity.UserInfo
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 
 @DisplayName("퀘스트 리퀘스트 DTO 유닛 테스트")
 class QuestRequestUnitTest {
+
+    private lateinit var messageUtil: MockedStatic<MessageUtil>
+
+    @BeforeEach
+    fun init() {
+        messageUtil = Mockito.mockStatic(MessageUtil::class.java)
+        Mockito.`when`(MessageUtil.getMessage(ArgumentMatchers.anyString())).thenReturn("")
+        Mockito.`when`(MessageUtil.getMessage(ArgumentMatchers.anyString(), ArgumentMatchers.any())).thenReturn("")
+    }
+
+    @AfterEach
+    fun afterEach() {
+        messageUtil.close()
+    }
 
     @DisplayName("생성자에 값을 넣으면 값이 올바르게 담긴다")
     @Test
@@ -63,4 +87,56 @@ class QuestRequestUnitTest {
         assertThat(entity.type).isEqualTo(QuestType.SUB)
         assertThat(entity.state).isEqualTo(QuestState.PROCEED)
     }
+
+
+    @DisplayName("deadLine 필드의 범위가 유효하지 않으면 오류가 발생한다")
+    @Test
+    fun `deadLine 필드의 범위가 유효하지 않으면 오류가 발생한다`() {
+        //given
+        val now = LocalDateTime.now()
+        val today = LocalDate.now()
+
+        val resetTime = LocalTime.of(0, 0)
+
+        val beforeBoundaryTime = now.minus(1, ChronoUnit.MINUTES)
+        val afterBoundaryTime = LocalDateTime.of(today.plus(1, ChronoUnit.DAYS), resetTime)
+
+        val request1 = QuestRequest("t", "d", null, beforeBoundaryTime)
+        val request2 = QuestRequest("t", "d", null, afterBoundaryTime)
+
+        //when
+        val run1 = { request1.checkRangeOfDeadLine(resetTime) }
+        val run2 = { request2.checkRangeOfDeadLine(resetTime) }
+
+        //then
+        assertThatThrownBy(run1).isInstanceOf(IllegalArgumentException::class.java)
+        assertThatThrownBy(run2).isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    @DisplayName("deadLine 필드의 범위가 유효하면 오류가 발생하지 않는다")
+    @Test
+    fun `deadLine 필드의 범위가 유효하면 오류가 발생하지 않는다`() {
+        //given
+        val now = LocalDateTime.now()
+        val today = LocalDate.now()
+        val resetTime = LocalTime.of(0, 0)
+
+        val beforeBoundaryTime = now.plus(10, ChronoUnit.MINUTES)
+        val afterBoundaryTime = LocalDateTime.of(today.plus(1, ChronoUnit.DAYS), resetTime).minus(1, ChronoUnit.MINUTES)
+
+        val request1 = QuestRequest("t", "d", null, null)
+        val request2 = QuestRequest("t", "d", null, beforeBoundaryTime)
+        val request3 = QuestRequest("t", "d", null, afterBoundaryTime)
+
+        //when
+        val run1 = { request1.checkRangeOfDeadLine(resetTime) }
+        val run2 = { request2.checkRangeOfDeadLine(resetTime) }
+        val run3 = { request3.checkRangeOfDeadLine(resetTime) }
+
+        //then
+        assertThatCode(run1).doesNotThrowAnyException()
+        assertThatCode(run2).doesNotThrowAnyException()
+        assertThatCode(run3).doesNotThrowAnyException()
+    }
+
 }

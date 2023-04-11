@@ -52,6 +52,7 @@ public class QuestService {
 
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {
         UserInfo findUser = userRepository.getReferenceById(userId);
+        dto.checkRangeOfDeadLine(findUser.getResetTime());
 
         if (findUser.isNowCoreTime()) {
             dto.toMainQuest();
@@ -71,6 +72,7 @@ public class QuestService {
 
     public QuestResponse updateQuest(QuestRequest dto, Long questId, Long userId) {
         Quest quest = findByIdOrThrow(questId);
+        dto.checkRangeOfDeadLine(quest.getUser().getResetTime());
         quest.checkOwnershipOrThrow(userId);
         quest.checkStateIsProceedOrThrow();
 

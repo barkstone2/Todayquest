@@ -6,6 +6,7 @@ import todayquest.common.BaseTimeEntity
 import todayquest.common.MessageUtil
 import todayquest.quest.dto.*
 import todayquest.user.entity.UserInfo
+import java.time.LocalDateTime
 
 @Entity
 class Quest(
@@ -15,6 +16,7 @@ class Quest(
     seq: Long,
     state: QuestState = QuestState.PROCEED,
     type: QuestType,
+    deadline: LocalDateTime? = null
 ) : BaseTimeEntity() {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,6 +47,8 @@ class Quest(
     var state: QuestState = state
         protected set
 
+    var deadLine: LocalDateTime? = deadline
+
     @OneToMany(mappedBy = "quest", cascade = [CascadeType.ALL], orphanRemoval = true)
     private val _detailQuests: MutableList<DetailQuest> = mutableListOf()
     val detailQuests : List<DetailQuest>
@@ -53,6 +57,7 @@ class Quest(
     fun updateQuestEntity(dto: QuestRequest) {
         title = dto.title
         description = dto.description
+        deadLine = dto.deadLine
         updateDetailQuests(dto.details)
     }
 

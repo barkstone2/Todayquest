@@ -11,13 +11,13 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.*
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
-import org.springframework.security.access.AccessDeniedException
 import todayquest.common.MessageUtil
+import todayquest.common.RestPage
 import todayquest.quest.dto.DetailInteractRequest
 import todayquest.quest.dto.QuestRequest
+import todayquest.quest.dto.QuestResponse
 import todayquest.quest.entity.*
 import todayquest.quest.repository.QuestRepository
-import todayquest.user.entity.ProviderType
 import todayquest.user.entity.UserInfo
 import todayquest.user.repository.UserRepository
 import todayquest.user.service.UserService
@@ -44,20 +44,8 @@ class QuestServiceUnitTest {
 
     private lateinit var messageUtil: MockedStatic<MessageUtil>
 
-    private lateinit var questList: List<Quest>
-    lateinit var userInfo: UserInfo
-    lateinit var quest: Quest
-
     @BeforeEach
     fun beforeEach() {
-        userInfo = UserInfo("", "", ProviderType.GOOGLE)
-        quest = Quest("t1", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
-        questList = listOf(
-            quest,
-            Quest("t2", "", userInfo, 2L, QuestState.PROCEED, QuestType.MAIN),
-            Quest("t3", "", userInfo, 3L, QuestState.PROCEED, QuestType.MAIN),
-        )
-
         messageUtil = mockStatic(MessageUtil::class.java)
         `when`(MessageUtil.getMessage(any())).thenReturn("")
         `when`(MessageUtil.getMessage(any(), any())).thenReturn("")
@@ -80,16 +68,34 @@ class QuestServiceUnitTest {
             val userId = 1L
             val state = QuestState.PROCEED
             val pageNo = 3
-            val pageable = PageRequest.of(pageNo, 9)
-            val pageList = PageImpl(questList, pageable, questList.size.toLong())
-            doReturn(pageList).`when`(questRepository).getQuestsList(eq(userId), eq(state), eq(pageable))
+            val pageSize = 9
+            val pageable = PageRequest.of(pageNo, pageSize)
+            val list = PageImpl<Quest>(listOf())
+
+            doReturn(list).`when`(questRepository).getQuestsList(
+                eq(userId),
+                eq(state),
+                argThat { page ->
+                    page.pageNumber == pageable.pageNumber
+                    && page.pageSize == pageable.pageSize
+                }
+            )
 
             //when
             val result = questService.getQuestList(userId, state, pageable)
 
             //then
-            assertThat(result.number).isEqualTo(pageNo)
-            assertThat(result.content).allMatch { qr -> questList.any {q -> q.title == qr.title } }
+            verify(questRepository, times(1))
+                .getQuestsList(
+                    eq(userId),
+                    eq(state),
+                    argThat { page ->
+                        page.pageNumber == pageable.pageNumber
+                        && page.pageSize == pageable.pageSize
+                    }
+                )
+
+            assertThat(result).isInstanceOf(RestPage::class.java)
         }
 
     }
@@ -103,7 +109,7 @@ class QuestServiceUnitTest {
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
             val questId = 0L
-            val userId = userInfo.id
+            val userId = 0L
             doReturn(Optional.ofNullable(null)).`when`(questRepository).findById(eq(questId))
 
             //when
@@ -113,52 +119,37 @@ class QuestServiceUnitTest {
             assertThrows<EntityNotFoundException> { call() }
         }
 
-        @DisplayName("타인의 퀘스트 조회 시 AccessDenied 예외를 던진다")
+        @DisplayName("퀘스트 소유자 확인 메서드가 호출된다")
         @Test
-        fun `타인의 퀘스트 조회 테스트`() {
+        fun `퀘스트 소유자 확인 메서드가 호출된다`() {
             //given
             val questId = 0L
             val userId = 1L
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
 
-            //when
-            val call = { questService.getQuestInfo(questId, userId) }
-
-            //then
-            assertThrows<AccessDeniedException> { call() }
-        }
-
-
-        @DisplayName("정상 호출일 경우 퀘스트 조회 로직이 호출된다")
-        @Test
-        fun `본인의 퀘스트 조회 시 정상 호출된다`() {
-            //given
-            val questId = 0L
-            val userId = userInfo.id
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
+            val mockQuest = mock<Quest>()
+            doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
 
             //when
             val questInfo = questService.getQuestInfo(questId, userId)
 
             //then
-            assertThat(questInfo).isNotNull
-            assertThat(questInfo.title).isEqualTo(quest.title)
+            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId))
+            assertThat(questInfo).isInstanceOf(QuestResponse::class.java)
         }
-
     }
 
     @DisplayName("퀘스트 저장 시")
     @Nested
     inner class QuestSaveTest {
 
-        @DisplayName("현재 시간이 유저의 코어타임 이라면 dto를 메인 퀘스트로 변경한다")
+        @DisplayName("현재 시간이 유저의 코어타임이라면 타입 변경 로직을 호출한다")
         @Test
         fun `코어타임이면 퀘스트 타입 메인으로 변경`() {
             //given
             val mockDto = mock<QuestRequest>()
             val mockUser = mock<UserInfo>()
             val mockQuest = mock<Quest>()
-            val userId = userInfo.id
+            val userId = 0L
             val nextSeq = 1L
 
             doReturn(true).`when`(mockUser).isNowCoreTime()
@@ -167,7 +158,7 @@ class QuestServiceUnitTest {
             doReturn(mockQuest).`when`(mockDto).mapToEntity(eq(nextSeq), eq(mockUser))
 
             //when
-            questService.saveQuest(mockDto, userId)
+            val saveQuest = questService.saveQuest(mockDto, userId)
 
             //then
             verify(mockDto, times(1)).checkRangeOfDeadLine(anyOrNull())
@@ -177,17 +168,19 @@ class QuestServiceUnitTest {
             verify(questRepository, times(1)).save(mockQuest)
             verify(mockQuest, times(1)).updateDetailQuests(any())
             verify(questLogService, times(1)).saveQuestLog(mockQuest)
+            assertThat(saveQuest).isInstanceOf(QuestResponse::class.java)
+
         }
 
 
-        @DisplayName("현재 시간이 유저의 코어타임 아니라면 dto를 변경하지 않는다")
+        @DisplayName("현재 시간이 유저의 코어타임 아니라면 타입 변경 로직을 호출하지 않는다")
         @Test
         fun `코어타임이 아니면 퀘스트 타입 변경 안함`() {
             //given
             val mockDto = mock<QuestRequest>()
             val mockUser = mock<UserInfo>()
             val mockQuest = mock<Quest>()
-            val userId = userInfo.id
+            val userId = 0L
             val nextSeq = 1L
 
             doReturn(false).`when`(mockUser).isNowCoreTime()
@@ -196,7 +189,7 @@ class QuestServiceUnitTest {
             doReturn(mockQuest).`when`(mockDto).mapToEntity(eq(nextSeq), eq(mockUser))
 
             //when
-            questService.saveQuest(mockDto, userId)
+            val saveQuest = questService.saveQuest(mockDto, userId)
 
             //then
             verify(mockDto, times(1)).checkRangeOfDeadLine(anyOrNull())
@@ -206,30 +199,7 @@ class QuestServiceUnitTest {
             verify(questRepository, times(1)).save(mockQuest)
             verify(mockQuest, times(1)).updateDetailQuests(any())
             verify(questLogService, times(1)).saveQuestLog(mockQuest)
-        }
-
-
-        @DisplayName("정상 호출일 경우 퀘스트 저장 로직이 호출된다")
-        @Test
-        fun `정상 호출일 경우 퀘스트 저장 로직이 호출된다`() {
-            //given
-            val mockDto = Mockito.mock(QuestRequest::class.java)
-            val userId = userInfo.id
-            val nextSeq = 5L
-            val mockUser = Mockito.mock(UserInfo::class.java)
-            val mockQuest = Mockito.mock(Quest::class.java)
-
-            doReturn(mockUser).`when`(userRepository).getReferenceById(eq(userId))
-            doReturn(nextSeq).`when`(questRepository).getNextSeqByUserId(eq(userId))
-            doReturn(mockQuest).`when`(mockDto).mapToEntity(eq(nextSeq), eq(mockUser))
-            doReturn(quest).`when`(questRepository).save(eq(mockQuest))
-
-            //when
-            questService.saveQuest(mockDto, userId)
-
-            //then
-            then(mockQuest).should().updateDetailQuests(any())
-            then(questLogService).should().saveQuestLog(eq(quest))
+            assertThat(saveQuest).isInstanceOf(QuestResponse::class.java)
         }
 
     }
@@ -242,54 +212,82 @@ class QuestServiceUnitTest {
         @Test
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
-            val request = QuestRequest("update", "update")
+            val mockDto = mock<QuestRequest>()
             val questId = 0L
-            val userId = userInfo.id
+            val userId = 0L
             doReturn(Optional.ofNullable(null)).`when`(questRepository).findById(eq(questId))
 
             //when
-            val call = { questService.updateQuest(request, questId, userId) }
+            val call: () -> Unit = { questService.updateQuest(mockDto, questId, userId)}
 
             //then
-            assertThrows<EntityNotFoundException> { call() }
+            assertThatThrownBy(call).isInstanceOf(EntityNotFoundException::class.java)
+            verify(mockDto, times(0)).checkRangeOfDeadLine(any())
         }
 
-        @DisplayName("타인의 퀘스트 요청 시 AccessDenied 예외를 던진다")
+        @DisplayName("데드라인 범위 체크 로직이 호출된다")
         @Test
-        fun `타인의 퀘스트 요청 시 오류가 발생한다`() {
+        fun `데드라인 범위 체크 로직이 호출된다`() {
             //given
-            val request = QuestRequest("update", "update")
+            val mockDto = mock<QuestRequest>()
+            val mockQuest = mock<Quest>()
+            val mockUser = mock<UserInfo>()
             val questId = 0L
             val userId = 1L
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
+
+            doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
+            doReturn(mockUser).`when`(mockQuest).user
 
             //when
-            val call = { questService.updateQuest(request, questId, userId) }
+            questService.updateQuest(mockDto, questId, userId)
 
             //then
-            assertThrows<AccessDeniedException> { call() }
+            verify(mockDto, times(1)).checkRangeOfDeadLine(anyOrNull())
         }
 
 
-        @DisplayName("진행중인 퀘스트가 아니라면 IllegalState 예외를 던진다")
+        @DisplayName("퀘스트 소유주 검증 로직이 호출된다")
         @Test
-        fun `진행중인 퀘스트가 아니라면 오류가 발생한다`() {
+        fun `퀘스트 소유주 검증 로직이 호출된다`() {
             //given
-            val request = QuestRequest("update", "update")
+            val mockDto = mock<QuestRequest>()
+            val mockQuest = mock<Quest>()
+            val mockUser = mock<UserInfo>()
             val questId = 0L
-            val userId = userInfo.id
+            val userId = 1L
 
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
-            quest.failQuest()
+            doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
+            doReturn(mockUser).`when`(mockQuest).user
 
             //when
-            val call = { questService.updateQuest(request, questId, userId) }
+            questService.updateQuest(mockDto, questId, userId)
 
             //then
-            assertThrows<IllegalStateException> { call() }
+            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId))
         }
 
-        @DisplayName("기존 퀘스트가 메인 퀘스트라면 dto의 타입을 변경한다")
+
+        @DisplayName("퀘스트 진행 상태 검증 로직이 호출된다")
+        @Test
+        fun `퀘스트 진행 상태 검증 로직이 호출된다`() {
+            //given
+            val mockDto = mock<QuestRequest>()
+            val mockQuest = mock<Quest>()
+            val mockUser = mock<UserInfo>()
+            val questId = 0L
+            val userId = 1L
+
+            doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
+            doReturn(mockUser).`when`(mockQuest).user
+
+            //when
+            questService.updateQuest(mockDto, questId, userId)
+
+            //then
+            verify(mockQuest, times(1)).checkStateIsProceedOrThrow()
+        }
+
+        @DisplayName("기존 퀘스트가 메인 퀘스트라면 타입 변경 로직이 호출된다")
         @Test
         fun `메인 퀘스트라면 dto의 타입을 변경한다`() {
             //given
@@ -298,25 +296,22 @@ class QuestServiceUnitTest {
             val mockUser = mock<UserInfo>()
 
             val questId = 0L
-            val userId = userInfo.id
+            val userId = 0L
 
             doReturn(mockUser).`when`(mockQuest).user
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
+
             doReturn(true).`when`(mockQuest).isMainQuest()
 
             //when
             questService.updateQuest(mockDto, questId, userId)
 
             //then
-            verify(mockDto, times(1)).checkRangeOfDeadLine(anyOrNull())
-            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId))
-            verify(mockQuest, times(1)).checkStateIsProceedOrThrow()
             verify(mockQuest, times(1)).isMainQuest()
             verify(mockDto, times(1)).toMainQuest()
-            verify(mockQuest, times(1)).updateQuestEntity(mockDto)
         }
 
-        @DisplayName("기존 퀘스트가 서브 퀘스트라면 dto의 타입을 변경하지 않는다")
+        @DisplayName("기존 퀘스트가 서브 퀘스트라면 타입 변경 로직이 호출되지 않는다")
         @Test
         fun `메인 퀘스트가 아니면 dto의 타입을 변경하지 않는다`() {
             //given
@@ -325,22 +320,19 @@ class QuestServiceUnitTest {
             val mockUser = mock<UserInfo>()
 
             val questId = 0L
-            val userId = userInfo.id
+            val userId = 0L
 
             doReturn(mockUser).`when`(mockQuest).user
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
+
             doReturn(false).`when`(mockQuest).isMainQuest()
 
             //when
             questService.updateQuest(mockDto, questId, userId)
 
             //then
-            verify(mockDto, times(1)).checkRangeOfDeadLine(anyOrNull())
-            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId))
-            verify(mockQuest, times(1)).checkStateIsProceedOrThrow()
             verify(mockQuest, times(1)).isMainQuest()
             verify(mockDto, times(0)).toMainQuest()
-            verify(mockQuest, times(1)).updateQuestEntity(mockDto)
         }
 
         @DisplayName("정상 호출일 경우 퀘스트 업데이트 로직이 호출된다")
@@ -352,7 +344,7 @@ class QuestServiceUnitTest {
             val mockUser = mock<UserInfo>()
 
             val questId = 0L
-            val userId = userInfo.id
+            val userId = 0L
 
             doReturn(mockUser).`when`(mockQuest).user
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
@@ -377,29 +369,30 @@ class QuestServiceUnitTest {
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
             val questId = 0L
-            val userId = userInfo.id
+            val userId = 0L
             doReturn(Optional.ofNullable(null)).`when`(questRepository).findById(eq(questId))
 
             //when
             val call = { questService.deleteQuest(questId, userId) }
 
             //then
-            assertThrows<EntityNotFoundException> { call() }
+            assertThatThrownBy(call).isInstanceOf(EntityNotFoundException::class.java)
         }
 
-        @DisplayName("타인의 퀘스트 요청 시 AccessDenied 예외를 던진다")
+        @DisplayName("퀘스트 소유주 검증 로직이 호출된다")
         @Test
-        fun `타인의 퀘스트 요청 시 오류가 발생한다`() {
+        fun `퀘스트 소유주 검증 로직이 호출된다`() {
             //given
             val questId = 0L
             val userId = 1L
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
+            val mockQuest = mock<Quest>()
+            doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
 
             //when
-            val call = { questService.deleteQuest(questId, userId) }
+            questService.deleteQuest(questId, userId)
 
             //then
-            assertThrows<AccessDeniedException> { call() }
+            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId))
         }
 
         @DisplayName("정상 호출일 경우 퀘스트 삭제 로직이 호출된다")
@@ -407,17 +400,15 @@ class QuestServiceUnitTest {
         fun `퀘스트 삭제 로직이 호출된다`() {
             //given
             val questId = 0L
-            val userId = userInfo.id
-            val mockQuest = Mockito.mock(Quest::class.java)
-
+            val userId = 0L
+            val mockQuest = mock<Quest>()
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
 
             //when
             questService.deleteQuest(questId, userId)
 
             //then
-            then(mockQuest).should().deleteQuest()
+            verify(mockQuest, times(1)).deleteQuest()
         }
     }
 
@@ -429,84 +420,30 @@ class QuestServiceUnitTest {
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
             val questId = 0L
-            val userId = userInfo.id
+            val userId = 0L
             doReturn(Optional.ofNullable(null)).`when`(questRepository).findById(eq(questId))
 
             //when
             val call = { questService.completeQuest(questId, userId) }
 
             //then
-            assertThrows<EntityNotFoundException> { call() }
+            assertThatThrownBy(call).isInstanceOf(EntityNotFoundException::class.java)
         }
 
-        @DisplayName("타인의 퀘스트 요청 시 AccessDenied 예외를 던진다")
+        @DisplayName("퀘스트 소유주 검증 로직이 호출된다")
         @Test
-        fun `타인의 퀘스트 요청 시 오류가 발생한다`() {
+        fun `퀘스트 소유주 검증 로직이 호출된다`() {
             //given
             val questId = 0L
             val userId = 1L
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
+            val mockQuest = mock<Quest>()
+            doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
 
             //when
-            val call = { questService.completeQuest(questId, userId) }
+            questService.completeQuest(questId, userId)
 
             //then
-            assertThrows<AccessDeniedException> { call() }
-        }
-
-        @DisplayName("퀘스트가 삭제된 상태면 IllegalState 예외를 던진다")
-        @Test
-        fun `퀘스트가 삭제된 상태면 IllegalState 예외 발생`() {
-            //given
-            val questId = 0L
-            val userId = userInfo.id
-            val quest = Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.SUB)
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
-
-            //when
-            val call = { questService.completeQuest(questId, userId) }
-
-            //then
-            assertThrows<IllegalStateException> { call() }
-        }
-
-        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalState 예외를 던진다")
-        @Test
-        fun `퀘스트가 진행 상태가 아니면 IllegalState 예외 발생`() {
-            //given
-            val questId = 0L
-            val userId = userInfo.id
-            val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
-
-            //when
-            val call = { questService.completeQuest(questId, userId) }
-
-            //then
-            assertThrows<IllegalStateException> { call() }
-        }
-
-        @DisplayName("세부 퀘스트가 모두 완료되지 않았다면 IllegalState 예외를 던진다")
-        @Test
-        fun `퀘스트 완료가 불가능한 상태면 IllegalState 예외 발생`() {
-            //given
-            val questId = 0L
-            val userId = userInfo.id
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
-
-            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
-            detailQuests.isAccessible = true
-
-            val details = mutableListOf(DetailQuest("init1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest))
-            detailQuests.set(quest, details)
-
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
-
-            //when
-            val call = { questService.completeQuest(questId, userId) }
-
-            //then
-            assertThrows<IllegalStateException> { call() }
+            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId))
         }
 
         @DisplayName("정상 호출일 경우 퀘스트 완료 로직이 호출된다")
@@ -514,21 +451,22 @@ class QuestServiceUnitTest {
         fun `퀘스트 완료 로직이 호출된다`() {
             //given
             val questId = 0L
-            val userId = userInfo.id
-            val mockQuest = Mockito.mock(Quest::class.java)
-            val mockUser = Mockito.mock(UserInfo::class.java)
+            val userId = 0L
+            val mockQuest = mock<Quest>()
+            val mockUser = mock<UserInfo>()
+            val mockType = mock<QuestType>()
 
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
             doReturn(mockUser).`when`(mockQuest).user
+            doReturn(mockType).`when`(mockQuest).type
 
             //when
             questService.completeQuest(questId, userId)
 
             //then
-            then(mockQuest).should().completeQuest()
-            then(userService).should().earnExpAndGold(anyOrNull(), any())
-            then(questLogService).should().saveQuestLog(eq(mockQuest))
+            verify(mockQuest, times(1)).completeQuest()
+            verify(userService, times(1)).earnExpAndGold(eq(mockType), eq(mockUser))
+            verify(questLogService, times(1)).saveQuestLog(eq(mockQuest))
         }
     }
 
@@ -542,81 +480,48 @@ class QuestServiceUnitTest {
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
             val questId = 0L
-            val userId = userInfo.id
+            val userId = 0L
             doReturn(Optional.ofNullable(null)).`when`(questRepository).findById(eq(questId))
 
             //when
             val call = { questService.discardQuest(questId, userId) }
 
             //then
-            assertThrows<EntityNotFoundException> { call() }
+            assertThatThrownBy(call).isInstanceOf(EntityNotFoundException::class.java)
         }
 
-        @DisplayName("타인의 퀘스트 요청 시 AccessDenied 예외를 던진다")
+        @DisplayName("퀘스트 소유주 검증 로직이 호출된다")
         @Test
-        fun `타인의 퀘스트 요청 시 오류가 발생한다`() {
+        fun `퀘스트 소유주 검증 로직이 호출된다`() {
             //given
             val questId = 0L
             val userId = 1L
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
+            val mockQuest = mock<Quest>()
+            doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
 
             //when
-            val call = { questService.discardQuest(questId, userId) }
+            questService.discardQuest(questId, userId)
 
             //then
-            assertThrows<AccessDeniedException> { call() }
+            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId))
         }
-
-        @DisplayName("퀘스트가 삭제된 상태면 IllegalState 예외를 던진다")
-        @Test
-        fun `퀘스트가 삭제된 상태면 IllegalState 예외 발생`() {
-            //given
-            val questId = 0L
-            val userId = userInfo.id
-            val quest = Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.SUB)
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
-
-            //when
-            val call = { questService.discardQuest(questId, userId) }
-
-            //then
-            assertThrows<IllegalStateException> { call() }
-        }
-
-        @DisplayName("퀘스트가 진행 상태가 아니면 IllegalState 예외를 던진다")
-        @Test
-        fun `퀘스트가 진행 상태가 아니면 IllegalState 예외 발생`() {
-            //given
-            val questId = 0L
-            val userId = userInfo.id
-            val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
-
-            //when
-            val call = { questService.discardQuest(questId, userId) }
-
-            //then
-            assertThrows<IllegalStateException> { call() }
-        }
-
 
         @DisplayName("정상 호출일 경우 퀘스트 포기 로직이 호출된다")
         @Test
         fun `퀘스트 포기 로직이 호출된다`() {
             //given
             val questId = 0L
-            val userId = userInfo.id
-            val mockQuest = Mockito.mock(Quest::class.java)
+            val userId = 0L
+            val mockQuest = mock<Quest>()
 
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
 
             //when
             questService.discardQuest(questId, userId)
 
             //then
-            then(mockQuest).should().discardQuest()
-            then(questLogService).should().saveQuestLog(eq(mockQuest))
+            verify(mockQuest, times(1)).discardQuest()
+            verify(questLogService, times(1)).saveQuestLog(eq(mockQuest))
         }
     }
 
@@ -629,29 +534,33 @@ class QuestServiceUnitTest {
         fun `퀘스트 조회 결과가 없다면 예외가 발생한다`() {
             //given
             val questId = 0L
-            val userId = userInfo.id
+            val userId = 0L
             doReturn(Optional.ofNullable(null)).`when`(questRepository).findById(eq(questId))
 
             //when
-            val call = { questService.interactWithDetailQuest(userId, questId, 1L, DetailInteractRequest()) }
+            val call: () -> Unit = { questService.interactWithDetailQuest(userId, questId, 1L, DetailInteractRequest()) }
 
             //then
-            assertThrows<EntityNotFoundException> { call() }
+            assertThatThrownBy(call).isInstanceOf(EntityNotFoundException::class.java)
         }
 
-        @DisplayName("타인의 퀘스트 요청 시 AccessDenied 예외를 던진다")
+
+        @DisplayName("퀘스트 소유주 검증 로직이 호출된다")
         @Test
-        fun `타인의 퀘스트 요청 시 오류가 발생한다`() {
+        fun `퀘스트 소유주 검증 로직이 호출된다`() {
             //given
             val questId = 0L
             val userId = 1L
-            doReturn(Optional.of(quest)).`when`(questRepository).findById(eq(questId))
+            val detailQuestId = 0L
+            val mockDto = mock<DetailInteractRequest>()
+            val mockQuest = mock<Quest>()
+            doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
 
             //when
-            val call = { questService.interactWithDetailQuest(userId, questId, 1L, DetailInteractRequest()) }
+            questService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto)
 
             //then
-            assertThrows<AccessDeniedException> { call() }
+            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId))
         }
 
         @DisplayName("정상 호출일 경우 세부 퀘스트 상호 작용 로직이 호출된다")
@@ -659,18 +568,18 @@ class QuestServiceUnitTest {
         fun `세부 퀘스트 상호 작용 로직이 호출된다`() {
             //given
             val questId = 0L
-            val userId = userInfo.id
+            val userId = 1L
             val detailQuestId = 0L
-            val mockQuest = Mockito.mock(Quest::class.java)
+            val mockDto = mock<DetailInteractRequest>()
+            val mockQuest = mock<Quest>()
 
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
 
             //when
-            questService.interactWithDetailQuest(userId, questId, detailQuestId, DetailInteractRequest())
+            questService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto)
 
             //then
-            then(mockQuest).should().interactWithDetailQuest(eq(detailQuestId), any())
+            verify(mockQuest, times(1)).interactWithDetailQuest(eq(detailQuestId), eq(mockDto))
         }
     }
 

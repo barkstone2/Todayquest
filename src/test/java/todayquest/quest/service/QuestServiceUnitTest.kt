@@ -155,19 +155,28 @@ class QuestServiceUnitTest {
         @Test
         fun `코어타임이면 퀘스트 타입 메인으로 변경`() {
             //given
-            val subTypeDto = QuestRequest("title", "desc", null)
+            val mockDto = mock<QuestRequest>()
+            val mockUser = mock<UserInfo>()
+            val mockQuest = mock<Quest>()
             val userId = userInfo.id
-            val mockUser = Mockito.mock(UserInfo::class.java)
+            val nextSeq = 1L
 
-            doReturn(mockUser).`when`(userRepository).getReferenceById(eq(userId))
             doReturn(true).`when`(mockUser).isNowCoreTime()
-            doReturn(quest).`when`(questRepository).save(any())
+            doReturn(mockUser).`when`(userRepository).getReferenceById(eq(userId))
+            doReturn(nextSeq).`when`(questRepository).getNextSeqByUserId(eq(userId))
+            doReturn(mockQuest).`when`(mockDto).mapToEntity(eq(nextSeq), eq(mockUser))
 
             //when
-            questService.saveQuest(subTypeDto, userId)
+            questService.saveQuest(mockDto, userId)
 
             //then
-            assertThat(subTypeDto).hasFieldOrPropertyWithValue("type", QuestType.MAIN)
+            verify(mockDto, times(1)).checkRangeOfDeadLine(anyOrNull())
+            verify(mockUser, times(1)).isNowCoreTime()
+            verify(mockDto, times(1)).toMainQuest()
+            verify(questRepository, times(1)).getNextSeqByUserId(eq(userId))
+            verify(questRepository, times(1)).save(mockQuest)
+            verify(mockQuest, times(1)).updateDetailQuests(any())
+            verify(questLogService, times(1)).saveQuestLog(mockQuest)
         }
 
 
@@ -175,19 +184,28 @@ class QuestServiceUnitTest {
         @Test
         fun `코어타임이 아니면 퀘스트 타입 변경 안함`() {
             //given
-            val subTypeDto = QuestRequest("title", "desc", null)
+            val mockDto = mock<QuestRequest>()
+            val mockUser = mock<UserInfo>()
+            val mockQuest = mock<Quest>()
             val userId = userInfo.id
-            val mockUser = Mockito.mock(UserInfo::class.java)
+            val nextSeq = 1L
 
-            doReturn(mockUser).`when`(userRepository).getReferenceById(eq(userId))
             doReturn(false).`when`(mockUser).isNowCoreTime()
-            doReturn(quest).`when`(questRepository).save(any())
+            doReturn(mockUser).`when`(userRepository).getReferenceById(eq(userId))
+            doReturn(nextSeq).`when`(questRepository).getNextSeqByUserId(eq(userId))
+            doReturn(mockQuest).`when`(mockDto).mapToEntity(eq(nextSeq), eq(mockUser))
 
             //when
-            questService.saveQuest(subTypeDto, userId)
+            questService.saveQuest(mockDto, userId)
 
             //then
-            assertThat(subTypeDto).hasFieldOrPropertyWithValue("type", QuestType.SUB)
+            verify(mockDto, times(1)).checkRangeOfDeadLine(anyOrNull())
+            verify(mockUser, times(1)).isNowCoreTime()
+            verify(mockDto, times(0)).toMainQuest()
+            verify(questRepository, times(1)).getNextSeqByUserId(eq(userId))
+            verify(questRepository, times(1)).save(mockQuest)
+            verify(mockQuest, times(1)).updateDetailQuests(any())
+            verify(questLogService, times(1)).saveQuestLog(mockQuest)
         }
 
 
@@ -275,63 +293,79 @@ class QuestServiceUnitTest {
         @Test
         fun `메인 퀘스트라면 dto의 타입을 변경한다`() {
             //given
-            val request = QuestRequest("update", "update")
+            val mockDto = mock<QuestRequest>()
+            val mockQuest = mock<Quest>()
+            val mockUser = mock<UserInfo>()
+
             val questId = 0L
             val userId = userInfo.id
-            val mockQuest = Mockito.mock(Quest::class.java)
 
+            doReturn(mockUser).`when`(mockQuest).user
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
-            doNothing().`when`(mockQuest).checkStateIsProceedOrThrow()
             doReturn(true).`when`(mockQuest).isMainQuest()
 
             //when
-            questService.updateQuest(request, questId, userId)
+            questService.updateQuest(mockDto, questId, userId)
 
             //then
-            assertThat(request).hasFieldOrPropertyWithValue("type", QuestType.MAIN)
+            verify(mockDto, times(1)).checkRangeOfDeadLine(anyOrNull())
+            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId))
+            verify(mockQuest, times(1)).checkStateIsProceedOrThrow()
+            verify(mockQuest, times(1)).isMainQuest()
+            verify(mockDto, times(1)).toMainQuest()
+            verify(mockQuest, times(1)).updateQuestEntity(mockDto)
         }
 
         @DisplayName("기존 퀘스트가 서브 퀘스트라면 dto의 타입을 변경하지 않는다")
         @Test
         fun `메인 퀘스트가 아니면 dto의 타입을 변경하지 않는다`() {
             //given
-            val request = QuestRequest("update", "update")
+            val mockDto = mock<QuestRequest>()
+            val mockQuest = mock<Quest>()
+            val mockUser = mock<UserInfo>()
+
             val questId = 0L
             val userId = userInfo.id
-            val mockQuest = Mockito.mock(Quest::class.java)
 
+            doReturn(mockUser).`when`(mockQuest).user
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
-            doNothing().`when`(mockQuest).checkStateIsProceedOrThrow()
             doReturn(false).`when`(mockQuest).isMainQuest()
 
             //when
-            questService.updateQuest(request, questId, userId)
+            questService.updateQuest(mockDto, questId, userId)
 
             //then
-            assertThat(request).hasFieldOrPropertyWithValue("type", QuestType.SUB)
+            verify(mockDto, times(1)).checkRangeOfDeadLine(anyOrNull())
+            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId))
+            verify(mockQuest, times(1)).checkStateIsProceedOrThrow()
+            verify(mockQuest, times(1)).isMainQuest()
+            verify(mockDto, times(0)).toMainQuest()
+            verify(mockQuest, times(1)).updateQuestEntity(mockDto)
         }
 
         @DisplayName("정상 호출일 경우 퀘스트 업데이트 로직이 호출된다")
         @Test
         fun `퀘스트 업데이트 로직이 호출된다`() {
             //given
-            val request = QuestRequest("update", "update")
+            val mockDto = mock<QuestRequest>()
+            val mockQuest = mock<Quest>()
+            val mockUser = mock<UserInfo>()
+
             val questId = 0L
             val userId = userInfo.id
-            val mockQuest = Mockito.mock(Quest::class.java)
 
+            doReturn(mockUser).`when`(mockQuest).user
             doReturn(Optional.of(mockQuest)).`when`(questRepository).findById(eq(questId))
-            doNothing().`when`(mockQuest).checkOwnershipOrThrow(any())
-            doNothing().`when`(mockQuest).checkStateIsProceedOrThrow()
-            doReturn(false).`when`(mockQuest).isMainQuest()
 
             //when
-            questService.updateQuest(request, questId, userId)
+            questService.updateQuest(mockDto, questId, userId)
 
             //then
-            then(mockQuest).should().updateQuestEntity(eq(request))
+            verify(mockDto, times(1)).checkRangeOfDeadLine(anyOrNull())
+            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId))
+            verify(mockQuest, times(1)).checkStateIsProceedOrThrow()
+            verify(mockQuest, times(1)).isMainQuest()
+            verify(mockQuest, times(1)).updateQuestEntity(mockDto)
         }
     }
 

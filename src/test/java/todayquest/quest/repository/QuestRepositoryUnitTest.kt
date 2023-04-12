@@ -214,9 +214,9 @@ class QuestRepositoryUnitTest {
         }
     }
 
-    @DisplayName("getQuestsForBatch 호출 시")
+    @DisplayName("getQuestsForResetBatch 호출 시")
     @Nested
-    inner class BatchListTest {
+    inner class ResetBatchListTest {
 
         @EnumSource(QuestState::class)
         @DisplayName("조회한 상태의 퀘스트만 조회된다")
@@ -234,7 +234,7 @@ class QuestRepositoryUnitTest {
             )
 
             //when
-            val questsList = questRepository.getQuestsForBatch(state, LocalDateTime.now(), resetTime, Pageable.unpaged())
+            val questsList = questRepository.getQuestsForResetBatch(state, resetTime, Pageable.unpaged())
 
             //then
             assertThat(questsList.content).contains(questOfState[state])
@@ -242,32 +242,29 @@ class QuestRepositoryUnitTest {
         }
 
 
-        @DisplayName("조회한 시간 이전에 생성된 퀘스트만 조회된다")
+        @DisplayName("데드라인 값이 null인 퀘스트만 조회된다")
         @Test
-        fun `퀘스트 생성시간별 조회`() {
+        fun `데드라인 값이 null인 퀘스트만 조회된다`() {
 
             //given
             val resetTime = userInfo.resetTime
-            val beforeList = listOf(
+            val containList = listOf(
                 questRepository.save(Quest("1", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)),
                 questRepository.save(Quest("2", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
             )
 
-            val targetDate = LocalDateTime.now()
-
-            val afterList = listOf(
-                questRepository.save(Quest("3", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)),
-                questRepository.save(Quest("4", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)),
-                questRepository.save(Quest("5", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val notContainList = listOf(
+                questRepository.save(Quest("3", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN, deadline = LocalDateTime.now())),
+                questRepository.save(Quest("4", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN, deadline = LocalDateTime.now())),
+                questRepository.save(Quest("5", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN, deadline = LocalDateTime.now()))
             )
 
             //when
-            val questsList = questRepository.getQuestsForBatch(QuestState.PROCEED, targetDate, resetTime, Pageable.unpaged())
+            val questsList = questRepository.getQuestsForResetBatch(QuestState.PROCEED, resetTime, Pageable.unpaged())
 
             //then
-            assertThat(questsList).allMatch { quest -> quest.createdDate?.isBefore(targetDate)!! }
-            assertThat(questsList.content).containsAll(beforeList)
-            assertThat(questsList.content).doesNotContainAnyElementsOf(afterList)
+            assertThat(questsList.content).containsAll(containList)
+            assertThat(questsList.content).doesNotContainAnyElementsOf(notContainList)
         }
 
         @DisplayName("등록한 유저의 resetTime이 파라미터 값과 일치하는 퀘스트만 조회된다")
@@ -287,7 +284,7 @@ class QuestRepositoryUnitTest {
             )
 
             //when
-            val questsList = questRepository.getQuestsForBatch(QuestState.PROCEED, LocalDateTime.now(), resetTime, Pageable.unpaged())
+            val questsList = questRepository.getQuestsForResetBatch(QuestState.PROCEED, resetTime, Pageable.unpaged())
 
             //then
             assertThat(questsList.content).containsAll(mustContain)
@@ -307,7 +304,107 @@ class QuestRepositoryUnitTest {
             )
 
             //when
-            val questsList = questRepository.getQuestsForBatch(QuestState.PROCEED, LocalDateTime.now(), anotherUser.resetTime, PageRequest.of(pageNo, 1))
+            val questsList = questRepository.getQuestsForResetBatch(QuestState.PROCEED, anotherUser.resetTime, PageRequest.of(pageNo, 1))
+
+            //then
+            assertThat(questsList.number).isEqualTo(pageNo)
+            assertThat(questsList.content[0]).isEqualTo(savedList[pageNo])
+        }
+    }
+
+    @DisplayName("getQuestForDeadLineBatch 호출 시")
+    @Nested
+    inner class DeadLineBatchListTest {
+
+        @EnumSource(QuestState::class)
+        @DisplayName("조회한 상태의 퀘스트만 조회된다")
+        @ParameterizedTest(name = "{0} 값이 들어오면 {0} 상태의 퀘스트만 조회된다")
+        fun `퀘스트 상태별 조회`(state: QuestState) {
+
+            //given
+            val deadLine = LocalDateTime.of(2022, 1, 1, 1, 1)
+            val targetDate = LocalDateTime.now()
+            val questOfState = mapOf(
+                Pair(
+                    QuestState.PROCEED, questRepository.save(
+                        Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN, deadline = deadLine)
+                    )
+                ),
+                Pair(
+                    QuestState.FAIL, questRepository.save(
+                        Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN, deadline = deadLine)
+                    )
+                ),
+                Pair(
+                    QuestState.DISCARD, questRepository.save(
+                        Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN, deadline = deadLine)
+                    )
+                ),
+                Pair(
+                    QuestState.DELETE, questRepository.save(
+                        Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN, deadline = deadLine)
+                    )
+                ),
+                Pair(
+                    QuestState.COMPLETE, questRepository.save(
+                        Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN, deadline = deadLine)
+                    )
+                ),
+            )
+
+            //when
+            val questsList = questRepository.getQuestForDeadLineBatch(state, targetDate, Pageable.unpaged())
+
+            //then
+            assertThat(questsList.content).contains(questOfState[state])
+            assertThat(questsList).allMatch { quest -> quest.state == state }
+        }
+
+
+        @DisplayName("데드라인이 targetDate 보다 작거나 같은 퀘스트만 조회된다")
+        @Test
+        fun `데드라인이 targetDate 보다 작거나 같은 퀘스트만 조회된다`() {
+
+            //given
+            val targetDate = LocalDateTime.now()
+
+            val containList = listOf(
+                questRepository.save(
+                    Quest("1", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN, deadline = targetDate.minusMinutes(1))
+                ),
+                questRepository.save(
+                    Quest("2", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN, deadline = targetDate)
+                )
+            )
+
+            val notContainList = listOf(
+                questRepository.save(Quest("3", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)),
+                questRepository.save(Quest("4", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN, deadline = targetDate.plusMinutes(1))),
+                questRepository.save(Quest("5", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
+            )
+
+            //when
+            val questsList = questRepository.getQuestForDeadLineBatch(QuestState.PROCEED, targetDate, Pageable.unpaged())
+
+            //then
+            assertThat(questsList.content).containsAll(containList)
+            assertThat(questsList.content).doesNotContainAnyElementsOf(notContainList)
+        }
+
+        @ValueSource(ints = [0, 1, 2])
+        @DisplayName("페이지 번호에 맞는 퀘스트가 조회된다")
+        @ParameterizedTest(name = "{0} 값이 들어오면 {0} 페이지의 퀘스트가 조회된다")
+        fun `페이징 테스트`(pageNo: Int) {
+            //given
+            val targetDate = LocalDateTime.now()
+            val savedList = listOf(
+                questRepository.save(Quest("1", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN, deadline = targetDate)),
+                questRepository.save(Quest("2", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN, deadline = targetDate)),
+                questRepository.save(Quest("3", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN, deadline = targetDate))
+            )
+
+            //when
+            val questsList = questRepository.getQuestForDeadLineBatch(QuestState.PROCEED, targetDate, PageRequest.of(pageNo, 1))
 
             //then
             assertThat(questsList.number).isEqualTo(pageNo)

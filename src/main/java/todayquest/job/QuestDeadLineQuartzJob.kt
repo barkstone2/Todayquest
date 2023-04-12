@@ -13,24 +13,22 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @Component
-class QuestFailQuartzJob(
-    private val jobLauncher: JobLauncher? = null,
-    private val questFailBatchJob: org.springframework.batch.core.Job? = null,
+class QuestDeadLineQuartzJob(
+    private val jobLauncher: JobLauncher,
+    private val questDeadLineBatchJob: org.springframework.batch.core.Job,
 ) : Job {
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun execute(context: JobExecutionContext) {
 
-        val resetTime = LocalTime.of(LocalTime.now().hour, 0, 0)
-        var targetDate = LocalDateTime.of(LocalDate.now(), resetTime)
+        val targetDate = LocalDateTime.now()
 
-        var jobParameters = JobParametersBuilder()
+        val jobParameters = JobParametersBuilder()
             .addString("targetDate", targetDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-            .addString("resetTime", resetTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
             .toJobParameters()
 
         try {
-            jobLauncher?.run(questFailBatchJob!!, jobParameters)
+            jobLauncher.run(questDeadLineBatchJob, jobParameters)
         } catch (_: JobInstanceAlreadyCompleteException) {
             log.info("-> {} 에 대한 중복 배치 작업이 발생했습니다.", targetDate)
         }

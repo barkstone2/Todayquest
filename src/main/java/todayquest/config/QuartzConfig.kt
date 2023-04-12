@@ -9,30 +9,57 @@ import org.springframework.context.annotation.Configuration
 class QuartzConfig {
 
     @Bean
-    fun jobDetail(questFailQuartzJob: Job): JobDetail {
+    fun questResetJobDetail(questResetQuartzJob: Job): JobDetail {
         return JobBuilder
-            .newJob(questFailQuartzJob.javaClass)
-            .withIdentity("springBatchJob")
+            .newJob(questResetQuartzJob.javaClass)
+            .withIdentity("questResetJob")
             .storeDurably()
             .build()
     }
 
     @Bean
-    fun trigger(jobDetail: JobDetail): Trigger {
+    fun questDeadLineJobDetail(questDeadLineQuartzJob: Job): JobDetail {
+        return JobBuilder
+            .newJob(questDeadLineQuartzJob.javaClass)
+            .withIdentity("questDeadLineJob")
+            .storeDurably()
+            .build()
+    }
+
+    @Bean
+    fun questResetTrigger(questResetJobDetail: JobDetail): Trigger {
         return TriggerBuilder
             .newTrigger()
-            .forJob(jobDetail)
-            .withIdentity("batchJobTrigger")
+            .forJob(questResetJobDetail)
+            .withIdentity("questResetTrigger")
             .withSchedule(CronScheduleBuilder.cronSchedule("0 0 * * * ?"))
             .build()
     }
 
     @Bean
-    fun scheduler(trigger: Trigger, jobDetail: JobDetail): Scheduler {
+    fun questDeadLineTrigger(questDeadLineJobDetail: JobDetail): Trigger {
+        return TriggerBuilder
+            .newTrigger()
+            .forJob(questDeadLineJobDetail)
+            .withIdentity("questDeadLineTrigger")
+            .withSchedule(CronScheduleBuilder.cronSchedule("0 * * * * ?"))
+            .build()
+    }
+
+    @Bean
+    fun scheduler(
+        questResetJobDetail: JobDetail,
+        questResetTrigger: Trigger,
+        questDeadLineJobDetail: JobDetail,
+        questDeadLineTrigger: Trigger,
+    ): Scheduler {
         val schedulerFactory: SchedulerFactory = StdSchedulerFactory()
         val scheduler = schedulerFactory.scheduler
         scheduler.start()
-        scheduler.scheduleJob(jobDetail, trigger)
+        scheduler.scheduleJob(questResetJobDetail, questResetTrigger)
+        scheduler.scheduleJob(questDeadLineJobDetail, questDeadLineTrigger)
         return scheduler
     }
+
+
 }

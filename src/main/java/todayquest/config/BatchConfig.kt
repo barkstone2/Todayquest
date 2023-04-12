@@ -18,10 +18,11 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.domain.Sort
 import org.springframework.transaction.PlatformTransactionManager
-import todayquest.job.BatchStepListener
+import todayquest.job.BatchQuestFailStepListener
 import todayquest.quest.entity.Quest
 import todayquest.quest.entity.QuestState
 import todayquest.quest.repository.QuestRepository
+import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -33,25 +34,49 @@ class BatchConfig(
     private val jobRepository: JobRepository,
     private val transactionManager: PlatformTransactionManager,
     private val questRepository: QuestRepository,
-    private val batchStepListener: BatchStepListener,
+    private val batchQuestFailStepListener: BatchQuestFailStepListener,
 ) {
 
     @Bean
-    fun questFailBatchJob(): Job {
-        return JobBuilder("questFailJob", jobRepository)
-            .start(questFailBatchStep())
+    fun questResetBatchJob(): Job {
+        return JobBuilder("questResetJob", jobRepository)
+            .start(questResetBatchStep())
+            .build()
+    }
+
+    @Bean
+    fun questDeadLineBatchJob(): Job {
+        return JobBuilder("questDeadLineJob", jobRepository)
+            .start(questDeadLineBatchStep())
             .build()
     }
 
     @Bean
     @JobScope
-    fun questFailBatchStep(): Step {
-        val step = StepBuilder("questFailStep", jobRepository)
+    fun questResetBatchStep(): Step {
+        val step = StepBuilder("questResetStep", jobRepository)
             .chunk<Quest, Quest>(10, transactionManager)
-            .reader(questReader())
-            .processor(questProcessor())
+            .reader(questResetReader())
+            .processor(questFailProcessor())
             .writer(questWriter())
-            .listener(batchStepListener)
+            .listener(batchQuestFailStepListener)
+            .faultTolerant()
+            .retryLimit(3)
+            .retry(Exception::class.java)
+            .build()
+        step.isAllowStartIfComplete = true
+        return step
+    }
+
+    @Bean
+    @JobScope
+    fun questDeadLineBatchStep(): Step {
+        val step = StepBuilder("questDeadLineStep", jobRepository)
+            .chunk<Quest, Quest>(10, transactionManager)
+            .reader(questDeadLineReader())
+            .processor(questFailProcessor())
+            .writer(questWriter())
+            .listener(batchQuestFailStepListener)
             .build()
         step.isAllowStartIfComplete = true
         return step
@@ -59,31 +84,49 @@ class BatchConfig(
 
     @Bean
     @StepScope
-    fun questProcessor(): ItemProcessor<in Quest, out Quest> {
-        return ItemProcessor { quest: Quest ->
-            quest.failQuest()
-            quest
-        }
-    }
+    fun questResetReader(): ItemReader<out Quest> {
 
-    @Bean
-    @StepScope
-    fun questReader(): ItemReader<out Quest> {
-
-        val jobExecution = JobSynchronizationManager.getContext().jobExecution
+        val jobExecution = JobSynchronizationManager.getContext()?.jobExecution!!
         val jobParameters = jobExecution.jobParameters
 
-        val targetDate = LocalDateTime.parse(jobParameters.getString("targetDate"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         val resetTime = LocalTime.parse(jobParameters.getString("resetTime"))
 
         return RepositoryItemReaderBuilder<Quest>()
             .repository(questRepository)
-            .methodName("getQuestsForBatch")
-            .arguments(QuestState.PROCEED, targetDate, resetTime)
+            .methodName("getQuestsForResetBatch")
+            .arguments(QuestState.PROCEED, resetTime)
             .pageSize(10)
             .sorts(mapOf(Pair("id", Sort.Direction.ASC)))
-            .name("questFailTargetReader")
+            .name("questResetReader")
             .build()
+    }
+
+    @Bean
+    @StepScope
+    fun questDeadLineReader(): ItemReader<out Quest> {
+
+        val jobExecution = JobSynchronizationManager.getContext()?.jobExecution!!
+        val jobParameters = jobExecution.jobParameters
+
+        val targetDate = LocalDateTime.parse(jobParameters.getString("targetDate"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+
+        return RepositoryItemReaderBuilder<Quest>()
+            .repository(questRepository)
+            .methodName("getQuestForDeadLineBatch")
+            .arguments(QuestState.PROCEED, targetDate)
+            .pageSize(10)
+            .sorts(mapOf(Pair("id", Sort.Direction.ASC)))
+            .name("questDeadLineReader")
+            .build()
+    }
+
+    @Bean
+    @StepScope
+    fun questFailProcessor(): ItemProcessor<in Quest, out Quest> {
+        return ItemProcessor { quest: Quest ->
+            quest.failQuest()
+            quest
+        }
     }
 
     @Bean

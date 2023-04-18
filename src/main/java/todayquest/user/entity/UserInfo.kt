@@ -6,6 +6,7 @@ import todayquest.common.BaseTimeEntity
 import todayquest.quest.entity.QuestType
 import todayquest.user.dto.RoleType
 import todayquest.user.dto.UserRequestDto
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 @DynamicInsert
@@ -41,6 +42,10 @@ class UserInfo(
     var coreTime: LocalTime = LocalTime.of(8, 0, 0)
         protected set
 
+    var resetTimeLastModifiedDate: LocalDateTime? = null
+        protected set
+    var coreTimeLastModifiedDate: LocalDateTime? = null
+        protected set
     var exp: Long = 0
         protected set
     var gold: Long = 0

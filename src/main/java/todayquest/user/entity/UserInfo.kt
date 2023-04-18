@@ -3,11 +3,11 @@ package todayquest.user.entity
 import jakarta.persistence.*
 import org.hibernate.annotations.DynamicInsert
 import todayquest.common.BaseTimeEntity
+import todayquest.common.MessageUtil
 import todayquest.quest.entity.QuestType
 import todayquest.user.dto.RoleType
 import todayquest.user.dto.UserRequestDto
-import java.time.LocalDateTime
-import java.time.LocalTime
+import java.time.*
 
 @DynamicInsert
 @Entity
@@ -60,8 +60,23 @@ class UserInfo(
     }
 
     fun changeUserSettings(dto: UserRequestDto) {
-        resetTime = LocalTime.of(dto.resetTime, 0, 0)
-        coreTime = LocalTime.of(dto.coreTime, 0, 0)
+
+        val now = LocalDateTime.now().withSecond(0).withNano(0)
+        val compareDate = now.minusDays(1)
+
+        checkUpdateLimit(resetTimeLastModifiedDate, compareDate, "user.settings.reset_time")
+        checkUpdateLimit(coreTimeLastModifiedDate, compareDate, "user.settings.core_time")
+
+        if(dto.resetTime != null && dto.resetTime != resetTime.hour) {
+            resetTime = LocalTime.of(dto.resetTime, 0, 0)
+            resetTimeLastModifiedDate = now
+        }
+
+        if(dto.coreTime != null && dto.coreTime != coreTime.hour) {
+            coreTime = LocalTime.of(dto.coreTime, 0, 0)
+            coreTimeLastModifiedDate = now
+        }
+
     }
 
     fun updateExpAndGold(questType: QuestType, earnedExp: Long, earnedGold: Long) {
@@ -108,5 +123,14 @@ class UserInfo(
 
     fun getCoreHour(): Int {
         return coreTime.hour
+    }
+
+    private fun checkUpdateLimit(settingLastModifiedDate: LocalDateTime?, compareDate: LocalDateTime, messageKey: String) {
+        check(settingLastModifiedDate?.isBefore(compareDate) ?: true) {
+            val diff = Duration.between(compareDate, settingLastModifiedDate)
+            val diffStr = String.format("%d시간 %d분", diff.toHours(), diff.toMinutes() % 60)
+
+            MessageUtil.getMessage("user.settings.update_limit", MessageUtil.getMessage(messageKey), diffStr)
+        }
     }
 }

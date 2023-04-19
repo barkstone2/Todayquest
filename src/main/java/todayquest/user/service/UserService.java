@@ -7,7 +7,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todayquest.common.MessageUtil;
-import todayquest.exception.DuplicateNicknameException;
 import todayquest.exception.RedisDataNotFoundException;
 import todayquest.properties.RedisKeyProperties;
 import todayquest.quest.entity.QuestType;
@@ -68,18 +67,6 @@ public class UserService {
 
     public void changeUserSettings(UserPrincipal principal, UserRequestDto dto) {
         UserInfo findUser = userRepository.getReferenceById(principal.getUserId());
-
-        String nickname = dto.getNickname();
-        if(nickname != null) {
-            String nicknameTrim = nickname.trim();
-            boolean isDuplicated = isDuplicateNickname(nicknameTrim);
-            if (isDuplicated) {
-                throw new DuplicateNicknameException(MessageUtil.getMessage("nickname.duplicate"));
-            }
-
-            findUser.updateNickname(nicknameTrim);
-        }
-
         findUser.changeUserSettings(dto);
     }
 

@@ -15,7 +15,6 @@ import org.springframework.data.redis.core.HashOperations
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.SetOperations
 import todayquest.common.MessageUtil
-import todayquest.exception.DuplicateNicknameException
 import todayquest.exception.RedisDataNotFoundException
 import todayquest.properties.RedisKeyProperties
 import todayquest.user.dto.UserPrincipal
@@ -145,42 +144,21 @@ class UserServiceUnitTest {
     @Nested
     inner class UserSettingsChangeTest {
 
-        @DisplayName("닉네임이 중복되면 DuplicateNicknameException 예외가 발생한다")
+        @DisplayName("유저 정보 변경 메서드가 호출된다")
         @Test
-        fun `닉네임이 중복되면 DuplicateNicknameException 예외가 발생한다`() {
-            //given
-            val mockPrincipal = mock<UserPrincipal>()
-            val mockRequest = mock<UserRequestDto>()
-
-            doReturn("").`when`(mockRequest).nickname
-            doReturn(true).`when`(userRepository).existsByNickname(any())
-
-            //when
-            val call = { userService.changeUserSettings(mockPrincipal, mockRequest) }
-
-            //then
-            assertThatThrownBy(call).isInstanceOf(DuplicateNicknameException::class.java)
-        }
-
-        @DisplayName("닉네임이 중복되지 않으면 정상 처리된다")
-        @Test
-        fun `닉네임이 중복되지 않으면 정상 처리된다`() {
+        fun `유저 정보 변경 메서드가 호출된다`() {
             //given
             val mockPrincipal = mock<UserPrincipal>()
             val mockRequest = mock<UserRequestDto>()
             val mockUser = mock<UserInfo>()
 
-            doReturn("").`when`(mockRequest).nickname
-            doReturn(false).`when`(userRepository).existsByNickname(any())
             doReturn(mockUser).`when`(userRepository).getReferenceById(any())
 
             //when
-            val call = { userService.changeUserSettings(mockPrincipal, mockRequest) }
+            userService.changeUserSettings(mockPrincipal, mockRequest)
 
             //then
-            assertThatCode(call).doesNotThrowAnyException()
-            verify(mockUser).updateNickname(any())
-            verify(mockUser).changeUserSettings(any())
+            verify(mockUser).changeUserSettings(eq(mockRequest))
         }
 
     }

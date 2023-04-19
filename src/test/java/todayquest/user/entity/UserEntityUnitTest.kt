@@ -36,6 +36,40 @@ class UserEntityUnitTest {
     @Nested
     inner class ChangeUserSettingsTest {
 
+        @DisplayName("닉네임이 null이 아닌경우 닉네임을 업데이트 한다")
+        @Test
+        fun `닉네임이 null이 아닌경우 닉네임을 업데이트 한다`() {
+            //given
+            val user = UserInfo("", "beforeNickname", ProviderType.GOOGLE)
+            val mockDto = mock<UserRequestDto>()
+
+            val newNickname = "afterNickname"
+            doReturn(newNickname).`when`(mockDto).nickname
+
+            //when
+            user.changeUserSettings(mockDto)
+
+            //then
+            assertThat(user.nickname).isEqualTo(newNickname)
+        }
+
+        @DisplayName("닉네임이 null이면 닉네임을 변경하지 않는다")
+        @Test
+        fun `닉네임이 null이면 닉네임을 변경하지 않는다`() {
+            //given
+            val user = UserInfo("", "before", ProviderType.GOOGLE)
+            val mockDto = mock<UserRequestDto>()
+            val beforeNickname = user.nickname
+
+            doReturn(null).`when`(mockDto).nickname
+
+            //when
+            user.changeUserSettings(mockDto)
+
+            //then
+            assertThat(user.nickname).isEqualTo(beforeNickname)
+        }
+
         @DisplayName("변경 제한 시간이 경과하지 않은 경우 오류가 발생한다")
         @Test
         fun `변경 제한 시간이 경과하지 않은 경우 오류가 발생한다`() {

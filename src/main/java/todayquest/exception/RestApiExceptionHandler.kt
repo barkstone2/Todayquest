@@ -105,7 +105,6 @@ class RestApiExceptionHandler {
         DuplicateNicknameException::class
     )
     fun duplicateNickname(e: DuplicateNicknameException): ResponseData<Void> {
-        log.error("[exceptionHandle] ex", e)
         val errorResponse = ErrorResponse(e.message, HttpStatus.CONFLICT)
         return ResponseData(errorResponse)
     }

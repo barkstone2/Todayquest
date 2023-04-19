@@ -55,11 +55,14 @@ class UserInfo(
     @Column(nullable = false)
     var role: RoleType = RoleType.USER
 
-    fun updateNickname(nickname: String) {
-        this.nickname = nickname
+    private fun updateNicknameIfNotNull(nickname: String?) {
+        if (nickname != null) {
+            this.nickname = nickname
+        }
     }
 
     fun changeUserSettings(dto: UserRequestDto) {
+        updateNicknameIfNotNull(dto.nickname)
 
         val now = LocalDateTime.now().withSecond(0).withNano(0)
         val compareDate = now.minusDays(1)

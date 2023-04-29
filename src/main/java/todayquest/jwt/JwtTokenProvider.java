@@ -49,13 +49,17 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public boolean isValidToken(String jwtToken) {
+    public boolean isValidToken(String jwtToken, String tokenType) {
         try {
             Jws<Claims> claims = Jwts.parserBuilder()
                     .setSigningKey(Decoders.BASE64.decode(secretKey))
                     .build()
                     .parseClaimsJws(jwtToken);
-            return !claims.getBody().getExpiration().before(new Date());
+
+            Claims body = claims.getBody();
+            String token_type = body.get("token_type", String.class);
+
+            return token_type.equals(tokenType);
         } catch (Exception e) {
             return false;
         }

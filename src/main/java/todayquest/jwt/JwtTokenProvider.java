@@ -29,6 +29,7 @@ public class JwtTokenProvider {
         Date now = new Date();
         return Jwts.builder()
                 .claim("id", userPk)
+                .claim("token_type", ACCESS_TOKEN_NAME)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_VALIDATION_SECOND))
                 .signWith(new SecretKeySpec(Decoders.BASE64.decode(secretKey), SignatureAlgorithm.HS256.getJcaName()))
@@ -39,14 +40,13 @@ public class JwtTokenProvider {
     public String createRefreshToken(Long userId) {
         Date now = new Date();
 
-        String refreshToken = Jwts.builder()
+        return Jwts.builder()
+                .claim("id", userId)
+                .claim("token_type", REFRESH_TOKEN_NAME)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_VALIDATION_SECOND))
                 .signWith(new SecretKeySpec(Decoders.BASE64.decode(secretKey), SignatureAlgorithm.HS256.getJcaName()))
                 .compact();
-
-        storeRefreshToken(refreshToken, userId);
-        return refreshToken;
     }
 
     public boolean isValidToken(String jwtToken) {

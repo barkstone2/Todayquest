@@ -3,7 +3,6 @@ package todayquest.jwt;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,7 +19,7 @@ public class JwtTokenProvider {
     public final static long REFRESH_TOKEN_VALIDATION_SECOND = 1000L * 60 * 60 * 24 * 14;
     public final static String ACCESS_TOKEN_NAME = "X-ACCESS-TOKEN";
     public final static String REFRESH_TOKEN_NAME = "X-REFRESH-TOKEN";
-    private final RedisTemplate<String, Long> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Value("${spring.jwt.secret}")
     private String secretKey;
@@ -71,8 +70,7 @@ public class JwtTokenProvider {
         return claims.getBody().get("id", Long.class);
     }
 
-    public String getJwtFromRequest(HttpServletRequest request, String tokenType){
-        Cookie[] cookies = request.getCookies();
+    public String getJwtFromCookies(Cookie[] cookies, String tokenType){
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals(tokenType))
                 return cookie.getValue();

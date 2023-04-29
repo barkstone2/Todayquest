@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
+import java.time.Duration;
 import java.util.Date;
 
 @RequiredArgsConstructor
@@ -101,27 +102,32 @@ public class JwtTokenProvider {
         return cookie;
     }
 
-    public String refreshAccessToken(String refreshToken) throws JwtException {
+    public String silentRefresh(String refreshToken) throws JwtException {
+        try {
+            if (!isInBlackList(refreshToken) && isValidToken(refreshToken, REFRESH_TOKEN_NAME)) {
+                Long userId = getUserIdFromToken(refreshToken);
 
-        if (isValidToken(refreshToken)) {
-            Long userId = getUserIdFromRedis(refreshToken);
-            return createAccessToken(userId);
-        } else {
-            deleteRefreshToken(refreshToken);
+                Date expiredDate = getExpiredDateFromToken(refreshToken);
+                addToBlackList(refreshToken, expiredDate);
+
+                return createAccessToken(userId);
+            } else {
+                throw new JwtException("로그인 시간이 만료됐습니다. 다시 로그인 해주세요.");
+            }
+        } catch (Exception e) {
             throw new JwtException("로그인 시간이 만료됐습니다. 다시 로그인 해주세요.");
         }
     }
 
-    private void storeRefreshToken(String refreshToken, Long userId) {
-        redisTemplate.opsForValue().set(refreshToken, userId);
+    private void addToBlackList(String refreshToken, Date expiredDate) {
+        long epochSecond = expiredDate.toInstant().getEpochSecond();
+        long now = new Date().toInstant().getEpochSecond();
+
+        redisTemplate.opsForValue().set(refreshToken, "", Duration.ofSeconds(epochSecond - now));
     }
 
-    private void deleteRefreshToken(String refreshToken) {
-        redisTemplate.delete(refreshToken);
-    }
-
-    private Long getUserIdFromRedis(String refreshToken) {
-        return redisTemplate.opsForValue().get(refreshToken);
+    private boolean isInBlackList(String token) {
+        return redisTemplate.opsForValue().get(token) != null;
     }
 
 }

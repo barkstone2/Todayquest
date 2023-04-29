@@ -23,7 +23,7 @@ import java.io.IOException;
 @Validated
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/quests")
+@RequestMapping("/api/v1/quests")
 @RestController
 public class QuestApiController {
     private final QuestService questService;
@@ -110,7 +110,7 @@ public class QuestApiController {
         return ResponseEntity.ok(new ResponseData<>());
     }
 
-    @PatchMapping(value = "/{questId}/details/{detailQuestId}", consumes = {"application/json"})
+    @PatchMapping(value = "/{questId}/details/{detailQuestId}")
     public ResponseEntity<ResponseData<DetailResponse>> interactWithDetailQuest(
             @Min(1) @PathVariable("questId") Long questId,
             @Min(1) @PathVariable("detailQuestId") Long detailQuestId,

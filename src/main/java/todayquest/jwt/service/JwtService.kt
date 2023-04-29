@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import todayquest.common.MessageUtil
 import todayquest.jwt.JwtTokenProvider
 import todayquest.jwt.dto.TokenRequest
 import todayquest.user.service.UserService
@@ -30,10 +31,10 @@ class JwtService(
             .build()
         val idTokenString = tokenRequest.idToken
 
-        if (Strings.isNullOrEmpty(idTokenString)) throw AccessDeniedException("비정상적인 접근입니다.")
+        if (Strings.isNullOrEmpty(idTokenString)) throw AccessDeniedException(MessageUtil.getMessage("exception.invalid.login"))
 
         val idToken = verifier.verify(idTokenString)
-            ?: throw AccessDeniedException("비정상적인 접근입니다.")
+            ?: throw AccessDeniedException(MessageUtil.getMessage("exception.invalid.login"))
         val oauth2Id = idToken.payload.subject
         val providerType = tokenRequest.providerType
 

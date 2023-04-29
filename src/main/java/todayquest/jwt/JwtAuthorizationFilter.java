@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
+import todayquest.properties.SecurityUrlProperties;
 import todayquest.user.service.UserService;
 
 import java.io.IOException;
@@ -24,13 +25,13 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
-    private final List<String> allowedUrls = List.of("/", "/css/**", "/js/**", "/image/**", "/error", "/user/login");
+    private final SecurityUrlProperties securityUrlProperties;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestUri = request.getRequestURI();
 
-        if (allowedUrls.stream().anyMatch(url -> antPathMatcher.match(url, requestUri))) {
+        if (Arrays.stream(securityUrlProperties.getAllowedUrl()).anyMatch(url -> antPathMatcher.match(url, requestUri))) {
             filterChain.doFilter(request, response);
             return;
         }

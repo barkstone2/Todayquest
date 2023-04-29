@@ -24,7 +24,6 @@ class QuestRequest(
     @Size(max = 50, message = "{size.quest.title}")
     val title = title
 
-    @NotBlank(message = "{NotBlank.quest.description}")
     @Size(max = 300, message = "{Size.quest.description}")
     val description = description
 

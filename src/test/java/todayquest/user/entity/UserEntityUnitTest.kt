@@ -75,11 +75,12 @@ class UserEntityUnitTest {
         fun `변경 제한 시간이 경과하지 않은 경우 오류가 발생한다`() {
             //given
             val user = UserInfo("", "", ProviderType.GOOGLE)
-            val mockDto = mock<UserRequestDto>()
-            user.changeUserSettings(mockDto)
+            val dto = UserRequestDto(user.resetTime.plusHours(1).hour, user.coreTime.plusHours(1).hour)
+            user.changeUserSettings(dto)
 
             //when
-            val call = { user.changeUserSettings(mockDto) }
+            val checkDto = UserRequestDto(user.resetTime.minusHours(1).hour, user.coreTime.minusHours(1).hour)
+            val call = { user.changeUserSettings(checkDto) }
 
             //then
             assertThatThrownBy(call).isInstanceOf(IllegalStateException::class.java)

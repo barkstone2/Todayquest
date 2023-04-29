@@ -39,7 +39,7 @@ public class QuestApiController {
     ) {
 
         RestPage<QuestResponse> questList = questService.getQuestList(
-                principal.getUserId(),
+                principal.getId(),
                 condition.getState(),
                 PageRequest.of(condition.getPage(), pageSize)
         );
@@ -52,7 +52,7 @@ public class QuestApiController {
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        QuestResponse quest = questService.getQuestInfo(questId, principal.getUserId());
+        QuestResponse quest = questService.getQuestInfo(questId, principal.getId());
         return ResponseEntity.ok(new ResponseData<>(quest));
     }
 
@@ -63,9 +63,9 @@ public class QuestApiController {
     ) {
 
         QuestResponse savedQuest = userLevelLock.executeWithLock(
-                "QUEST_SEQ" + principal.getUserId(),
+                "QUEST_SEQ" + principal.getId(),
                 3,
-                () -> questService.saveQuest(dto, principal.getUserId())
+                () -> questService.saveQuest(dto, principal.getId())
         );
 
         return ResponseEntity.ok(new ResponseData<>(savedQuest));
@@ -78,7 +78,7 @@ public class QuestApiController {
             @AuthenticationPrincipal UserPrincipal principal
     ) {
 
-        QuestResponse updatedQuest = questService.updateQuest(dto, questId, principal.getUserId());
+        QuestResponse updatedQuest = questService.updateQuest(dto, questId, principal.getId());
 
         return new ResponseEntity<>(new ResponseData<>(updatedQuest), HttpStatus.OK);
     }
@@ -88,7 +88,7 @@ public class QuestApiController {
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        questService.deleteQuest(questId, principal.getUserId());
+        questService.deleteQuest(questId, principal.getId());
         return ResponseEntity.ok(new ResponseData<>());
     }
 
@@ -97,7 +97,7 @@ public class QuestApiController {
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) throws IOException {
-        questService.completeQuest(questId, principal.getUserId());
+        questService.completeQuest(questId, principal.getId());
         return ResponseEntity.ok(new ResponseData<>());
     }
 
@@ -106,7 +106,7 @@ public class QuestApiController {
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        questService.discardQuest(questId, principal.getUserId());
+        questService.discardQuest(questId, principal.getId());
         return ResponseEntity.ok(new ResponseData<>());
     }
 
@@ -118,7 +118,7 @@ public class QuestApiController {
             @AuthenticationPrincipal UserPrincipal principal
     ) {
 
-        DetailResponse interactDetail = questService.interactWithDetailQuest(principal.getUserId(), questId, detailQuestId, dto);
+        DetailResponse interactDetail = questService.interactWithDetailQuest(principal.getId(), questId, detailQuestId, dto);
 
         return ResponseEntity.ok(new ResponseData<>(interactDetail));
     }

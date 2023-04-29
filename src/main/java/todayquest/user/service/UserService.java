@@ -66,7 +66,7 @@ public class UserService {
     }
 
     public void changeUserSettings(UserPrincipal principal, UserRequestDto dto) {
-        UserInfo findUser = userRepository.getReferenceById(principal.getUserId());
+        UserInfo findUser = userRepository.getReferenceById(principal.getId());
         findUser.changeUserSettings(dto);
     }
 

@@ -60,7 +60,7 @@ public class JwtTokenProvider {
         }
     }
 
-    public long getUserIdFromToken(String jwtToken) throws ExpiredJwtException {
+    public Long getUserIdFromToken(String jwtToken) throws ExpiredJwtException {
 
         Jws<Claims> claims = Jwts.parserBuilder()
                 .setSigningKey(Decoders.BASE64.decode(secretKey))
@@ -68,6 +68,15 @@ public class JwtTokenProvider {
                 .parseClaimsJws(jwtToken);
 
         return claims.getBody().get("id", Long.class);
+    }
+
+    public Date getExpiredDateFromToken(String jwtToken) {
+        Jws<Claims> claims = Jwts.parserBuilder()
+                .setSigningKey(Decoders.BASE64.decode(secretKey))
+                .build()
+                .parseClaimsJws(jwtToken);
+
+        return claims.getBody().getExpiration();
     }
 
     public String getJwtFromCookies(Cookie[] cookies, String tokenType){

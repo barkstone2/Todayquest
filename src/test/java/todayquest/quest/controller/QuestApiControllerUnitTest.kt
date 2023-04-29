@@ -49,7 +49,7 @@ import java.util.stream.Stream
 class QuestApiControllerUnitTest {
 
     companion object {
-        const val URI_PREFIX = "/api/quests"
+        const val URI_PREFIX = "/api/v1/quests"
 
     }
 

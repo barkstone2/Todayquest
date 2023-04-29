@@ -32,7 +32,7 @@ class QuestResponseUnitTest {
 
         //when
         val questResponse = QuestResponse(
-            questId = questId,
+            id = questId,
             title = title,
             description = description,
             seq = seq,
@@ -44,7 +44,7 @@ class QuestResponseUnitTest {
         )
 
         //then
-        assertThat(questResponse.questId).isEqualTo(questId)
+        assertThat(questResponse.id).isEqualTo(questId)
         assertThat(questResponse.title).isEqualTo(title)
         assertThat(questResponse.description).isEqualTo(description)
         assertThat(questResponse.seq).isEqualTo(seq)
@@ -105,7 +105,7 @@ class QuestResponseUnitTest {
     fun `JSON Deserialize 가 정상적으로 수행된다`() {
         //given
         val questResponse = QuestResponse(
-            questId = 1L,
+            id = 1L,
             title = "title init",
             description = "description init",
             seq = 2L,

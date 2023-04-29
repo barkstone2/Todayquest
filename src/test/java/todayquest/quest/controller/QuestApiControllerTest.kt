@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
@@ -35,6 +36,7 @@ import todayquest.common.MessageUtil
 import todayquest.common.ResponseData
 import todayquest.common.RestPage
 import todayquest.jwt.JwtTokenProvider
+import todayquest.properties.RedisKeyProperties
 import todayquest.quest.dto.*
 import todayquest.quest.entity.*
 import todayquest.quest.repository.QuestLogRepository
@@ -58,11 +60,13 @@ class QuestApiControllerTest @Autowired constructor(
     var userRepository: UserRepository,
     var context: WebApplicationContext,
     var questLogRepository: QuestLogRepository,
+    var redisTemplate: RedisTemplate<String, String>,
+    var redisKeyProperties: RedisKeyProperties,
 ) {
 
     companion object {
         const val SERVER_ADDR = "http://localhost:"
-        const val URI_PREFIX = "/api/quests"
+        const val URI_PREFIX = "/api/v1/quests"
     }
 
     @LocalServerPort
@@ -336,7 +340,7 @@ class QuestApiControllerTest @Autowired constructor(
             val error = result.errorResponse
 
             assertThat(data?.title).isEqualTo(savedQuest.title)
-            assertThat(data?.questId).isEqualTo(savedQuest.id)
+            assertThat(data?.id).isEqualTo(savedQuest.id)
             assertThat(data?.detailQuests?.get(0)?.title).isEqualTo(detailRequest.title)
             assertThat(error).isNull()
         }
@@ -499,7 +503,6 @@ class QuestApiControllerTest @Autowired constructor(
             val requestBody = om.writeValueAsString(questRequest)
             val bindingMessages = listOf(
                 MessageUtil.getMessage("NotBlank.quest.title"),
-                MessageUtil.getMessage("NotBlank.quest.description"),
                 MessageUtil.getMessage("NotBlank.details.title")
             )
 
@@ -671,7 +674,7 @@ class QuestApiControllerTest @Autowired constructor(
             val data = result.data
 
             val allQuestLog = questLogRepository.findAll()
-            assertThat(allQuestLog).anyMatch { log -> log.state == QuestState.PROCEED && log.questId == data?.questId }
+            assertThat(allQuestLog).anyMatch { log -> log.state == QuestState.PROCEED && log.questId == data?.id }
         }
 
         @DisplayName("퀘스트가 정상적으로 등록된다")
@@ -772,7 +775,6 @@ class QuestApiControllerTest @Autowired constructor(
 
             val bindingMessages = listOf(
                 MessageUtil.getMessage("NotBlank.quest.title"),
-                MessageUtil.getMessage("NotBlank.quest.description"),
                 MessageUtil.getMessage("NotBlank.details.title")
             )
 
@@ -1311,9 +1313,15 @@ class QuestApiControllerTest @Autowired constructor(
 
         @DisplayName("메인 퀘스트 완료 시 경험치와 골드를 획득한다")
         @Test
-        fun `메인 퀘스트 완료 시 경험치와 골드를 획득한다`() {
+        fun `메인 퀘스트 완료 시 경험치와 골드를 두배로 획득한다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.MAIN))
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/${savedQuest.id}/complete"
+
+            val ops = redisTemplate.boundHashOps<String, Long>(redisKeyProperties.settings)
+
+            val questClearExp = ops[redisKeyProperties.questClearExp]!!
+            val questClearGold = ops[redisKeyProperties.questClearGold]!!
+
             val beforeExp = testUser.exp
             val beforeGold = testUser.gold
 
@@ -1331,16 +1339,22 @@ class QuestApiControllerTest @Autowired constructor(
                 .andExpect(status().isOk)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
 
-            assertThat(beforeExp).isLessThan(testUser.exp)
-            assertThat(beforeGold).isLessThan(testUser.gold)
+            assertThat(testUser.exp).isEqualTo(beforeExp + questClearExp*2)
+            assertThat(testUser.gold).isEqualTo(beforeGold + questClearGold*2)
         }
 
 
-        @DisplayName("서브 퀘스트 완료 시 골드만 획득한다")
+        @DisplayName("서브 퀘스트 완료 시 1배의 경험치와 골드를 획득한다")
         @Test
-        fun `서브 퀘스트 완료 시 골드만 획득한다`() {
+        fun `서브 퀘스트 완료 시 1배의 경험치와 골드를 획득한다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/${savedQuest.id}/complete"
+
+            val ops = redisTemplate.boundHashOps<String, Long>(redisKeyProperties.settings)
+
+            val questClearExp = ops[redisKeyProperties.questClearExp]!!
+            val questClearGold = ops[redisKeyProperties.questClearGold]!!
+
             val beforeExp = testUser.exp
             val beforeGold = testUser.gold
 
@@ -1358,8 +1372,8 @@ class QuestApiControllerTest @Autowired constructor(
                 .andExpect(status().isOk)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
 
-            assertThat(beforeExp).isEqualTo(testUser.exp)
-            assertThat(beforeGold).isLessThan(testUser.gold)
+            assertThat(testUser.exp).isEqualTo(beforeExp + questClearExp)
+            assertThat(testUser.gold).isEqualTo(beforeGold + questClearGold)
         }
 
         @DisplayName("로그 테이블에 데이터가 등록된다")

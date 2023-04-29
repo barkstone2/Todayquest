@@ -8,37 +8,41 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import todayquest.jwt.JwtAuthorizationFilter;
 import todayquest.jwt.JwtTokenProvider;
+import todayquest.properties.SecurityOriginProperties;
+import todayquest.properties.SecurityUrlProperties;
 import todayquest.user.dto.RoleType;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private static final String[] ALLOWED_URL = {"/", "/css/**", "/js/**", "/image/**", "/error", "/auth/**"};
-    private static final String[] ADMIN_URL = {"/admin/**"};
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
+    private final SecurityUrlProperties securityUrlProperties;
+    private final SecurityOriginProperties securityOriginProperties;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .csrf()
-                    .csrfTokenRepository(new CookieCsrfTokenRepository())
-                    .ignoringRequestMatchers(ALLOWED_URL)
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and().cors();
 
         http.authorizeHttpRequests()
-                .requestMatchers(ALLOWED_URL).permitAll()
-                .requestMatchers(ADMIN_URL).hasRole(RoleType.ADMIN.name())
+                .requestMatchers(securityUrlProperties.getAllowedUrl()).permitAll()
+                .requestMatchers(securityUrlProperties.getAdminUrl()).hasAuthority(RoleType.ADMIN.getCode())
                 .anyRequest().authenticated();
 
         http.logout()
-                .logoutUrl("/logout")
+                .logoutUrl(securityUrlProperties.getLogoutUrl())
                 .deleteCookies("JSESSIONID")
                 .deleteCookies(JwtTokenProvider.ACCESS_TOKEN_NAME)
                 .deleteCookies(JwtTokenProvider.REFRESH_TOKEN_NAME);
@@ -47,4 +51,17 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(securityOriginProperties.getAllowedOrigin());
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
 }

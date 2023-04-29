@@ -49,7 +49,7 @@ public class TodayquestApplication {
 			return null;
 		}
 		UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
-		return () -> Optional.of(user.getUserId());
+		return () -> Optional.of(user.getId());
 	}
 
 }

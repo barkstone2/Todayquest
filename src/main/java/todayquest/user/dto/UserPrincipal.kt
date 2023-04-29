@@ -1,5 +1,6 @@
 package todayquest.user.dto
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonGetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.security.core.GrantedAuthority
@@ -7,9 +8,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import todayquest.user.entity.ProviderType
 import todayquest.user.entity.UserInfo
+import java.time.LocalDateTime
 
 class UserPrincipal(
-    val userId: Long,
+    val id: Long,
     var nickname: String,
     val providerType: ProviderType,
     private var authorities: MutableCollection<GrantedAuthority>,
@@ -19,9 +21,11 @@ class UserPrincipal(
     var gold: Long,
     var resetTime: Int,
     var coreTime: Int,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    var resetTimeLastModifiedDate: LocalDateTime? = null,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    var coreTimeLastModifiedDate: LocalDateTime? = null
 ) : UserDetails {
-    var accessToken: String? = null
-    var refreshToken: String? = null
 
     @JsonIgnore
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
@@ -64,7 +68,7 @@ class UserPrincipal(
             val (currentLevel, currentExp, requireExp) = userInfo.calculateLevel(expTable)
 
             return UserPrincipal(
-                userId = userInfo.id,
+                id = userInfo.id,
                 nickname = userInfo.nickname,
                 providerType = userInfo.providerType,
                 authorities = mutableListOf(SimpleGrantedAuthority(userInfo.role.code)),
@@ -74,6 +78,8 @@ class UserPrincipal(
                 gold = userInfo.gold,
                 resetTime = userInfo.getResetHour(),
                 coreTime = userInfo.getCoreHour(),
+                resetTimeLastModifiedDate = userInfo.resetTimeLastModifiedDate,
+                coreTimeLastModifiedDate = userInfo.coreTimeLastModifiedDate
             )
         }
     }

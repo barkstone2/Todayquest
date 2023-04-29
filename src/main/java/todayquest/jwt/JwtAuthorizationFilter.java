@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,7 +17,7 @@ import todayquest.properties.SecurityUrlProperties;
 import todayquest.user.service.UserService;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Arrays;
 
 @RequiredArgsConstructor
 @Component
@@ -38,23 +39,27 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         try {
 
-            String accessToken = jwtTokenProvider.getJwtFromRequest(request, JwtTokenProvider.ACCESS_TOKEN_NAME);
-            if(!jwtTokenProvider.isValidToken(accessToken)) {
-                String refreshToken = jwtTokenProvider.getJwtFromRequest(request, JwtTokenProvider.REFRESH_TOKEN_NAME);
-                accessToken = jwtTokenProvider.refreshAccessToken(refreshToken);
+            String accessToken = jwtTokenProvider.getJwtFromCookies(request.getCookies(), JwtTokenProvider.ACCESS_TOKEN_NAME);
+            if(!jwtTokenProvider.isValidToken(accessToken, JwtTokenProvider.ACCESS_TOKEN_NAME)) {
+                String refreshToken = jwtTokenProvider.getJwtFromCookies(request.getCookies(), JwtTokenProvider.REFRESH_TOKEN_NAME);
+
+                accessToken = jwtTokenProvider.silentRefresh(refreshToken);
                 response.addCookie(jwtTokenProvider.createAccessTokenCookie(accessToken));
+
+                String newRefreshToken = jwtTokenProvider.createRefreshToken(jwtTokenProvider.getUserIdFromToken(refreshToken));
+                response.addCookie(jwtTokenProvider.createRefreshTokenCookie(newRefreshToken));
             }
 
             Long userId = jwtTokenProvider.getUserIdFromToken(accessToken);
 
-            UserDetails userDetails = userService.getUserInfoById(userId);
+            UserDetails userDetails = userService.getUserById(userId);
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
         } catch (JwtException ex) {
-            request.setAttribute("message", "로그인 정보가 만료되었어요. 다시 로그인 해주세요.");
-            response.sendRedirect("/logout");
+            response.sendError(HttpStatus.SC_UNAUTHORIZED, "로그인 정보가 만료되었어요. 다시 로그인 해주세요.");
+            return;
         }
 
         filterChain.doFilter(request, response);

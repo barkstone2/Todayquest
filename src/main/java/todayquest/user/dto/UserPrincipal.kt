@@ -63,7 +63,7 @@ class UserPrincipal(
 
     companion object {
         @JvmStatic
-        fun create(userInfo: UserInfo, expTable: Map<String, Long>): UserPrincipal {
+        fun create(userInfo: UserInfo, expTable: Map<Int, Long>): UserPrincipal {
 
             val (currentLevel, currentExp, requireExp) = userInfo.calculateLevel(expTable)
 

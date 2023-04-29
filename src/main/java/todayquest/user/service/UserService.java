@@ -47,7 +47,7 @@ public class UserService {
             savedUserInfo = userRepository.getReferenceById(savedUser.getId());
         }
 
-        Map<String, Long> expTable = redisTemplate.<String, Long>opsForHash().entries(redisKeyProperties.getExpTable());
+        Map<Integer, Long> expTable = redisTemplate.<Integer, Long>opsForHash().entries(redisKeyProperties.getExpTable());
 
         return UserPrincipal.create(savedUserInfo, expTable);
     }
@@ -56,7 +56,7 @@ public class UserService {
         UserInfo userInfo = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException(MessageUtil.getMessage("exception.badRequest")));
 
-        Map<String, Long> expTable = redisTemplate.<String, Long>opsForHash().entries(redisKeyProperties.getExpTable());
+        Map<Integer, Long> expTable = redisTemplate.<Integer, Long>opsForHash().entries(redisKeyProperties.getExpTable());
 
         return UserPrincipal.create(userInfo, expTable);
     }

@@ -7,7 +7,7 @@ import todayquest.quest.entity.QuestType
 import java.time.LocalDateTime
 
 data class QuestResponse(
-    var questId: Long? = null,
+    var id: Long? = null,
     var title: String? = null,
     var description: String? = null,
     var seq: Long? = null,
@@ -18,13 +18,15 @@ data class QuestResponse(
     var detailQuests: List<DetailResponse>? = null,
     var canComplete : Boolean = false,
     var type: QuestType? = null,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    var deadLine: LocalDateTime? = null,
 ) {
 
     companion object {
         @JvmStatic
         fun createDto(quest: Quest): QuestResponse {
             return QuestResponse(
-                questId = quest.id,
+                id = quest.id,
                 title = quest.title,
                 description = quest.description,
                 seq = quest.seq,
@@ -35,6 +37,7 @@ data class QuestResponse(
                 }.toCollection(mutableListOf()),
                 canComplete = quest.canComplete(),
                 type = quest.type,
+                deadLine = quest.deadLine
             )
         }
     }

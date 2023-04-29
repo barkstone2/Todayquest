@@ -65,17 +65,15 @@ class UserInfo(
         updateNicknameIfNotNull(dto.nickname)
 
         val now = LocalDateTime.now().withSecond(0).withNano(0)
-        val compareDate = now.minusDays(1)
-
-        checkUpdateLimit(resetTimeLastModifiedDate, compareDate, "user.settings.reset_time")
-        checkUpdateLimit(coreTimeLastModifiedDate, compareDate, "user.settings.core_time")
 
         if(dto.resetTime != null && dto.resetTime != resetTime.hour) {
+            checkOneDayPassedSinceLastUpdate(resetTimeLastModifiedDate, "user.settings.reset_time")
             resetTime = LocalTime.of(dto.resetTime, 0, 0)
             resetTimeLastModifiedDate = now
         }
 
         if(dto.coreTime != null && dto.coreTime != coreTime.hour) {
+            checkOneDayPassedSinceLastUpdate(coreTimeLastModifiedDate, "user.settings.core_time")
             coreTime = LocalTime.of(dto.coreTime, 0, 0)
             coreTimeLastModifiedDate = now
         }
@@ -128,9 +126,15 @@ class UserInfo(
         return coreTime.hour
     }
 
-    private fun checkUpdateLimit(settingLastModifiedDate: LocalDateTime?, compareDate: LocalDateTime, messageKey: String) {
-        check(settingLastModifiedDate?.isBefore(compareDate) ?: true) {
-            val diff = Duration.between(compareDate, settingLastModifiedDate)
+    private fun checkOneDayPassedSinceLastUpdate(settingLastModifiedDate: LocalDateTime?, messageKey: String) {
+
+        if(settingLastModifiedDate == null) return
+
+        val oneDayAfter = settingLastModifiedDate.plusDays(1L)
+        val now = LocalDateTime.now().withSecond(0).withNano(0)
+
+        check(now.isAfter(oneDayAfter)) {
+            val diff = Duration.between(now, oneDayAfter)
             val diffStr = String.format("%d시간 %d분", diff.toHours(), diff.toMinutes() % 60)
 
             MessageUtil.getMessage("user.settings.update_limit", MessageUtil.getMessage(messageKey), diffStr)

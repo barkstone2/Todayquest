@@ -1,0 +1,115 @@
+name: 테스트 & 통합
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  JAVA_PATH: /home/runner/jdk
+  GRADLE_USER_HOME: /home/runner/gradle
+
+run-name: '[테스트 & 통합] For "${{ github.event.head_commit.message }}"'
+
+jobs:
+  gradle-test:
+    name: 그래들 테스트
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: todayquest_test
+          MYSQL_USER: sa
+        ports:
+          - 3306:3306
+      redis:
+        image: redis:7.0
+        ports:
+          - 6379:6379
+    steps:
+      - name: 레디스 초기 데이터 셋업
+        env:
+          REDIS_EXP_TABLE_KEY: ${{ secrets.REDIS_EXP_TABLE_KEY }}
+          REDIS_MAX_REWARD_COUNT_KEY: ${{ secrets.REDIS_MAX_REWARD_COUNT_KEY}}
+          REDIS_NICKNAME_POSTFIX_KEY: ${{ secrets.REDIS_NICKNAME_POSTFIX_KEY }}
+          REDIS_NICKNAME_PREFIX_KEY: ${{ secrets.REDIS_NICKNAME_PREFIX_KEY }}
+          REDIS_QUEST_CLEAR_EXP_KEY: ${{ secrets.REDIS_QUEST_CLEAR_EXP_KEY }}
+          REDIS_QUEST_CLEAR_GOLD_KEY: ${{ secrets.REDIS_QUEST_CLEAR_GOLD_KEY }}
+          REDIS_SYSTEM_SETTINGS_KEY: ${{ secrets.REDIS_SYSTEM_SETTINGS_KEY }}
+        run: ./script/redis_init.sh
+
+      - id: java-checksum-setup
+        name: 자바 캐시용 체크섬 셋업
+        run: |
+          mkdir -p ${{ env.JAVA_PATH }}
+          echo "java_checksum=$(curl https://corretto.aws/downloads/latest_checksum/amazon-corretto-17-x64-linux-jdk.tar.gz)" >> "$GITHUB_OUTPUT"
+      - id: java-cache-check
+        name: 캐싱된 자바 확인
+        uses: actions/cache@v3
+        with:
+          key: java-corretto-17-${{ steps.java-checksum-setup.outputs.java_checksum }}
+          path: ${{ env.JAVA_PATH }}
+      - id: jdk-install
+        if: ${{ !steps.java-cache-check.outputs.cache-hit }}
+        name: 자바 설치
+        run: |
+          mkdir -p ${{ env.JAVA_PATH }}
+          wget -q https://corretto.aws/downloads/latest/amazon-corretto-17-x64-linux-jdk.tar.gz
+          tar -xzvf *-jdk.tar.gz -C ${{ env.JAVA_PATH }}
+      - name: 자바 환경변수 세팅
+        run: |
+          echo "JAVA_HOME=$(find ${{ env.JAVA_PATH }} -type d -name '*corretto-17*')" >> $GITHUB_ENV
+      - name: 리포지토리 체크아웃
+        uses: actions/checkout@v3
+
+      - name: 그래들 래퍼 버전 셋업
+        id: gradle-version-setup
+        run: |
+          mkdir -p ${{ env.GRADLE_USER_HOME }}
+          echo "gradle_version=$(grep 'distributionUrl' ./gradle/wrapper/gradle-wrapper.properties | sed -n 's/.*distributions\/\(gradle-[^-]*-[^-]*\).*/\1/p')" >> $GITHUB_OUTPUT
+      - name: 그래들 래퍼 캐시 체크
+        id: gradle-wrapper-cache
+        uses: actions/cache@v3
+        with:
+          key: gradle-wrapper-${{ steps.gradle-version-setup.outputs.gradle_version }}
+          path: ${{ env.GRADLE_USER_HOME }}/wrapper
+      - name: 그래들 디펜던시 캐시 체크
+        id: gradle-dependency-cache
+        uses: actions/cache@v3
+        with:
+          key: gradle-dependency-${{ hashFiles('**/build.gradle') }}
+          path: ${{ env.GRADLE_USER_HOME }}/caches
+      - name: 그래들 빌드
+        run: |
+          ./gradlew test
+        env:
+          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL}}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+
+      - name: 도커 허브 로그인
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: 도커 이미지 빌드 & 푸쉬
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: barkstone2/todayquest-server
+
+  fail-slack-message:
+    name: 파이프라인 실패 알림
+    runs-on: ubuntu-latest
+    if: ${{ failure() }}
+    steps:
+      - name: 슬랙 메시지 전송
+        id: slack
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: "C05AJNHVA69"
+          slack-message: '❗️❗️Failure: [테스트 & 통합] For "${{ github.event.head_commit.message }}"'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

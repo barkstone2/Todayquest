@@ -104,6 +104,7 @@ jobs:
     name: 파이프라인 실패 알림
     runs-on: ubuntu-latest
     if: ${{ failure() }}
+    continue-on-error: true
     steps:
       - name: 슬랙 메시지 전송
         id: slack

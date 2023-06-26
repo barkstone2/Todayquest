@@ -29,6 +29,9 @@ jobs:
         ports:
           - 6379:6379
     steps:
+      - name: 리포지토리 체크아웃
+        uses: actions/checkout@v3
+
       - name: 레디스 초기 데이터 셋업
         env:
           REDIS_EXP_TABLE_KEY: ${{ secrets.REDIS_EXP_TABLE_KEY }}
@@ -61,8 +64,6 @@ jobs:
       - name: 자바 환경변수 세팅
         run: |
           echo "JAVA_HOME=$(find ${{ env.JAVA_PATH }} -type d -name '*corretto-17*')" >> $GITHUB_ENV
-      - name: 리포지토리 체크아웃
-        uses: actions/checkout@v3
 
       - name: 그래들 래퍼 버전 셋업
         id: gradle-version-setup
@@ -104,6 +105,7 @@ jobs:
     name: 파이프라인 실패 알림
     runs-on: ubuntu-latest
     if: ${{ failure() }}
+    continue-on-error: true
     steps:
       - name: 슬랙 메시지 전송
         id: slack

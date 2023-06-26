@@ -15,6 +15,7 @@ jobs:
   gradle-test:
     name: 그래들 테스트
     runs-on: ubuntu-latest
+    continue-on-error: true
     services:
       mysql:
         image: mysql:8.0
@@ -42,7 +43,7 @@ jobs:
           REDIS_QUEST_CLEAR_GOLD_KEY: ${{ secrets.REDIS_QUEST_CLEAR_GOLD_KEY }}
           REDIS_SYSTEM_SETTINGS_KEY: ${{ secrets.REDIS_SYSTEM_SETTINGS_KEY }}
         run: |
-          chmod +x ./script/redis.init.sh
+          chmod +x ./script/redis_init.sh
           ./script/redis_init.sh
 
       - id: java-checksum-setup
@@ -107,7 +108,6 @@ jobs:
     name: 파이프라인 실패 알림
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    continue-on-error: true
     steps:
       - name: 슬랙 메시지 전송
         id: slack

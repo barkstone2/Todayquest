@@ -15,6 +15,7 @@ jobs:
   build-and-delivery:
     name: 그래들 빌드 & 푸쉬 도커 이미지
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - id: java-checksum-setup
         name: 자바 캐시용 체크섬 셋업
@@ -75,6 +76,7 @@ jobs:
   deployment:
     name: EC2 배포
     runs-on: ubuntu-latest
+    continue-on-error: true
     needs: build-and-delivery
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_DEPLOY_ACCESS_KEY }}
@@ -104,7 +106,6 @@ jobs:
     name: 파이프라인 실패 알림
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    continue-on-error: true
     steps:
       - name: 슬랙 메시지 전송
         id: slack

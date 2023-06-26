@@ -6,17 +6,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-import todayquest.quest.dto.QuestRequestDto;
-import todayquest.quest.entity.QuestDifficulty;
+import todayquest.quest.dto.QuestRequest;
 import todayquest.quest.repository.QuestRepository;
 import todayquest.quest.service.QuestService;
+import todayquest.user.entity.ProviderType;
+import todayquest.user.service.UserService;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -36,51 +35,43 @@ public class UserLevelLockTest {
     @Autowired
     QuestRepository questRepository;
 
+    @Autowired
+    UserService userService;
+
 
     @DisplayName("네임드 락 멀티 스레드 테스트")
     @Test
     public void testNamedLock() throws Exception {
         //given
-        QuestRequestDto dto = QuestRequestDto.builder()
-                .title("test")
-                .description("test")
-                .difficulty(QuestDifficulty.EASY)
-                .isRepeat(true)
-                .deadLineDate(LocalDate.now())
-                .deadLineTime(LocalTime.now())
-                .rewards(new ArrayList<>())
-                .build();
+        QuestRequest dto = new QuestRequest("test", "test", null, null);
 
-        Long userId = 1L;
-
-        int threadCount = 2;
+        int threadCount = 5;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
-        Long beforeSeq = questRepository.getNextSeqByUserId(userId);
 
-        //when
-        executorService.execute(() -> {
-            userLevelLock.executeWithLock(
-                    "QUEST_SEQ" + userId,
-                    3,
-                    () -> questService.saveQuest(dto, userId)
-            );
-            latch.countDown();
+        Future<Long> resultUserId = executorService.submit(() -> {
+            Long userId = userService.getOrRegisterUser("user1", ProviderType.GOOGLE).getId();
+
+            //when
+            for (int i = 0; i < threadCount; i++) {
+                executorService.execute(() -> {
+                    userLevelLock.executeWithLock(
+                            "QUEST_SEQ" + userId,
+                            3,
+                            () -> questService.saveQuest(dto, userId)
+                    );
+                    latch.countDown();
+                });
+            }
+
+            return userId;
         });
 
-        executorService.execute(() -> {
-            userLevelLock.executeWithLock(
-                    "QUEST_SEQ" + userId,
-                    3,
-                    () -> questService.saveQuest(dto, userId)
-            );
-            latch.countDown();
-        });
-
+        Long beforeSeq = questRepository.getNextSeqByUserId(resultUserId.get());
         latch.await();
 
         //then
-        Long afterSeq = questRepository.getNextSeqByUserId(userId);
+        Long afterSeq = questRepository.getNextSeqByUserId(resultUserId.get());
         assertThat(beforeSeq + threadCount).isEqualTo(afterSeq);
     }
 

@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    hikari:
+      jdbc-url: ${SPRING_DATASOURCE_URL}
+      username: ${SPRING_DATASOURCE_USERNAME}
+      password: ${SPRING_DATASOURCE_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      pool-name: Spring-HikariPool
+      max-lifetime: 60000
+      maximum-pool-size: 30
+    userlock:
+      jdbc-url: ${SPRING_DATASOURCE_URL}
+      username: ${SPRING_DATASOURCE_USERNAME}
+      password: ${SPRING_DATASOURCE_PASSWORD}
+      driver-class-name: org.mariadb.jdbc.Driver
+      pool-name: UserLock-HikariPool
+      maximum-pool-size: 20
+      max-lifetime: 60000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  messages:
+    basename: message.messages

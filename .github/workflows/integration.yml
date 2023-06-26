@@ -41,7 +41,9 @@ jobs:
           REDIS_QUEST_CLEAR_EXP_KEY: ${{ secrets.REDIS_QUEST_CLEAR_EXP_KEY }}
           REDIS_QUEST_CLEAR_GOLD_KEY: ${{ secrets.REDIS_QUEST_CLEAR_GOLD_KEY }}
           REDIS_SYSTEM_SETTINGS_KEY: ${{ secrets.REDIS_SYSTEM_SETTINGS_KEY }}
-        run: ./script/redis_init.sh
+        run: |
+          chmod +x ./script/redis.init.sh
+          ./script/redis_init.sh
 
       - id: java-checksum-setup
         name: 자바 캐시용 체크섬 셋업

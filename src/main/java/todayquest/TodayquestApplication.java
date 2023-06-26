@@ -8,7 +8,6 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import todayquest.common.UserLevelLock;
@@ -32,7 +31,7 @@ public class TodayquestApplication {
 	}
 
 	@Bean
-	@ConfigurationProperties("userlock.datasource.hikari")
+	@ConfigurationProperties("spring.datasource.userlock")
 	public DataSource userLockDataSource() {
 		return DataSourceBuilder.create().type(HikariDataSource.class).build();
 	}

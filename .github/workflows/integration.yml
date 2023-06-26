@@ -43,6 +43,8 @@ jobs:
           REDIS_QUEST_CLEAR_GOLD_KEY: ${{ secrets.REDIS_QUEST_CLEAR_GOLD_KEY }}
           REDIS_SYSTEM_SETTINGS_KEY: ${{ secrets.REDIS_SYSTEM_SETTINGS_KEY }}
         run: |
+          sudo apt-get update
+          sudo apt-get install redis-tools
           chmod +x ./script/redis_init.sh
           ./script/redis_init.sh
 
@@ -85,7 +87,7 @@ jobs:
         with:
           key: gradle-dependency-${{ hashFiles('**/build.gradle') }}
           path: ${{ env.GRADLE_USER_HOME }}/caches
-      - name: 그래들 빌드
+      - name: 그래들 테스트
         run: |
           ./gradlew test
         env:
@@ -107,7 +109,8 @@ jobs:
   fail-slack-message:
     name: 파이프라인 실패 알림
     runs-on: ubuntu-latest
-    if: ${{ failure() }}
+    needs: gradle-test
+    if: failure()
     steps:
       - name: 슬랙 메시지 전송
         id: slack

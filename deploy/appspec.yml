@@ -1,0 +1,10 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /app/server
+hooks:
+  ApplicationStop:
+    - location: application-stop.sh
+  ApplicationStart:
+    - location: application-start.sh

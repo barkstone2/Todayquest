@@ -2,8 +2,8 @@ name: 빌드 & 배포
 
 on:
   push:
-    tags:
-      - "v[0-9]+.[0-9]+"
+    branches:
+      - main
 
 env:
   JAVA_PATH: /home/runner/jdk
@@ -103,7 +103,7 @@ jobs:
   fail-slack-message:
     name: 파이프라인 실패 알림
     runs-on: ubuntu-latest
-    needs: [build-and-delivery, deployment]
+    needs: deployment
     if: failure()
     steps:
       - name: 슬랙 메시지 전송
@@ -111,6 +111,6 @@ jobs:
         uses: slackapi/slack-github-action@v1.24.0
         with:
           channel-id: "C05AJNHVA69"
-          slack-message: '❗️❗️Failure: [빌드 & 배포] ${{ github.ref_name }} - For "${{ github.event.head_commit.message }}"'
+          slack-message: '<!channel> ❗️Failure: [빌드 & 배포] ${{ github.ref_name }} - For "${{ github.event.head_commit.message }}"'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

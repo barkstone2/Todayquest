@@ -122,7 +122,7 @@ class QuestRequestUnitTest {
         val resetTime = LocalTime.of(0, 0)
 
         val beforeBoundaryTime = now.plus(10, ChronoUnit.MINUTES)
-        val afterBoundaryTime = LocalDateTime.of(today.plus(1, ChronoUnit.DAYS), resetTime).minus(1, ChronoUnit.MINUTES)
+        val afterBoundaryTime = LocalDateTime.of(today.plus(1, ChronoUnit.DAYS), resetTime).minus(10, ChronoUnit.MINUTES)
 
         val request1 = QuestRequest("t", "d", null, null)
         val request2 = QuestRequest("t", "d", null, beforeBoundaryTime)

@@ -19,8 +19,8 @@ class DatabaseConnectionTest {
 
         val env = StandardEnvironment()
         val loader = YamlPropertySourceLoader()
-        val resource = ClassPathResource("application-real.yml")
-        val propertySource = loader.load("application-real.yml", resource).first()
+        val resource = ClassPathResource("application-realdb.yml")
+        val propertySource = loader.load("application-realdb.yml", resource).first()
         env.propertySources.addFirst(propertySource)
 
         val url = env.getRequiredProperty("spring.datasource.hikari.jdbc-url")

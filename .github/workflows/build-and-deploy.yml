@@ -91,14 +91,14 @@ jobs:
         run: |
           aws deploy push \
             --application-name dailyquest-server \
-            --s3-location s3://dailyquest-store/dailyquest-server-${{ github.ref_name }}.tar \
+            --s3-location s3://dailyquest-store/dailyquest-server-${{ github.sha }}.tar \
             --source ./deploy
       - name: CodeDeploy 배포
         run: |
           aws deploy create-deployment \
             --application-name dailyquest-server \
             --deployment-group-name dailyquest-group \
-            --s3-location bucket=dailyquest-store,key=dailyquest-server-${{ github.ref_name}}.tar,bundleType=tar
+            --s3-location bucket=dailyquest-store,key=dailyquest-server-${{ github.sha}}.tar,bundleType=tar
 
   fail-slack-message:
     name: 파이프라인 실패 알림

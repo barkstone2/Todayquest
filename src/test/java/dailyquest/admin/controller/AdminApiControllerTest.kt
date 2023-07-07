@@ -28,6 +28,10 @@ import dailyquest.admin.dto.SystemSettingsResponse
 import dailyquest.admin.service.AdminService
 import dailyquest.common.ResponseData
 import dailyquest.jwt.JwtTokenProvider
+import dailyquest.user.dto.RoleType
+import dailyquest.user.entity.ProviderType
+import dailyquest.user.entity.UserInfo
+import dailyquest.user.repository.UserRepository
 
 @Suppress("DEPRECATION")
 @DisplayName("관리자 API 컨트롤러 통합 테스트")
@@ -37,6 +41,7 @@ import dailyquest.jwt.JwtTokenProvider
 )
 class AdminApiControllerTest @Autowired constructor(
     val adminService: AdminService,
+    val userRepository: UserRepository,
     val context: WebApplicationContext,
 ) {
 
@@ -64,11 +69,17 @@ class AdminApiControllerTest @Autowired constructor(
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
 
+        val user = UserInfo("", "user1", ProviderType.GOOGLE)
+        val admin = UserInfo("", "user2", ProviderType.GOOGLE)
+        admin.role = RoleType.ADMIN
 
-        val accessToken1 = jwtTokenProvider.createAccessToken(1L)
+        val savedUser = userRepository.save(user)
+        val savedAdmin = userRepository.save(admin)
+
+        val accessToken1 = jwtTokenProvider.createAccessToken(savedUser.id)
         userToken = jwtTokenProvider.createAccessTokenCookie(accessToken1)
 
-        val accessToken2 = jwtTokenProvider.createAccessToken(3L)
+        val accessToken2 = jwtTokenProvider.createAccessToken(savedAdmin.id)
         adminToken = jwtTokenProvider.createAccessTokenCookie(accessToken2)
     }
 

@@ -32,6 +32,7 @@ import dailyquest.user.dto.UserRequestDto
 import dailyquest.user.service.UserService
 import java.util.stream.Stream
 
+@Suppress("DEPRECATION")
 @DisplayName("유저 API 컨트롤러 유닛 테스트")
 @WithCustomMockUser
 @WebMvcTest(controllers = [UserApiController::class],

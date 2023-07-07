@@ -3,6 +3,7 @@ package dailyquest.quest.controller
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import dailyquest.common.MessageUtil
 import jakarta.servlet.http.Cookie
 import kotlinx.coroutines.*
 import org.assertj.core.api.Assertions.*
@@ -31,8 +32,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.filter.CharacterEncodingFilter
-import dailyquest.annotation.WithCustomMockUser
-import dailyquest.common.MessageUtil
 import dailyquest.common.ResponseData
 import dailyquest.common.RestPage
 import dailyquest.jwt.JwtTokenProvider
@@ -42,15 +41,16 @@ import dailyquest.quest.entity.*
 import dailyquest.quest.repository.QuestLogRepository
 import dailyquest.quest.repository.QuestRepository
 import dailyquest.user.dto.UserRequestDto
+import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
 import dailyquest.user.repository.UserRepository
+import dailyquest.user.service.UserService
 import java.time.LocalTime
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("DEPRECATION")
 @DisplayName("퀘스트 API 컨트롤러 통합 테스트")
-@WithCustomMockUser(userId = 1L)
 @Transactional
 @SpringBootTest(
     webEnvironment = WebEnvironment.RANDOM_PORT,
@@ -58,6 +58,7 @@ import java.util.concurrent.ConcurrentHashMap
 class QuestApiControllerTest @Autowired constructor(
     var questRepository: QuestRepository,
     var userRepository: UserRepository,
+    var userService: UserService,
     var context: WebApplicationContext,
     var questLogRepository: QuestLogRepository,
     var redisTemplate: RedisTemplate<String, String>,
@@ -92,10 +93,11 @@ class QuestApiControllerTest @Autowired constructor(
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
 
-        testUser = userRepository.getReferenceById(1L)
-        anotherUser = userRepository.getReferenceById(2L)
 
-        val accessToken = jwtTokenProvider.createAccessToken(1L)
+        testUser = userRepository.getReferenceById(userService.getOrRegisterUser("quest-controller-user1", ProviderType.GOOGLE).id)
+        anotherUser = userRepository.getReferenceById(userService.getOrRegisterUser("quest-controller-user2", ProviderType.GOOGLE).id)
+
+        val accessToken = jwtTokenProvider.createAccessToken(testUser.id)
         token = jwtTokenProvider.createAccessTokenCookie(accessToken)
     }
 
@@ -456,7 +458,7 @@ class QuestApiControllerTest @Autowired constructor(
 
     @DisplayName("퀘스트 등록 시")
     @Nested
-    inner class QuestSaveTest {
+    open inner class QuestSaveTest {
 
         @DisplayName("RequestBody 구문이 올바르지 않으면 BAD_REQUEST가 반환된다")
         @Test
@@ -545,9 +547,15 @@ class QuestApiControllerTest @Autowired constructor(
             val seqSet = ConcurrentHashMap.newKeySet<Long>()
 
             //when
-            runBlocking {
+            runBlocking(Dispatchers.IO) {
+                val user1 = UserInfo("", "", ProviderType.GOOGLE)
+                testUser = userRepository.save(user1)
+
+                val accessToken = jwtTokenProvider.createAccessToken(testUser.id)
+                token = jwtTokenProvider.createAccessTokenCookie(accessToken)
                 repeat(numOfThreads) {
-                    launch(Dispatchers.IO) {
+                    launch {
+
                         val request = mvc
                             .perform(
                                 post(url)
@@ -563,7 +571,7 @@ class QuestApiControllerTest @Autowired constructor(
                             .response
                             .contentAsString
 
-                        val result = om.readValue(body, object: TypeReference<ResponseData<QuestResponse>>(){})
+                        val result = om.readValue(body, object : TypeReference<ResponseData<QuestResponse>>() {})
                         seqSet.add(result.data?.seq!!)
                     }
                 }
@@ -849,7 +857,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다")
         @Test
         fun `존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
-            val url = "${SERVER_ADDR}$port${URI_PREFIX}/1"
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}/10000"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
             val detailRequest = DetailRequest("update", DetailQuestType.COUNT, 1)
@@ -1079,7 +1087,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다")
         @Test
         fun `존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
-            val url = "${SERVER_ADDR}$port${URI_PREFIX}/1/delete"
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}/10000/delete"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
             //when
@@ -1723,7 +1731,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다")
         @Test
         fun `존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
-            val url = "${SERVER_ADDR}$port${URI_PREFIX}/1/details/1"
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}/10000/details/1"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
             //when

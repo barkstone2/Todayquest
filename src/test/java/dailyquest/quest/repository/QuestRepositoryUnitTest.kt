@@ -17,6 +17,8 @@ import dailyquest.config.JpaAuditingConfiguration
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
+import dailyquest.user.dto.UserRequestDto
+import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
 import dailyquest.user.repository.UserRepository
 import java.util.*
@@ -32,15 +34,16 @@ class QuestRepositoryUnitTest {
     @Autowired
     lateinit var userRepository: UserRepository
 
-    lateinit var userInfo: UserInfo
-    lateinit var anotherUser: UserInfo
+    var userInfo: UserInfo = UserInfo("", "", ProviderType.GOOGLE)
+    var anotherUser: UserInfo = UserInfo("", "", ProviderType.GOOGLE)
     lateinit var quest: Quest
 
     @BeforeEach
     fun init() {
-
-        userInfo = userRepository.getReferenceById(1L)
-        anotherUser = userRepository.getReferenceById(2L)
+        userInfo = if(userInfo.id == 0L) userRepository.save(UserInfo("", "user1", ProviderType.GOOGLE)) else userInfo
+        anotherUser = if(anotherUser.id == 0L) userRepository.save(UserInfo("", "user2", ProviderType.GOOGLE)) else anotherUser
+        anotherUser.changeUserSettings(UserRequestDto(9, 0))
+        userRepository.saveAndFlush(anotherUser)
 
         quest = Quest(
             "title",

@@ -25,23 +25,24 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.filter.CharacterEncodingFilter
-import dailyquest.annotation.WithCustomMockUser
 import dailyquest.common.ResponseData
 import dailyquest.jwt.JwtTokenProvider
+import dailyquest.user.dto.UserPrincipal
 import dailyquest.user.dto.UserRequestDto
+import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
 import dailyquest.user.repository.UserRepository
 import dailyquest.user.service.UserService
+import java.time.LocalTime
 
 @Suppress("DEPRECATION")
 @DisplayName("유저 API 컨트롤러 통합 테스트")
-@WithCustomMockUser(userId = 1L)
 @SpringBootTest(
     webEnvironment = WebEnvironment.RANDOM_PORT,
 )
 class UserControllerTest @Autowired constructor(
-    var userService: UserService,
     var context: WebApplicationContext,
+    var userService: UserService,
     var userRepository: UserRepository,
 ) {
 
@@ -57,8 +58,7 @@ class UserControllerTest @Autowired constructor(
     lateinit var jwtTokenProvider: JwtTokenProvider
 
     lateinit var mvc: MockMvc
-    lateinit var testUser: UserInfo
-    lateinit var anotherUser: UserInfo
+    lateinit var testUser: UserPrincipal
     lateinit var token: Cookie
     val om: ObjectMapper = ObjectMapper().registerModule(JavaTimeModule())
 
@@ -70,10 +70,9 @@ class UserControllerTest @Autowired constructor(
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
 
-        testUser = userRepository.findById(1L).get()
-        anotherUser = userRepository.findById(2L).get()
+        testUser = userService.getOrRegisterUser("user1", ProviderType.GOOGLE)
 
-        val accessToken = jwtTokenProvider.createAccessToken(1L)
+        val accessToken = jwtTokenProvider.createAccessToken(testUser.id)
         token = jwtTokenProvider.createAccessTokenCookie(accessToken)
     }
 
@@ -89,6 +88,7 @@ class UserControllerTest @Autowired constructor(
         fun `닉네임 중복이 발생하는 경우 409가 반환된다`() {
             //given
             val url = "${SERVER_ADDR}$port${URI_PREFIX}"
+            val anotherUser = userRepository.saveAndFlush(UserInfo("", "duplicate", ProviderType.GOOGLE))
 
             val userRequest = UserRequestDto()
             userRequest.nickname = anotherUser.nickname
@@ -126,7 +126,10 @@ class UserControllerTest @Autowired constructor(
             //given
             val url = "${SERVER_ADDR}$port${URI_PREFIX}"
 
-            val firstDto = UserRequestDto(testUser.resetTime.plusHours(1).hour, testUser.coreTime.plusHours(1).hour)
+            val firstDto = UserRequestDto(
+                LocalTime.of(testUser.resetTime, 0).plusHours(1).hour,
+                LocalTime.of(testUser.coreTime, 0).plusHours(1).hour
+            )
 
             //when
             val firstRequest = mvc
@@ -138,7 +141,11 @@ class UserControllerTest @Autowired constructor(
                         .content(om.writeValueAsString(firstDto))
                 )
 
-            val secondDto = UserRequestDto(testUser.resetTime.minusHours(1).hour, testUser.coreTime.minusHours(1).hour)
+            val secondDto = UserRequestDto(
+                LocalTime.of(testUser.resetTime, 0).minusHours(1).hour,
+                LocalTime.of(testUser.coreTime, 0).minusHours(1).hour
+            )
+
             val secondRequest = mvc
                 .perform(
                     patch(url)

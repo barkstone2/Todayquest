@@ -95,17 +95,6 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
 
-      - name: 도커 허브 로그인
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      - name: 도커 이미지 빌드 & 푸쉬
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags: barkstone2/dailyquest-server
-
   fail-slack-message:
     name: 파이프라인 실패 알림
     runs-on: ubuntu-latest

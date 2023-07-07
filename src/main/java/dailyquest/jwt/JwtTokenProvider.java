@@ -2,11 +2,13 @@ package dailyquest.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
+import jakarta.annotation.Nullable;
 import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import todayquest.common.MessageUtil;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Duration;
@@ -84,12 +86,16 @@ public class JwtTokenProvider {
         return claims.getBody().getExpiration();
     }
 
-    public String getJwtFromCookies(Cookie[] cookies, String tokenType){
+    public String getJwtFromCookies(@Nullable Cookie[] cookies, String tokenType){
+
+        if(cookies == null) throw new JwtException(MessageUtil.getMessage("exception.invalid.login"));
+
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals(tokenType))
                 return cookie.getValue();
         }
-        return null;
+
+        throw new JwtException(MessageUtil.getMessage("exception.invalid.login"));
     }
 
     public Cookie createAccessTokenCookie(String accessToken) {

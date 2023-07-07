@@ -106,11 +106,16 @@ jobs:
     needs: deployment
     if: failure()
     steps:
+      - name: 실패 메시지 가공
+        id: create-message
+        run: |
+          MESSAGE=$(echo "${{ github.event.head_commit.message }}" | head -n 1)
+          echo "message=$MESSAGE" > "$GITHUB_OUTPUT"
       - name: 슬랙 메시지 전송
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
         with:
           channel-id: "C05AJNHVA69"
-          slack-message: '<!channel> ❗️Failure: [빌드 & 배포] ${{ github.ref_name }} - For "${{ github.event.head_commit.message }}"'
+          slack-message: '<!channel> ❗️Failure: [빌드 & 배포] For "${{ steps.create-message.outputs.message }}'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

@@ -10,7 +10,6 @@ import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.*
 import org.springframework.data.redis.core.BoundHashOperations
-import org.springframework.data.redis.core.HashOperations
 import org.springframework.data.redis.core.RedisTemplate
 import todayquest.admin.dto.SystemSettingsRequest
 import todayquest.common.MessageUtil

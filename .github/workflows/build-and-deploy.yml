@@ -9,7 +9,7 @@ env:
   JAVA_PATH: /home/runner/jdk
   GRADLE_USER_HOME: /home/runner/gradle
 
-run-name: '[빌드 & 배포] ${{ github.ref_name }} - For "${{ github.event.head_commit.message }}"'
+run-name: '[빌드 & 배포] For "${{ github.event.head_commit.message }}"'
 
 jobs:
   build-and-delivery:
@@ -70,7 +70,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: "barkstone2/dailyquest-server:${{ github.ref_name }}"
+          tags: "barkstone2/dailyquest-server:${{ github.sha }}"
 
   deployment:
     name: EC2 배포
@@ -86,7 +86,7 @@ jobs:
       - name: 버전 정보 생성
         run: |
           cd deploy
-          echo ${{ github.ref_name }} > version.txt
+          echo ${{ github.sha }} > version.txt
       - name: CodeDeploy 푸쉬
         run: |
           aws deploy push \

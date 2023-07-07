@@ -92,8 +92,9 @@ class UserInfo(
     }
 
     fun isNowCoreTime() : Boolean {
-        val now = LocalTime.now()
-        if (coreTime.isAfter(now) || now.isAfter(coreTime.plusHours(1))) return false;
+        val now = LocalDateTime.now()
+        val coreTimeOfToday = LocalDateTime.of(LocalDate.now(), coreTime)
+        if (coreTimeOfToday.isAfter(now) || now.isAfter(coreTimeOfToday.plusHours(1))) return false;
         return true
     }
 

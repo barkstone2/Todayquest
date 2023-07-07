@@ -1,4 +1,4 @@
-*.yml
+*secret.yml
 HELP.md
 .gradle
 build/
@@ -38,3 +38,5 @@ out/
 .vscode/
 *.sql
 /spy.log
+/src/test/java/learn/
+/src/test/resources/schema_backup.txt

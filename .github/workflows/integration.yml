@@ -81,10 +81,6 @@ jobs:
       - name: 그래들 테스트
         run: |
           ./gradlew test
-        env:
-          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL}}
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
 
   fail-slack-message:
     name: 파이프라인 실패 알림

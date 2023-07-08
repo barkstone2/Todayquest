@@ -1,20 +1,18 @@
 #!/bin/bash
 
-redis-cli select 1
+redis-cli -n 1 SADD npr pre1
+redis-cli -n 1 SADD npr pre2
+redis-cli -n 1 SADD npr pre3
 
-redis-cli SADD REDIS_NICKNAME_PREFIX_KEY pre1
-redis-cli SADD REDIS_NICKNAME_PREFIX_KEY pre2
-redis-cli SADD REDIS_NICKNAME_PREFIX_KEY pre3
+redis-cli -n 1 SADD npo post1
+redis-cli -n 1 SADD npo post2
+redis-cli -n 1 SADD npo post3
 
-redis-cli SADD REDIS_NICKNAME_POSTFIX_KEY post1
-redis-cli SADD REDIS_NICKNAME_POSTFIX_KEY post2
-redis-cli SADD REDIS_NICKNAME_POSTFIX_KEY post3
+redis-cli -n 1 HSET et 1 10
+redis-cli -n 1 HSET et 2 20
+redis-cli -n 1 HSET et 3 30
+redis-cli -n 1 HSET et 4 0
 
-redis-cli HSET REDIS_EXP_TABLE_KEY 1 10
-redis-cli HSET REDIS_EXP_TABLE_KEY 2 20
-redis-cli HSET REDIS_EXP_TABLE_KEY 3 30
-redis-cli HSET REDIS_EXP_TABLE_KEY 4 0
-
-redis-cli HSET REDIS_SYSTEM_SETTINGS_KEY REDIS_QUEST_CLEAR_EXP_KEY 1
-redis-cli HSET REDIS_SYSTEM_SETTINGS_KEY REDIS_QUEST_CLEAR_GOLD_KEY 1
-redis-cli HSET REDIS_SYSTEM_SETTINGS_KEY REDIS_MAX_REWARD_COUNT_KEY 30
+redis-cli -n 1 HSET s qce 1
+redis-cli -n 1 HSET s qcg 1
+redis-cli -n 1 HSET s mrc 30

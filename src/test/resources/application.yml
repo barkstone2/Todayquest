@@ -6,7 +6,7 @@ server:
 
 spring:
   profiles:
-    include: value, secret
+    include: value
   datasource:
     hikari:
       driver-class-name: org.h2.Driver

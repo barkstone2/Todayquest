@@ -9,3 +9,13 @@ security:
     logout_url: "/api/v1/auth/logout"
   origin:
     allowed_origin: ["http://localhost:9090", "http://dailyquest.mooo.com"]
+
+redis:
+  key:
+    exp_table: "et"
+    nickname_prefix: "npr"
+    nickname_postfix: "npo"
+    settings: "s"
+    quest_clear_exp: "qce"
+    quest_clear_gold: "qcg"
+    max_reward_count: "mrc"

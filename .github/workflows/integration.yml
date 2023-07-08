@@ -33,14 +33,6 @@ jobs:
         uses: actions/checkout@v3
 
       - name: 레디스 초기 데이터 셋업
-        env:
-          REDIS_EXP_TABLE_KEY: ${{ secrets.REDIS_EXP_TABLE_KEY }}
-          REDIS_MAX_REWARD_COUNT_KEY: ${{ secrets.REDIS_MAX_REWARD_COUNT_KEY}}
-          REDIS_NICKNAME_POSTFIX_KEY: ${{ secrets.REDIS_NICKNAME_POSTFIX_KEY }}
-          REDIS_NICKNAME_PREFIX_KEY: ${{ secrets.REDIS_NICKNAME_PREFIX_KEY }}
-          REDIS_QUEST_CLEAR_EXP_KEY: ${{ secrets.REDIS_QUEST_CLEAR_EXP_KEY }}
-          REDIS_QUEST_CLEAR_GOLD_KEY: ${{ secrets.REDIS_QUEST_CLEAR_GOLD_KEY }}
-          REDIS_SYSTEM_SETTINGS_KEY: ${{ secrets.REDIS_SYSTEM_SETTINGS_KEY }}
         run: |
           sudo apt-get update
           sudo apt-get install redis-tools

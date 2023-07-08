@@ -11,7 +11,7 @@ import java.time.*
 
 @DynamicInsert
 @Entity
-@Table(name = "user_info")
+@Table(name = "user_info", uniqueConstraints = [UniqueConstraint(name = "unique_nickname", columnNames = ["nickname"])])
 class UserInfo(
     oauth2Id: String,
     nickname: String,

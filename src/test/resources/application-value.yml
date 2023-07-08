@@ -10,6 +10,13 @@ security:
   origin:
     allowed_origin: ["http://localhost:9090", "http://dailyquest.mooo.com"]
 
+spring:
+  jwt:
+    secret: and0LWF1dGhlbnRpY2F0aW9uLWZpbHRlci10ZXN0LXNlY3JldC1rZXQtMDAwMA==
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID:test-client-id}
+
 redis:
   key:
     exp_table: "et"

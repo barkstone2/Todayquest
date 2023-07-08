@@ -6,7 +6,7 @@ server:
 
 spring:
   profiles:
-    include: value, secret
+    include: value
   datasource:
     hikari:
       jdbc-url: ${SPRING_DATASOURCE_URL}

@@ -22,6 +22,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: dailyquest_test
           MYSQL_USER: sa
+          MYSQL_PASSWORD: sa
         ports:
           - 3306:3306
       redis:

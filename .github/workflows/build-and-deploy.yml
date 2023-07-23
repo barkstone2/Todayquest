@@ -67,10 +67,9 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: 도커 이미지 빌드 & 푸쉬
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags: "barkstone2/dailyquest-server:${{ github.sha }}"
+        run: |
+          docker build -t barkstone2/dailyquest-server:${{ github.sha }} .
+          docker push barkstone2/dailyquest-server:${{ github.sha }}
 
   deployment:
     name: EC2 배포

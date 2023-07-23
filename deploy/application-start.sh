@@ -1,6 +1,7 @@
 CONTAINER_NAME=dailyquest-server
 REPOSITORY=barkstone2/dailyquest-server
-VERSION=$(cat version.txt)
+VERSION=$(cat /home/ec2-user/app/server/version.txt)
 
+ls -la
 docker pull $REPOSITORY:$VERSION
-./container-start.sh $CONTAINER_NAME $REPOSITORY $VERSION
+/home/ec2-user/app/server/container-start.sh $CONTAINER_NAME $REPOSITORY $VERSION

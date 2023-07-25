@@ -1,5 +1,5 @@
-CONTAINER_NAME=todayquest-server
-REPOSITORY=barkstone2/todayquest-server
+CONTAINER_NAME=dailyquest-server
+REPOSITORY=barkstone2/dailyquest-server
 VERSION=$(cat version.txt)
 
 docker pull $REPOSITORY:$VERSION

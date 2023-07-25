@@ -20,7 +20,7 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: todayquest_test
+          MYSQL_DATABASE: dailyquest_test
           MYSQL_USER: sa
         ports:
           - 3306:3306
@@ -104,7 +104,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: barkstone2/todayquest-server
+          tags: barkstone2/dailyquest-server
 
   fail-slack-message:
     name: 파이프라인 실패 알림

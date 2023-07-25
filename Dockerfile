@@ -5,7 +5,7 @@ FROM amazoncorretto:17
 WORKDIR /app
 
 # Copy the built JAR file into the image
-COPY ./build/libs/todayquest.jar app.jar
+COPY ./build/libs/dailyquest.jar app.jar
 
 # Run the JAR file
 ENTRYPOINT ["java", "-jar", "app.jar"]

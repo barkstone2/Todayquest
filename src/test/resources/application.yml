@@ -14,7 +14,7 @@ spring:
       username: sa
       password:
     userlock:
-      jdbc-url: jdbc:mysql://localhost/todayquest_test
+      jdbc-url: jdbc:mysql://localhost/dailyquest_test
       username: sa
       password:
       driver-class-name: com.mysql.cj.jdbc.Driver

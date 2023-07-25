@@ -70,7 +70,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: "barkstone2/todayquest-server:${{ github.ref_name }}"
+          tags: "barkstone2/dailyquest-server:${{ github.ref_name }}"
 
   deployment:
     name: EC2 배포
@@ -90,15 +90,15 @@ jobs:
       - name: CodeDeploy 푸쉬
         run: |
           aws deploy push \
-            --application-name todayquest-server \
-            --s3-location s3://todayquest-build/todayquest-server-${{ github.ref_name }}.tar \
+            --application-name dailyquest-server \
+            --s3-location s3://dailyquest-store/dailyquest-server-${{ github.ref_name }}.tar \
             --source ./deploy
       - name: CodeDeploy 배포
         run: |
           aws deploy create-deployment \
-            --application-name todayquest-server \
-            --deployment-group-name todayquest-group \
-            --s3-location bucket=todayquest-build,key=todayquest-server-${{ github.ref_name}}.tar,bundleType=tar
+            --application-name dailyquest-server \
+            --deployment-group-name dailyquest-group \
+            --s3-location bucket=dailyquest-store,key=dailyquest-server-${{ github.ref_name}}.tar,bundleType=tar
 
   fail-slack-message:
     name: 파이프라인 실패 알림

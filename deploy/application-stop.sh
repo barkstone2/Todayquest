@@ -1,5 +1,5 @@
-CONTAINER_NAME=todayquest-server
-REPOSITORY=barkstone2/todayquest-server
+CONTAINER_NAME=dailyquest-server
+REPOSITORY=barkstone2/dailyquest-server
 
 docker stop $CONTAINER_NAME
 docker rm $CONTAINER_NAME

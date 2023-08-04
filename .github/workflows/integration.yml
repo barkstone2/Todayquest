@@ -98,7 +98,9 @@ jobs:
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
         with:
-          channel-id: "C05AJNHVA69"
-          slack-message: '<!channel> ❗️Failure: [테스트 & 통합] For "${{ steps.create-message.outputs.message }}"'
+          payload: |
+            {
+              "text": "<!channel> ❗️[테스트 & 통합] Failure: For \"${{ steps.create-message.outputs.message }}\""
+            }
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

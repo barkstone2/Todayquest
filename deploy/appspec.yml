@@ -4,8 +4,6 @@ files:
   - source: /
     destination: /home/ec2-user/app/server
 hooks:
-  ApplicationStop:
-    - location: application-stop.sh
   AfterInstall:
     - location: after-install.sh
   ApplicationStart:

@@ -1,13 +1,13 @@
 package dailyquest.common;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.MappedSuperclass;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Getter
 @EntityListeners(AuditingEntityListener.class)
@@ -16,6 +16,6 @@ public class BaseLogEntity {
 
     @CreatedDate
     @Column(updatable = false)
-    private LocalDateTime loggedDate;
+    private LocalDate loggedDate;
 
 }

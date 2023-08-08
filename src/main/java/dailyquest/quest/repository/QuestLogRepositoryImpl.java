@@ -1,25 +1,21 @@
 package dailyquest.quest.repository;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.NullExpression;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.EnumPath;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import dailyquest.quest.dto.QuestLogSearchCondition;
+import dailyquest.quest.dto.QuestStatisticsResponse;
+import dailyquest.quest.entity.QuestState;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import dailyquest.common.TimeUtilKt;
-import dailyquest.quest.dto.QuestLogSearchCondition;
-import dailyquest.quest.entity.QuestState;
-import dailyquest.quest.entity.QuestType;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.TemporalAdjusters;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.List;
 
 import static dailyquest.quest.entity.QQuestLog.questLog;
 
@@ -34,52 +30,53 @@ public class QuestLogRepositoryImpl implements QuestLogRepositoryCustom {
         query = new JPAQueryFactory(em);
     }
 
-    @Override
-    public Map<LocalDate, Map<String, Long>> getQuestStatisticByState(Long userId, QuestLogSearchCondition condition) {
-        return getQuestStatistic(userId, condition, questLog.state);
-    }
+    public List<QuestStatisticsResponse> getGroupedQuestLogs(Long userId, QuestLogSearchCondition condition) {
 
-    @Override
-    public Map<LocalDate, Map<String, Long>> getQuestStatisticByType(Long userId, QuestLogSearchCondition condition) {
-        return getQuestStatistic(userId, condition, questLog.type);
-    }
+        OrderSpecifier nullOrder = new OrderSpecifier<>(Order.ASC, (Expression) NullExpression.DEFAULT, OrderSpecifier.NullHandling.Default);
 
-    public <T extends Enum<T>> Map<LocalDate, Map<String, Long>> getQuestStatistic(Long userId, QuestLogSearchCondition condition, EnumPath<T> enumPath) {
+        List<QuestStatisticsResponse> groupedQuestLogs = new ArrayList<>();
 
-        Map<LocalDate, Map<String, Long>> result;
-        if (enumPath.getType().equals(QuestType.class)) {
-            result = condition.createResponseCollectionByType();
-        } else {
-            result = condition.createResponseCollectionByState();
-        }
-
-        final Function<LocalDateTime, LocalDate> dateKeyTransformFunction;
-
-        switch (condition.getSearchType()) {
-            case WEEKLY -> dateKeyTransformFunction = TimeUtilKt::firstDayOfWeek;
-            case MONTHLY -> dateKeyTransformFunction = (loggedDate) -> LocalDate.from(loggedDate.with(TemporalAdjusters.firstDayOfMonth()));
-            default -> dateKeyTransformFunction = LocalDate::from;
-        }
-
-        // MySql의 group by 시 자동 file sort 로 인해 null 정렬 추가
-        query
-                .select(enumPath, Expressions.asDate(questLog.loggedDate), enumPath.count())
+        List<Tuple> logsByState = query
+                .select(questLog.state, questLog.loggedDate, questLog.state.count())
                 .from(questLog)
                 .where(questLog.userId.eq(userId),
                         questLog.state.notIn(QuestState.PROCEED, QuestState.DELETE),
-                        questLog.loggedDate.between(condition.getStartDate(), condition.getEndDate()))
-                .groupBy(enumPath, Expressions.asDate(questLog.loggedDate))
-                .orderBy(new OrderSpecifier<>(Order.ASC, (Expression) NullExpression.DEFAULT, OrderSpecifier.NullHandling.Default))
-                .fetch()
-                .forEach(tuple -> {
-                    LocalDateTime loggedDate = tuple.get(questLog.loggedDate);
-                    LocalDate dateKey = dateKeyTransformFunction.apply(loggedDate);
+                        questLog.loggedDate.between(condition.getStartDateOfSearchRange(), condition.getEndDateOfSearchRange()))
+                .groupBy(questLog.state, questLog.loggedDate)
+                .orderBy(nullOrder)
+                .fetch();
 
-                    Map<String, Long> typeMapOfDay = result.get(dateKey);
-                    typeMapOfDay.compute(tuple.get(enumPath).name(), (k, v) -> v + tuple.get(enumPath.count()));
-                });
+        List<Tuple> logsByType = query
+                .select(questLog.type, questLog.loggedDate, questLog.type.count())
+                .from(questLog)
+                .where(questLog.userId.eq(userId),
+                        questLog.state.notIn(QuestState.PROCEED, QuestState.DELETE),
+                        questLog.loggedDate.between(condition.getStartDateOfSearchRange(), condition.getEndDateOfSearchRange()))
+                .groupBy(questLog.type, questLog.loggedDate)
+                .orderBy(nullOrder)
+                .fetch();
 
-        return result;
+        logsByState.forEach(tuple -> {
+            LocalDate loggedDate = tuple.get(questLog.loggedDate);
+            QuestStatisticsResponse log = new QuestStatisticsResponse(loggedDate);
+            log.addStateCount(
+                    tuple.get(questLog.state).name(),
+                    tuple.get(questLog.state.count())
+            );
+            groupedQuestLogs.add(log);
+        });
+
+        logsByType.forEach(tuple -> {
+            LocalDate loggedDate = tuple.get(questLog.loggedDate);
+            QuestStatisticsResponse log = new QuestStatisticsResponse(loggedDate);
+            log.addTypeCount(
+                    tuple.get(questLog.type).name(),
+                    tuple.get(questLog.type.count())
+            );
+            groupedQuestLogs.add(log);
+        });
+
+        return groupedQuestLogs;
     }
 
 }

@@ -1,15 +1,19 @@
 package dailyquest.quest.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import dailyquest.common.TimeUtilKt;
 import dailyquest.quest.dto.QuestLogSearchCondition;
+import dailyquest.quest.dto.QuestStatisticsResponse;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestLog;
 import dailyquest.quest.repository.QuestLogRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 @RequiredArgsConstructor
 @Transactional
@@ -21,40 +25,36 @@ public class QuestLogService {
         questLogRepository.save(new QuestLog(quest));
     }
 
-    public Map<String, Map> getQuestStatistic(Long userId, QuestLogSearchCondition condition) {
-        Map<LocalDate, Map<String, Long>> questStatisticByState = questLogRepository.getQuestStatisticByState(userId, condition);
+    public Map<LocalDate, QuestStatisticsResponse> getQuestStatistic(Long userId, QuestLogSearchCondition condition) {
 
-        for (Map<String, Long> stateMap : questStatisticByState.values()) {
-            stateMap.compute("RATIO", (key, value)-> {
-                long allQuestCount = stateMap.values().stream().mapToLong(v -> v).sum();
-                Long completeCount = stateMap.get("COMPLETE");
+        List<QuestStatisticsResponse> groupedLogs = questLogRepository.getGroupedQuestLogs(userId, condition);
 
-                if(allQuestCount == 0) return 0L;
+        Function<LocalDate, LocalDate> dateKeyTransformFunction =
+            switch (condition.getSearchType()) {
+                case WEEKLY -> TimeUtilKt::firstDayOfWeek;
+                case MONTHLY -> TimeUtilKt::firstDayOfMonth;
+                default -> LocalDate::from;
+            };
 
-                double ratio = (double) completeCount / allQuestCount;
-                double percent = ratio * 100;
-                return Math.round(percent);
-            });
+        Map<LocalDate, QuestStatisticsResponse> statisticsMap = condition.createResponseMapOfPeriodUnit();
+
+        for (QuestStatisticsResponse log : groupedLogs) {
+            LocalDate loggedDate = log.getLoggedDate();
+            LocalDate dateKey = dateKeyTransformFunction.apply(loggedDate);
+
+            QuestStatisticsResponse statisticsOfDay = statisticsMap.getOrDefault(dateKey, new QuestStatisticsResponse(dateKey));
+
+            statisticsOfDay.combineCount(log);
+            statisticsMap.put(dateKey, statisticsOfDay);
         }
 
-        Map<LocalDate, Map<String, Long>> questStatisticByType = questLogRepository.getQuestStatisticByType(userId, condition);
-
-        for (Map<String, Long> typeMap : questStatisticByType.values()) {
-            typeMap.compute("RATIO", (key, value) -> {
-                long main = typeMap.get("MAIN");
-                long sub = typeMap.get("SUB");
-
-                if (main + sub == 0) {
-                    return 0L;
-                }
-
-                double ratio = (double) main / (main + sub);
-                double percent = ratio * 100;
-                return Math.round(percent);
-            });
-        }
-
-        return Map.of("state", questStatisticByState, "type", questStatisticByType);
+        statisticsMap.values().forEach(
+            statistic -> {
+                statistic.calcStateRatio();
+                statistic.calcTypeRatio();
+            }
+        );
+        return statisticsMap;
     }
 
 }

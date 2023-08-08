@@ -1,11 +1,11 @@
 package dailyquest.quest.repository;
 
 import dailyquest.quest.dto.QuestLogSearchCondition;
+import dailyquest.quest.dto.QuestStatisticsResponse;
 
-import java.time.LocalDate;
-import java.util.Map;
+import java.util.List;
 
 public interface QuestLogRepositoryCustom {
-    Map<LocalDate, Map<String, Long>> getQuestStatisticByState(Long userId, QuestLogSearchCondition condition);
-    Map<LocalDate, Map<String, Long>> getQuestStatisticByType(Long userId, QuestLogSearchCondition condition);
+
+    List<QuestStatisticsResponse> getGroupedQuestLogs(Long userId, QuestLogSearchCondition condition);
 }

@@ -12,4 +12,11 @@ class ResponseData<T>(
     constructor(errorResponse: ErrorResponse) : this(null, errorResponse = errorResponse)
 
     val hasError: Boolean = errorResponse != null
+
+    companion object {
+        @JvmStatic
+        fun <T> of(data: T): ResponseData<T> {
+            return ResponseData(data)
+        }
+    }
 }

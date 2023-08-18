@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.DayOfWeek
 import java.time.LocalDate
 
 class TimeUtilUnitTest {
@@ -13,122 +12,143 @@ class TimeUtilUnitTest {
     @Nested
     inner class GetQuarterStartDate {
 
-        @DisplayName("시작일이 월요일이 아니면 분기 범위 이전 월요일을 반환한다")
+        @DisplayName("요청 날짜가 해당 년도의 첫 월요일보다 빠를 경우 전년도 마지막 분기 시작일을 반환한다")
         @Test
-        fun `시작일이 월요일이 아니면 분기 범위 이전 월요일을 반환한다`() {
+        fun `요청 날짜가 해당 년도의 첫 월요일보다 빠를 경우 전년도 마지막 분기 시작일을 반환한다`() {
             //given
-            // 분기 시작일 - 2023/01/01 일요일
-            val date = LocalDate.of(2023, 1, 1)
+            // 21년도의 첫 월요일은 21년 1월 4일
+            val date = LocalDate.of(2021, 1, 3)
 
             //when
             val firstDayOfQuarter = date.firstDayOfQuarter()
 
             //then
-            assertThat(firstDayOfQuarter.dayOfWeek).isEqualTo(DayOfWeek.MONDAY)
             assertThat(firstDayOfQuarter).isBefore(date)
         }
 
-        @DisplayName("호출 날짜에 알맞은 분기 시작일이 반환된다")
+        @DisplayName("요청 날짜가 해당 년도의 첫 월요일일 경우 해당 날짜가 그대로 반환된다")
         @Test
-        fun `호출 날짜에 알맞은 분기 시작일이 반환된다`() {
+        fun `요청 날짜가 해당 년도의 첫 월요일일 경우 해당 날짜가 그대로 반환된다`() {
             //given
-            val firstQuarterOfDate1 = LocalDate.of(2023, 1, 1)
-            val firstQuarterOfDate2 = firstQuarterOfDate1.plusWeeks(12)
 
-            val secondQuarterOfDate1 = firstQuarterOfDate1.plusWeeks(13)
-            val secondQuarterOfDate2 = secondQuarterOfDate1.plusWeeks(13).minusDays(1)
-
-            val thirdQuarterOfDate1 = secondQuarterOfDate1.plusWeeks(13)
-            val thirdQuarterOfDate2 = thirdQuarterOfDate1.plusWeeks(13).minusDays(1)
-
-            val fourthQuarterOfDate1 = thirdQuarterOfDate1.plusWeeks(13)
-            val fourthQuarterOfDate2 = fourthQuarterOfDate1.plusWeeks(13).minusDays(1)
+            // 21년도의 첫 월요일은 21년 1월 4일
+            val date = LocalDate.of(2021, 1, 4)
 
             //when
-            val firstDayOfFirstQuarter1 = firstQuarterOfDate1.firstDayOfQuarter()
-            val firstDayOfFirstQuarter2 = firstQuarterOfDate2.firstDayOfQuarter()
-
-            val firstDayOfSecondQuarter1 = secondQuarterOfDate1.firstDayOfQuarter()
-            val firstDayOfSecondQuarter2 = secondQuarterOfDate2.firstDayOfQuarter()
-
-            val firstDayOfThirdQuarter1 = thirdQuarterOfDate1.firstDayOfQuarter()
-            val firstDayOfThirdQuarter2 = thirdQuarterOfDate2.firstDayOfQuarter()
-
-            val firstDayOfFourthQuarter1 = fourthQuarterOfDate1.firstDayOfQuarter()
-            val firstDayOfFourthQuarter2 = fourthQuarterOfDate2.firstDayOfQuarter()
+            val firstDayOfQuarter = date.firstDayOfQuarter()
 
             //then
-            assertThat(firstDayOfFirstQuarter1).isEqualTo(firstDayOfFirstQuarter2)
-            assertThat(firstDayOfSecondQuarter1).isEqualTo(firstDayOfSecondQuarter2)
-            assertThat(firstDayOfThirdQuarter1).isEqualTo(firstDayOfThirdQuarter2)
-            assertThat(firstDayOfFourthQuarter1).isEqualTo(firstDayOfFourthQuarter2)
-
-            assertThat(firstDayOfFirstQuarter1)
-                .isNotEqualTo(firstDayOfSecondQuarter1)
-                .isNotEqualTo(firstDayOfThirdQuarter1)
-                .isNotEqualTo(firstDayOfFourthQuarter1)
+            assertThat(firstDayOfQuarter).isEqualTo(date)
         }
+
+        @DisplayName("요청 날짜가 분기 시작일 이후라면, 알맞은 분기 시작일이 반환된다")
+        @Test
+        fun `요청 날짜가 분기 시작일 이후라면, 알맞은 분기 시작일이 반환된다`() {
+            //given
+            // 21년도의 첫 월요일은 21년 1월 4일
+            val date = LocalDate.of(2021, 1, 5)
+
+            //when
+            val firstDayOfQuarter = date.firstDayOfQuarter()
+
+            //then
+            assertThat(firstDayOfQuarter).isBefore(date)
+        }
+
+        @DisplayName("13주 단위로 구분된 분기 시작일이 반환된다")
+        @Test
+        fun `13주 단위로 구분된 분기 시작일이 반환된다`() {
+            //given
+            // 21년도의 첫 월요일은 21년 1월 4일
+            val firstQuarterStart = LocalDate.of(2021, 1, 4)
+            val secondQuarterStart = firstQuarterStart.plusWeeks(13)
+            val thirdQuarterStart = secondQuarterStart.plusWeeks(13)
+            val fourthQuarterStart = thirdQuarterStart.plusWeeks(13)
+
+            val firstQuarterEnd = secondQuarterStart.minusDays(1)
+            val secondQuarterEnd = thirdQuarterStart.minusDays(1)
+            val thirdQuarterEnd = fourthQuarterStart.minusDays(1)
+            val fourthQuarterEnd = fourthQuarterStart.plusWeeks(13).minusDays(1)
+
+            //when
+            val firstQuarterStart1 = firstQuarterStart.firstDayOfQuarter()
+            val secondQuarterStart1 = secondQuarterStart.firstDayOfQuarter()
+            val thirdQuarterStart1 = thirdQuarterStart.firstDayOfQuarter()
+            val fourthQuarterStart1 = fourthQuarterStart.firstDayOfQuarter()
+
+            val firstQuarterStart2 = firstQuarterEnd.firstDayOfQuarter()
+            val secondQuarterStart2 = secondQuarterEnd.firstDayOfQuarter()
+            val thirdQuarterStart2 = thirdQuarterEnd.firstDayOfQuarter()
+            val fourthQuarterStart2 = fourthQuarterEnd.firstDayOfQuarter()
+
+            //then
+            assertThat(firstQuarterStart1).isEqualTo(firstQuarterStart2)
+            assertThat(secondQuarterStart1).isEqualTo(secondQuarterStart2)
+            assertThat(thirdQuarterStart1).isEqualTo(thirdQuarterStart2)
+            assertThat(fourthQuarterStart1).isEqualTo(fourthQuarterStart2)
+
+            assertThat(firstQuarterStart1).isBefore(secondQuarterStart1)
+            assertThat(secondQuarterStart1).isBefore(thirdQuarterStart1)
+            assertThat(thirdQuarterStart1).isBefore(fourthQuarterStart1)
+        }
+
     }
 
     @DisplayName("분기 종료일 조회 시")
     @Nested
     inner class GetQuarterEndDate {
-        @DisplayName("종료일이 일요일이 아닌 경우 분기 범위 밖의 날짜가 반환된다")
+
+        @DisplayName("요청 날짜가 해당 년도의 첫 월요일보다 빠를 경우 첫 월요일 전날을 반환한다")
         @Test
-        fun `종료일이 일요일이 아닌 경우 분기 범위 밖의 날짜가 반환된다`() {
+        fun `요청 날짜가 해당 년도의 첫 월요일보다 빠를 경우 첫 월요일 전날을 반환한다`() {
             //given
-            // 분기 종료일 - 2022/12/31 토요일
-            val date = LocalDate.of(2022, 12, 31)
+            // 21년도의 첫 월요일은 21년 1월 4일
+            val date = LocalDate.of(2021, 1, 3)
 
             //when
-            val firstDayOfQuarter = date.lastDayOfQuarter()
+            val lastDayOfQuarter = date.lastDayOfQuarter()
 
             //then
-            assertThat(firstDayOfQuarter.dayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
-            assertThat(firstDayOfQuarter).isAfter(date)
+            assertThat(lastDayOfQuarter).isEqualTo(date)
         }
 
-        @DisplayName("호출 날짜에 알맞은 분기 종료 날짜가 반환된다")
+        @DisplayName("13주 단위로 구분된 분기 종료일이 반환된다")
         @Test
-        fun `호출 날짜에 알맞은 분기 종료 날짜가 반환된다`() {
+        fun `13주 단위로 구분된 분기 종료일이 반환된다`() {
             //given
-            val firstQuarterOfDate1 = LocalDate.of(2023, 1, 1)
-            val firstQuarterOfDate2 = firstQuarterOfDate1.plusWeeks(12)
+            // 21년도의 첫 월요일은 21년 1월 4일
+            val firstQuarterStart = LocalDate.of(2021, 1, 4)
+            val secondQuarterStart = firstQuarterStart.plusWeeks(13)
+            val thirdQuarterStart = secondQuarterStart.plusWeeks(13)
+            val fourthQuarterStart = thirdQuarterStart.plusWeeks(13)
 
-            val secondQuarterOfDate1 = firstQuarterOfDate1.plusWeeks(13)
-            val secondQuarterOfDate2 = secondQuarterOfDate1.plusWeeks(13).minusDays(1)
-
-            val thirdQuarterOfDate1 = secondQuarterOfDate1.plusWeeks(13)
-            val thirdQuarterOfDate2 = thirdQuarterOfDate1.plusWeeks(13).minusDays(1)
-
-            val fourthQuarterOfDate1 = thirdQuarterOfDate1.plusWeeks(13)
-            val fourthQuarterOfDate2 = fourthQuarterOfDate1.plusWeeks(13).minusDays(1)
+            val firstQuarterEnd = secondQuarterStart.minusDays(1)
+            val secondQuarterEnd = thirdQuarterStart.minusDays(1)
+            val thirdQuarterEnd = fourthQuarterStart.minusDays(1)
+            val fourthQuarterEnd = fourthQuarterStart.plusWeeks(13).minusDays(1)
 
             //when
-            val lastDayOfFirstQuarter1 = firstQuarterOfDate1.lastDayOfQuarter()
-            val lastDayOfFirstQuarter2 = firstQuarterOfDate2.lastDayOfQuarter()
+            val firstQuarterEnd1 = firstQuarterStart.lastDayOfQuarter()
+            val secondQuarterEnd1 = secondQuarterStart.lastDayOfQuarter()
+            val thirdQuarterEnd1 = thirdQuarterStart.lastDayOfQuarter()
+            val fourthQuarterEnd1 = fourthQuarterStart.lastDayOfQuarter()
 
-            val lastDayOfSecondQuarter1 = secondQuarterOfDate1.lastDayOfQuarter()
-            val lastDayOfSecondQuarter2 = secondQuarterOfDate2.lastDayOfQuarter()
-
-            val lastDayOfThirdQuarter1 = thirdQuarterOfDate1.lastDayOfQuarter()
-            val lastDayOfThirdQuarter2 = thirdQuarterOfDate2.lastDayOfQuarter()
-
-            val lastDayOfFourthQuarter1 = fourthQuarterOfDate1.lastDayOfQuarter()
-            val lastDayOfFourthQuarter2 = fourthQuarterOfDate2.lastDayOfQuarter()
+            val firstQuarterEnd2 = firstQuarterEnd.lastDayOfQuarter()
+            val secondQuarterEnd2 = secondQuarterEnd.lastDayOfQuarter()
+            val thirdQuarterEnd2 = thirdQuarterEnd.lastDayOfQuarter()
+            val fourthQuarterEnd2 = fourthQuarterEnd.lastDayOfQuarter()
 
             //then
-            assertThat(lastDayOfFirstQuarter1).isEqualTo(lastDayOfFirstQuarter2)
-            assertThat(lastDayOfSecondQuarter1).isEqualTo(lastDayOfSecondQuarter2)
-            assertThat(lastDayOfThirdQuarter1).isEqualTo(lastDayOfThirdQuarter2)
-            assertThat(lastDayOfFourthQuarter1).isEqualTo(lastDayOfFourthQuarter2)
+            assertThat(firstQuarterEnd1).isEqualTo(firstQuarterEnd2).isEqualTo(firstQuarterEnd)
+            assertThat(secondQuarterEnd1).isEqualTo(secondQuarterEnd2).isEqualTo(secondQuarterEnd)
+            assertThat(thirdQuarterEnd1).isEqualTo(thirdQuarterEnd2).isEqualTo(thirdQuarterEnd)
+            assertThat(fourthQuarterEnd1).isEqualTo(fourthQuarterEnd2).isEqualTo(fourthQuarterEnd)
 
-            assertThat(lastDayOfFirstQuarter1)
-                .isNotEqualTo(lastDayOfSecondQuarter1)
-                .isNotEqualTo(lastDayOfThirdQuarter1)
-                .isNotEqualTo(lastDayOfFourthQuarter1)
-
+            assertThat(firstQuarterEnd1).isBefore(secondQuarterEnd1)
+            assertThat(secondQuarterEnd1).isBefore(thirdQuarterEnd1)
+            assertThat(thirdQuarterEnd1).isBefore(fourthQuarterEnd1)
         }
+
     }
 
 

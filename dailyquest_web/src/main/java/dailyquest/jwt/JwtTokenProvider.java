@@ -19,8 +19,8 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    public final static long ACCESS_TOKEN_VALIDATION_SECOND = 1000L * 60 * 30;
-    public final static long REFRESH_TOKEN_VALIDATION_SECOND = 1000L * 60 * 60 * 24 * 14;
+    public final static long ACCESS_TOKEN_VALIDATION_MILLISECOND = 1000L * 60 * 30;
+    public final static long REFRESH_TOKEN_VALIDATION_MILLISECOND = 1000L * 60 * 60 * 24 * 14;
     public final static String ACCESS_TOKEN_NAME = "X-ACCESS-TOKEN";
     public final static String REFRESH_TOKEN_NAME = "X-REFRESH-TOKEN";
     private final RedisTemplate<String, String> redisTemplate;
@@ -34,7 +34,7 @@ public class JwtTokenProvider {
                 .claim("id", userPk)
                 .claim("token_type", ACCESS_TOKEN_NAME)
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_VALIDATION_SECOND))
+                .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_VALIDATION_MILLISECOND))
                 .signWith(new SecretKeySpec(Decoders.BASE64.decode(secretKey), SignatureAlgorithm.HS256.getJcaName()))
                 .compact();
 
@@ -47,7 +47,7 @@ public class JwtTokenProvider {
                 .claim("id", userId)
                 .claim("token_type", REFRESH_TOKEN_NAME)
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_VALIDATION_SECOND))
+                .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_VALIDATION_MILLISECOND))
                 .signWith(new SecretKeySpec(Decoders.BASE64.decode(secretKey), SignatureAlgorithm.HS256.getJcaName()))
                 .compact();
     }

@@ -13,7 +13,6 @@ import dailyquest.common.MessageUtil
 import dailyquest.jwt.JwtTokenProvider
 import dailyquest.jwt.dto.TokenRequest
 import dailyquest.user.service.UserService
-import java.util.*
 
 @Transactional
 @Service
@@ -44,6 +43,10 @@ class JwtService(
         val refreshToken = jwtTokenProvider.createRefreshToken(userPrincipal.id)
 
         return jwtTokenProvider.createAccessTokenCookie(accessToken) to jwtTokenProvider.createRefreshTokenCookie(refreshToken)
+    }
+
+    fun invalidateToken(cookies: Array<Cookie>?): Pair<Cookie, Cookie> {
+        return jwtTokenProvider.invalidateToken(cookies)
     }
 
 }

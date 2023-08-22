@@ -4,6 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.Cookie;
+import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -77,7 +78,7 @@ public class JwtTokenProvider {
         return claims.getBody().get("id", Long.class);
     }
 
-    public Date getExpiredDateFromToken(String jwtToken) {
+    public Date getExpiredDateFromToken(String jwtToken) throws ExpiredJwtException {
         Jws<Claims> claims = Jwts.parserBuilder()
                 .setSigningKey(Decoders.BASE64.decode(secretKey))
                 .build()
@@ -116,9 +117,7 @@ public class JwtTokenProvider {
         try {
             if (!isInBlackList(refreshToken) && isValidToken(refreshToken, REFRESH_TOKEN_NAME)) {
                 Long userId = getUserIdFromToken(refreshToken);
-
-                Date expiredDate = getExpiredDateFromToken(refreshToken);
-                addToBlackList(refreshToken, expiredDate);
+                addToBlackList(refreshToken);
 
                 return createAccessToken(userId);
             } else {
@@ -129,7 +128,33 @@ public class JwtTokenProvider {
         }
     }
 
-    private void addToBlackList(String refreshToken, Date expiredDate) {
+    public Pair<Cookie, Cookie> invalidateToken(@Nullable Cookie[] cookies) throws ExpiredJwtException {
+        String refreshToken = getJwtFromCookies(cookies, REFRESH_TOKEN_NAME);
+
+        // 토큰 만료 시 블랙 리스트 추가 불필요
+        try {
+            addToBlackList(refreshToken);
+        } catch (ExpiredJwtException ignored) {
+        }
+
+        Cookie emptyAccessToken = new Cookie(JwtTokenProvider.ACCESS_TOKEN_NAME, "");
+        Cookie emptyRefreshToken = new Cookie(JwtTokenProvider.REFRESH_TOKEN_NAME, "");
+
+        emptyAccessToken.setMaxAge(0);
+        emptyRefreshToken.setMaxAge(0);
+
+        emptyAccessToken.setPath("/");
+        emptyRefreshToken.setPath("/");
+
+        emptyAccessToken.setHttpOnly(true);
+        emptyRefreshToken.setHttpOnly(true);
+
+        return new Pair<>(emptyAccessToken, emptyRefreshToken);
+    }
+
+    private void addToBlackList(String refreshToken) throws ExpiredJwtException {
+        Date expiredDate = getExpiredDateFromToken(refreshToken);
+
         long epochSecond = expiredDate.toInstant().getEpochSecond();
         long now = new Date().toInstant().getEpochSecond();
 

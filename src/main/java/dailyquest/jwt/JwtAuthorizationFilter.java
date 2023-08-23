@@ -1,5 +1,8 @@
 package dailyquest.jwt;
 
+import dailyquest.properties.SecurityUrlProperties;
+import dailyquest.user.dto.UserPrincipal;
+import dailyquest.user.service.UserService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,12 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
-import dailyquest.properties.SecurityUrlProperties;
-import dailyquest.user.service.UserService;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -52,7 +52,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
             Long userId = jwtTokenProvider.getUserIdFromToken(accessToken);
 
-            UserDetails userDetails = userService.getUserById(userId);
+            UserPrincipal userDetails = userService.getUserById(userId);
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
             SecurityContextHolder.getContext().setAuthentication(authentication);

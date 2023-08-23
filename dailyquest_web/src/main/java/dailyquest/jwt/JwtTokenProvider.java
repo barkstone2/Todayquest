@@ -129,12 +129,12 @@ public class JwtTokenProvider {
     }
 
     public Pair<Cookie, Cookie> invalidateToken(@Nullable Cookie[] cookies) throws ExpiredJwtException {
-        String refreshToken = getJwtFromCookies(cookies, REFRESH_TOKEN_NAME);
 
         // 토큰 만료 시 블랙 리스트 추가 불필요
         try {
+            String refreshToken = getJwtFromCookies(cookies, REFRESH_TOKEN_NAME);
             addToBlackList(refreshToken);
-        } catch (ExpiredJwtException ignored) {
+        } catch (JwtException ignored) {
         }
 
         Cookie emptyAccessToken = new Cookie(JwtTokenProvider.ACCESS_TOKEN_NAME, "");

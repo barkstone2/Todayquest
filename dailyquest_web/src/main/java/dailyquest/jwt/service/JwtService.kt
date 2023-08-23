@@ -1,18 +1,18 @@
 package dailyquest.jwt.service
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.common.base.Strings
+import dailyquest.common.GoogleIdTokenVerifierFactory
+import dailyquest.common.MessageUtil
+import dailyquest.jwt.JwtTokenProvider
+import dailyquest.jwt.dto.TokenRequest
+import dailyquest.user.service.UserService
 import jakarta.servlet.http.Cookie
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import dailyquest.common.MessageUtil
-import dailyquest.jwt.JwtTokenProvider
-import dailyquest.jwt.dto.TokenRequest
-import dailyquest.user.service.UserService
 
 @Transactional
 @Service
@@ -21,18 +21,17 @@ class JwtService(
     private val clientId: String,
     private val jwtTokenProvider: JwtTokenProvider,
     private val userService: UserService,
+    private val googleIdTokenVerifierFactory: GoogleIdTokenVerifierFactory,
 ) {
 
     fun issueTokenCookie(tokenRequest: TokenRequest): Pair<Cookie, Cookie> {
 
-        val verifier = GoogleIdTokenVerifier.Builder(NetHttpTransport(), GsonFactory.getDefaultInstance())
-            .setAudience(listOf(clientId))
-            .build()
+        val verifier = googleIdTokenVerifierFactory.create(NetHttpTransport(), GsonFactory.getDefaultInstance(), listOf(clientId));
         val idTokenString = tokenRequest.idToken
 
         if (Strings.isNullOrEmpty(idTokenString)) throw AccessDeniedException(MessageUtil.getMessage("exception.invalid.login"))
 
-        val idToken = verifier.verify(idTokenString)
+        val idToken = try { verifier.verify(idTokenString) } catch (_: Exception) { null }
             ?: throw AccessDeniedException(MessageUtil.getMessage("exception.invalid.login"))
         val oauth2Id = idToken.payload.subject
         val providerType = tokenRequest.providerType

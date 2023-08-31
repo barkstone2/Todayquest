@@ -1,122 +1,53 @@
 package dailyquest.quest.service;
 
-import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import dailyquest.common.MessageUtil;
 import dailyquest.common.RestPage;
 import dailyquest.quest.dto.DetailInteractRequest;
 import dailyquest.quest.dto.DetailResponse;
 import dailyquest.quest.dto.QuestRequest;
 import dailyquest.quest.dto.QuestResponse;
-import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
-import dailyquest.quest.repository.QuestRepository;
-import dailyquest.user.entity.UserInfo;
-import dailyquest.user.repository.UserRepository;
-import dailyquest.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
-@Transactional
 @RequiredArgsConstructor
 @Service
 public class QuestService {
 
-    private final QuestRepository questRepository;
-    private final UserRepository userRepository;
-
-    private final UserService userService;
-    private final QuestLogService questLogService;
+    private final QuestQueryService questQueryService;
+    private final QuestCommandService questCommandService;
 
     public RestPage<QuestResponse> getQuestList(Long userId, QuestState state, Pageable pageable) {
-
-        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-
-        return new RestPage<>(
-                questRepository
-                        .getQuestsList(userId, state, pageRequest)
-                        .map(QuestResponse::createDto)
-        );
+        return questQueryService.getQuestList(userId, state, pageable);
     }
 
     public QuestResponse getQuestInfo(Long questId, Long userId) {
-        Quest quest = findByIdOrThrow(questId);
-        quest.checkOwnershipOrThrow(userId);
-
-        return QuestResponse.createDto(quest);
+        return questQueryService.getQuestInfo(questId, userId);
     }
 
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {
-        UserInfo findUser = userRepository.getReferenceById(userId);
-        dto.checkRangeOfDeadLine(findUser.getResetTime());
-
-        if (findUser.isNowCoreTime()) {
-            dto.toMainQuest();
-        }
-
-        Long nextSeq = questRepository.getNextSeqByUserId(userId);
-
-        Quest quest = dto.mapToEntity(nextSeq, findUser);
-        questRepository.save(quest);
-
-        quest.updateDetailQuests(dto.getDetails());
-
-        questLogService.saveQuestLog(quest);
-
-        return QuestResponse.createDto(quest);
+        QuestResponse questResponse = questCommandService.saveQuest(dto, userId);
+        return questResponse;
     }
 
     public QuestResponse updateQuest(QuestRequest dto, Long questId, Long userId) {
-        Quest quest = findByIdOrThrow(questId);
-        dto.checkRangeOfDeadLine(quest.getUser().getResetTime());
-        quest.checkOwnershipOrThrow(userId);
-        quest.checkStateIsProceedOrThrow();
-
-        if(quest.isMainQuest()) dto.toMainQuest();
-
-        quest.updateQuestEntity(dto);
-
-        return QuestResponse.createDto(quest);
+        QuestResponse questResponse = questCommandService.updateQuest(dto, questId, userId);
+        return questResponse;
     }
 
     public void deleteQuest(Long questId, Long userId) {
-        Quest quest = findByIdOrThrow(questId);
-        quest.checkOwnershipOrThrow(userId);
-        quest.deleteQuest();
+        questCommandService.deleteQuest(questId, userId);
     }
 
     public void completeQuest(Long questId, Long userId) {
-        Quest quest = findByIdOrThrow(questId);
-        quest.checkOwnershipOrThrow(userId);
-        quest.completeQuest();
-
-        userService.earnExpAndGold(quest.getType(), quest.getUser());
-        questLogService.saveQuestLog(quest);
+        questCommandService.completeQuest(questId, userId);
     }
 
     public void discardQuest(Long questId, Long userId) {
-        Quest quest = findByIdOrThrow(questId);
-        quest.checkOwnershipOrThrow(userId);
-
-        quest.discardQuest();
-
-        questLogService.saveQuestLog(quest);
+        questCommandService.discardQuest(questId, userId);
     }
 
     public DetailResponse interactWithDetailQuest(Long userId, Long questId, Long detailQuestId, DetailInteractRequest request) {
-        Quest quest = findByIdOrThrow(questId);
-        quest.checkOwnershipOrThrow(userId);
-
-        return quest.interactWithDetailQuest(detailQuestId, request);
-    }
-
-    private Quest findByIdOrThrow(Long questId) {
-        Optional<Quest> findQuest = questRepository.findById(questId);
-        return findQuest.orElseThrow(() -> new EntityNotFoundException(
-                MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))));
+        return questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, request);
     }
 }

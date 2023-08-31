@@ -3,6 +3,7 @@ package dailyquest;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +17,7 @@ import dailyquest.user.dto.UserPrincipal;
 import javax.sql.DataSource;
 import java.util.Optional;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {ElasticsearchDataAutoConfiguration.class})
 public class TodayquestApplication {
 
 	public static void main(String[] args) {

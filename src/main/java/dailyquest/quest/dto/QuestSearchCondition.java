@@ -1,23 +1,21 @@
 package dailyquest.quest.dto;
 
 import jakarta.validation.constraints.Min;
-import lombok.Data;
 import dailyquest.quest.entity.QuestState;
+import java.util.Objects;
 
-@Data
-public class QuestSearchCondition {
-
+public record QuestSearchCondition(
     @Min(0)
-    private int page;
-    private QuestState state;
+    Integer page,
+    QuestState state,
+    QuestSearchKeywordType keywordType,
+    String keyword
+) {
 
-    public QuestSearchCondition(){
-        this.state = QuestState.PROCEED;
-        this.page = 0;
-    }
-
-    public QuestSearchCondition(int page, QuestState state) {
-        this.page = page;
-        this.state = state;
+    public QuestSearchCondition(Integer page, QuestState state, QuestSearchKeywordType keywordType, String keyword) {
+        this.page = Objects.requireNonNullElse(page, 0);
+        this.state = Objects.requireNonNullElse(state, QuestState.PROCEED);
+        this.keywordType = keywordType;
+        this.keyword = keyword;
     }
 }

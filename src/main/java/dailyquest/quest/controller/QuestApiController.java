@@ -40,8 +40,8 @@ public class QuestApiController {
 
         RestPage<QuestResponse> questList = questService.getQuestList(
                 principal.getId(),
-                condition.getState(),
-                PageRequest.of(condition.getPage(), pageSize)
+                condition.state(),
+                PageRequest.of(condition.page(), pageSize)
         );
 
         return ResponseEntity.ok(new ResponseData<>(questList));

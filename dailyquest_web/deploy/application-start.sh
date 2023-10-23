@@ -17,7 +17,10 @@ if [ "$IS_BLUE_UP" != "true" ]; then
     PORT=8080
 fi
 
-/home/ec2-user/app/server/container-start.sh $CONTAINER_NAME-$NEW_COLOR $REPOSITORY $VERSION $PORT
+docker tag $REPOSITORY:$VERSION $CONTAINER_NAME:$NEW_COLOR
+docker rmi $REPOSITORY:$VERSION
+
+/home/ec2-user/app/server/container-start.sh $CONTAINER_NAME-$NEW_COLOR $CONTAINER_NAME $NEW_COLOR $PORT
 
 sleep 10
 
@@ -27,10 +30,14 @@ if [ "$IS_NEW_UP" == "true" ]; then
     cp $NGINX_PATH/nginx-$NEW_COLOR.conf $NGINX_PATH/nginx.conf
     docker exec dailyquest-client nginx -s reload
 
-    REMOVE_IMAGE=$(docker images -f "reference=$REPOSITORY" -f "before=$REPOSITORY:$VERSION" -q)
+    REMOVE_IMAGE=$(docker images -f "reference=$CONTAINER_NAME:$COLOR" -q)
+
+    # 컨테이너가 존재하지 않아도 스크립트가 중단되지 않음
     docker stop $CONTAINER_NAME-$COLOR
     docker rm $CONTAINER_NAME-$COLOR
 
+    # 이미지가 존재하지 않으면 스크립트 중단됨
+    # 기존 이미지가 존재할 때만 제거
     if [ -n "$REMOVE_IMAGE" ]; then
         docker rmi $REMOVE_IMAGE
     fi

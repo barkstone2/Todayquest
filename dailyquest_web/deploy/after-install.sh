@@ -1,5 +1,6 @@
-REDIS_STATUS=$(systemctl is-active redis6)
+REDIS_CONTAINER_NAME=dailyquest-redis
+IS_REDIS_RUNNING=$(docker inspect -f {{.State.Running}} $REDIS_CONTAINER_NAME)
 
-if [ "$REDIS_STATUS" != "active" ]; then
-    systemctl restart redis6
+if [ "$IS_REDIS_RUNNING" != "true" ]; then
+    docker start $REDIS_CONTAINER_NAME
 fi

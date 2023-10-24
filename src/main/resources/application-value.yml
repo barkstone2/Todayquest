@@ -26,3 +26,9 @@ redis:
     quest_clear_exp: ${REDIS_QUEST_CLEAR_EXP_KEY}
     quest_clear_gold: ${REDIS_QUEST_CLEAR_GOLD_KEY}
     max_reward_count: ${REDIS_MAX_REWARD_COUNT_KEY}
+
+elastic:
+  username: ${ELASTIC_USERNAME}
+  password: ${ELASTIC_PASSWORD}
+  host: ${ELASTIC_HOST}
+  port: ${ELASTIC_PORT}

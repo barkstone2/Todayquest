@@ -1,15 +1,14 @@
 package dailyquest.quest.service;
 
 import dailyquest.common.RestPage;
-import dailyquest.quest.dto.DetailInteractRequest;
-import dailyquest.quest.dto.DetailResponse;
-import dailyquest.quest.dto.QuestRequest;
-import dailyquest.quest.dto.QuestResponse;
+import dailyquest.quest.dto.*;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.search.service.QuestIndexService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -25,6 +24,20 @@ public class QuestService {
 
     public QuestResponse getQuestInfo(Long questId, Long userId) {
         return questQueryService.getQuestInfo(questId, userId);
+    }
+
+    public RestPage<QuestResponse> searchQuest(Long userId, QuestSearchCondition searchCondition, Pageable pageable) {
+
+        RestPage<QuestResponse> result;
+
+        if(searchCondition.isKeywordSearch()) {
+            List<Long> searchedIds = questIndexService.searchDocuments(searchCondition, userId, pageable);
+            result = questQueryService.getSearchedQuestList(searchedIds, userId, pageable);
+        } else {
+            result = questQueryService.getQuestList(userId, searchCondition.state(), pageable);
+        }
+
+        return result;
     }
 
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {

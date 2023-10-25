@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -44,5 +45,12 @@ public class QuestQueryService {
         Optional<Quest> findQuest = questRepository.findById(questId);
         return findQuest.orElseThrow(() -> new EntityNotFoundException(
                 MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))));
+    }
+
+    public RestPage<QuestResponse> getSearchedQuestList(List<Long> searchedIds, Long userId, Pageable pageable) {
+        return new RestPage<>(
+                questRepository.getSearchedQuests(userId, searchedIds, pageable)
+                        .map(QuestResponse::createDto)
+        );
     }
 }

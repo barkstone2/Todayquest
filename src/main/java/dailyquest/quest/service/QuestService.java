@@ -22,22 +22,22 @@ public class QuestService {
         return questQueryService.getCurrentQuests(userId, state);
     }
 
-    public QuestResponse getQuestInfo(Long questId, Long userId) {
-        return questQueryService.getQuestInfo(questId, userId);
-    }
-
     public RestPage<QuestResponse> searchQuest(Long userId, QuestSearchCondition searchCondition, Pageable pageable) {
 
         RestPage<QuestResponse> result;
 
         if(searchCondition.isKeywordSearch()) {
             List<Long> searchedIds = questIndexService.searchDocuments(searchCondition, userId, pageable);
-            result = questQueryService.getSearchedQuestList(searchedIds, userId, pageable);
+            result = questQueryService.getSearchedQuests(searchedIds, userId, pageable);
         } else {
-            result = questQueryService.getQuestList(userId, searchCondition.state(), pageable);
+            result = questQueryService.getQuestsByCondition(userId, searchCondition, pageable);
         }
 
         return result;
+    }
+
+    public QuestResponse getQuestInfo(Long questId, Long userId) {
+        return questQueryService.getQuestInfo(questId, userId);
     }
 
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {

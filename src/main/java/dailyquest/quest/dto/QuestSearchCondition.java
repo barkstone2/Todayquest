@@ -21,7 +21,7 @@ public record QuestSearchCondition(
 
     public QuestSearchCondition(Integer page, QuestState state, QuestSearchKeywordType keywordType, String keyword, LocalDateTime startDate, LocalDateTime endDate) {
         this.page = Objects.requireNonNullElse(page, 0);
-        this.state = Objects.requireNonNullElse(state, QuestState.PROCEED);
+        this.state = state;
         this.keywordType = keywordType;
         this.keyword = keyword;
         this.startDate = startDate;

@@ -1,19 +1,22 @@
 package dailyquest.search.service;
 
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import dailyquest.quest.dto.QuestResponse;
 import dailyquest.quest.dto.QuestSearchCondition;
-import dailyquest.quest.dto.QuestSearchKeywordType;
 import dailyquest.search.document.QuestDocument;
 import dailyquest.search.repository.QuestIndexRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.query.Criteria;
-import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+
+import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.*;
 
 @RequiredArgsConstructor
 @Service
@@ -31,27 +34,67 @@ public class QuestIndexService {
 
     public List<Long> searchDocuments(QuestSearchCondition searchCondition, Long userId, Pageable pageable) {
 
-        Criteria subCriteria = null;
+        Query userIdtermQuery = term()
+                .field("userId")
+                .value(userId)
+                .build()._toQuery();
 
-        for (String filedName : searchCondition.keywordType().fieldNames) {
-            if(subCriteria == null) {
-                subCriteria = Criteria.where(filedName).matches(searchCondition.keyword());
-                if(filedName.equals(QuestSearchKeywordType.FieldType.TITLE)) {
-                    subCriteria = subCriteria.boost(2.0f);
-                }
-            } else {
-                subCriteria = subCriteria.or(filedName).matches(searchCondition.keyword());
-            }
+        Query stateTermQuery = null;
+        if(searchCondition.state() != null) {
+            stateTermQuery = term()
+                    .field("state")
+                    .value(searchCondition.state().name())
+                    .build()._toQuery();
         }
 
-        assert subCriteria != null;
+        Query mulitMatchQuery = multiMatch()
+                .fields(searchCondition.keywordType().fieldNames)
+                .query(searchCondition.keyword())
+                .build()._toQuery();
 
-        Criteria criteria = Criteria.where("userId").is(userId)
-                .subCriteria(subCriteria);
 
-        CriteriaQuery criteriaQuery = CriteriaQuery.builder(criteria).withPageable(pageable).build();
+        Query rangeQuery = null;
 
-        return operations.search(criteriaQuery, QuestDocument.class)
+        LocalDateTime startDate = searchCondition.startDate();
+        LocalDateTime endDate = searchCondition.endDate();
+
+        if(startDate != null && endDate != null) {
+            rangeQuery = range()
+                    .field("createdDate")
+                    .from(startDate.toString())
+                    .to(endDate.toString())
+                    .build()._toQuery();
+        }
+        if(startDate != null && endDate == null) {
+            rangeQuery = range()
+                    .field("createdDate")
+                    .from(startDate.toString())
+                    .build()._toQuery();
+        }
+        if(startDate == null && endDate != null) {
+            rangeQuery = range()
+                    .field("createdDate")
+                    .to(endDate.toString())
+                    .build()._toQuery();
+        }
+
+        BoolQuery.Builder boolQueryBuilder = bool()
+                .must(userIdtermQuery);
+
+        if(stateTermQuery != null) boolQueryBuilder.must(stateTermQuery);
+
+        boolQueryBuilder.must(mulitMatchQuery);
+
+        if(rangeQuery != null) boolQueryBuilder.must(rangeQuery);
+
+        Query query = boolQueryBuilder.build()._toQuery();
+
+        NativeQuery nativeQuery = NativeQuery.builder()
+                .withQuery(query)
+                .withPageable(pageable)
+                .build();
+
+        return operations.search(nativeQuery, QuestDocument.class)
                 .stream()
                 .map(h -> Long.parseLong(Objects.requireNonNull(h.getId())))
                 .toList();

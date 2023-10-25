@@ -18,4 +18,8 @@ public record QuestSearchCondition(
         this.keywordType = keywordType;
         this.keyword = keyword;
     }
+
+    public boolean isKeywordSearch() {
+        return Objects.nonNull(keywordType) && Objects.nonNull(keyword);
+    }
 }

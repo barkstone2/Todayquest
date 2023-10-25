@@ -1,5 +1,6 @@
 package dailyquest.quest.controller;
 
+import dailyquest.quest.entity.QuestState;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -35,10 +36,10 @@ public class QuestApiController {
 
     @GetMapping("")
     public ResponseEntity<ResponseData<List<QuestResponse>>> getQuestList(
-            @Valid QuestSearchCondition condition,
+            QuestState state,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        List<QuestResponse> questList = questService.getCurrentQuests(principal.getId(), condition.state());
+        List<QuestResponse> questList = questService.getCurrentQuests(principal.getId(), state);
         return ResponseEntity.ok(new ResponseData<>(questList));
     }
 

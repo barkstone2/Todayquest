@@ -56,6 +56,20 @@ public class QuestApiController {
         return ResponseEntity.ok(new ResponseData<>(quest));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<ResponseData<RestPage<QuestResponse>>> searchQuest(
+            @Valid QuestSearchCondition condition,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+
+        RestPage<QuestResponse> questList = questService.searchQuest(
+                principal.getId(),
+                condition,
+                PageRequest.of(condition.page(), pageSize)
+        );
+        return ResponseEntity.ok(new ResponseData<>(questList));
+    }
+
     @PostMapping("")
     public ResponseEntity<ResponseData<QuestResponse>> saveQuest(
             @Valid @RequestBody QuestRequest dto,

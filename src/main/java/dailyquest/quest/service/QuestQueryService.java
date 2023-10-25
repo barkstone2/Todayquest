@@ -3,6 +3,7 @@ package dailyquest.quest.service;
 import dailyquest.common.MessageUtil;
 import dailyquest.common.RestPage;
 import dailyquest.quest.dto.QuestResponse;
+import dailyquest.quest.dto.QuestSearchCondition;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestRepository;
@@ -31,13 +32,13 @@ public class QuestQueryService {
                 .map(QuestResponse::createDto).toList();
     }
 
-    public RestPage<QuestResponse> getQuestList(Long userId, QuestState state, Pageable pageable) {
+    public RestPage<QuestResponse> getQuestsByCondition(Long userId, QuestSearchCondition condition, Pageable pageable) {
 
         PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
 
         return new RestPage<>(
                 questRepository
-                        .getQuestsList(userId, state, pageRequest)
+                        .findQuestsByCondition(userId, condition.state(), condition.startDate(), condition.endDate(), pageRequest)
                         .map(QuestResponse::createDto)
         );
     }
@@ -55,7 +56,7 @@ public class QuestQueryService {
                 MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))));
     }
 
-    public RestPage<QuestResponse> getSearchedQuestList(List<Long> searchedIds, Long userId, Pageable pageable) {
+    public RestPage<QuestResponse> getSearchedQuests(List<Long> searchedIds, Long userId, Pageable pageable) {
         return new RestPage<>(
                 questRepository.getSearchedQuests(userId, searchedIds, pageable)
                         .map(QuestResponse::createDto)

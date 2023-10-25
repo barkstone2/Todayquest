@@ -18,8 +18,8 @@ public class QuestService {
     private final QuestCommandService questCommandService;
     private final QuestIndexService questIndexService;
 
-    public RestPage<QuestResponse> getQuestList(Long userId, QuestState state, Pageable pageable) {
-        return questQueryService.getQuestList(userId, state, pageable);
+    public List<QuestResponse> getCurrentQuests(Long userId, QuestState state) {
+        return questQueryService.getCurrentQuests(userId, state);
     }
 
     public QuestResponse getQuestInfo(Long questId, Long userId) {

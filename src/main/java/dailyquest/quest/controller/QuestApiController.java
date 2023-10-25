@@ -19,6 +19,7 @@ import dailyquest.quest.service.QuestService;
 import dailyquest.user.dto.UserPrincipal;
 
 import java.io.IOException;
+import java.util.List;
 
 @Validated
 @Slf4j
@@ -33,17 +34,11 @@ public class QuestApiController {
     private int pageSize;
 
     @GetMapping("")
-    public ResponseEntity<ResponseData<RestPage<QuestResponse>>> getQuestList(
+    public ResponseEntity<ResponseData<List<QuestResponse>>> getQuestList(
             @Valid QuestSearchCondition condition,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-
-        RestPage<QuestResponse> questList = questService.getQuestList(
-                principal.getId(),
-                condition.state(),
-                PageRequest.of(0, 1000)
-        );
-
+        List<QuestResponse> questList = questService.getCurrentQuests(principal.getId(), condition.state());
         return ResponseEntity.ok(new ResponseData<>(questList));
     }
 

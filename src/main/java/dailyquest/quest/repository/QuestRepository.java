@@ -19,4 +19,6 @@ public interface QuestRepository extends JpaRepository<Quest, Long>, QuestReposi
     @Query("select q from Quest q where q.user.id = :userId and q.id in :searchedIds")
     Page<Quest> getSearchedQuests(@Param("userId") Long userId, @Param("searchedIds") List<Long> searchedIds, Pageable pageable);
 
+    @Query("select q from Quest q where q.user.id = :userId and q.state= :state")
+    List<Quest> getCurrentQuests(@Param("userId") Long userId, @Param("state") QuestState state);
 }

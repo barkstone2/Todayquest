@@ -23,6 +23,14 @@ public class QuestQueryService {
 
     private final QuestRepository questRepository;
 
+    public List<QuestResponse> getCurrentQuests(Long userId, QuestState state) {
+
+        return questRepository
+                .getCurrentQuests(userId, state)
+                .stream()
+                .map(QuestResponse::createDto).toList();
+    }
+
     public RestPage<QuestResponse> getQuestList(Long userId, QuestState state, Pageable pageable) {
 
         PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());

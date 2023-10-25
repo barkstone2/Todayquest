@@ -9,9 +9,14 @@ import org.springframework.stereotype.Repository;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 
+import java.util.List;
+
 @Repository
 public interface QuestRepository extends JpaRepository<Quest, Long>, QuestRepositoryCustom {
     @Query("select q from Quest q where q.user.id = :userId and q.state= :state")
     Page<Quest> getQuestsList(@Param("userId") Long userId, @Param("state") QuestState state, Pageable pageable);
+
+    @Query("select q from Quest q where q.user.id = :userId and q.id in :searchedIds")
+    Page<Quest> getSearchedQuests(@Param("userId") Long userId, @Param("searchedIds") List<Long> searchedIds, Pageable pageable);
 
 }

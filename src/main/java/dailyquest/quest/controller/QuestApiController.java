@@ -41,19 +41,10 @@ public class QuestApiController {
         RestPage<QuestResponse> questList = questService.getQuestList(
                 principal.getId(),
                 condition.state(),
-                PageRequest.of(condition.page(), pageSize)
+                PageRequest.of(0, 1000)
         );
 
         return ResponseEntity.ok(new ResponseData<>(questList));
-    }
-
-    @GetMapping("/{questId}")
-    public ResponseEntity<ResponseData<QuestResponse>> getQuest(
-            @Min(1) @PathVariable("questId") Long questId,
-            @AuthenticationPrincipal UserPrincipal principal
-    ) {
-        QuestResponse quest = questService.getQuestInfo(questId, principal.getId());
-        return ResponseEntity.ok(new ResponseData<>(quest));
     }
 
     @GetMapping("/search")
@@ -68,6 +59,15 @@ public class QuestApiController {
                 PageRequest.of(condition.page(), pageSize)
         );
         return ResponseEntity.ok(new ResponseData<>(questList));
+    }
+
+    @GetMapping("/{questId}")
+    public ResponseEntity<ResponseData<QuestResponse>> getQuest(
+            @Min(1) @PathVariable("questId") Long questId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        QuestResponse quest = questService.getQuestInfo(questId, principal.getId());
+        return ResponseEntity.ok(new ResponseData<>(quest));
     }
 
     @PostMapping("")

@@ -1,7 +1,10 @@
 package dailyquest.quest.dto;
 
-import jakarta.validation.constraints.Min;
 import dailyquest.quest.entity.QuestState;
+import jakarta.validation.constraints.Min;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public record QuestSearchCondition(
@@ -9,14 +12,20 @@ public record QuestSearchCondition(
     Integer page,
     QuestState state,
     QuestSearchKeywordType keywordType,
-    String keyword
+    String keyword,
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    LocalDateTime startDate,
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    LocalDateTime endDate
 ) {
 
-    public QuestSearchCondition(Integer page, QuestState state, QuestSearchKeywordType keywordType, String keyword) {
+    public QuestSearchCondition(Integer page, QuestState state, QuestSearchKeywordType keywordType, String keyword, LocalDateTime startDate, LocalDateTime endDate) {
         this.page = Objects.requireNonNullElse(page, 0);
         this.state = Objects.requireNonNullElse(state, QuestState.PROCEED);
         this.keywordType = keywordType;
         this.keyword = keyword;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 
     public boolean isKeywordSearch() {

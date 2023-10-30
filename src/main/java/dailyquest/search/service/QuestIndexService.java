@@ -52,7 +52,6 @@ public class QuestIndexService {
                 .query(searchCondition.keyword())
                 .build()._toQuery();
 
-
         Query rangeQuery = null;
 
         LocalDateTime startDate = searchCondition.startDate();
@@ -79,13 +78,11 @@ public class QuestIndexService {
         }
 
         BoolQuery.Builder boolQueryBuilder = bool()
-                .must(userIdtermQuery);
+                .must(mulitMatchQuery);
 
-        if(stateTermQuery != null) boolQueryBuilder.must(stateTermQuery);
-
-        boolQueryBuilder.must(mulitMatchQuery);
-
-        if(rangeQuery != null) boolQueryBuilder.must(rangeQuery);
+        boolQueryBuilder.filter(userIdtermQuery);
+        if(stateTermQuery != null) boolQueryBuilder.filter(stateTermQuery);
+        if(rangeQuery != null) boolQueryBuilder.filter(rangeQuery);
 
         Query query = boolQueryBuilder.build()._toQuery();
 

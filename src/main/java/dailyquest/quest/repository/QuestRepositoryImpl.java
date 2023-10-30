@@ -2,6 +2,7 @@ package dailyquest.quest.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import dailyquest.quest.dto.QuestSearchCondition;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,10 @@ public class QuestRepositoryImpl implements QuestRepositoryCustom {
     }
 
     @Override
-    public Page<Quest> findQuestsByCondition(Long userId, QuestState state, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+    public Page<Quest> findQuestsByCondition(Long userId, QuestSearchCondition condition, Pageable pageable) {
+        QuestState state = condition.state();
+        LocalDateTime startDate = condition.startDate();
+        LocalDateTime endDate = condition.endDate();
 
         BooleanExpression wherePredicate = quest.user.id.eq(userId);
         if(state != null) wherePredicate = wherePredicate.and(quest.state.eq(state));

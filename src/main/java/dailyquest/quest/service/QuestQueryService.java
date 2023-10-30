@@ -38,7 +38,7 @@ public class QuestQueryService {
 
         return new RestPage<>(
                 questRepository
-                        .findQuestsByCondition(userId, condition.state(), condition.startDate(), condition.endDate(), pageRequest)
+                        .findQuestsByCondition(userId, condition, pageRequest)
                         .map(QuestResponse::createDto)
         );
     }

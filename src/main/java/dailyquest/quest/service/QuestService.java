@@ -59,10 +59,14 @@ public class QuestService {
 
     public void completeQuest(Long questId, Long userId) {
         questCommandService.completeQuest(questId, userId);
+        QuestResponse questResponse = questQueryService.getQuestInfo(questId, userId);
+        questIndexService.updateQuestStateOfDocument(questResponse, QuestState.COMPLETE, userId);
     }
 
     public void discardQuest(Long questId, Long userId) {
         questCommandService.discardQuest(questId, userId);
+        QuestResponse questResponse = questQueryService.getQuestInfo(questId, userId);
+        questIndexService.updateQuestStateOfDocument(questResponse, QuestState.DISCARD, userId);
     }
 
     public DetailResponse interactWithDetailQuest(Long userId, Long questId, Long detailQuestId, DetailInteractRequest request) {

@@ -1,19 +1,7 @@
 package dailyquest.quest.repository
 
-import org.assertj.core.api.Assertions.*
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.TestInstance.*
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
-import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.context.annotation.Import
-import org.springframework.dao.InvalidDataAccessApiUsageException
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
-import org.springframework.test.context.NestedTestConfiguration.*
 import dailyquest.config.JpaAuditingConfiguration
+import dailyquest.quest.dto.QuestSearchCondition
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
@@ -21,7 +9,23 @@ import dailyquest.user.dto.UserRequestDto
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
 import dailyquest.user.repository.UserRepository
-import java.util.*
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.context.annotation.Import
+import org.springframework.data.domain.Pageable
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 @DisplayName("퀘스트 리포지토리 유닛 테스트")
 @DataJpaTest
@@ -34,6 +38,9 @@ class QuestRepositoryUnitTest {
     @Autowired
     lateinit var userRepository: UserRepository
 
+    @PersistenceContext
+    lateinit var entityManager: EntityManager
+
     var userInfo: UserInfo = UserInfo("", "", ProviderType.GOOGLE)
     var anotherUser: UserInfo = UserInfo("", "", ProviderType.GOOGLE)
     lateinit var quest: Quest
@@ -44,124 +51,63 @@ class QuestRepositoryUnitTest {
         anotherUser = if(anotherUser.id == 0L) userRepository.save(UserInfo("", "user2", ProviderType.GOOGLE)) else anotherUser
         anotherUser.changeUserSettings(UserRequestDto(9, 0))
         userRepository.saveAndFlush(anotherUser)
-
-        quest = Quest(
-            "title",
-            "desc",
-            userInfo,
-            1L,
-            QuestState.PROCEED,
-            QuestType.MAIN
-        )
-
-        quest = questRepository.save(quest)
     }
 
-    @DisplayName("getReferenceById 호출 시")
+    @DisplayName("getSearchedQuests 호출 시")
     @Nested
-    inner class GetReferenceByIdTest {
+    inner class TestForGetSearchedQuests {
 
-        @DisplayName("ID가 null이면 InvalidDataAccessApiUsageException 예외가 던져진다")
+        @DisplayName("인자로 주어진 ID의 퀘스트만 조회된다")
         @Test
-        fun `실패 테스트`() {
+        fun getQuestsByIds() {
             //given
-            val questId = null
+            val savedQuest1 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val savedQuest2 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN))
+            val savedQuest3 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN))
+            val savedQuest4 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN))
+            val savedQuest5 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN))
+
+            val listOfQuestIds = listOf(savedQuest1.id, savedQuest2.id, savedQuest3.id)
 
             //when
+            val questsList = questRepository.getSearchedQuests(userInfo.id, listOfQuestIds, Pageable.ofSize(100))
+
             //then
-            assertThrows<InvalidDataAccessApiUsageException> { questRepository.getReferenceById(null) }
+            assertThat(questsList).containsExactly(savedQuest1, savedQuest2, savedQuest3)
+            assertThat(questsList).doesNotContain(savedQuest4, savedQuest5)
+            assertThat(questsList).hasSize(3)
         }
 
-        @DisplayName("유효한 ID가 들어오면 퀘스트가 조회된다")
-        @Test
-        fun `성공 테스트`() {
-
+        @ValueSource(longs = [1, 2])
+        @DisplayName("조회한 유저의 퀘스트만 조회된다")
+        @ParameterizedTest(name = "userId {0} 값이 들어오면 {0}번 유저의 퀘스트만 조회된다")
+        fun `퀘스트 유저별 조회`(userId: Long) {
             //given
-            val questId = quest.id
+            val savedQuest1 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val savedQuest2 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN))
+
+            val savedQuest3 = questRepository.save(Quest("", "", anotherUser, 1L, QuestState.DISCARD, QuestType.MAIN))
+            val savedQuest4 = questRepository.save(Quest("", "", anotherUser, 1L, QuestState.DELETE, QuestType.MAIN))
+            val savedQuest5 = questRepository.save(Quest("", "", anotherUser, 1L, QuestState.COMPLETE, QuestType.MAIN))
+
+            val listOfQuestIds = listOf(savedQuest1.id, savedQuest2.id, savedQuest3.id, savedQuest4.id, savedQuest5.id)
 
             //when
-            val findQuest = questRepository.getReferenceById(questId)
+            val questsList = questRepository.getSearchedQuests(userId, listOfQuestIds, Pageable.ofSize(100))
 
             //then
-            assertThat(findQuest.title).isEqualTo(quest.title)
-            assertThat(findQuest.description).isEqualTo(quest.description)
+            assertThat(questsList).allMatch { quest -> quest.user.id == userId }
         }
+
     }
 
-
-    @DisplayName("findById 호출 시")
+    @DisplayName("getCurrentQuests 호출 시")
     @Nested
-    inner class FindByIdTest {
-
-        @DisplayName("ID가 null이면 InvalidDataAccessApiUsageException 예외가 던져진다")
-        @Test
-        fun `실패 테스트`() {
-            //given
-            val questId = null
-
-            //when
-            //then
-            assertThrows<InvalidDataAccessApiUsageException> { questRepository.findById(questId) }
-        }
-
-        @DisplayName("유효한 ID가 들어오면 퀘스트가 조회된다")
-        @Test
-        fun `성공 테스트`() {
-            //given
-            val questId = quest.id
-
-            //when
-            val findQuest = questRepository.findById(questId).get()
-
-            //then
-            assertThat(findQuest.title).isEqualTo(quest.title)
-            assertThat(findQuest.description).isEqualTo(quest.description)
-        }
-    }
-
-    @DisplayName("save 호출 시")
-    @Nested
-    inner class SaveTest {
-
-        @DisplayName("엔티티가 null이면 InvalidDataAccessApiUsageException 예외가 던져진다")
-        @Test
-        fun `실패 테스트`() {
-            //given
-            val questId = null
-
-            //when
-            //then
-            assertThrows<InvalidDataAccessApiUsageException> { questRepository.save(questId) }
-        }
-
-        @DisplayName("유효한 엔티티가 들어오면 퀘스트가 등록된다")
-        @Test
-        fun `성공 테스트`() {
-            //given
-            val newQuest = Quest(
-                title = "newTitle",
-                description = "",
-                user = userInfo,
-                seq = 1L,
-                type = QuestType.MAIN
-            )
-
-            //when
-            val savedQuest = questRepository.save(newQuest)
-
-            //then
-            assertThat(savedQuest.title).isEqualTo(newQuest.title)
-            assertThat(savedQuest.description).isEqualTo(newQuest.description)
-        }
-    }
-
-    @DisplayName("getQuestsList 호출 시")
-    @Nested
-    inner class ListTest {
+    inner class TestForGetCurrentQuests {
 
         @EnumSource(QuestState::class)
         @DisplayName("조회한 상태의 퀘스트만 조회된다")
-        @ParameterizedTest(name = "{0} 값이 들어오면 {0} 상태의 퀘스트만 조회된다")
+        @ParameterizedTest(name = "{0} 값이 인자로 주어지면 {0} 상태의 퀘스트만 조회된다")
         fun `퀘스트 타입별 조회`(state: QuestState) {
             //given
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
@@ -171,10 +117,11 @@ class QuestRepositoryUnitTest {
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN))
 
             //when
-            val questsList = questRepository.getQuestsList(userInfo.id, state, Pageable.unpaged())
+            val questsList = questRepository.getCurrentQuests(userInfo.id, state)
 
             //then
             assertThat(questsList).allMatch { quest -> quest.state == state }
+            assertThat(questsList).hasSize(1)
         }
 
 
@@ -184,37 +131,20 @@ class QuestRepositoryUnitTest {
         fun `퀘스트 유저별 조회`(userId: Long) {
             //given
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
-            questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
-            questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
-            questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
 
+            questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
+            questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
+            questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
+
             //when
-            val questsList = questRepository.getQuestsList(userId, QuestState.PROCEED, Pageable.unpaged())
+            val questsList = questRepository.getCurrentQuests(userId, QuestState.PROCEED)
 
             //then
             assertThat(questsList).allMatch { quest -> quest.user.id == userId }
         }
-
-        @ValueSource(ints = [0, 1, 2])
-        @DisplayName("페이지 번호에 맞는 퀘스트가 조회된다")
-        @ParameterizedTest(name = "{0} 값이 들어오면 {0} 페이지의 퀘스트가 조회된다")
-        fun `페이징 적용 조회`(pageNo: Int) {
-            //given
-            val savedList = listOf(
-                questRepository.save(Quest("1", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN)),
-                questRepository.save(Quest("2", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN)),
-                questRepository.save(Quest("3", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
-            )
-
-            //when
-            val questsList = questRepository.getQuestsList(anotherUser.id, QuestState.PROCEED, PageRequest.of(pageNo, 1))
-
-            //then
-            assertThat(questsList.number).isEqualTo(pageNo)
-            assertThat(questsList.content[0]).isEqualTo(savedList[pageNo])
-        }
     }
+
 
     @DisplayName("getNextSeqByUserId 호출 시")
     @Nested
@@ -290,6 +220,199 @@ class QuestRepositoryUnitTest {
             //then
             assertThat(user1NextSeq).isEqualTo(user1Seq+1)
             assertThat(user2NextSeq).isEqualTo(1)
+        }
+    }
+
+
+    /**
+        BooleanExpression wherePredicate = quest.user.id.eq(userId);
+        if(state != null) wherePredicate = wherePredicate.and(quest.state.eq(state));
+        if(startDate != null && endDate != null) wherePredicate = wherePredicate.and(quest.createdDate.between(startDate, endDate));
+        if(startDate != null && endDate == null) wherePredicate = wherePredicate.and(quest.createdDate.goe(startDate));
+        if(startDate == null && endDate != null) wherePredicate = wherePredicate.and(quest.createdDate.loe(endDate));
+
+        List<Quest> fetch = query.select(quest)
+        .from(quest)
+        .where(wherePredicate)
+        .offset(pageable.getOffset())
+        .limit(pageable.getPageSize())
+        .fetch();
+
+        Long total = query.select(quest.count())
+        .from(quest)
+        .where(wherePredicate)
+        .fetchOne();
+
+        return new PageImpl<>(fetch, pageable, total);
+
+     */
+
+    @DisplayName("findQuestsByCondition 메서드 호출 시")
+    @Nested
+    inner class TestForFindQuestsByCondition {
+
+        @DisplayName("상태 검색 조건이 null이면 모든 상태의 퀘스트가 조회된다")
+        @Test
+        fun `상태 검색 조건이 null이면 모든 상태의 퀘스트가 조회된다`() {
+            //given
+            val savedQuest = mutableListOf<Quest>();
+
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN)).let { savedQuest.add(it) }
+
+            val searchCondition = QuestSearchCondition(null, null, null, null, null, null)
+
+            //when
+            val findQuests =
+                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(1000))
+
+            //then
+            assertThat(findQuests).containsExactlyElementsOf(savedQuest)
+            assertThat(findQuests).hasSize(savedQuest.size)
+        }
+
+        @EnumSource(QuestState::class)
+        @DisplayName("상태 검색 조건이 null이 아니면 해당 상태의 퀘스트만 조회된다")
+        @ParameterizedTest(name = "{0} 값이 인자로 주어지면 {0} 상태의 퀘스트만 조회된다")
+        fun `상태 검색 조건이 null이 아니면 해당 상태의 퀘스트만 조회된다`(searchState: QuestState) {
+            //given
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN))
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN))
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN))
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN))
+
+            val searchCondition = QuestSearchCondition(null, searchState, null, null, null, null)
+
+            //when
+            val findQuests =
+                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(1000))
+
+            //then
+            assertThat(findQuests).allMatch { quest -> quest.state == searchState }
+        }
+
+        @DisplayName("시작일과 종료일 검색 조건이 모두 null이면 모든 등록일의 퀘스트가 조회된다")
+        @Test
+        fun `시작일과 종료일 검색 조건이 모두 null이면 모든 등록일의 퀘스트가 조회된다`() {
+            //given
+            val query = entityManager
+                .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(2, userInfo.id)
+
+            val time = LocalTime.of(12, 0, 0)
+            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
+            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
+            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
+            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+
+            query.setParameter(1, date1).executeUpdate()
+            query.setParameter(1, date2).executeUpdate()
+            query.setParameter(1, date3).executeUpdate()
+            query.setParameter(1, date4).executeUpdate()
+
+            val searchCondition = QuestSearchCondition(null, null, null, null, null, null)
+
+            //when
+            val result =
+                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(100))
+
+            //then
+            assertThat(result.content).hasSize(4);
+        }
+
+
+        @DisplayName("시작일이 null이 아니고 종료일이 null이면 퀘스트 등록일이 시작일 이상이 퀘스트만 조회된다")
+        @Test
+        fun `시작일이 null이 아니고 종료일이 null이면 퀘스트 등록일이 시작일 이상이 퀘스트만 조회된다`() {
+            //given
+            val query = entityManager
+                .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(2, userInfo.id)
+
+            val time = LocalTime.of(12, 0, 0)
+            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
+            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
+            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
+            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+
+            query.setParameter(1, date1).executeUpdate()
+            query.setParameter(1, date2).executeUpdate()
+            query.setParameter(1, date3).executeUpdate()
+            query.setParameter(1, date4).executeUpdate()
+
+            val searchCondition = QuestSearchCondition(null, null, null, null, date3, null)
+
+            //when
+            val result =
+                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(100))
+
+            //then
+            assertThat(result.content).hasSize(2)
+            assertThat(result.content).allMatch { it.createdDate?.isEqual(date3) == true || it.createdDate?.isAfter(date3) == true }
+        }
+
+        @DisplayName("시작일이 null이고 종료일이 null이 아니면 등록일이 종료일 이하인 퀘스트만 조회된다")
+        @Test
+        fun `시작일이 null이고 종료일이 null이 아니면 등록일이 종료일 이하인 퀘스트만 조회된다`() {
+            //given
+            val query = entityManager
+                .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(2, userInfo.id)
+
+            val time = LocalTime.of(12, 0, 0)
+            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
+            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
+            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
+            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+
+            query.setParameter(1, date1).executeUpdate()
+            query.setParameter(1, date2).executeUpdate()
+            query.setParameter(1, date3).executeUpdate()
+            query.setParameter(1, date4).executeUpdate()
+
+            val searchCondition = QuestSearchCondition(null, null, null, null, null, date2)
+
+            //when
+            val result =
+                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(100))
+
+            //then
+            assertThat(result.content).hasSize(2)
+            assertThat(result.content).allMatch { it.createdDate?.isEqual(date2) == true || it.createdDate?.isBefore(date2) == true }
+        }
+
+        @DisplayName("시작일과 종료일이 모두 null이 아니면 퀘스트 등록일이 시작일과 종료일 범위에 속한 퀘스트만 조회된다")
+        @Test
+        fun `시작일과 종료일이 모두 null이 아니면 퀘스트 등록일이 시작일과 종료일 범위에 속한 퀘스트만 조회된다`() {
+            //given
+            val query = entityManager
+                .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(2, userInfo.id)
+
+            val time = LocalTime.of(12, 0, 0)
+            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
+            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
+            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
+            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+
+            query.setParameter(1, date1).executeUpdate()
+            query.setParameter(1, date2).executeUpdate()
+            query.setParameter(1, date3).executeUpdate()
+            query.setParameter(1, date4).executeUpdate()
+
+            val searchCondition = QuestSearchCondition(null, null, null, null, date2, date3)
+
+            //when
+            val result =
+                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(100))
+
+            //then
+            assertThat(result.content).hasSize(2)
+            assertThat(result.content).allMatch { it.createdDate?.isAfter(date1) == true && it.createdDate?.isBefore(date4) == true }
         }
     }
 

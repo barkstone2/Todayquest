@@ -2,9 +2,7 @@ package dailyquest.quest.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.TestInstance.*
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.*
@@ -24,12 +22,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import dailyquest.annotation.WithCustomMockUser
 import dailyquest.common.MessageUtil
+import dailyquest.common.ResponseData
 import dailyquest.common.RestPage
 import dailyquest.common.UserLevelLock
 import dailyquest.config.SecurityConfig
 import dailyquest.jwt.JwtAuthorizationFilter
 import dailyquest.quest.dto.*
 import dailyquest.quest.entity.DetailQuestType
+import dailyquest.quest.entity.QuestState
 import dailyquest.quest.service.QuestService
 import java.math.BigInteger
 import java.util.function.Supplier
@@ -107,7 +107,8 @@ class QuestApiControllerUnitTest {
     lateinit var detailResponse: DetailResponse
     val om: ObjectMapper = ObjectMapper().registerModule(JavaTimeModule())
 
-    lateinit var questList: RestPage<QuestResponse>
+    lateinit var currentQuests: List<QuestResponse>
+    lateinit var searchedQuests: RestPage<QuestResponse>
 
     @BeforeEach
     fun init() {
@@ -115,11 +116,10 @@ class QuestApiControllerUnitTest {
         questResponse = QuestResponse(title = "title1")
 
         val quest2 = questResponse.copy(title = "title2")
-        val list = listOf(questResponse, quest2)
-
+        currentQuests = listOf(questResponse, quest2)
+        searchedQuests = RestPage(currentQuests, 0, 10, 10)
         detailResponse = DetailResponse(title = "title")
 
-        questList = RestPage(list, 0, 10, list.size.toLong())
         messageUtil = mockStatic(MessageUtil::class.java)
         `when`(MessageUtil.getMessage(anyString())).thenReturn("")
         `when`(MessageUtil.getMessage(anyString(), any())).thenReturn("")
@@ -134,14 +134,47 @@ class QuestApiControllerUnitTest {
     @Nested
     inner class QuestListTest {
 
-        @DisplayName("page 번호가 없으면 200 OK가 반환된다")
+        @DisplayName("상태 조건 파라미터가 제대로 처리된다")
         @Test
-        fun `page 번호가 없으면 200 OK가 반환된다`() {
+        fun `상태 조건 파라미터가 제대로 처리된다`() {
             //given
+            val page = "1"
+            val state = QuestState.PROCEED.name
+
+            `when`(questService.getCurrentQuests(any(), any())).thenReturn(currentQuests)
 
             //when
             val result = mvc.perform(
                 get(URI_PREFIX)
+                    .queryParam("page", page)
+                    .queryParam("state", state)
+            )
+
+            //then
+            result
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.data.size()").value(currentQuests.size))
+                .andExpect(jsonPath("$.data[0].title").value(currentQuests[0].title))
+                .andExpect(jsonPath("$.errorResponse").doesNotExist())
+        }
+
+    }
+
+    @DisplayName("퀘스트 검색 시")
+    @Nested
+    inner class QuestSearchTest {
+
+        @DisplayName("page 번호가 없으면 200 OK가 반환된다")
+        @Test
+        fun `page 번호가 없으면 200 OK가 반환된다`() {
+            //given
+            val url = "$URI_PREFIX/search"
+
+            //when
+            val result = mvc.perform(
+                get(url)
             )
 
             //then
@@ -154,12 +187,14 @@ class QuestApiControllerUnitTest {
         @ParameterizedTest(name = "{0} 값이 들어오면 200을 반환한다.")
         fun `page 번호가 0보다 큰 숫자면 200 OK가 반환된다`(page: String) {
             //given
-            `when`(questService.getQuestList(any(), any(), any()))
-                .thenReturn(questList)
+            val url = "$URI_PREFIX/search"
+
+            `when`(questService.searchQuest(any(), any(), any()))
+                .thenReturn(searchedQuests)
 
             //when
             val result = mvc.perform(
-                get(URI_PREFIX)
+                get(url)
                     .queryParam("page", page)
             )
 
@@ -168,8 +203,6 @@ class QuestApiControllerUnitTest {
                 .andExpect(status().isOk)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andExpect(jsonPath("$.data.numberOfElements").value(questList.numberOfElements))
-                .andExpect(jsonPath("$.data.content[0].title").value(questList.content[0].title))
                 .andExpect(jsonPath("$.errorResponse").doesNotExist())
         }
 
@@ -178,10 +211,11 @@ class QuestApiControllerUnitTest {
         @ParameterizedTest(name = "{0} 값이 들어오면 400을 반환한다")
         fun `page 번호가 숫자가 아니면 400 BAD_REQUEST가 반환된다`(page: Any) {
             //given
+            val url = "$URI_PREFIX/search"
 
             //when
             val result = mvc.perform(
-                get(URI_PREFIX)
+                get(url)
                     .queryParam("page", page.toString())
             )
 
@@ -194,7 +228,40 @@ class QuestApiControllerUnitTest {
                 .andExpect(jsonPath("$.errorResponse.errors").exists())
         }
 
+        @DisplayName("검색 조건 파라미터가 제대로 처리된다")
+        @Test
+        fun `검색 조건 파라미터가 제대로 처리된다`() {
+            //given
+            val url = "$URI_PREFIX/search"
+            val page = "1"
+            val state = QuestState.PROCEED.name
+            val keywordType = QuestSearchKeywordType.ALL.name
+            val keyword = "keyword"
+            val startDate = "2021-12-12 12:00:00"
+            val endDate = "2022-12-12 12:00:00"
 
+            `when`(questService.searchQuest(any(), any(), any())).thenReturn(searchedQuests)
+
+            //when
+            val result = mvc.perform(
+                get(url)
+                    .queryParam("page", page)
+                    .queryParam("state", state)
+                    .queryParam("keywordType", keywordType)
+                    .queryParam("keyword", keyword)
+                    .queryParam("startDate", startDate)
+                    .queryParam("endDate", endDate)
+            )
+
+            //then
+            result
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.data.content.size()").value(currentQuests.size))
+                .andExpect(jsonPath("$.data.content[0].title").value(currentQuests[0].title))
+                .andExpect(jsonPath("$.errorResponse").doesNotExist())
+        }
 
     }
 

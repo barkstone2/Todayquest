@@ -10,8 +10,18 @@ class ElasticProperties {
     var password: String = ""
     var host: String = ""
     var port: String = ""
+    var truststore: ElasticSSLProperties = ElasticSSLProperties()
 
     fun combineHostAndPort(): String {
         return "$host:$port";
     }
+
+
+    @Component
+    @ConfigurationProperties(prefix = "elastic.truststore")
+    class ElasticSSLProperties {
+        var location: String = ""
+        var password: String = ""
+    }
+
 }

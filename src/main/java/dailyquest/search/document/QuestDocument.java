@@ -3,12 +3,14 @@ package dailyquest.search.document;
 import dailyquest.quest.dto.DetailResponse;
 import dailyquest.quest.dto.QuestResponse;
 import jakarta.persistence.Id;
+import lombok.Getter;
 import org.springframework.data.elasticsearch.annotations.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 @Setting(settingPath = "elastic/quests/setting.json")
 @Document(indexName = "quests")
 public class QuestDocument {

@@ -3,14 +3,25 @@ package dailyquest.quest.controller
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import dailyquest.common.MessageUtil
+import dailyquest.common.*
+import dailyquest.jwt.JwtTokenProvider
+import dailyquest.properties.RedisKeyProperties
+import dailyquest.quest.dto.*
+import dailyquest.quest.entity.*
+import dailyquest.quest.repository.QuestLogRepository
+import dailyquest.quest.repository.QuestRepository
+import dailyquest.search.repository.QuestIndexRepository
+import dailyquest.user.dto.UserRequestDto
+import dailyquest.user.entity.ProviderType
+import dailyquest.user.entity.UserInfo
+import dailyquest.user.repository.UserRepository
+import jakarta.persistence.EntityManager
 import jakarta.servlet.http.Cookie
-import kotlinx.coroutines.*
-import org.assertj.core.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ArgumentsSource
 import org.junit.jupiter.params.provider.EnumSource
@@ -26,29 +37,23 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.filter.CharacterEncodingFilter
-import dailyquest.common.ResponseData
-import dailyquest.common.RestPage
-import dailyquest.jwt.JwtTokenProvider
-import dailyquest.properties.RedisKeyProperties
-import dailyquest.quest.dto.*
-import dailyquest.quest.entity.*
-import dailyquest.quest.repository.QuestLogRepository
-import dailyquest.quest.repository.QuestRepository
-import dailyquest.user.dto.UserRequestDto
-import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.UserInfo
-import dailyquest.user.repository.UserRepository
-import dailyquest.user.service.UserService
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.*
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.ConcurrentHashMap
 
+
+@Testcontainers
 @Suppress("DEPRECATION")
 @DisplayName("퀘스트 API 컨트롤러 통합 테스트")
 @Transactional
@@ -56,25 +61,28 @@ import java.util.concurrent.ConcurrentHashMap
     webEnvironment = WebEnvironment.RANDOM_PORT,
 )
 class QuestApiControllerTest @Autowired constructor(
-    var questRepository: QuestRepository,
-    var userRepository: UserRepository,
-    var userService: UserService,
     var context: WebApplicationContext,
+    var userRepository: UserRepository,
+    var questRepository: QuestRepository,
     var questLogRepository: QuestLogRepository,
     var redisTemplate: RedisTemplate<String, String>,
     var redisKeyProperties: RedisKeyProperties,
+    var jwtTokenProvider: JwtTokenProvider,
+    var entityManager: EntityManager,
+    var questIndexRepository: QuestIndexRepository,
 ) {
 
     companion object {
         const val SERVER_ADDR = "http://localhost:"
         const val URI_PREFIX = "/api/v1/quests"
+
+        @JvmStatic
+        @Container
+        val elasticsearch = CustomElasticsearchContainer()
     }
 
     @LocalServerPort
     var port = 0
-
-    @Autowired
-    lateinit var jwtTokenProvider: JwtTokenProvider
 
     @Value("\${quest.page.size}")
     var pageSize: Int = 0
@@ -93,17 +101,24 @@ class QuestApiControllerTest @Autowired constructor(
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
 
-
-        testUser = userRepository.getReferenceById(userService.getOrRegisterUser("quest-controller-user1", ProviderType.GOOGLE).id)
-        anotherUser = userRepository.getReferenceById(userService.getOrRegisterUser("quest-controller-user2", ProviderType.GOOGLE).id)
+        val oauth2Id1 = "quest-controller-user1"
+        val oauth2Id2 = "quest-controller-user2"
+        val findUser = userRepository.findByOauth2Id(oauth2Id1)
+        if(findUser == null) {
+            testUser = userRepository.save(UserInfo(oauth2Id1, "test1", ProviderType.GOOGLE))
+            anotherUser = userRepository.save(UserInfo(oauth2Id2, "test2", ProviderType.GOOGLE))
+        } else {
+            testUser = userRepository.findByOauth2Id(oauth2Id1)
+            anotherUser = userRepository.findByOauth2Id(oauth2Id2)
+        }
 
         val accessToken = jwtTokenProvider.createAccessToken(testUser.id)
         token = jwtTokenProvider.createAccessTokenCookie(accessToken)
     }
 
-    @DisplayName("퀘스트 목록 요청 시")
+    @DisplayName("현재 퀘스트 목록 요청 시")
     @Nested
-    inner class QuestListTest {
+    inner class CurrentQuestListTest {
 
         @EnumSource(QuestState::class)
         @DisplayName("요청한 State에 맞는 퀘스트만 조회된다")
@@ -111,6 +126,96 @@ class QuestApiControllerTest @Autowired constructor(
         fun `요청한 State에 맞는 퀘스트만 조회된다`(state: QuestState) {
             //given
             val url = "${SERVER_ADDR}$port${URI_PREFIX}"
+
+            val listByState: MutableMap<QuestState, List<QuestResponse>> = mutableMapOf()
+
+            for (stateEnum in QuestState.values()) {
+                val savedQuest = questRepository.save(Quest("제목", "1", testUser, 1L, stateEnum, QuestType.MAIN))
+                val questResponse = QuestResponse.createDto(savedQuest)
+                listByState[stateEnum] = listOf(questResponse)
+            }
+
+            //when
+            val request = mvc
+                .perform(
+                    get(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .cookie(token)
+                        .queryParam("state", state.toString())
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<List<QuestResponse>>>(){})
+
+            val list = result.data
+
+            assertThat(list).containsExactlyElementsOf(listByState[state])
+            assertThat(list).allMatch { quest -> quest.state == state }
+        }
+
+        @DisplayName("요청 User의 퀘스트만 조회된다")
+        @Test
+        fun `요청 User의 퀘스트만 조회된다`() {
+            //given
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}"
+
+            val listOfUser = mutableListOf<QuestResponse>()
+
+            for (i in 1..2) {
+                val savedQuest = questRepository.save(Quest("본인", "1", testUser, i.toLong(), QuestState.PROCEED, QuestType.MAIN))
+                val questResponse = QuestResponse.createDto(savedQuest)
+                listOfUser += questResponse
+            }
+
+            for (i in 1..3) {
+                questRepository.save(Quest("다른 유저", "1", anotherUser, i.toLong(), QuestState.PROCEED, QuestType.MAIN))
+            }
+
+            //when
+            val request = mvc
+                .perform(
+                    get(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .cookie(token)
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<List<QuestResponse>>>(){})
+
+            val list = result.data
+
+            assertThat(listOfUser).containsAll(list)
+        }
+    }
+
+
+    @DisplayName("퀘스트 검색 시")
+    @Nested
+    inner class SearchQuestTest {
+        val uri = "/search"
+
+        @EnumSource(QuestState::class)
+        @DisplayName("요청한 State에 맞는 퀘스트만 조회된다")
+        @ParameterizedTest(name = "{0} 값이 들어오면 {0} 상태의 퀘스트만 조회된다")
+        fun `요청한 State에 맞는 퀘스트만 조회된다`(state: QuestState) {
+            //given
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
             val listByState: MutableMap<QuestState, List<QuestResponse>> = mutableMapOf()
 
@@ -151,7 +256,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `요청 User의 퀘스트만 조회된다`() {
             //given
-            val url = "${SERVER_ADDR}$port${URI_PREFIX}"
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
             val listOfUser = mutableListOf<QuestResponse>()
 
@@ -194,7 +299,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `page 번호 파라미터가 없으면 0 페이지의 퀘스트가 조회된다`() {
             //given
-            val url = "${SERVER_ADDR}$port${URI_PREFIX}"
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
             for (pageNo in 0..1) {
                 for (j in 1..pageSize) {
@@ -232,7 +337,7 @@ class QuestApiControllerTest @Autowired constructor(
         @ParameterizedTest(name = "{0} 값이 들어오면 해당 페이지를 조회한다")
         fun `page 번호가 0보다 큰 int 범위의 숫자면 해당 페이지가 조회된다`(page: Int) {
             //given
-            val url = "${SERVER_ADDR}$port${URI_PREFIX}"
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
             for (pageNo in 0..1) {
                 for (j in 1..pageSize) {
@@ -272,7 +377,7 @@ class QuestApiControllerTest @Autowired constructor(
         @ParameterizedTest(name = "{0} 값이 들어오면 BAD_REQUEST를 반환한다")
         fun `page 번호가 숫자가 아니면 BAD_REQUEST가 반환된다`(page: Any) {
             //given
-            val url = "${SERVER_ADDR}$port${URI_PREFIX}"
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
             val errorMessage = MessageUtil.getMessage("exception.badRequest")
 
             //when
@@ -301,6 +406,406 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(data).isNull()
             assertThat(error?.message).isEqualTo(errorMessage)
         }
+
+        @DisplayName("시작 날짜 검색 조건만 존재하는 경우, 요청한 시작 날짜 이후에 등록된 퀘스트만 조회된다")
+        @Test
+        fun `시작 날짜 검색 조건만 존재하는 경우, 요청한 시작 날짜 이후에 등록된 퀘스트만 조회된다`() {
+            //given
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
+
+            val query = entityManager
+                .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(2, testUser.id)
+
+            val time = LocalTime.of(12, 0, 0)
+            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
+            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
+            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
+            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+
+            query.setParameter(1, date1).executeUpdate()
+            query.setParameter(1, date2).executeUpdate()
+            query.setParameter(1, date3).executeUpdate()
+            query.setParameter(1, date4).executeUpdate()
+
+            val startDate = date3
+
+            //when
+            val request = mvc
+                .perform(
+                    get(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .queryParam("startDate", startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .cookie(token)
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<RestPage<QuestResponse>>>(){})
+
+            val data = result.data
+            val list = data?.content
+
+            assertThat(list).noneMatch { quest -> quest.createdDate?.isBefore(startDate) == true }
+        }
+
+        @DisplayName("끝 날짜 검색 조건만 존재하는 경우, 요청한 끝 날짜 이전에 등록된 퀘스트만 조회된다")
+        @Test
+        fun `끝 날짜 검색 조건만 존재하는 경우, 요청한 끝 날짜 이전에 등록된 퀘스트만 조회된다`() {
+            //given
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
+
+            val query = entityManager
+                .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(2, testUser.id)
+
+            val time = LocalTime.of(12, 0, 0)
+            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
+            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
+            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
+            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+
+            query.setParameter(1, date1).executeUpdate()
+            query.setParameter(1, date2).executeUpdate()
+            query.setParameter(1, date3).executeUpdate()
+            query.setParameter(1, date4).executeUpdate()
+
+            val endDate = date2
+
+            //when
+            val request = mvc
+                .perform(
+                    get(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .queryParam("endDate", endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .cookie(token)
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<RestPage<QuestResponse>>>(){})
+
+            val data = result.data
+            val list = data?.content
+
+            assertThat(list).noneMatch { quest -> quest.createdDate?.isAfter(endDate) == true }
+        }
+
+        @DisplayName("날짜 검색 조건이 둘 다 존재하는 경우, 요청한 기간 사이에 등록된 퀘스트만 조회된다")
+        @Test
+        fun `날짜 검색 조건이 둘 다 존재하는 경우, 요청한 기간 사이에 등록된 퀘스트만 조회된다`() {
+            //given
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
+
+            val query = entityManager
+                .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(2, testUser.id)
+
+            val time = LocalTime.of(12, 0, 0)
+            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
+            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
+            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
+            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+
+            query.setParameter(1, date1).executeUpdate()
+            query.setParameter(1, date2).executeUpdate()
+            query.setParameter(1, date3).executeUpdate()
+            query.setParameter(1, date4).executeUpdate()
+
+            val startDate = date2
+            val endDate = date3
+
+            //when
+            val request = mvc
+                .perform(
+                    get(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .queryParam("startDate", startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .queryParam("endDate", endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .cookie(token)
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<RestPage<QuestResponse>>>(){})
+
+            val data = result.data
+            val list = data?.content
+
+            assertThat(list).noneMatch { quest -> quest.createdDate?.isBefore(startDate) == true || quest.createdDate?.isAfter(endDate) == true }
+        }
+
+        @DisplayName("키워드 타입과 키워드 조건이 존재하는 경우, 해당 키워드가 포함된 퀘스트만 조회된다")
+        @Test
+        fun `키워드 타입과 키워드 조건이 존재하는 경우, 해당 키워드가 포함된 퀘스트만 조회된다`() {
+            //given
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
+
+            val keyword = "키워드"
+            val keywordType = QuestSearchKeywordType.ALL.name
+
+            val mustContainIds = mutableListOf<Long>()
+
+            questRepository.save(Quest("$keyword 제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("${keyword}제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "$keyword 설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+
+            val q = Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)
+            DetailQuest("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
+
+            questRepository.save(q).let { mustContainIds.add(it.id) }
+            val mustNotContainId = questRepository.save(Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).id
+
+            //when
+            val request = mvc
+                .perform(
+                    get(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .queryParam("keywordType", keywordType)
+                        .queryParam("keyword", keyword)
+                        .cookie(token)
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<RestPage<QuestResponse>>>(){})
+
+            val data = result.data
+            val list = data?.content
+
+            assertThat(list).noneMatch { it.id == mustNotContainId }
+            assertThat(list).allMatch { mustContainIds.contains(it.id) }
+        }
+
+        @DisplayName("키워드 타입이 제목인 경우, 제목에 키워드가 포함된 퀘스트만 조회된다")
+        @Test
+        fun `키워드 타입이 제목인 경우, 제목에 키워드가 포함된 퀘스트만 조회된다`() {
+            //given
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
+
+            val keyword = "키워드"
+            val keywordType = QuestSearchKeywordType.TITLE.name
+
+            val mustContainIds = mutableListOf<Long>()
+            val mustNotContainIds = mutableListOf<Long>()
+
+            questRepository.save(Quest("$keyword 제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("${keyword}제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+
+            questRepository.save(Quest("제목", "$keyword 설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+
+            val q = Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)
+            DetailQuest("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
+            questRepository.save(q).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+
+            //when
+            val request = mvc
+                .perform(
+                    get(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .queryParam("keywordType", keywordType)
+                        .queryParam("keyword", keyword)
+                        .cookie(token)
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<RestPage<QuestResponse>>>(){})
+
+            val data = result.data
+            val list = data?.content
+
+            assertThat(list).noneMatch { mustNotContainIds.contains(it.id) }
+            assertThat(list).allMatch { mustContainIds.contains(it.id) }
+        }
+
+        @DisplayName("키워드 타입이 제목 + 설명인 경우, 제목이나 설명에 키워드가 포함된 퀘스트만 조회된다")
+        @Test
+        fun `키워드 타입이 제목 + 설명인 경우, 제목이나 설명에 키워드가 포함된 퀘스트만 조회된다`() {
+            //given
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
+
+            val keyword = "키워드"
+            val keywordType = QuestSearchKeywordType.TITLE.name
+
+            val mustContainIds = mutableListOf<Long>()
+            val mustNotContainIds = mutableListOf<Long>()
+
+            questRepository.save(Quest("$keyword 제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("${keyword}제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "$keyword 설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+
+            val q = Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)
+            DetailQuest("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
+            questRepository.save(q).let { mustNotContainIds.add(it.id) }
+
+            questRepository.save(Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+
+            //when
+            val request = mvc
+                .perform(
+                    get(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .queryParam("keywordType", keywordType)
+                        .queryParam("keyword", keyword)
+                        .cookie(token)
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<RestPage<QuestResponse>>>(){})
+
+            val data = result.data
+            val list = data?.content
+
+            assertThat(list).noneMatch { mustNotContainIds.contains(it.id) }
+            assertThat(list).allMatch { mustContainIds.contains(it.id) }
+        }
+
+        @DisplayName("키워드 타입이 설명인 경우, 설명에 키워드가 포함된 퀘스트만 조회된다")
+        @Test
+        fun `키워드 타입이 설명인 경우, 설명에 키워드가 포함된 퀘스트만 조회된다`() {
+            //given
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
+
+            val keyword = "키워드"
+            val keywordType = QuestSearchKeywordType.TITLE.name
+
+            val mustContainIds = mutableListOf<Long>()
+            val mustNotContainIds = mutableListOf<Long>()
+
+            questRepository.save(Quest("$keyword 제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("${keyword}제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+
+            questRepository.save(Quest("제목", "$keyword 설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+
+            val q = Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)
+            DetailQuest("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
+
+            questRepository.save(q).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+
+            //when
+            val request = mvc
+                .perform(
+                    get(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .queryParam("keywordType", keywordType)
+                        .queryParam("keyword", keyword)
+                        .cookie(token)
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<RestPage<QuestResponse>>>(){})
+
+            val data = result.data
+            val list = data?.content
+
+            assertThat(list).noneMatch { mustNotContainIds.contains(it.id) }
+            assertThat(list).allMatch { mustContainIds.contains(it.id) }
+        }
+
+        @DisplayName("키워드 타입이 세부 퀘스트 제목인 경우, 세부 퀘스트 제목에 키워드가 포함된 퀘스트만 조회된다")
+        @Test
+        fun `키워드 타입이 세부 퀘스트 제목인 경우, 세부 퀘스트 제목에 키워드가 포함된 퀘스트만 조회된다`() {
+            //given
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
+
+            val keyword = "키워드"
+            val keywordType = QuestSearchKeywordType.TITLE.name
+
+            val mustContainIds = mutableListOf<Long>()
+            val mustNotContainIds = mutableListOf<Long>()
+
+            questRepository.save(Quest("$keyword 제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("${keyword}제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "$keyword 설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+
+            val q = Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)
+            DetailQuest("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
+
+            questRepository.save(q).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+
+            //when
+            val request = mvc
+                .perform(
+                    get(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .queryParam("keywordType", keywordType)
+                        .queryParam("keyword", keyword)
+                        .cookie(token)
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<RestPage<QuestResponse>>>(){})
+
+            val data = result.data
+            val list = data?.content
+
+            assertThat(list).noneMatch { mustNotContainIds.contains(it.id) }
+            assertThat(list).allMatch { mustContainIds.contains(it.id) }
+        }
+
     }
 
     @DisplayName("퀘스트 조회 시")
@@ -721,6 +1226,48 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(data?.detailQuests?.get(0)?.title).isEqualTo(questRequest.details[0].title)
             assertThat(error).isNull()
         }
+
+        @DisplayName("엘라스틱서치에 문서가 저장된다")
+        @Test
+        fun `엘라스틱서치에 문서가 저장된다`() {
+            //given
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}"
+            val questRequest = QuestRequest("t", "d", mutableListOf(DetailRequest("dt", DetailQuestType.COUNT, 1)))
+            val requestBody = om.writeValueAsString(questRequest)
+
+            //when
+            val request = mvc
+                .perform(
+                    post(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .cookie(token)
+                        .content(requestBody)
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<QuestResponse>>(){})
+            val data = result.data
+            val questId = data?.id!!
+
+            val findDocument = questIndexRepository.findById(questId)
+
+            assertThat(findDocument).isNotNull
+            val document = findDocument.get()
+            assertThat(document.title).isEqualTo(questRequest.title)
+            assertThat(document.description).isEqualTo(questRequest.description)
+            assertThat(document.detailTitles).isNotEmpty
+            assertThat(document.detailTitles[0]).isEqualTo(questRequest.details[0].title)
+            assertThat(document.userId).isEqualTo(testUser.id)
+            assertThat(document.state).isEqualTo(QuestState.PROCEED.name)
+        }
     }
 
     @Nested
@@ -1011,6 +1558,54 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(error).isNull()
         }
 
+        @DisplayName("엘라스틱서치 문서가 업데이트 된다")
+        @Test
+        fun `엘라스틱서치 문서가 업데이트 된다`() {
+            //given
+            val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
+
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}/${savedQuest.id}"
+
+            val detailRequest = DetailRequest("update", DetailQuestType.COUNT, 1)
+            val questRequest = QuestRequest("update", "update", mutableListOf(detailRequest))
+
+            val requestBody = om.writeValueAsString(questRequest)
+
+            //when
+            val request = mvc
+                .perform(
+                    patch(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .cookie(token)
+                        .content(requestBody)
+                )
+
+            //then
+            val body = request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val result = om.readValue(body, object: TypeReference<ResponseData<QuestResponse>>(){})
+
+            val data = result.data
+            val questId = data?.id!!
+
+            val findDocument = questIndexRepository.findById(questId)
+
+            assertThat(findDocument).isNotNull
+            val document = findDocument.get()
+            assertThat(document.title).isEqualTo(questRequest.title)
+            assertThat(document.description).isEqualTo(questRequest.description)
+            assertThat(document.detailTitles).isNotEmpty
+            assertThat(document.detailTitles[0]).isEqualTo(detailRequest.title)
+            assertThat(document.userId).isEqualTo(testUser.id)
+            assertThat(document.state).isEqualTo(QuestState.PROCEED.name)
+        }
+
     }
 
     @DisplayName("퀘스트 삭제 시")
@@ -1145,6 +1740,35 @@ class QuestApiControllerTest @Autowired constructor(
 
             assertThat(savedQuest.state).isEqualTo(QuestState.DELETE)
             assertThat(error).isNull()
+        }
+
+        @DisplayName("엘라스틱서치 문서가 삭제된다")
+        @Test
+        fun `엘라스틱서치 문서가 삭제된다`() {
+            val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}/${savedQuest.id}/delete"
+
+            //when
+            val request = mvc
+                .perform(
+                    patch(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .cookie(token)
+                )
+
+            //then
+            request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn()
+                .response
+                .contentAsString
+
+            val questId = savedQuest.id
+            val findDocument = questIndexRepository.findById(questId)
+
+            assertThat(findDocument).isEmpty()
         }
     }
 
@@ -1351,7 +1975,6 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(testUser.gold).isEqualTo(beforeGold + questClearGold*2)
         }
 
-
         @DisplayName("서브 퀘스트 완료 시 1배의 경험치와 골드를 획득한다")
         @Test
         fun `서브 퀘스트 완료 시 1배의 경험치와 골드를 획득한다`() {
@@ -1407,6 +2030,39 @@ class QuestApiControllerTest @Autowired constructor(
             val allQuestLog = questLogRepository.findAll()
             assertThat(allQuestLog).anyMatch { log -> log.questId == savedQuest.id && log.state == QuestState.COMPLETE }
         }
+
+        @DisplayName("엘라스틱서치 문서가 업데이트 된다")
+        @Test
+        fun `엘라스틱서치 문서가 업데이트 된다`() {
+            //given
+            val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}/${savedQuest.id}/complete"
+
+            //when
+            val request = mvc
+                .perform(
+                    patch(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .cookie(token)
+                )
+
+            //then
+            request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+
+            val questId = savedQuest.id
+            val findDocument = questIndexRepository.findById(questId)
+
+            assertThat(findDocument).isNotNull
+            val document = findDocument.get()
+            assertThat(document.title).isEqualTo(savedQuest.title)
+            assertThat(document.description).isEqualTo(savedQuest.description)
+            assertThat(document.userId).isEqualTo(testUser.id)
+            assertThat(document.state).isEqualTo(QuestState.COMPLETE.name)
+        }
+
     }
 
     @DisplayName("퀘스트 포기 시")
@@ -1565,6 +2221,38 @@ class QuestApiControllerTest @Autowired constructor(
 
             val allQuestLog = questLogRepository.findAll()
             assertThat(allQuestLog).anyMatch { log -> log.questId == savedQuest.id && log.state == QuestState.DISCARD }
+        }
+
+        @DisplayName("엘라스틱서치 문서가 업데이트 된다")
+        @Test
+        fun `엘라스틱서치 문서가 업데이트 된다`() {
+            //given
+            val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
+            val url = "${SERVER_ADDR}$port${URI_PREFIX}/${savedQuest.id}/discard"
+
+            //when
+            val request = mvc
+                .perform(
+                    patch(url)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .with(csrf())
+                        .cookie(token)
+                )
+
+            //then
+            request
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+
+            val questId = savedQuest.id
+            val findDocument = questIndexRepository.findById(questId)
+
+            assertThat(findDocument).isNotNull
+            val document = findDocument.get()
+            assertThat(document.title).isEqualTo(savedQuest.title)
+            assertThat(document.description).isEqualTo(savedQuest.description)
+            assertThat(document.userId).isEqualTo(testUser.id)
+            assertThat(document.state).isEqualTo(QuestState.DISCARD.name)
         }
     }
 

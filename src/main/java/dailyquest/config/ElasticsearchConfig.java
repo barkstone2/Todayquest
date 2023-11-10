@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
-import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -17,7 +16,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-@EnableElasticsearchRepositories
 @RequiredArgsConstructor
 @Configuration
 public class ElasticsearchConfig extends ElasticsearchConfiguration {

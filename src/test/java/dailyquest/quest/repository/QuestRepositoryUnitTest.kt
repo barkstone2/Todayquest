@@ -223,30 +223,6 @@ class QuestRepositoryUnitTest {
         }
     }
 
-
-    /**
-        BooleanExpression wherePredicate = quest.user.id.eq(userId);
-        if(state != null) wherePredicate = wherePredicate.and(quest.state.eq(state));
-        if(startDate != null && endDate != null) wherePredicate = wherePredicate.and(quest.createdDate.between(startDate, endDate));
-        if(startDate != null && endDate == null) wherePredicate = wherePredicate.and(quest.createdDate.goe(startDate));
-        if(startDate == null && endDate != null) wherePredicate = wherePredicate.and(quest.createdDate.loe(endDate));
-
-        List<Quest> fetch = query.select(quest)
-        .from(quest)
-        .where(wherePredicate)
-        .offset(pageable.getOffset())
-        .limit(pageable.getPageSize())
-        .fetch();
-
-        Long total = query.select(quest.count())
-        .from(quest)
-        .where(wherePredicate)
-        .fetchOne();
-
-        return new PageImpl<>(fetch, pageable, total);
-
-     */
-
     @DisplayName("findQuestsByCondition 메서드 호출 시")
     @Nested
     inner class TestForFindQuestsByCondition {

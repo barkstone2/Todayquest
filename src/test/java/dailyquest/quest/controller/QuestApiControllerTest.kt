@@ -4,8 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import dailyquest.common.*
+import dailyquest.context.ElasticsearchTestContextConfig
+import dailyquest.context.IntegrationTestContextBaseConfig
+import dailyquest.context.RedisTestContextConfig
 import dailyquest.jwt.JwtTokenProvider
 import dailyquest.properties.RedisKeyProperties
+import dailyquest.quest.controller.QuestApiControllerTest.QuestApiControllerIntegrationConfig
 import dailyquest.quest.dto.*
 import dailyquest.quest.entity.*
 import dailyquest.quest.repository.QuestLogRepository
@@ -21,16 +25,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ArgumentsSource
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Import
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -59,6 +71,7 @@ import java.util.concurrent.ConcurrentHashMap
 @Transactional
 @SpringBootTest(
     webEnvironment = WebEnvironment.RANDOM_PORT,
+    classes = [QuestApiControllerIntegrationConfig::class]
 )
 class QuestApiControllerTest @Autowired constructor(
     var context: WebApplicationContext,
@@ -71,6 +84,19 @@ class QuestApiControllerTest @Autowired constructor(
     var entityManager: EntityManager,
     var questIndexRepository: QuestIndexRepository,
 ) {
+
+    @ComponentScan(basePackages = ["dailyquest.quest", "dailyquest.search"])
+    @Import(
+        IntegrationTestContextBaseConfig::class,
+        RedisTestContextConfig::class,
+        ElasticsearchTestContextConfig::class,
+        UserLevelLock::class,
+    )
+    @EnableElasticsearchRepositories(basePackageClasses = [QuestIndexRepository::class])
+    @EnableJpaRepositories(basePackageClasses = [QuestRepository::class])
+    @EntityScan(basePackageClasses = [Quest::class])
+    class QuestApiControllerIntegrationConfig
+
 
     companion object {
         const val SERVER_ADDR = "http://localhost:"

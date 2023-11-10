@@ -1,30 +1,53 @@
 package dailyquest.common;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import dailyquest.context.IntegrationTestContextBaseConfig;
+import dailyquest.context.MockElasticsearchTestContextConfig;
+import dailyquest.context.MockRedisTestContextConfig;
 import dailyquest.quest.dto.QuestRequest;
+import dailyquest.quest.entity.Quest;
 import dailyquest.quest.repository.QuestRepository;
 import dailyquest.quest.service.QuestService;
 import dailyquest.user.entity.ProviderType;
 import dailyquest.user.service.UserService;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import static dailyquest.common.UserLevelLockTest.UserLevelLockTestConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @Slf4j
 @DisplayName("유저 레벨 락 테스트")
 @Transactional
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(
+        webEnvironment = RANDOM_PORT,
+        classes = UserLevelLockTestConfig.class
+)
 public class UserLevelLockTest {
+
+    @Import({
+            IntegrationTestContextBaseConfig.class,
+            MockRedisTestContextConfig.class,
+            MockElasticsearchTestContextConfig.class,
+            UserLevelLock.class
+    })
+    @ComponentScan(basePackages = {"dailyquest.quest"})
+    @EnableJpaRepositories(basePackageClasses = {QuestRepository.class})
+    @EntityScan(basePackageClasses = {Quest.class})
+    static class UserLevelLockTestConfig { }
 
     @Autowired
     UserLevelLock userLevelLock;

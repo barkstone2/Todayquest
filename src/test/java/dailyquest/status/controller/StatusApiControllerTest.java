@@ -1,12 +1,16 @@
 package dailyquest.status.controller;
 
 import com.jayway.jsonpath.JsonPath;
+import dailyquest.context.IntegrationTestContextBaseConfig;
+import dailyquest.context.MockRedisTestContextConfig;
 import dailyquest.jwt.JwtTokenProvider;
 import dailyquest.quest.dto.QuestLogSearchType;
 import dailyquest.quest.entity.QuestLog;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.entity.QuestType;
 import dailyquest.quest.repository.QuestLogRepository;
+import dailyquest.quest.service.QuestLogService;
+import dailyquest.status.controller.StatusApiControllerTest.StatusControllerIntegrationTestConfig;
 import dailyquest.user.dto.UserPrincipal;
 import dailyquest.user.entity.ProviderType;
 import dailyquest.user.repository.UserRepository;
@@ -19,8 +23,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,12 +49,26 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@DisplayName("유저 API 컨트롤러 통합 테스트")
+@DisplayName("상태창 API 컨트롤러 통합 테스트")
 @SpringBootTest(
-        webEnvironment = WebEnvironment.RANDOM_PORT
+        webEnvironment = WebEnvironment.RANDOM_PORT,
+        classes = {StatusControllerIntegrationTestConfig.class}
 )
 public class StatusApiControllerTest {
 
+    @Import({
+            IntegrationTestContextBaseConfig.class,
+            MockRedisTestContextConfig.class,
+            QuestLogService.class,
+        }
+    )
+    @ComponentScan(basePackages = "dailyquest.status")
+    @EnableJpaRepositories(
+            basePackageClasses = {QuestLogRepository.class},
+            includeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {QuestLogRepository.class})})
+    @EntityScan(basePackageClasses = {QuestLog.class})
+    static class StatusControllerIntegrationTestConfig { }
+    
     static final String SERVER_ADDR = "http://localhost:";
     static final String URI_PREFIX = "/api/v1/status";
 

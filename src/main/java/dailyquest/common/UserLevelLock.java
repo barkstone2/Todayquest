@@ -1,6 +1,8 @@
 package dailyquest.common;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -13,6 +15,7 @@ import java.util.function.Supplier;
  * DataSource 에서 직접 Connection 을 얻어 USER LEVEL LOCK 을 사용하는 클래스
  */
 @Slf4j
+@Component
 public class UserLevelLock {
     
     private static final String GET_LOCK = "SELECT GET_LOCK(?, ?)";
@@ -21,8 +24,8 @@ public class UserLevelLock {
 
     private final DataSource dataSource;
 
-    public UserLevelLock(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public UserLevelLock(@Qualifier("userLockDataSource") DataSource userLockDataSource) {
+        this.dataSource = userLockDataSource;
     }
 
     public <T> T executeWithLock(String userLockName,

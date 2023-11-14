@@ -6,10 +6,10 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-!**/*.sql
-!**/spy.log
-!**/src/test/java/learn/
-!**/src/test/resources/schema*.txt
+**/*.sql
+**/spy.log
+**/src/test/java/learn/
+**/src/test/resources/schema*.txt
 
 ### STS ###
 .apt_generated

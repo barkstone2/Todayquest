@@ -1,0 +1,3 @@
+rootProject.name = 'dailyquest'
+
+include 'dailyquest_web'

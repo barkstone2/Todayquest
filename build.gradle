@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+
+group = 'dailyquest'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+}
+
+test {
+    useJUnitPlatform()
+}

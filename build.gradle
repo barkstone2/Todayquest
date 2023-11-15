@@ -1,16 +1,38 @@
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '3.0.2'
+    id 'io.spring.dependency-management' version '1.1.0'
+
+    /* kotlin */
+    id 'org.jetbrains.kotlin.jvm' version '1.8.0'
+    id "org.jetbrains.kotlin.kapt" version "1.8.0"
+    id "org.jetbrains.kotlin.plugin.jpa" version "1.8.0"
+    id "org.jetbrains.kotlin.plugin.spring" version "1.8.0"
 }
 
-group = 'dailyquest'
+allprojects {
+    group = 'dailyquest'
 
-repositories {
-    mavenCentral()
+    repositories {
+        mavenCentral()
+    }
 }
 
-dependencies {
-}
+subprojects {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 
-test {
-    useJUnitPlatform()
+    kotlin {
+        jvmToolchain {
+            JavaVersion.VERSION_17
+        }
+    }
+
+    dependencies {
+
+    }
+
+    test {
+        useJUnitPlatform()
+    }
 }

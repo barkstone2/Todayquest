@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'dailyquest-web/**'
 
 env:
   JAVA_PATH: /home/runner/jdk
@@ -59,7 +61,7 @@ jobs:
           path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 빌드
         run: |
-          ./gradlew build -x test
+          ./gradlew dailyquest_web:build -x test
 
       - name: 도커 허브 로그인
         uses: docker/login-action@v2

@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - develop
+    paths:
+      - 'dailyquest-web/**'
 
 env:
   JAVA_PATH: /home/runner/jdk
@@ -81,7 +83,7 @@ jobs:
           path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 테스트
         run: |
-          ./gradlew test
+          ./gradlew dailyquest_web:test
 
   fail-slack-message:
     name: 파이프라인 실패 알림

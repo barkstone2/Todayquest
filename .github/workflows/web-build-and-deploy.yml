@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'dailyquest-web/**'
+      - 'dailyquest_web/**'
 
 env:
   JAVA_PATH: /home/runner/jdk
@@ -57,7 +57,7 @@ jobs:
         id: gradle-dependency-cache
         uses: actions/cache@v3
         with:
-          key: gradle-dependency-${{ hashFiles('**/build.gradle') }}
+          key: gradle-dependency-${{ hashFiles('./build.gradle', '/dailyquest_web/build.gradle') }}
           path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 빌드
         run: |
@@ -70,7 +70,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: 도커 이미지 빌드 & 푸쉬
         run: |
-          docker build -t barkstone2/dailyquest-server:${{ github.sha }} .
+          docker build -t barkstone2/dailyquest-server:${{ github.sha }} ./dailyquest_web/
           docker push barkstone2/dailyquest-server:${{ github.sha }}
 
   deployment:

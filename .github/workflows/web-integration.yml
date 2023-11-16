@@ -5,7 +5,7 @@ on:
     branches:
       - develop
     paths:
-      - 'dailyquest-web/**'
+      - 'dailyquest_web/**'
 
 env:
   JAVA_PATH: /home/runner/jdk
@@ -39,8 +39,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install redis-tools
-          chmod +x ./script/redis_init.sh
-          ./script/redis_init.sh
+          chmod +x ./dailyquest_web/script/redis_init.sh
+          ./dailyquest_web/script/redis_init.sh
 
       - id: java-checksum-setup
         name: 자바 캐시용 체크섬 셋업
@@ -79,7 +79,7 @@ jobs:
         id: gradle-dependency-cache
         uses: actions/cache@v3
         with:
-          key: gradle-dependency-${{ hashFiles('**/build.gradle') }}
+          key: gradle-dependency-${{ hashFiles('./build.gradle', './dailyquest_web/build.gradle') }}
           path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 테스트
         run: |

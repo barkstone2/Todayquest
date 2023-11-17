@@ -5,7 +5,6 @@ import dailyquest.quest.dto.QuestSearchCondition
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
-import dailyquest.user.dto.UserRequestDto
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
 import dailyquest.user.repository.UserRepository
@@ -49,7 +48,8 @@ class QuestRepositoryUnitTest {
     fun init() {
         userInfo = if(userInfo.id == 0L) userRepository.save(UserInfo("", "user1", ProviderType.GOOGLE)) else userInfo
         anotherUser = if(anotherUser.id == 0L) userRepository.save(UserInfo("", "user2", ProviderType.GOOGLE)) else anotherUser
-        anotherUser.changeUserSettings(UserRequestDto(9, 0))
+        anotherUser.updateResetTime(9, LocalDateTime.now())
+        anotherUser.updateCoreTime(0, LocalDateTime.now())
         userRepository.saveAndFlush(anotherUser)
     }
 

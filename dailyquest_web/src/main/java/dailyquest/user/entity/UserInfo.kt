@@ -1,13 +1,14 @@
 package dailyquest.user.entity
 
-import jakarta.persistence.*
-import org.hibernate.annotations.DynamicInsert
 import dailyquest.common.BaseTimeEntity
-import dailyquest.common.MessageUtil
 import dailyquest.quest.entity.QuestType
 import dailyquest.user.dto.RoleType
-import dailyquest.user.dto.UserRequestDto
-import java.time.*
+import jakarta.persistence.*
+import org.hibernate.annotations.DynamicInsert
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 @DynamicInsert
 @Entity
@@ -55,29 +56,34 @@ class UserInfo(
     @Column(nullable = false)
     var role: RoleType = RoleType.USER
 
-    private fun updateNicknameIfNotNull(nickname: String?) {
+    fun updateNickname(nickname: String?) {
         if (nickname != null) {
             this.nickname = nickname
         }
     }
 
-    fun changeUserSettings(dto: UserRequestDto) {
-        updateNicknameIfNotNull(dto.nickname)
+    fun updateResetTime(resetTime: Int?, requestedDate: LocalDateTime): Boolean {
+        if(resetTime == null || resetTime == getResetHour()) return true
 
-        val now = LocalDateTime.now().withSecond(0).withNano(0)
-
-        if(dto.resetTime != null && dto.resetTime != resetTime.hour) {
-            checkOneDayPassedSinceLastUpdate(resetTimeLastModifiedDate, "user.settings.reset_time")
-            resetTime = LocalTime.of(dto.resetTime, 0, 0)
-            resetTimeLastModifiedDate = now
+        if(canUpdateTimeSetting(resetTimeLastModifiedDate, requestedDate)) {
+            this.resetTime = LocalTime.of(resetTime, 0, 0)
+            resetTimeLastModifiedDate = requestedDate
+            return true
         }
 
-        if(dto.coreTime != null && dto.coreTime != coreTime.hour) {
-            checkOneDayPassedSinceLastUpdate(coreTimeLastModifiedDate, "user.settings.core_time")
-            coreTime = LocalTime.of(dto.coreTime, 0, 0)
-            coreTimeLastModifiedDate = now
+        return false
+    }
+
+    fun updateCoreTime(coreTime: Int?, requestedDate: LocalDateTime): Boolean {
+        if(coreTime == null || coreTime == getCoreHour()) return true
+
+        if(canUpdateTimeSetting(coreTimeLastModifiedDate, requestedDate)) {
+            this.coreTime = LocalTime.of(coreTime, 0, 0)
+            coreTimeLastModifiedDate = requestedDate
+            return true
         }
 
+        return false
     }
 
     fun updateExpAndGold(questType: QuestType, earnedExp: Long, earnedGold: Long) {
@@ -127,18 +133,21 @@ class UserInfo(
         return coreTime.hour
     }
 
-    private fun checkOneDayPassedSinceLastUpdate(settingLastModifiedDate: LocalDateTime?, messageKey: String) {
+    fun getRemainTimeUntilCoreTimeUpdateAvailable(requestedDate: LocalDateTime): Duration {
+        val oneDayAfter = coreTimeLastModifiedDate?.plusDays(1L)
+        return Duration.between(requestedDate, oneDayAfter)
+    }
 
-        if(settingLastModifiedDate == null) return
+    fun getRemainTimeUntilResetTimeUpdateAvailable(requestedDate: LocalDateTime): Duration {
+        val oneDayAfter = resetTimeLastModifiedDate?.plusDays(1L)
+        return Duration.between(requestedDate, oneDayAfter)
+    }
+
+    private fun canUpdateTimeSetting(settingLastModifiedDate: LocalDateTime?, requestedDate: LocalDateTime): Boolean {
+        if(settingLastModifiedDate == null) return true
 
         val oneDayAfter = settingLastModifiedDate.plusDays(1L)
-        val now = LocalDateTime.now().withSecond(0).withNano(0)
-
-        check(now.isAfter(oneDayAfter)) {
-            val diff = Duration.between(now, oneDayAfter)
-            val diffStr = String.format("%d시간 %d분", diff.toHours(), diff.toMinutes() % 60)
-
-            MessageUtil.getMessage("user.settings.update_limit", MessageUtil.getMessage(messageKey), diffStr)
-        }
+        return requestedDate.isAfter(oneDayAfter)
     }
+
 }

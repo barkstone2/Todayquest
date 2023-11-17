@@ -16,6 +16,8 @@ import dailyquest.user.entity.ProviderType;
 import dailyquest.user.entity.UserInfo;
 import dailyquest.user.repository.UserRepository;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Random;
 
@@ -67,7 +69,22 @@ public class UserService {
 
     public void changeUserSettings(UserPrincipal principal, UserRequestDto dto) {
         UserInfo findUser = userRepository.getReferenceById(principal.getId());
-        findUser.changeUserSettings(dto);
+        LocalDateTime requestedDate = LocalDateTime.now().withSecond(0).withNano(0);
+
+        findUser.updateNickname(dto.getNickname());
+
+        if(!findUser.updateCoreTime(dto.getCoreTime(), requestedDate)) {
+            Duration diff = findUser.getRemainTimeUntilCoreTimeUpdateAvailable(requestedDate);
+            String diffStr = String.format("%d시간 %d분", diff.toHours(), diff.toMinutes() % 60);
+            throw new IllegalStateException(MessageUtil.getMessage("user.settings.update_limit", MessageUtil.getMessage("user.settings.core_time"), diffStr));
+        }
+
+        if(!findUser.updateResetTime(dto.getResetTime(), requestedDate)) {
+            Duration diff = findUser.getRemainTimeUntilResetTimeUpdateAvailable(requestedDate);
+            String diffStr = String.format("%d시간 %d분", diff.toHours(), diff.toMinutes() % 60);
+            throw new IllegalStateException(MessageUtil.getMessage("user.settings.update_limit", MessageUtil.getMessage("user.settings.reset_time"), diffStr));
+        }
+
     }
 
     public void earnExpAndGold(QuestType type, UserInfo user) {

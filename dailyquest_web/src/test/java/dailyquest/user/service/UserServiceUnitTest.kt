@@ -144,21 +144,63 @@ class UserServiceUnitTest {
     @Nested
     inner class UserSettingsChangeTest {
 
-        @DisplayName("유저 정보 변경 메서드가 호출된다")
+        @DisplayName("닉네임 변경 메서드가 호출된다")
         @Test
-        fun `유저 정보 변경 메서드가 호출된다`() {
+        fun `닉네임 변경 메서드가 호출된다`() {
             //given
             val mockPrincipal = mock<UserPrincipal>()
             val mockRequest = mock<UserRequestDto>()
             val mockUser = mock<UserInfo>()
 
             doReturn(mockUser).`when`(userRepository).getReferenceById(any())
+            doReturn(true).`when`(mockUser).updateCoreTime(any(), any())
+            doReturn(true).`when`(mockUser).updateResetTime(any(), any())
 
             //when
             userService.changeUserSettings(mockPrincipal, mockRequest)
 
             //then
-            verify(mockUser).changeUserSettings(eq(mockRequest))
+            verify(mockUser).updateNickname(eq(mockRequest.nickname))
+        }
+
+        @DisplayName("코어 타임 변경에 실패하면 예외를 던진다")
+        @Test
+        fun `코어 타임 변경에 실패하면 예외를 던진다`() {
+            //given
+            val mockPrincipal = mock<UserPrincipal>()
+            val mockRequest = mock<UserRequestDto>()
+            val mockUser = mock<UserInfo>()
+
+            doReturn(mockUser).`when`(userRepository).getReferenceById(any())
+            doReturn(false).`when`(mockUser).updateCoreTime(any(), any())
+
+            //when
+            val run = { userService.changeUserSettings(mockPrincipal, mockRequest) }
+
+            //then
+            assertThatThrownBy(run).isInstanceOf(IllegalStateException::class.java)
+            verify(mockUser).updateCoreTime(any(), any())
+            verify(mockUser, never()).updateResetTime(any(), any())
+        }
+
+        @DisplayName("리셋 타임 변경에 실패하면 예외를 던진다")
+        @Test
+        fun `리셋 타임 변경에 실패하면 예외를 던진다`() {
+            //given
+            val mockPrincipal = mock<UserPrincipal>()
+            val mockRequest = mock<UserRequestDto>()
+            val mockUser = mock<UserInfo>()
+
+            doReturn(mockUser).`when`(userRepository).getReferenceById(any())
+            doReturn(true).`when`(mockUser).updateCoreTime(any(), any())
+            doReturn(false).`when`(mockUser).updateResetTime(any(), any())
+
+            //when
+            val run = { userService.changeUserSettings(mockPrincipal, mockRequest) }
+
+            //then
+            assertThatThrownBy(run).isInstanceOf(IllegalStateException::class.java)
+            verify(mockUser).updateResetTime(any(), any())
         }
 
     }

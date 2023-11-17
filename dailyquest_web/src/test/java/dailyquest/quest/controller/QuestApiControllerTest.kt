@@ -15,7 +15,6 @@ import dailyquest.quest.entity.*
 import dailyquest.quest.repository.QuestLogRepository
 import dailyquest.quest.repository.QuestRepository
 import dailyquest.search.repository.QuestIndexRepository
-import dailyquest.user.dto.UserRequestDto
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
 import dailyquest.user.repository.UserRepository
@@ -1119,7 +1118,7 @@ class QuestApiControllerTest @Autowired constructor(
             val url = "${SERVER_ADDR}$port${URI_PREFIX}"
             val questRequest = QuestRequest("t", "d", mutableListOf(DetailRequest("dt", DetailQuestType.COUNT, 1)))
             val requestBody = om.writeValueAsString(questRequest)
-            testUser.changeUserSettings(UserRequestDto(0, LocalTime.now().hour))
+            testUser.updateCoreTime(LocalTime.now().hour, LocalDateTime.now())
 
             //when
             val request = mvc
@@ -1155,7 +1154,7 @@ class QuestApiControllerTest @Autowired constructor(
             val requestBody = om.writeValueAsString(questRequest)
 
             val now = LocalTime.now()
-            testUser.changeUserSettings(UserRequestDto(0, now.plusHours(2).hour))
+            testUser.updateCoreTime(now.plusHours(2).hour, LocalDateTime.now())
 
             //when
             val request = mvc

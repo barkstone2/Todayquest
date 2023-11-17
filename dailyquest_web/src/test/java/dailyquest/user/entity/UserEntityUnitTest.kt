@@ -1,7 +1,6 @@
 package dailyquest.user.entity
 
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.MockedStatic
@@ -10,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.*
 import dailyquest.common.MessageUtil
 import dailyquest.quest.entity.QuestType
-import dailyquest.user.dto.UserRequestDto
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 @ExtendWith(MockitoExtension::class)
@@ -32,22 +31,19 @@ class UserEntityUnitTest {
         messageUtil.close()
     }
 
-    @DisplayName("유저 세팅 변경시")
+    @DisplayName("유저 닉네임 변경시")
     @Nested
-    inner class ChangeUserSettingsTest {
-
+    inner class UpdateNicknameTest {
         @DisplayName("닉네임이 null이 아닌경우 닉네임을 업데이트 한다")
         @Test
         fun `닉네임이 null이 아닌경우 닉네임을 업데이트 한다`() {
             //given
             val user = UserInfo("", "beforeNickname", ProviderType.GOOGLE)
-            val mockDto = mock<UserRequestDto>()
 
             val newNickname = "afterNickname"
-            doReturn(newNickname).`when`(mockDto).nickname
 
             //when
-            user.changeUserSettings(mockDto)
+            user.updateNickname(newNickname)
 
             //then
             assertThat(user.nickname).isEqualTo(newNickname)
@@ -58,93 +54,186 @@ class UserEntityUnitTest {
         fun `닉네임이 null이면 닉네임을 변경하지 않는다`() {
             //given
             val user = UserInfo("", "before", ProviderType.GOOGLE)
-            val mockDto = mock<UserRequestDto>()
             val beforeNickname = user.nickname
 
-            doReturn(null).`when`(mockDto).nickname
-
             //when
-            user.changeUserSettings(mockDto)
+            user.updateNickname(null)
 
             //then
             assertThat(user.nickname).isEqualTo(beforeNickname)
         }
+    }
 
-        @DisplayName("변경 제한 시간이 경과하지 않은 경우 오류가 발생한다")
+
+    @DisplayName("코어 타임 변경시")
+    @Nested
+    inner class UpdateCoreTimeTest {
+
+        @DisplayName("인자 값이 null인 경우 업데이트 하지 않고 true 를 반환한다")
         @Test
-        fun `변경 제한 시간이 경과하지 않은 경우 오류가 발생한다`() {
+        fun `인자 값이 null인 경우 업데이트 하지 않고 true 를 반환한다`() {
             //given
             val user = UserInfo("", "", ProviderType.GOOGLE)
-            val dto = UserRequestDto(user.resetTime.plusHours(1).hour, user.coreTime.plusHours(1).hour)
-            user.changeUserSettings(dto)
 
             //when
-            val checkDto = UserRequestDto(user.resetTime.minusHours(1).hour, user.coreTime.minusHours(1).hour)
-            val call = { user.changeUserSettings(checkDto) }
+            val isUpdated = user.updateCoreTime(null, LocalDateTime.now())
 
             //then
-            assertThatThrownBy(call).isInstanceOf(IllegalStateException::class.java)
-        }
-
-        @DisplayName("dto 값이 null인 경우 업데이트 하지 않는다")
-        @Test
-        fun `dto 값이 null인 경우 업데이트 하지 않는다`() {
-            //given
-            val user = UserInfo("", "", ProviderType.GOOGLE)
-            val mockDto = mock<UserRequestDto>()
-
-            doReturn(null).`when`(mockDto).resetTime
-            doReturn(null).`when`(mockDto).coreTime
-
-            //when
-            user.changeUserSettings(mockDto)
-
-            //then
-            assertThat(user.resetTimeLastModifiedDate).isNull()
             assertThat(user.coreTimeLastModifiedDate).isNull()
+            assertThat(isUpdated).isTrue()
         }
 
-        @DisplayName("dto 값이 기존값과 동일한 경우 업데이트 하지 않는다")
+        @DisplayName("인자 값이 기존값과 동일한 경우 업데이트 하지 않고 true 를 반환한다")
         @Test
-        fun `dto 값이 기존값과 동일한 경우 업데이트 하지 않는다`() {
+        fun `인자 값이 기존값과 동일한 경우 업데이트 하지 않고 true 를 반환한다`() {
             //given
             val user = UserInfo("", "", ProviderType.GOOGLE)
-            val mockDto = mock<UserRequestDto>()
-
-            doReturn(user.getResetHour()).`when`(mockDto).resetTime
-            doReturn(user.getCoreHour()).`when`(mockDto).coreTime
 
             //when
-            user.changeUserSettings(mockDto)
+            val isUpdated = user.updateCoreTime(user.getCoreHour(), LocalDateTime.now())
 
             //then
-            assertThat(user.resetTimeLastModifiedDate).isNull()
             assertThat(user.coreTimeLastModifiedDate).isNull()
+            assertThat(isUpdated).isTrue()
         }
 
-        @DisplayName("dto 값이 기존값과 다른 경우 업데이트 한다")
+        @DisplayName("최종 수정일로부터 1일이 경과하지 않았다면, 수정하지 않고 false 를 반환한다")
         @Test
-        fun `dto 값이 기존값과 다른 경우 업데이트 한다`() {
+        fun `최종 수정일로부터 1일이 경과하지 않았다면, 수정하지 않고 false 를 반환한다`() {
             //given
             val user = UserInfo("", "", ProviderType.GOOGLE)
-            val mockDto = mock<UserRequestDto>()
-
-            val newResetHour = user.getResetHour()+1
+            val requestedDate = LocalDateTime.now()
+            user.updateCoreTime(user.getCoreHour()+1, requestedDate)
             val newCoreHour = user.getCoreHour()+1
 
-            doReturn(newResetHour).`when`(mockDto).resetTime
-            doReturn(newCoreHour).`when`(mockDto).coreTime
-
             //when
-            user.changeUserSettings(mockDto)
+            val isUpdated = user.updateCoreTime(newCoreHour, requestedDate)
 
             //then
-            assertThat(user.resetTimeLastModifiedDate).isNotNull()
-            assertThat(user.coreTimeLastModifiedDate).isNotNull()
-
-            assertThat(user.getResetHour()).isEqualTo(newResetHour)
-            assertThat(user.getCoreHour()).isEqualTo(newCoreHour)
+            assertThat(isUpdated).isFalse()
         }
+
+        @DisplayName("최종 수정일이 null이라면, 수정하고 true 를 반환한다")
+        @Test
+        fun `최종 수정일이 null이라면, 수정하고 true 를 반환한다`() {
+            //given
+            val user = UserInfo("", "", ProviderType.GOOGLE)
+            val requestedDate = LocalDateTime.now()
+            val newCoreHour = user.getCoreHour()+1
+
+            //when
+            val isUpdated = user.updateCoreTime(newCoreHour, requestedDate)
+
+            //then
+            assertThat(user.coreTimeLastModifiedDate).isEqualTo(requestedDate)
+            assertThat(user.getCoreHour()).isEqualTo(newCoreHour)
+            assertThat(isUpdated).isTrue()
+        }
+
+        @DisplayName("최종 수정일로부터 1일이 경과했다면, 수정하고 true 를 반환한다")
+        @Test
+        fun `최종 수정일로부터 1일이 경과했다면, 수정하고 true 를 반환한다`() {
+            //given
+            val user = UserInfo("", "", ProviderType.GOOGLE)
+            val requestedDate = LocalDateTime.now()
+            user.updateCoreTime(user.getCoreHour()+1, requestedDate.minusDays(1).minusSeconds(1))
+            val newCoreHour = user.getCoreHour()+1
+
+            //when
+            val isUpdated = user.updateCoreTime(newCoreHour, requestedDate)
+
+            //then
+            assertThat(user.coreTimeLastModifiedDate).isEqualTo(requestedDate)
+            assertThat(user.getCoreHour()).isEqualTo(newCoreHour)
+            assertThat(isUpdated).isTrue()
+        }
+
+    }
+
+
+    @DisplayName("리셋 타임 변경시")
+    @Nested
+    inner class UpdateResetTimeTest {
+
+        @DisplayName("인자 값이 null인 경우 업데이트 하지 않고 true 를 반환한다")
+        @Test
+        fun `인자 값이 null인 경우 업데이트 하지 않고 true 를 반환한다`() {
+            //given
+            val user = UserInfo("", "", ProviderType.GOOGLE)
+
+            //when
+            val isUpdated = user.updateResetTime(null, LocalDateTime.now())
+
+            //then
+            assertThat(user.resetTimeLastModifiedDate).isNull()
+            assertThat(isUpdated).isTrue()
+        }
+
+        @DisplayName("인자 값이 기존값과 동일한 경우 업데이트 하지 않고 true 를 반환한다")
+        @Test
+        fun `인자 값이 기존값과 동일한 경우 업데이트 하지 않고 true 를 반환한다`() {
+            //given
+            val user = UserInfo("", "", ProviderType.GOOGLE)
+
+            //when
+            val isUpdated = user.updateResetTime(user.getResetHour(), LocalDateTime.now())
+
+            //then
+            assertThat(user.resetTimeLastModifiedDate).isNull()
+            assertThat(isUpdated).isTrue()
+        }
+
+        @DisplayName("최종 수정일로부터 1일이 경과하지 않았다면, 수정하지 않고 false 를 반환한다")
+        @Test
+        fun `최종 수정일로부터 1일이 경과하지 않았다면, 수정하지 않고 false 를 반환한다`() {
+            //given
+            val user = UserInfo("", "", ProviderType.GOOGLE)
+            val requestedDate = LocalDateTime.now()
+            user.updateResetTime(user.getResetHour()+1, requestedDate)
+            val newResetHour = user.getResetHour()+1
+
+            //when
+            val isUpdated = user.updateResetTime(newResetHour, requestedDate)
+
+            //then
+            assertThat(isUpdated).isFalse()
+        }
+
+        @DisplayName("최종 수정일이 null이라면, 수정하고 true 를 반환한다")
+        @Test
+        fun `최종 수정일이 null이라면, 수정하고 true 를 반환한다`() {
+            //given
+            val user = UserInfo("", "", ProviderType.GOOGLE)
+            val requestedDate = LocalDateTime.now()
+            val newResetHour = user.getResetHour()+1
+
+            //when
+            val isUpdated = user.updateResetTime(newResetHour, requestedDate)
+
+            //then
+            assertThat(isUpdated).isTrue()
+            assertThat(user.getResetHour()).isEqualTo(newResetHour)
+            assertThat(user.resetTimeLastModifiedDate).isEqualTo(requestedDate)
+        }
+
+        @DisplayName("최종 수정일로부터 1일이 경과했다면, 수정하고 true 를 반환한다")
+        @Test
+        fun `최종 수정일로부터 1일이 경과했다면, 수정하고 true 를 반환한다`() {
+            //given
+            val user = UserInfo("", "", ProviderType.GOOGLE)
+            val requestedDate = LocalDateTime.now()
+            user.updateResetTime(user.getResetHour()+1, requestedDate.minusDays(1).minusSeconds(1))
+            val newResetHour = user.getResetHour()+1
+
+            //when
+            val isUpdated = user.updateResetTime(newResetHour, requestedDate)
+
+            //then
+            assertThat(isUpdated).isTrue()
+            assertThat(user.getResetHour()).isEqualTo(newResetHour)
+            assertThat(user.resetTimeLastModifiedDate).isEqualTo(requestedDate)
+        }
+
     }
 
     @DisplayName("경험치 골드 획득 로직 호출시")
@@ -197,10 +286,9 @@ class UserEntityUnitTest {
             val now = LocalTime.now()
             val user = UserInfo("", "", ProviderType.GOOGLE)
 
-            val dto = UserRequestDto()
-            dto.coreTime = now.minusHours(1).hour
+            val coreTime = now.minusHours(1).hour
 
-            user.changeUserSettings(dto)
+            user.updateCoreTime(coreTime, LocalDateTime.now())
 
             //when
             val nowCoreTime = user.isNowCoreTime()
@@ -216,10 +304,9 @@ class UserEntityUnitTest {
             val now = LocalTime.now()
             val user = UserInfo("", "", ProviderType.GOOGLE)
 
-            val dto = UserRequestDto()
-            dto.coreTime = now.hour
+            val coreTime = now.hour
 
-            user.changeUserSettings(dto)
+            user.updateCoreTime(coreTime, LocalDateTime.now())
 
             //when
             val nowCoreTime = user.isNowCoreTime()

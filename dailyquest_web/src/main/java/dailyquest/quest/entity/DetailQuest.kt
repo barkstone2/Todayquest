@@ -4,7 +4,6 @@ import jakarta.persistence.*
 import jakarta.persistence.EnumType.*
 import jakarta.persistence.FetchType.*
 import jakarta.persistence.GenerationType.IDENTITY
-import dailyquest.quest.dto.DetailRequest
 
 @Entity
 @Table(name = "detail_quest")
@@ -47,16 +46,16 @@ class DetailQuest(
     @JoinColumn(name = "quest_id")
     val quest: Quest = quest
 
-    fun updateDetailQuest(newDetailQuest: DetailRequest) {
-        title = newDetailQuest.title
-        type = newDetailQuest.type
-        targetCount = if (newDetailQuest.type == DetailQuestType.COUNT) newDetailQuest.targetCount else 1
+    fun updateDetailQuest(id: Long?, detailQuest: DetailQuest) {
+        this.title = detailQuest.title
+        this.type = detailQuest.type
+        this.targetCount = if (type == DetailQuestType.COUNT) detailQuest.targetCount else 1
 
-        if(newDetailQuest.id != this.id || newDetailQuest.type != this.type) resetCount()
+        if(id != this.id || type != this.type) resetCount()
 
-        if(count < targetCount) state = DetailQuestState.PROCEED
+        if(count < targetCount) this.state = DetailQuestState.PROCEED
         else {
-            state = DetailQuestState.COMPLETE
+            this.state = DetailQuestState.COMPLETE
             count = targetCount
         }
 

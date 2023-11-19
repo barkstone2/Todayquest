@@ -2,10 +2,12 @@ package dailyquest.quest.service;
 
 import dailyquest.common.MessageUtil;
 import dailyquest.quest.dto.DetailInteractRequest;
+import dailyquest.quest.dto.DetailResponse;
 import dailyquest.quest.dto.QuestRequest;
 import dailyquest.quest.dto.QuestResponse;
+import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
-import dailyquest.quest.entity.QuestType;
+import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestRepository;
 import dailyquest.user.entity.UserInfo;
 import dailyquest.user.repository.UserRepository;
@@ -17,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -135,7 +138,98 @@ public class QuestCommandServiceUnitTest {
             verify(mockDto, times(0)).checkRangeOfDeadLine(any());
         }
 
-        @DisplayName("데드라인 범위 체크 로직이 호출된다")
+        @DisplayName("요청 사용자의 퀘스트가 아닐 경우 AccessDeniedException 예외를 던진다")
+        @Test
+        void ifNotQuestOfUserThrowException() {
+            //given
+            QuestRequest mockDto = mock(QuestRequest.class);
+            Quest mockQuest = mock(Quest.class);
+            UserInfo mockUser = mock(UserInfo.class);
+            Long questId = 0L;
+            Long userId = 1L;
+
+            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(mockUser).when(mockQuest).getUser();
+            doReturn(false).when(mockQuest).isQuestOfUser(eq(userId));
+
+            //when
+            Runnable run = () -> questCommandService.updateQuest(mockDto, questId, userId);
+
+            //then
+            assertThatThrownBy(run::run).isInstanceOf(AccessDeniedException.class);
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
+        }
+
+        @DisplayName("퀘스트 진행 상태가 PROCEED 가 아닐 경우 예외를 던진다")
+        @Test
+        void ifQuestStateIsNotProceedThanThrow() {
+            //given
+            QuestRequest mockDto = mock(QuestRequest.class);
+            Quest mockQuest = mock(Quest.class);
+            UserInfo mockUser = mock(UserInfo.class);
+            Long questId = 0L;
+            Long userId = 1L;
+
+            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(mockUser).when(mockQuest).getUser();
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(false).when(mockQuest).isProceed();
+
+            //when
+            Runnable run = () -> questCommandService.updateQuest(mockDto, questId, userId);
+
+            //then
+            assertThatThrownBy(run::run).isInstanceOf(IllegalStateException.class);
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
+        }
+
+        @DisplayName("대상 퀘스트가 메인 퀘스트라면 DTO 타입도 메인으로 변경한다")
+        @Test
+        void ifQuestTypeIsMainThanChangeTypeOfDtoToMain() {
+            //given
+            QuestRequest mockDto = mock(QuestRequest.class);
+            Quest mockQuest = mock(Quest.class);
+            UserInfo mockUser = mock(UserInfo.class);
+            Long questId = 0L;
+            Long userId = 1L;
+
+            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(mockUser).when(mockQuest).getUser();
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(true).when(mockQuest).isProceed();
+            doReturn(true).when(mockQuest).isMainQuest();
+
+            //when
+            questCommandService.updateQuest(mockDto, questId, userId);
+
+            //then
+            verify(mockDto, times(1)).toMainQuest();
+        }
+
+        @DisplayName("대상 퀘스트가 서브 퀘스트라면 DTO 타입 변경이 발생하지 않는다")
+        @Test
+        void ifQuestTypeIsSubThanDoNotChangeTypeOfDto() {
+            //given
+            QuestRequest mockDto = mock(QuestRequest.class);
+            Quest mockQuest = mock(Quest.class);
+            UserInfo mockUser = mock(UserInfo.class);
+            Long questId = 0L;
+            Long userId = 1L;
+
+            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(mockUser).when(mockQuest).getUser();
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(true).when(mockQuest).isProceed();
+            doReturn(false).when(mockQuest).isMainQuest();
+
+            //when
+            questCommandService.updateQuest(mockDto, questId, userId);
+
+            //then
+            verify(mockDto, times(0)).toMainQuest();
+        }
+
+        @DisplayName("요청 DTO 의 데드라인 범위 체크 메서드가 호출된다")
         @Test
         void invokeDeadLineCheckMethod() {
             //given
@@ -147,6 +241,9 @@ public class QuestCommandServiceUnitTest {
 
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
             doReturn(mockUser).when(mockQuest).getUser();
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(true).when(mockQuest).isProceed();
+            doReturn(false).when(mockQuest).isMainQuest();
 
             //when
             questCommandService.updateQuest(mockDto, questId, userId);
@@ -155,95 +252,7 @@ public class QuestCommandServiceUnitTest {
             verify(mockDto, times(1)).checkRangeOfDeadLine(any());
         }
 
-
-        @DisplayName("퀘스트 소유주 검증 로직이 호출된다")
-        @Test
-        void invokeQuestOwnerCheckMethod() {
-            //given
-            QuestRequest mockDto = mock(QuestRequest.class);
-            Quest mockQuest = mock(Quest.class);
-            UserInfo mockUser = mock(UserInfo.class);
-            Long questId = 0L;
-            Long userId = 1L;
-
-            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
-            doReturn(mockUser).when(mockQuest).getUser();
-
-            //when
-            questCommandService.updateQuest(mockDto, questId, userId);
-
-            //then
-            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId));
-        }
-
-
-        @DisplayName("퀘스트 진행 상태 검증 로직이 호출된다")
-        @Test
-        void invokeProceedCheckMethod() {
-            //given
-            QuestRequest mockDto = mock(QuestRequest.class);
-            Quest mockQuest = mock(Quest.class);
-            UserInfo mockUser = mock(UserInfo.class);
-            Long questId = 0L;
-            Long userId = 1L;
-
-            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
-            doReturn(mockUser).when(mockQuest).getUser();
-
-            //when
-            questCommandService.updateQuest(mockDto, questId, userId);
-
-            //then
-            verify(mockQuest, times(1)).checkStateIsProceedOrThrow();
-        }
-
-        @DisplayName("기존 퀘스트가 메인 퀘스트라면 타입 변경 로직이 호출된다")
-        @Test
-        void ifMainQuestChangeTypeOfDto() {
-            //given
-            QuestRequest mockDto = mock(QuestRequest.class);
-            Quest mockQuest = mock(Quest.class);
-            UserInfo mockUser = mock(UserInfo.class);
-            Long questId = 0L;
-            Long userId = 0L;
-
-            doReturn(mockUser).when(mockQuest).getUser();
-            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
-
-            doReturn(true).when(mockQuest).isMainQuest();
-
-            //when
-            questCommandService.updateQuest(mockDto, questId, userId);
-
-            //then
-            verify(mockQuest, times(1)).isMainQuest();
-            verify(mockDto, times(1)).toMainQuest();
-        }
-
-        @DisplayName("기존 퀘스트가 서브 퀘스트라면 타입 변경 로직이 호출되지 않는다")
-        @Test
-        void ifNotMainQuestDoesNotChangeTypeOfDto() {
-            //given
-            QuestRequest mockDto = mock(QuestRequest.class);
-            Quest mockQuest = mock(Quest.class);
-            UserInfo mockUser = mock(UserInfo.class);
-            Long questId = 0L;
-            Long userId = 0L;
-
-            doReturn(mockUser).when(mockQuest).getUser();
-            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
-
-            doReturn(false).when(mockQuest).isMainQuest();
-
-            //when
-            questCommandService.updateQuest(mockDto, questId, userId);
-
-            //then
-            verify(mockQuest, times(1)).isMainQuest();
-            verify(mockDto, times(0)).toMainQuest();
-        }
-
-        @DisplayName("정상 호출일 경우 퀘스트 업데이트 로직이 호출된다")
+        @DisplayName("updateQuestEntity 메서드가 호출된다")
         @Test
         void invokeQuestUpdateMethod() {
             //given
@@ -255,16 +264,19 @@ public class QuestCommandServiceUnitTest {
 
             doReturn(mockUser).when(mockQuest).getUser();
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(true).when(mockQuest).isProceed();
+            doReturn(false).when(mockQuest).isMainQuest();
 
             //when
             questCommandService.updateQuest(mockDto, questId, userId);
 
             //then
             verify(mockDto, times(1)).checkRangeOfDeadLine(any());
-            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId));
-            verify(mockQuest, times(1)).checkStateIsProceedOrThrow();
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
+            verify(mockQuest, times(1)).isProceed();
             verify(mockQuest, times(1)).isMainQuest();
-            verify(mockQuest, times(1)).updateQuestEntity(mockDto);
+            verify(mockQuest, times(1)).updateQuestEntity(any(), any(), any(), any());
         }
     }
 
@@ -286,32 +298,35 @@ public class QuestCommandServiceUnitTest {
             assertThatThrownBy(call::run).isInstanceOf(EntityNotFoundException.class);
         }
 
-        @DisplayName("퀘스트 소유주 검증 로직이 호출된다")
+        @DisplayName("요청 사용자의 퀘스트가 아닐 경우 AccessDeniedException 예외를 던진다")
         @Test
-        void invokeQuestOwnerCheckMethod() {
+        void ifNotQuestOfUserThrowException() {
             //given
             Long questId = 0L;
             Long userId = 1L;
             Quest mockQuest = mock(Quest.class);
-
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(false).when(mockQuest).isQuestOfUser(eq(userId));
 
             //when
-            questCommandService.deleteQuest(questId, userId);
+            Runnable run = () -> questCommandService.deleteQuest(questId, userId);
 
             //then
-            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId));
+            assertThatThrownBy(run::run).isInstanceOf(AccessDeniedException.class);
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
+            verify(mockQuest, times(0)).deleteQuest();
         }
 
-        @DisplayName("정상 호출일 경우 퀘스트 삭제 로직이 호출된다")
+        @DisplayName("요청 사용자의 퀘스트일 경우 퀘스트 삭제 메서드가 호출된다")
         @Test
-        void invokeQuestDeleteMethod() {
+        void ifQuestOfUserThanCallMethod() {
             //given
             Long questId = 0L;
             Long userId = 1L;
             Quest mockQuest = mock(Quest.class);
 
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
 
             //when
             questCommandService.deleteQuest(questId, userId);
@@ -339,44 +354,101 @@ public class QuestCommandServiceUnitTest {
             assertThatThrownBy(call::run).isInstanceOf(EntityNotFoundException.class);
         }
 
-        @DisplayName("퀘스트 소유주 검증 로직이 호출된다")
+        @DisplayName("요청 사용자의 퀘스트가 아닐 경우 AccessDeniedException 예외를 던진다")
         @Test
-        void invokeQuestOwnerCheckMethod() {
+        void ifNotQuestOfUserThrowException() {
             //given
             Long questId = 0L;
             Long userId = 1L;
             Quest mockQuest = mock(Quest.class);
-
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(false).when(mockQuest).isQuestOfUser(eq(userId));
 
             //when
-            questCommandService.completeQuest(questId, userId);
+            Runnable run = () -> questCommandService.completeQuest(questId, userId);
 
             //then
-            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId));
+            assertThatThrownBy(run::run).isInstanceOf(AccessDeniedException.class);
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
         }
 
-        @DisplayName("정상 호출일 경우 퀘스트 완료 로직이 호출된다")
+        @DisplayName("결과 상태가 DELETE 면 IllegalStateException 예외를 던진다")
         @Test
-        void invokeQuestCompleteMethod() {
+        public void ifResultStateIsDeleteThanThrowException() throws Exception {
             //given
             Long questId = 0L;
-            Long userId = 0L;
+            Long userId = 1L;
             Quest mockQuest = mock(Quest.class);
-            UserInfo mockUser = mock(UserInfo.class);
-            QuestType mockType = mock(QuestType.class);
-
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
-            doReturn(mockUser).when(mockQuest).getUser();
-            doReturn(mockType).when(mockQuest).getType();
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(QuestState.DELETE).when(mockQuest).completeQuest();
+
+            //when
+            Runnable run = () -> questCommandService.completeQuest(questId, userId);
+
+            //then
+            assertThatThrownBy(run::run).isInstanceOf(IllegalStateException.class);
+            verify(userService, times(0)).earnExpAndGold(any(), any());
+            verify(questLogService, times(0)).saveQuestLog(any());
+        }
+
+        @DisplayName("결과 상태가 PROCEED 면 IllegalStateException 예외를 던진다")
+        @Test
+        public void ifResultStateIsProceedThanThrowException() throws Exception {
+            //given
+            Long questId = 0L;
+            Long userId = 1L;
+            Quest mockQuest = mock(Quest.class);
+            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(QuestState.PROCEED).when(mockQuest).completeQuest();
+
+            //when
+            Runnable run = () -> questCommandService.completeQuest(questId, userId);
+
+            //then
+            assertThatThrownBy(run::run).isInstanceOf(IllegalStateException.class);
+            verify(userService, times(0)).earnExpAndGold(any(), any());
+            verify(questLogService, times(0)).saveQuestLog(any());
+        }
+
+        @DisplayName("결과 상태가 COMPLETE 가 아니면 IllegalStateException 예외를 던진다")
+        @Test
+        public void ifResultStateIsNotCompleteThanThrowException() throws Exception {
+            //given
+            Long questId = 0L;
+            Long userId = 1L;
+            Quest mockQuest = mock(Quest.class);
+            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(QuestState.FAIL).when(mockQuest).completeQuest();
+
+            //when
+            Runnable run = () -> questCommandService.completeQuest(questId, userId);
+
+            //then
+            assertThatThrownBy(run::run).isInstanceOf(IllegalStateException.class);
+            verify(userService, times(0)).earnExpAndGold(any(), any());
+            verify(questLogService, times(0)).saveQuestLog(any());
+        }
+
+        @DisplayName("결과 상태가 COMPLETE 면 추가 로직을 호출하고 변경 로그를 저장한다")
+        @Test
+        public void ifResultStateIsCompleteThanCallLogicAndSaveLog() throws Exception {
+            //given
+            Long questId = 0L;
+            Long userId = 1L;
+            Quest mockQuest = mock(Quest.class);
+            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(QuestState.COMPLETE).when(mockQuest).completeQuest();
 
             //when
             questCommandService.completeQuest(questId, userId);
 
             //then
-            verify(mockQuest, times(1)).completeQuest();
-            verify(userService, times(1)).earnExpAndGold(eq(mockType), eq(mockUser));
-            verify(questLogService, times(1)).saveQuestLog(eq(mockQuest));
+            verify(userService, times(1)).earnExpAndGold(any(), any());
+            verify(questLogService, times(1)).saveQuestLog(any());
         }
     }
 
@@ -400,38 +472,77 @@ public class QuestCommandServiceUnitTest {
             assertThatThrownBy(call::run).isInstanceOf(EntityNotFoundException.class);
         }
 
-        @DisplayName("퀘스트 소유주 검증 로직이 호출된다")
+        @DisplayName("요청 사용자의 퀘스트가 아닐 경우 AccessDeniedException 예외를 던진다")
         @Test
-        void invokeQuestOwnerCheckMethod() {
+        void ifNotQuestOfUserThrowException() {
             //given
             Long questId = 0L;
             Long userId = 1L;
             Quest mockQuest = mock(Quest.class);
-
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(false).when(mockQuest).isQuestOfUser(eq(userId));
 
             //when
-            questCommandService.discardQuest(questId, userId);
+            Runnable run = () -> questCommandService.discardQuest(questId, userId);
 
             //then
-            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId));
+            assertThatThrownBy(run::run).isInstanceOf(AccessDeniedException.class);
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
         }
 
-        @DisplayName("정상 호출일 경우 퀘스트 포기 로직이 호출된다")
+        @DisplayName("결과 상태가 DELETE 면 IllegalStateException 예외를 던진다")
         @Test
-        void doDiscardQuest() {
+        public void ifResultStateIsDeleteThanThrowException() throws Exception {
             //given
             Long questId = 0L;
             Long userId = 1L;
             Quest mockQuest = mock(Quest.class);
-
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(QuestState.DELETE).when(mockQuest).discardQuest();
+
+            //when
+            Runnable run = () -> questCommandService.discardQuest(questId, userId);
+
+            //then
+            assertThatThrownBy(run::run).isInstanceOf(IllegalStateException.class);
+            verify(questLogService, times(0)).saveQuestLog(eq(mockQuest));
+        }
+
+        @DisplayName("결과 상태가 PROCEED면 IllegalStateException 예외를 던진다")
+        @Test
+        public void ifResultStateIsProceedThanThrowException() throws Exception {
+            //given
+            Long questId = 0L;
+            Long userId = 1L;
+            Quest mockQuest = mock(Quest.class);
+            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(QuestState.PROCEED).when(mockQuest).discardQuest();
+
+            //when
+            Runnable run = () -> questCommandService.discardQuest(questId, userId);
+
+            //then
+            assertThatThrownBy(run::run).isInstanceOf(IllegalStateException.class);
+            verify(questLogService, times(0)).saveQuestLog(eq(mockQuest));
+        }
+
+        @DisplayName("결과 상태가 DISCARD 면 퀘스트 상태 변경 로그 저장 로직이 호출된다")
+        @Test
+        public void ifResultStateIsDiscardThanSaveStateChangeLog() throws Exception {
+            //given
+            Long questId = 0L;
+            Long userId = 1L;
+            Quest mockQuest = mock(Quest.class);
+            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(QuestState.DISCARD).when(mockQuest).discardQuest();
 
             //when
             questCommandService.discardQuest(questId, userId);
 
             //then
-            verify(mockQuest, times(1)).discardQuest();
             verify(questLogService, times(1)).saveQuestLog(eq(mockQuest));
         }
     }
@@ -440,9 +551,9 @@ public class QuestCommandServiceUnitTest {
     @Nested
     class DetailQuestInteractTest {
 
-        @DisplayName("쿼리 서비스를 통해 엔티티를 조회한다")
+        @DisplayName("쿼리 서비스를 통해 퀘스트 엔티티를 조회한다")
         @Test
-        void getEntityViaQueryService() {
+        void getQuestEntityViaQueryService() {
             //given
             Long questId = 0L;
             Long userId = 0L;
@@ -453,11 +564,12 @@ public class QuestCommandServiceUnitTest {
 
             //then
             assertThatThrownBy(call::run).isInstanceOf(EntityNotFoundException.class);
+            verify(questQueryService, times(1)).findByIdOrThrow(eq(questId));
         }
 
-        @DisplayName("퀘스트 소유주 검증 로직이 호출된다")
+        @DisplayName("요청 사용자의 퀘스트가 아닐 경우 AccessDeniedException 예외를 던진다")
         @Test
-        void invokeQuestOwnerCheckMethod() {
+        void ifNotQuestOfUserThrowException() {
             //given
             Long questId = 0L;
             Long userId = 1L;
@@ -465,31 +577,90 @@ public class QuestCommandServiceUnitTest {
             DetailInteractRequest mockDto = mock(DetailInteractRequest.class);
             Quest mockQuest = mock(Quest.class);
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(false).when(mockQuest).isQuestOfUser(eq(userId));
 
             //when
-            questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto);
+            Runnable run = () -> questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto);
 
             //then
-            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId));
+            assertThatThrownBy(run::run).isInstanceOf(AccessDeniedException.class);
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
+            verify(mockQuest, times(0)).isProceed();
         }
 
-        @DisplayName("정상 호출일 경우 세부 퀘스트 상호 작용 로직이 호출된다")
+        @DisplayName("진행 상태의 퀘스트가 아닐 경우 IllegalStateException 예외를 던진다")
         @Test
-        void doProcessDetailQuestInteraction() {
+        void ifNotProceedQuestThrowException() {
             //given
             Long questId = 0L;
             Long userId = 1L;
             Long detailQuestId = 0L;
             DetailInteractRequest mockDto = mock(DetailInteractRequest.class);
             Quest mockQuest = mock(Quest.class);
-
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(false).when(mockQuest).isProceed();
 
             //when
-            questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto);
+            Runnable run = () -> questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto);
 
             //then
-            verify(mockQuest, times(1)).interactWithDetailQuest(eq(detailQuestId), eq(mockDto));
+            assertThatThrownBy(run::run).isInstanceOf(IllegalStateException.class);
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
+            verify(mockQuest, times(1)).isProceed();
+            verify(mockQuest, times(0)).interactWithDetailQuest(eq(detailQuestId), any());
+        }
+
+        @DisplayName("세부 퀘스트 상호 작용 결과가 null이면 IllegalStateException 예외를 던진다")
+        @Test
+        void ifInteractResultIsNullThrowException() {
+            //given
+            Long questId = 0L;
+            Long userId = 1L;
+            Long detailQuestId = 0L;
+            DetailInteractRequest mockDto = mock(DetailInteractRequest.class);
+            Quest mockQuest = mock(Quest.class);
+            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(true).when(mockQuest).isProceed();
+            doReturn(null).when(mockQuest).interactWithDetailQuest(eq(detailQuestId), any());
+
+            //when
+            Runnable run = () -> questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto);
+
+            //then
+            assertThatThrownBy(run::run).isInstanceOf(IllegalStateException.class);
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
+            verify(mockQuest, times(1)).isProceed();
+            verify(mockQuest, times(1)).interactWithDetailQuest(eq(detailQuestId), any());
+        }
+
+        @DisplayName("세부 퀘스트 상호 작용 결과가 null이 아니면, 퀘스트 완료 가능 여부가 포함된 응답 DTO가 반환된다")
+        @Test
+        void ifInteractResultIsNotNullRetrunResponse() {
+            //given
+            Long questId = 0L;
+            Long userId = 1L;
+            Long detailQuestId = 0L;
+            DetailInteractRequest mockDto = mock(DetailInteractRequest.class);
+            Quest mockQuest = mock(Quest.class);
+            DetailQuest mockDetailQuest = mock(DetailQuest.class);
+            doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(true).when(mockQuest).isProceed();
+            doReturn(mockDetailQuest).when(mockQuest).interactWithDetailQuest(eq(detailQuestId), any());
+            boolean canComplete = false;
+            doReturn(canComplete).when(mockQuest).canComplete();
+
+            //when
+            DetailResponse result = questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto);
+
+            //then
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
+            verify(mockQuest, times(1)).isProceed();
+            verify(mockQuest, times(1)).interactWithDetailQuest(eq(detailQuestId), any());
+            verify(mockQuest, times(1)).canComplete();
+            assertThat(result.getCanCompleteParent()).isEqualTo(canComplete);
         }
     }
 }

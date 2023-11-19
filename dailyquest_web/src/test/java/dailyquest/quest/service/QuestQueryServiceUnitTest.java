@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.Optional;
@@ -69,22 +70,41 @@ public class QuestQueryServiceUnitTest {
     @Nested
     class GetQuestTest {
 
-        @DisplayName("퀘스트 소유자 확인 메서드가 호출된다")
+        @DisplayName("요청 유저의 퀘스트가 아니면 예외가 발생한다")
         @Test
-        void invokeQuestOwnerCheckMethod() {
+        void ifNotQuestOfUserThanThrow() {
             //given
             Long questId = 0L;
             Long userId = 1L;
             Quest mockQuest = mock(Quest.class);
 
             doReturn(Optional.of(mockQuest)).when(questRepository).findById(eq(questId));
+            doReturn(false).when(mockQuest).isQuestOfUser(eq(userId));
 
             //when
-            QuestResponse questInfo = questQueryService.getQuestInfo(questId, userId);
+            Runnable run = () -> questQueryService.getQuestInfo(questId, userId);
 
             //then
-            verify(mockQuest, times(1)).checkOwnershipOrThrow(eq(userId));
-            assertThat(questInfo).isInstanceOf(QuestResponse.class);
+            assertThatThrownBy(run::run).isInstanceOf(AccessDeniedException.class);
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
+        }
+
+        @DisplayName("요청 유저의 퀘스트라면 예외가 발생하지 않는다")
+        @Test
+        void ifQuestOfUserThanDoesNotThrow() {
+            //given
+            Long questId = 0L;
+            Long userId = 1L;
+            Quest mockQuest = mock(Quest.class);
+
+            doReturn(Optional.of(mockQuest)).when(questRepository).findById(eq(questId));
+            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
+
+            //when
+            questQueryService.getQuestInfo(questId, userId);
+
+            //then
+            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
         }
     }
 

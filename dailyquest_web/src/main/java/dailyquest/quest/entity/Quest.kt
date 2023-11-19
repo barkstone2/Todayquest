@@ -1,10 +1,7 @@
 package dailyquest.quest.entity
 
 import jakarta.persistence.*
-import org.springframework.security.access.AccessDeniedException
 import dailyquest.common.BaseTimeEntity
-import dailyquest.common.MessageUtil
-import dailyquest.quest.dto.*
 import dailyquest.user.entity.UserInfo
 import java.time.LocalDateTime
 
@@ -54,23 +51,29 @@ class Quest(
     val detailQuests : List<DetailQuest>
         get() = _detailQuests.toList()
 
-    fun updateQuestEntity(dto: QuestRequest) {
-        title = dto.title
-        description = dto.description
-        deadLine = dto.deadLine
-        updateDetailQuests(dto.details)
+    fun updateQuestEntity(title: String, description: String?, deadLine: LocalDateTime?, details: List<Pair<Long?, DetailQuest>>?) {
+        this.title = title
+        this.description = description
+        this.deadLine = deadLine
+        updateDetailQuests(details ?: emptyList())
     }
 
-    fun updateDetailQuests(detailRequests: List<DetailRequest>) {
+    /**
+     * 퀘스트 저장 시에 이 메서드를 후속 호출 해 세부 퀘스트를 업데이트 해야 한다.
+     * 퀘스트 수정 시에는 이 메서드를 호출해서는 안 된다.
+     * @param [detailRequests] 새로운 세부 퀘스트 목록으로 세부 퀘스트 ID와 엔티티의 [Pair]<[Long]?, [DetailQuest]> 목록이다.
+     */
+    fun updateDetailQuests(detailRequests: List<Pair<Long?, DetailQuest>>) {
         val newDetailQuests: MutableList<DetailQuest> = mutableListOf()
 
         val updateCount = detailRequests.size
         for (i in 0 until updateCount) {
-            val newDetailQuest = detailRequests[i]
+            val id = detailRequests[i].first
+            val newDetailQuest = detailRequests[i].second
             try {
-                _detailQuests[i].updateDetailQuest(newDetailQuest)
+                _detailQuests[i].updateDetailQuest(id, newDetailQuest)
             } catch (e: IndexOutOfBoundsException) {
-                newDetailQuests.add(newDetailQuest.mapToEntity(this))
+                newDetailQuests.add(newDetailQuest)
             }
         }
 
@@ -84,36 +87,45 @@ class Quest(
         _detailQuests.addAll(newDetailQuests)
     }
 
-    fun completeQuest() {
-        check(state != QuestState.DELETE) { MessageUtil.getMessage("quest.error.deleted") }
-        check(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
-        check(canComplete()) { MessageUtil.getMessage("quest.error.complete.detail") }
-
-        state = QuestState.COMPLETE
+    /**
+     * 퀘스트가 [QuestState.PROCEED] 상태인 경우 퀘스트를 완료 상태로 변경한다.
+     * @return 변경에 성공하면 [QuestState.COMPLETE]가 반환된다.
+     * 현재 퀘스트의 상태 변경이 불가능하다면, 현재 퀘스트의 상태가 반환된다.
+     * 세부 퀘스트가 완료되지 않은 상태라면 현재 상태인 [QuestState.PROCEED] 상태가 반환된다.
+     */
+    fun completeQuest(): QuestState {
+        if(state == QuestState.PROCEED && canComplete()) {
+            state = QuestState.COMPLETE
+        }
+        return state
     }
 
     fun deleteQuest() {
         state = QuestState.DELETE
     }
 
-    fun discardQuest() {
-        check(state != QuestState.DELETE) { MessageUtil.getMessage("quest.error.deleted") }
-        check(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
-
-        state = QuestState.DISCARD
+    /**
+     * 퀘스트가 [QuestState.PROCEED] 상태인 경우 퀘스트를 포기 상태로 변경한다.
+     * @return 변경에 성공하면 [QuestState.DISCARD]가 반환된다.
+     * 현재 퀘스트의 상태 변경이 불가능하다면, 현재 퀘스트의 상태가 반환된다.
+     */
+    fun discardQuest(): QuestState {
+        if(state == QuestState.PROCEED) {
+            state = QuestState.DISCARD
+        }
+        return state
     }
 
     fun failQuest() {
         state = QuestState.FAIL
     }
 
-    fun checkStateIsProceedOrThrow() {
-        check(state == QuestState.PROCEED) { MessageUtil.getMessage("quest.error.not-proceed") }
+    fun isProceed(): Boolean {
+        return state == QuestState.PROCEED
     }
 
-    fun checkOwnershipOrThrow(userId: Long) {
-        if (user.id != userId)
-            throw AccessDeniedException(MessageUtil.getMessage("exception.access.denied"))
+    fun isQuestOfUser(userId: Long): Boolean {
+        return user.id == userId
     }
 
     fun canComplete(): Boolean {
@@ -125,25 +137,25 @@ class Quest(
         return type == QuestType.MAIN
     }
 
-    fun interactWithDetailQuest(detailQuestId: Long, request: DetailInteractRequest? = null): DetailResponse {
+    /**
+     * 세부 퀘스트의 카운트 값을 변경하거나 1 증가시킨다.
+     * @param [detailQuestId] 변경할 세부 퀘스트의 ID를 나타냄.
+     * @param [count] 변경할 카운트 값을 나타내며 null 값을 지정할 경우 1 증가함.
+     * @return [DetailQuest] 변경된 세부 퀘스트 객체를 반환함. ID에 일치하는 세부 퀘스트가 없는 경우 null을 반환.
+     */
+    fun interactWithDetailQuest(detailQuestId: Long, count: Int?): DetailQuest? {
         val detailQuest = _detailQuests.firstOrNull { it.id == detailQuestId }
-            ?: throw IllegalStateException(MessageUtil.getMessage("exception.badRequest"))
+            ?: return null
 
-        checkStateIsProceedOrThrow()
-
-        if(request != null) {
-            detailQuest.changeCount(request.count)
-            return DetailResponse.createDto(detailQuest, canComplete())
-        }
-
-        if(detailQuest.isCompletedDetailQuest()) {
+        if(count != null) {
+            detailQuest.changeCount(count)
+        } else if(detailQuest.isCompletedDetailQuest()) {
             detailQuest.resetCount()
-            return DetailResponse.createDto(detailQuest)
+        } else {
+            detailQuest.addCount()
         }
 
-        detailQuest.addCount()
-
-        return DetailResponse.createDto(detailQuest, canComplete())
+        return detailQuest
     }
 
     override fun equals(other: Any?): Boolean {

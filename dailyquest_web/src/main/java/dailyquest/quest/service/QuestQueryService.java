@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +46,7 @@ public class QuestQueryService {
 
     public QuestResponse getQuestInfo(Long questId, Long userId) {
         Quest quest = findByIdOrThrow(questId);
-        quest.checkOwnershipOrThrow(userId);
+        if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
 
         return QuestResponse.createDto(quest);
     }

@@ -12,6 +12,7 @@ plugins {
 
 ext {
     queryDslVersion = '5.0.0'
+    testContainersVersion = '1.19.1'
 }
 
 allprojects {
@@ -66,6 +67,7 @@ project(':dailyquest_web') {
     afterEvaluate {
         dependencies {
             implementation(project(':dailyquest_domain'))
+            implementation(project(':dailyquest_elastic'))
         }
         test {
             dependsOn(':dailyquest_domain:test')

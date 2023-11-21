@@ -26,7 +26,7 @@ public class QuestIndexService {
     private final ElasticsearchOperations operations;
 
     public void saveDocument(QuestResponse questResponse, Long userId) {
-        questIndexRepository.save(QuestDocument.mapToDocument(questResponse, userId));
+        questIndexRepository.save(questResponse.mapToDocument(userId));
     }
 
     public void deleteDocument(Long questId) {
@@ -35,7 +35,7 @@ public class QuestIndexService {
 
     public void updateQuestStateOfDocument(QuestResponse questResponse, QuestState changedState, Long userId) {
         questResponse.setState(changedState);
-        questIndexRepository.save(QuestDocument.mapToDocument(questResponse, userId));
+        questIndexRepository.save(questResponse.mapToDocument(userId));
     }
 
     public List<Long> searchDocuments(QuestSearchCondition searchCondition, Long userId, Pageable pageable) {

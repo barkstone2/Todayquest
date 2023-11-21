@@ -15,10 +15,19 @@ ext {
 }
 
 allprojects {
-    group = 'dailyquest'
+    afterEvaluate {
+        group = 'dailyquest'
 
-    repositories {
-        mavenCentral()
+        repositories {
+            mavenCentral()
+        }
+
+        test.useJUnitPlatform()
+
+        dependencies {
+            // 테스트 의존성
+            testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        }
     }
 }
 
@@ -32,8 +41,7 @@ subprojects {
             testCompileOnly 'org.projectlombok:lombok'
             testAnnotationProcessor 'org.projectlombok:lombok'
 
-            // 테스트 의존성
-            testImplementation 'org.springframework.boot:spring-boot-starter-test'
+            // 모킹
             testImplementation 'org.mockito:mockito-inline:3.6.0'
 
             // 코틀린 모킹
@@ -58,6 +66,9 @@ project(':dailyquest_web') {
     afterEvaluate {
         dependencies {
             implementation(project(':dailyquest_domain'))
+        }
+        test {
+            dependsOn(':dailyquest_domain:test')
         }
     }
 }

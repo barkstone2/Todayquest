@@ -10,6 +10,10 @@ plugins {
     id "org.jetbrains.kotlin.plugin.spring" version "1.8.0"
 }
 
+ext {
+    queryDslVersion = '5.0.0'
+}
+
 allprojects {
     group = 'dailyquest'
 
@@ -19,20 +23,41 @@ allprojects {
 }
 
 subprojects {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    afterEvaluate {
+        dependencies {
+            // 롬복 의존성
+            compileOnly 'org.projectlombok:lombok'
+            annotationProcessor 'org.projectlombok:lombok'
 
-    kotlin {
-        jvmToolchain {
-            JavaVersion.VERSION_17
+            testCompileOnly 'org.projectlombok:lombok'
+            testAnnotationProcessor 'org.projectlombok:lombok'
+
+            // 테스트 의존성
+            testImplementation 'org.springframework.boot:spring-boot-starter-test'
+            testImplementation 'org.mockito:mockito-inline:3.6.0'
+
+            // 코틀린 모킹
+            testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+        }
+
+        kotlin {
+            jvmToolchain(17)
+        }
+
+        kapt {
+            keepJavacAnnotationProcessors = true
+        }
+
+        tasks.withType(Jar).configureEach {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         }
     }
+}
 
-    dependencies {
-
-    }
-
-    test {
-        useJUnitPlatform()
+project(':dailyquest_web') {
+    afterEvaluate {
+        dependencies {
+            implementation(project(':dailyquest_domain'))
+        }
     }
 }

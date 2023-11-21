@@ -22,7 +22,6 @@ dependencies {
 	implementation('org.springframework.boot:spring-boot-starter-security')
 
 	implementation('org.springframework.boot:spring-boot-starter-data-redis')
-	implementation('org.springframework.boot:spring-boot-starter-data-elasticsearch')
 
 	// queryDSL 의존성
 	implementation("com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta")
@@ -50,9 +49,9 @@ dependencies {
 	// 시큐리티 테스트
 	testImplementation 'org.springframework.security:spring-security-test'
 	// 테스트 컨테이너 의존성
-	testImplementation 'org.testcontainers:junit-jupiter:1.19.1'
+	testImplementation("org.testcontainers:junit-jupiter:${testContainersVersion}")
 	// 엘라스틱서치 테스트 컨테이너
-	testImplementation 'org.testcontainers:elasticsearch:1.19.1'
+	testImplementation("org.testcontainers:elasticsearch:${testContainersVersion}")
 
 	// KClass 호출을 위한 kotlin-reflecet
 	implementation "org.jetbrains.kotlin:kotlin-reflect"

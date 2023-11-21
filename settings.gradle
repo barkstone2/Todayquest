@@ -2,3 +2,4 @@ rootProject.name = 'dailyquest'
 
 include 'dailyquest_web'
 include 'dailyquest_domain'
+include 'dailyquest_elastic'

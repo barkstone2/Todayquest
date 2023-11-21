@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
+import dailyquest.search.document.QuestDocument
 import java.time.LocalDateTime
 
 data class QuestResponse(
@@ -42,6 +43,22 @@ data class QuestResponse(
                 deadLine = quest.deadLine
             )
         }
+    }
+
+    fun mapToDocument(userId: Long): QuestDocument {
+        var detailQuests = detailQuests
+        if (detailQuests == null) detailQuests = ArrayList()
+
+        val detailTitles = detailQuests.stream().map<String>(DetailResponse::title).toList()
+        return QuestDocument(
+            id,
+            title,
+            description,
+            detailTitles,
+            userId,
+            state?.name,
+            createdDate
+        )
     }
 
 }

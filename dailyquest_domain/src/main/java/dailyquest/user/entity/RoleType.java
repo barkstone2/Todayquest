@@ -1,4 +1,4 @@
-package dailyquest.user.dto;
+package dailyquest.user.entity;
 
 import java.util.Arrays;
 

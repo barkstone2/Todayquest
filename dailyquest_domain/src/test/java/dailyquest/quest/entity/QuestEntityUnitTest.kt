@@ -1,14 +1,10 @@
 package dailyquest.quest.entity
 
-import dailyquest.common.MessageUtil
-import dailyquest.quest.dto.DetailInteractRequest
-import dailyquest.quest.dto.QuestRequest
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.*
@@ -18,23 +14,13 @@ import java.time.LocalDateTime
 @DisplayName("퀘스트 엔티티 유닛 테스트")
 class QuestEntityUnitTest {
 
-    private lateinit var messageUtil: MockedStatic<MessageUtil>
     private lateinit var userInfo: UserInfo
-    lateinit var quest: Quest
+    private lateinit var quest: Quest
 
     @BeforeEach
     fun beforeEach() {
         userInfo = UserInfo("", "", ProviderType.GOOGLE)
         quest = Quest("t1", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
-
-        messageUtil = Mockito.mockStatic(MessageUtil::class.java)
-        Mockito.`when`(MessageUtil.getMessage(any())).thenReturn("")
-        Mockito.`when`(MessageUtil.getMessage(any(), any())).thenReturn("")
-    }
-
-    @AfterEach
-    fun afterEach() {
-        messageUtil.close()
     }
 
     @DisplayName("엔티티 수정 메서드 호출 시")
@@ -45,12 +31,13 @@ class QuestEntityUnitTest {
         fun `details 인자가 null이면 emptyList를 updateDetailQuest 메서드에 전달한다`() {
             //given
             val quest = Quest("init", "init", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
-            val dto = QuestRequest("update", "update")
+            val title = "update"
+            val description = "update"
             val details = listOf(Pair(1L, mock<DetailQuest>()))
             quest.updateDetailQuests(details)
 
             //when
-            quest.updateQuestEntity(dto.title, dto.description, null, null)
+            quest.updateQuestEntity(title, description, null, null)
 
             //then
             assertThat(quest.detailQuests).isEmpty()
@@ -61,11 +48,12 @@ class QuestEntityUnitTest {
         fun `details 인자가 null이 아니면 입력 인자를 updateDetailQuest 메서드에 전달한다`() {
             //given
             val quest = Quest("init", "init", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
-            val dto = QuestRequest("update", "update")
+            val title = "update"
+            val description = "update"
             val details = listOf(Pair(1L, mock<DetailQuest>()))
 
             //when
-            quest.updateQuestEntity(dto.title, dto.description, null, details)
+            quest.updateQuestEntity(title, description, null, details)
 
             //then
             assertThat(quest.detailQuests.size).isEqualTo(details.size)
@@ -77,21 +65,19 @@ class QuestEntityUnitTest {
         fun `넘겨 받은 인자로 엔티티를 업데이트 한다`() {
             //given
             val quest = Quest("init", "init", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
-            val dto = QuestRequest("update", "update")
+            val title = "update"
+            val description = "update"
             val deadLine = LocalDateTime.of(2022, 12, 12, 12, 0, 0)
 
             //when
-            quest.updateQuestEntity(dto.title, dto.description, deadLine, null)
+            quest.updateQuestEntity(title, description, deadLine, null)
 
             //then
-            assertThat(quest.title).isEqualTo(dto.title)
-            assertThat(quest.description).isEqualTo(dto.description)
+            assertThat(quest.title).isEqualTo(title)
+            assertThat(quest.description).isEqualTo(description)
             assertThat(quest.deadLine).isEqualTo(deadLine)
         }
     }
-
-
-
 
     @Nested
     @DisplayName("세부 퀘스트 수정 시")
@@ -512,7 +498,7 @@ class QuestEntityUnitTest {
         fun `count 값이 null이 아니면 changeCount 메서드가 호출되고 변경된 엔티티가 반환된다`() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
-            val interactRequest = DetailInteractRequest(3)
+            val count = 3
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
@@ -521,10 +507,10 @@ class QuestEntityUnitTest {
             detailQuests.set(quest, details)
 
             //when
-            val interactResult = quest.interactWithDetailQuest(0, interactRequest.count)
+            val interactResult = quest.interactWithDetailQuest(0, count)
 
             //then
-            verify(mockDetail, times(1)).changeCount(eq(interactRequest.count))
+            verify(mockDetail, times(1)).changeCount(eq(count))
             verify(mockDetail, never()).resetCount()
             verify(mockDetail, never()).addCount()
             assertThat(interactResult).isEqualTo(mockDetail)

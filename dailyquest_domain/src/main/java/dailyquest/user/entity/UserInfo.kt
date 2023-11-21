@@ -2,7 +2,7 @@ package dailyquest.user.entity
 
 import dailyquest.common.BaseTimeEntity
 import dailyquest.quest.entity.QuestType
-import dailyquest.user.dto.RoleType
+import dailyquest.user.entity.RoleType
 import jakarta.persistence.*
 import org.hibernate.annotations.DynamicInsert
 import java.time.Duration

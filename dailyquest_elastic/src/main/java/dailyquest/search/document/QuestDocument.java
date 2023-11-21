@@ -1,13 +1,10 @@
 package dailyquest.search.document;
 
-import dailyquest.quest.dto.DetailResponse;
-import dailyquest.quest.dto.QuestResponse;
-import jakarta.persistence.Id;
 import lombok.Getter;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -38,14 +35,6 @@ public class QuestDocument {
         this.userId = userId;
         this.state = state;
         this.createdDate = createdDate;
-    }
-
-    public static QuestDocument mapToDocument(QuestResponse questResponse, Long userId) {
-        List<DetailResponse> detailQuests = questResponse.getDetailQuests();
-        if(detailQuests == null) detailQuests = new ArrayList<>();
-
-        List<String> detailTitles = detailQuests.stream().map(DetailResponse::getTitle).toList();
-        return new QuestDocument(questResponse.getId(), questResponse.getTitle(), questResponse.getDescription(), detailTitles, userId, questResponse.getState().name(), questResponse.getCreatedDate());
     }
 
 }

@@ -1,35 +1,18 @@
 package dailyquest.user.entity
 
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.MockedStatic
-import org.mockito.Mockito
-import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.*
-import dailyquest.common.MessageUtil
 import dailyquest.quest.entity.QuestType
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.junit.jupiter.MockitoExtension
 import java.time.LocalDateTime
 import java.time.LocalTime
 
 @ExtendWith(MockitoExtension::class)
 @DisplayName("유저 엔티티 유닛 테스트")
 class UserEntityUnitTest {
-
-    private lateinit var messageUtil: MockedStatic<MessageUtil>
-
-    @BeforeEach
-    fun beforeEach() {
-
-        messageUtil = Mockito.mockStatic(MessageUtil::class.java)
-        Mockito.`when`(MessageUtil.getMessage(any())).thenReturn("")
-        Mockito.`when`(MessageUtil.getMessage(any(), any())).thenReturn("")
-    }
-
-    @AfterEach
-    fun afterEach() {
-        messageUtil.close()
-    }
 
     @DisplayName("유저 닉네임 변경시")
     @Nested

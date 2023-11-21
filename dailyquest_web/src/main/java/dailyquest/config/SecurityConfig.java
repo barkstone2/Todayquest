@@ -15,7 +15,7 @@ import dailyquest.jwt.JwtAuthorizationFilter;
 import dailyquest.jwt.JwtTokenProvider;
 import dailyquest.properties.SecurityOriginProperties;
 import dailyquest.properties.SecurityUrlProperties;
-import dailyquest.user.dto.RoleType;
+import dailyquest.user.entity.RoleType;
 
 import java.util.List;
 

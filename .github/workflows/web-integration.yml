@@ -6,10 +6,12 @@ on:
       - develop
     paths:
       - 'dailyquest_web/**'
+      - 'dailyquest_domain/**'
 
 env:
   JAVA_PATH: /home/runner/jdk
   GRADLE_USER_HOME: /home/runner/gradle
+  GRADLE_BUILD_SCRIPT_HASH: ${{ hashFiles('./build.gradle', './dailyquest_web/build.gradle', './dailyquest_domain/build.gradle') }}
 
 run-name: '[테스트 & 통합] For "${{ github.event.head_commit.message }}"'
 
@@ -79,7 +81,7 @@ jobs:
         id: gradle-dependency-cache
         uses: actions/cache@v3
         with:
-          key: gradle-dependency-${{ hashFiles('./build.gradle', './dailyquest_web/build.gradle') }}
+          key: gradle-dependency-${{ env.GRADLE_BUILD_SCRIPT_HASH }}
           path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 테스트
         run: |

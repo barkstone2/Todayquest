@@ -11,7 +11,7 @@ import dailyquest.common.ResponseData
 import dailyquest.context.IntegrationTestContextBaseConfig
 import dailyquest.context.RedisTestContextConfig
 import dailyquest.jwt.JwtTokenProvider
-import dailyquest.user.dto.RoleType
+import dailyquest.user.entity.RoleType
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
 import dailyquest.user.repository.UserRepository

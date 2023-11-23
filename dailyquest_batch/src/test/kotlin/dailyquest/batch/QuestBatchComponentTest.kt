@@ -4,6 +4,7 @@ import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
 import dailyquest.quest.repository.QuestRepository
+import dailyquest.search.repository.QuestIndexRepository
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
 import jakarta.persistence.EntityManager
@@ -12,20 +13,25 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.batch.core.JobParametersBuilder
+import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.core.scope.context.StepSynchronizationManager
 import org.springframework.batch.item.Chunk
 import org.springframework.batch.item.data.RepositoryItemReader
 import org.springframework.batch.item.data.RepositoryItemWriter
 import org.springframework.batch.item.function.FunctionItemProcessor
+import org.springframework.batch.test.JobRepositoryTestUtils
 import org.springframework.batch.test.MetaDataInstanceFactory
+import org.springframework.batch.test.StepScopeTestExecutionListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.TestExecutionListeners
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @DisplayName("퀘스트 배치 구성 요소 테스트")
-@Transactional
+@TestExecutionListeners(StepScopeTestExecutionListener::class, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 @SpringBootTest
 class QuestBatchComponentTest @Autowired constructor(
     private val questRepository: QuestRepository,
@@ -34,19 +40,35 @@ class QuestBatchComponentTest @Autowired constructor(
     private val questFailProcessor: FunctionItemProcessor<Quest, Quest>,
     private val questWriter: RepositoryItemWriter<Quest>,
     private val entityManager: EntityManager,
+    private val transactionTemplate: TransactionTemplate,
+    private val jobRepository: JobRepository,
 ) {
+
+    @MockBean
+    lateinit var questIndexRepository: QuestIndexRepository
+    lateinit var jobRepositoryTestUtils: JobRepositoryTestUtils
 
     lateinit var testUser: UserInfo
     lateinit var anotherUser: UserInfo
 
     @BeforeEach
     fun init() {
+        transactionTemplate.executeWithoutResult {
+            entityManager.createQuery("delete from Quest").executeUpdate()
+            entityManager.createQuery("delete from UserInfo").executeUpdate()
+        }
+        jobRepositoryTestUtils = JobRepositoryTestUtils(jobRepository)
+        jobRepositoryTestUtils.removeJobExecutions()
+
         testUser = UserInfo("testUser", "testUser", ProviderType.GOOGLE)
         anotherUser = UserInfo("anotherUser", "anotherUser", ProviderType.GOOGLE)
-        entityManager.persist(testUser)
-
         anotherUser.updateResetTime(9, LocalDateTime.now())
-        entityManager.persist(anotherUser)
+
+        transactionTemplate.executeWithoutResult {
+            entityManager.persist(testUser)
+            entityManager.persist(anotherUser)
+            entityManager.clear()
+        }
     }
 
     @DisplayName("questResetReader 동작 시 resetTime이 일치하는 유저의 퀘스트만 조회된다")
@@ -147,5 +169,4 @@ class QuestBatchComponentTest @Autowired constructor(
         //then
         assertThat(quest.id).isNotNull().isNotEqualTo(0L)
     }
-
 }

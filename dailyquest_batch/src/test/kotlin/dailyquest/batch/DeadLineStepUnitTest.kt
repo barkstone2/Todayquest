@@ -20,7 +20,6 @@ import org.springframework.batch.test.JobRepositoryTestUtils
 import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import java.time.LocalDateTime
@@ -28,7 +27,6 @@ import java.time.format.DateTimeFormatter
 
 @DisplayName("퀘스트 데드라인 스텝 단위 테스트")
 @EnableAutoConfiguration
-@AutoConfigureDataJpa
 @SpringJUnitConfig(BatchConfig::class)
 @SpringBatchTest
 class DeadLineStepUnitTest @Autowired constructor(
@@ -133,9 +131,9 @@ class DeadLineStepUnitTest @Autowired constructor(
         verify(batchQuestFailStepListener, times(0)).onWriteError(any(), any())
     }
 
-    @DisplayName("스텝 종료 후 listener를 통해 questLog를 저장한다")
+    @DisplayName("스텝 종료 후 listener를 통해 afterWrite 가 호출된다")
     @Test
-    fun `스텝 종료 후 listener를 통해 questLog를 저장한다`() {
+    fun `스텝 종료 후 listener를 통해 afterWrite 가 호출된다`() {
         //given
         val mockQuest = mock<Quest>()
         jobLauncherTestUtils.job = questDeadLineBatchJob
@@ -154,7 +152,7 @@ class DeadLineStepUnitTest @Autowired constructor(
 
         //then
         assertThat(jobExecution.stepExecutions.first().exitStatus.exitCode).isEqualTo(ExitStatus.COMPLETED.exitCode)
-        verify(batchQuestFailStepListener).saveQuestLog(any())
+        verify(batchQuestFailStepListener).afterWrite(any())
     }
 
 }

@@ -4,8 +4,12 @@ on:
   push:
     branches:
       - develop
-    paths-ignore:
-      - 'dailyquest_batch/**'
+    paths:
+      - 'dailyquest_web/**'
+      - 'dailyquest_domain/**'
+      - 'dailyquest_elastic/**'
+      - '*.gradle'
+      - '.github/workflows/web-**'
 
 env:
   JAVA_PATH: /home/runner/jdk

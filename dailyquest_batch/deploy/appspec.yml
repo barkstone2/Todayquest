@@ -1,0 +1,10 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ec2-user/app/batch
+hooks:
+  ApplicationStart:
+    - location: application-start.sh
+  ValidateService:
+    - location: validate-service.sh

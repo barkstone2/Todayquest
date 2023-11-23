@@ -7,11 +7,17 @@ on:
     paths:
       - 'dailyquest_web/**'
       - 'dailyquest_domain/**'
+      - 'dailyquest_elastic/**'
 
 env:
   JAVA_PATH: /home/runner/jdk
   GRADLE_USER_HOME: /home/runner/gradle
-  GRADLE_BUILD_SCRIPT_HASH: ${{ hashFiles('./build.gradle', './dailyquest_web/build.gradle', './dailyquest_domain/build.gradle') }}
+  GRADLE_BUILD_SCRIPT_HASH: ${{ hashFiles(
+      './build.gradle', 
+      './dailyquest_web/build.gradle', 
+      './dailyquest_domain/build.gradle', 
+      './dailyquest_elastic/build.gradle'
+    ) }}
 
 run-name: '[빌드 & 배포] For "${{ github.event.head_commit.message }}"'
 

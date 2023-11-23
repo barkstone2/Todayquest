@@ -79,6 +79,7 @@ project(':dailyquest_batch') {
     afterEvaluate {
         dependencies {
             implementation(project(':dailyquest_domain'))
+            implementation(project(':dailyquest_elastic'))
         }
         test {
             dependsOn(':dailyquest_domain:test')

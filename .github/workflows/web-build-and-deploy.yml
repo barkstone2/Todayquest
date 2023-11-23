@@ -1,4 +1,4 @@
-name: 빌드 & 배포
+name: 웹 애플리케이션 빌드 & 배포
 
 on:
   push:
@@ -113,14 +113,14 @@ jobs:
         id: create-message
         run: |
           MESSAGE=$(echo "${{ github.event.head_commit.message }}" | head -n 1)
-          echo "message=$MESSAGE" > "$GITHUB_OUTPUT"
+          echo "fail_message=$MESSAGE" >> "$GITHUB_OUTPUT"
       - name: 슬랙 메시지 전송
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "<!channel> ❗️[빌드 & 배포] Failure: For \"${{ steps.create-message.outputs.message }}\""
+              "text": "<!channel> ❗️[${{ github.workflow }}] Failure: For \"${{ steps.create-message.outputs.fail_message }}\""
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

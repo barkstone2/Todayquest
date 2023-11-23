@@ -32,6 +32,9 @@ dependencies {
 	implementation('io.jsonwebtoken:jjwt-impl:0.11.5')
 	implementation('io.jsonwebtoken:jjwt-jackson:0.11.5')
 
+	// KClass 호출을 위한 kotlin-reflecet
+	implementation "org.jetbrains.kotlin:kotlin-reflect"
+
 	// Google Id Token 처리용
 	implementation('com.google.api-client:google-api-client:2.2.0')
 
@@ -52,9 +55,6 @@ dependencies {
 	testImplementation("org.testcontainers:junit-jupiter:${testContainersVersion}")
 	// 엘라스틱서치 테스트 컨테이너
 	testImplementation("org.testcontainers:elasticsearch:${testContainersVersion}")
-
-	// KClass 호출을 위한 kotlin-reflecet
-	implementation "org.jetbrains.kotlin:kotlin-reflect"
 
 	// 코틀린 멀티 스레드 테스트를 위한 코루틴
 	testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"

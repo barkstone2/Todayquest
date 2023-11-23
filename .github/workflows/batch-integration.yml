@@ -4,9 +4,8 @@ on:
   push:
     branches:
       - develop
-    paths:
-      - 'dailyquest_batch/**'
-      - 'dailyquest_domain/**'
+    paths-ignore:
+      - 'dailyquest_web/**'
 
 env:
   JAVA_PATH: /home/runner/jdk

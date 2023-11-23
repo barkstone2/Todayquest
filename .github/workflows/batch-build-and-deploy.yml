@@ -1,49 +1,25 @@
-name: 웹 애플리케이션 테스트 & 통합
+name: 배치 애플리케이션 빌드 & 배포
 
 on:
   push:
     branches:
-      - develop
+      - main
     paths:
-      - 'dailyquest_web/**'
+      - 'dailyquest_batch/**'
       - 'dailyquest_domain/**'
 
 env:
   JAVA_PATH: /home/runner/jdk
   GRADLE_USER_HOME: /home/runner/gradle
-  GRADLE_BUILD_SCRIPT_HASH: ${{ hashFiles('./build.gradle', './dailyquest_web/build.gradle', './dailyquest_domain/build.gradle') }}
+  GRADLE_BUILD_SCRIPT_HASH: ${{ hashFiles('./build.gradle', './dailyquest_batch/build.gradle', './dailyquest_domain/build.gradle') }}
 
-run-name: '[테스트 & 통합] For "${{ github.event.head_commit.message }}"'
+run-name: '[빌드 & 배포] For "${{ github.event.head_commit.message }}"'
 
 jobs:
-  gradle-test:
-    name: 그래들 테스트
+  build-and-delivery:
+    name: 그래들 빌드 & 푸쉬 도커 이미지
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: dailyquest_test
-          MYSQL_USER: sa
-          MYSQL_PASSWORD: sa
-        ports:
-          - 3306:3306
-      redis:
-        image: redis:7.0
-        ports:
-          - 6379:6379
     steps:
-      - name: 리포지토리 체크아웃
-        uses: actions/checkout@v3
-
-      - name: 레디스 초기 데이터 셋업
-        run: |
-          sudo apt-get update
-          sudo apt-get install redis-tools
-          chmod +x ./dailyquest_web/script/redis_init.sh
-          ./dailyquest_web/script/redis_init.sh
-
       - id: java-checksum-setup
         name: 자바 캐시용 체크섬 셋업
         run: |
@@ -65,6 +41,8 @@ jobs:
       - name: 자바 환경변수 세팅
         run: |
           echo "JAVA_HOME=$(find ${{ env.JAVA_PATH }} -type d -name '*corretto-17*')" >> $GITHUB_ENV
+      - name: 리포지토리 체크아웃
+        uses: actions/checkout@v3
 
       - name: 그래들 래퍼 버전 셋업
         id: gradle-version-setup
@@ -83,14 +61,52 @@ jobs:
         with:
           key: gradle-dependency-${{ env.GRADLE_BUILD_SCRIPT_HASH }}
           path: ${{ env.GRADLE_USER_HOME }}/caches
-      - name: 그래들 테스트
+      - name: 그래들 빌드
         run: |
-          ./gradlew dailyquest_web:test
+          ./gradlew dailyquest_batch:build -x test
+
+      - name: 도커 허브 로그인
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: 도커 이미지 빌드 & 푸쉬
+        run: |
+          docker build -t barkstone2/dailyquest-batch:${{ github.sha }} ./dailyquest_batch/
+          docker push barkstone2/dailyquest-batch:${{ github.sha }}
+
+  deployment:
+    name: EC2 배포
+    runs-on: ubuntu-latest
+    needs: build-and-delivery
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_DEPLOY_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_DEPLOY_SECRET_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-2
+    steps:
+      - name: 리포지토리 체크아웃
+        uses: actions/checkout@v3
+      - name: 버전 정보 생성
+        run: |
+          cd deploy
+          echo ${{ github.sha }} > version.txt
+      - name: CodeDeploy 푸쉬
+        run: |
+          aws deploy push \
+            --application-name dailyquest-batch \
+            --s3-location s3://dailyquest-store/deploy/batch/dailyquest-batch-${{ github.sha }}.tar \
+            --source ./dailyquest_batch/deploy
+      - name: CodeDeploy 배포
+        run: |
+          aws deploy create-deployment \
+            --application-name dailyquest-batch \
+            --deployment-group-name dailyquest-batch-group \
+            --s3-location bucket=dailyquest-store,key=deploy/batch/dailyquest-batch-${{ github.sha}}.tar,bundleType=zip
 
   fail-slack-message:
     name: 파이프라인 실패 알림
     runs-on: ubuntu-latest
-    needs: gradle-test
+    needs: deployment
     if: failure()
     steps:
       - name: 실패 메시지 가공

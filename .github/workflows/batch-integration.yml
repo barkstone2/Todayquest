@@ -1,17 +1,17 @@
-name: 웹 애플리케이션 테스트 & 통합
+name: 배치 애플리케이션 테스트 & 통합
 
 on:
   push:
     branches:
       - develop
     paths:
-      - 'dailyquest_web/**'
+      - 'dailyquest_batch/**'
       - 'dailyquest_domain/**'
 
 env:
   JAVA_PATH: /home/runner/jdk
   GRADLE_USER_HOME: /home/runner/gradle
-  GRADLE_BUILD_SCRIPT_HASH: ${{ hashFiles('./build.gradle', './dailyquest_web/build.gradle', './dailyquest_domain/build.gradle') }}
+  GRADLE_BUILD_SCRIPT_HASH: ${{ hashFiles('./build.gradle', './dailyquest_batch/build.gradle', './dailyquest_domain/build.gradle') }}
 
 run-name: '[테스트 & 통합] For "${{ github.event.head_commit.message }}"'
 
@@ -29,20 +29,9 @@ jobs:
           MYSQL_PASSWORD: sa
         ports:
           - 3306:3306
-      redis:
-        image: redis:7.0
-        ports:
-          - 6379:6379
     steps:
       - name: 리포지토리 체크아웃
         uses: actions/checkout@v3
-
-      - name: 레디스 초기 데이터 셋업
-        run: |
-          sudo apt-get update
-          sudo apt-get install redis-tools
-          chmod +x ./dailyquest_web/script/redis_init.sh
-          ./dailyquest_web/script/redis_init.sh
 
       - id: java-checksum-setup
         name: 자바 캐시용 체크섬 셋업
@@ -85,7 +74,7 @@ jobs:
           path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 테스트
         run: |
-          ./gradlew dailyquest_web:test
+          ./gradlew dailyquest_batch:test
 
   fail-slack-message:
     name: 파이프라인 실패 알림

@@ -74,3 +74,14 @@ project(':dailyquest_web') {
         }
     }
 }
+
+project(':dailyquest_batch') {
+    afterEvaluate {
+        dependencies {
+            implementation(project(':dailyquest_domain'))
+        }
+        test {
+            dependsOn(':dailyquest_domain:test')
+        }
+    }
+}

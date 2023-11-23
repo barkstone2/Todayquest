@@ -11,7 +11,6 @@ on:
 env:
   JAVA_PATH: /home/runner/jdk
   GRADLE_USER_HOME: /home/runner/gradle
-  GRADLE_BUILD_SCRIPT_HASH: ${{ hashFiles('./build.gradle', './dailyquest_batch/build.gradle', './dailyquest_domain/build.gradle') }}
 
 run-name: '[빌드 & 배포] For "${{ github.event.head_commit.message }}"'
 
@@ -59,7 +58,7 @@ jobs:
         id: gradle-dependency-cache
         uses: actions/cache@v3
         with:
-          key: gradle-dependency-${{ env.GRADLE_BUILD_SCRIPT_HASH }}
+          key: gradle-dependency-${{ hashFiles('./build.gradle', './dailyquest_batch/build.gradle', './dailyquest_domain/build.gradle') }}
           path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 빌드
         run: |

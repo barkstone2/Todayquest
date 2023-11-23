@@ -4,8 +4,12 @@ on:
   push:
     branches:
       - develop
-    paths-ignore:
-      - 'dailyquest_web/**'
+    paths:
+      - 'dailyquest_batch/**'
+      - 'dailyquest_domain/**'
+      - 'dailyquest_elastic/**'
+      - '*.gradle'
+      - '.github/workflows/batch-**'
 
 env:
   JAVA_PATH: /home/runner/jdk
@@ -68,7 +72,7 @@ jobs:
         id: gradle-dependency-cache
         uses: actions/cache@v3
         with:
-          key: gradle-dependency-${{ hashFiles('./build.gradle', './dailyquest_batch/build.gradle', './dailyquest_domain/build.gradle') }}
+          key: gradle-dependency-${{ hashFiles('./build.gradle', './dailyquest_batch/build.gradle', './dailyquest_domain/build.gradle', './dailyquest_elastic/build.gradle') }}
           path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 테스트
         run: |

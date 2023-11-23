@@ -2,7 +2,10 @@ package dailyquest.batch.job
 
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestLog
+import dailyquest.quest.entity.QuestState
 import dailyquest.quest.repository.QuestLogRepository
+import dailyquest.search.document.QuestDocument
+import dailyquest.search.repository.QuestIndexRepository
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.annotation.AfterWrite
 import org.springframework.batch.core.annotation.OnProcessError
@@ -14,12 +17,29 @@ import org.springframework.stereotype.Component
 @Component
 class BatchQuestFailStepListener(
     private val questLogRepository: QuestLogRepository,
+    private val questIndexRepository: QuestIndexRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     @AfterWrite
-    fun saveQuestLog(items : Chunk<Quest>) {
-        questLogRepository.saveAll(items.items.map(::QuestLog))
+    fun afterWrite(items : Chunk<Quest>) {
+        val questLogList = mutableListOf<QuestLog>();
+        val documentList = mutableListOf<QuestDocument>();
+        for (item in items.items) {
+            questLogList.add(QuestLog(item))
+            documentList.add(QuestDocument(
+                item.id,
+                item.title,
+                item.description,
+                item.detailQuests.map { it.title }.toList(),
+                item.user.id,
+                QuestState.FAIL.name,
+                item.createdDate
+            ))
+        }
+
+        questLogRepository.saveAll(questLogList)
+        questIndexRepository.saveAll(documentList)
     }
 
     @OnReadError

@@ -3,6 +3,7 @@ package dailyquest.user.controller
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import dailyquest.common.CustomRedisContainer
 import dailyquest.common.ResponseData
 import dailyquest.context.IntegrationTestContextBaseConfig
 import dailyquest.context.RedisTestContextConfig
@@ -16,10 +17,7 @@ import dailyquest.user.repository.UserRepository
 import dailyquest.user.service.UserService
 import jakarta.servlet.http.Cookie
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
@@ -38,8 +36,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.filter.CharacterEncodingFilter
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalTime
 
+@Testcontainers
 @Suppress("DEPRECATION")
 @DisplayName("유저 API 컨트롤러 통합 테스트")
 @SpringBootTest(
@@ -62,6 +63,16 @@ class UserControllerTest @Autowired constructor(
     companion object {
         const val SERVER_ADDR = "http://localhost:"
         const val URI_PREFIX = "/api/v1/users"
+
+        @JvmStatic
+        @Container
+        val redis = CustomRedisContainer()
+
+        @BeforeAll
+        @JvmStatic
+        fun initRedis() {
+            redis.initRedis()
+        }
     }
 
     @LocalServerPort

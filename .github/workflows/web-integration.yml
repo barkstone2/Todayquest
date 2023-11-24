@@ -31,20 +31,9 @@ jobs:
           MYSQL_PASSWORD: sa
         ports:
           - 3306:3306
-      redis:
-        image: redis:7.0
-        ports:
-          - 6379:6379
     steps:
       - name: 리포지토리 체크아웃
         uses: actions/checkout@v3
-
-      - name: 레디스 초기 데이터 셋업
-        run: |
-          sudo apt-get update
-          sudo apt-get install redis-tools
-          chmod +x ./dailyquest_web/script/redis_init.sh
-          ./dailyquest_web/script/redis_init.sh
 
       - id: java-checksum-setup
         name: 자바 캐시용 체크섬 셋업

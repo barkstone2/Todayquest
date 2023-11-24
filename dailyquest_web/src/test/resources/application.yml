@@ -23,6 +23,7 @@ spring:
   data:
     redis:
       database: 1
+      port: 6378
 logging:
   level:
     root: info

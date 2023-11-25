@@ -110,14 +110,16 @@ class QuestRepositoryUnitTest {
         @ParameterizedTest(name = "{0} 값이 인자로 주어지면 {0} 상태의 퀘스트만 조회된다")
         fun `퀘스트 타입별 조회`(state: QuestState) {
             //given
+            val prevDate = LocalDateTime.now()
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN))
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN))
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN))
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN))
+            val nextDate = LocalDateTime.now()
 
             //when
-            val questsList = questRepository.getCurrentQuests(userInfo.id, state)
+            val questsList = questRepository.getCurrentQuests(userInfo.id, state, prevDate, nextDate)
 
             //then
             assertThat(questsList).allMatch { quest -> quest.state == state }
@@ -130,19 +132,46 @@ class QuestRepositoryUnitTest {
         @ParameterizedTest(name = "userId {0} 값이 들어오면 {0}번 유저의 퀘스트만 조회된다")
         fun `퀘스트 유저별 조회`(userId: Long) {
             //given
+            val prevDate = LocalDateTime.now()
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
 
             questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
             questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
             questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val nextDate = LocalDateTime.now()
 
             //when
-            val questsList = questRepository.getCurrentQuests(userId, QuestState.PROCEED)
+            val questsList = questRepository.getCurrentQuests(userId, QuestState.PROCEED, prevDate, nextDate)
 
             //then
             assertThat(questsList).allMatch { quest -> quest.user.id == userId }
         }
+
+        @DisplayName("조회 날짜 범위 사이에 등록된 퀘스트만 조회된다")
+        @Test
+        fun `조회 기간 테스트`() {
+            //given
+            val prevDate = LocalDateTime.now()
+            val mustContainList = listOf(
+                questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)),
+                questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
+            )
+            val nextDate = LocalDateTime.now()
+            val mustNotContainList = listOf(
+                questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)),
+                questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)),
+                questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
+            )
+
+            //when
+            val questsList = questRepository.getCurrentQuests(userInfo.id, QuestState.PROCEED, prevDate, nextDate)
+
+            //then
+            assertThat(questsList).containsAll(mustContainList)
+            assertThat(questsList).doesNotContainAnyElementsOf(mustNotContainList)
+        }
+
     }
 
 

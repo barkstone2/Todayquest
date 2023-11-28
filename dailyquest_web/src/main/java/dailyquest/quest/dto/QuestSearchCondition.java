@@ -29,6 +29,6 @@ public record QuestSearchCondition(
     }
 
     public boolean isKeywordSearch() {
-        return Objects.nonNull(keywordType) && Objects.nonNull(keyword);
+        return Objects.nonNull(keywordType) && Objects.nonNull(keyword) && !keyword.isBlank();
     }
 }

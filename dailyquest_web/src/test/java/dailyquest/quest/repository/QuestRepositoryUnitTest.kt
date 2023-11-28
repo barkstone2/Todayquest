@@ -73,7 +73,7 @@ class QuestRepositoryUnitTest {
             val questsList = questRepository.getSearchedQuests(userInfo.id, listOfQuestIds, Pageable.ofSize(100))
 
             //then
-            assertThat(questsList).containsExactly(savedQuest1, savedQuest2, savedQuest3)
+            assertThat(questsList).containsExactlyInAnyOrder(savedQuest1, savedQuest2, savedQuest3)
             assertThat(questsList).doesNotContain(savedQuest4, savedQuest5)
             assertThat(questsList).hasSize(3)
         }
@@ -97,6 +97,25 @@ class QuestRepositoryUnitTest {
 
             //then
             assertThat(questsList).allMatch { quest -> quest.user.id == userId }
+        }
+
+        @DisplayName("ID 역순으로 정렬되어 조회된다")
+        @Test
+        fun getQuestsOrderByIdDesc() {
+            //given
+            val savedQuest1 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val savedQuest2 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN))
+            val savedQuest3 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN))
+            val savedQuest4 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN))
+            val savedQuest5 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN))
+
+            val listOfQuestIds = listOf(savedQuest5.id, savedQuest1.id, savedQuest4.id, savedQuest2.id, savedQuest3.id)
+
+            //when
+            val questsList = questRepository.getSearchedQuests(userInfo.id, listOfQuestIds, Pageable.ofSize(100))
+
+            //then
+            assertThat(questsList).containsExactly(savedQuest5, savedQuest4, savedQuest3, savedQuest2, savedQuest1)
         }
 
     }
@@ -275,7 +294,7 @@ class QuestRepositoryUnitTest {
                 questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(1000))
 
             //then
-            assertThat(findQuests).containsExactlyElementsOf(savedQuest)
+            assertThat(findQuests).containsExactlyInAnyOrderElementsOf(savedQuest)
             assertThat(findQuests).hasSize(savedQuest.size)
         }
 
@@ -419,6 +438,30 @@ class QuestRepositoryUnitTest {
             assertThat(result.content).hasSize(2)
             assertThat(result.content).allMatch { it.createdDate?.isAfter(date1) == true && it.createdDate?.isBefore(date4) == true }
         }
+
+        @DisplayName("ID 역순으로 정렬된 상태의 퀘스트가 조회된다")
+        @Test
+        fun `ID 역순으로 정렬된 상태의 퀘스트가 조회된다`() {
+            //given
+            val savedQuest = mutableListOf<Quest>();
+
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN)).let { savedQuest.add(it) }
+
+            val searchCondition = QuestSearchCondition(null, null, null, null, null, null)
+
+            //when
+            val findQuests =
+                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(1000))
+
+            //then
+            assertThat(findQuests).containsExactlyElementsOf(savedQuest.reversed())
+            assertThat(findQuests).hasSize(savedQuest.size)
+        }
+
     }
 
 }

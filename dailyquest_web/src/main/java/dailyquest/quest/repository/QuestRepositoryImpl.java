@@ -60,6 +60,7 @@ public class QuestRepositoryImpl implements QuestRepositoryCustom {
                 .where(wherePredicate)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
+                .orderBy(quest.id.desc())
                 .fetch();
 
         Long total = query.select(quest.count())

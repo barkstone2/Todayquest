@@ -1,6 +1,7 @@
 package dailyquest.status.controller;
 
 import dailyquest.common.ResponseData;
+import dailyquest.common.TimeUtilKt;
 import dailyquest.quest.dto.QuestLogSearchCondition;
 import dailyquest.quest.dto.QuestStatisticsResponse;
 import dailyquest.quest.service.QuestLogService;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.function.Function;
 
 @Validated
 @Slf4j
@@ -34,8 +36,15 @@ public class StatusApiController {
     ) {
         Map<LocalDate, QuestStatisticsResponse> questStatistic = questLogService.getQuestStatistic(principal.getId(), questLogSearchCondition);
 
-        StatusResponse statusResponse = new StatusResponse(questStatistic);
+        LocalDate selectedDate = questLogSearchCondition.getSelectedDate();
+        Function<LocalDate, LocalDate> dateKeyTransformFunction =
+            switch (questLogSearchCondition.getSearchType()) {
+                case WEEKLY -> TimeUtilKt::firstDayOfWeek;
+                case MONTHLY -> TimeUtilKt::firstDayOfMonth;
+                default -> LocalDate::from;
+            };
 
+        StatusResponse statusResponse = new StatisticsResponse(questStatistic, dateKeyTransformFunction.apply(selectedDate));
         return ResponseEntity.ok(ResponseData.of(statusResponse));
     }
 }

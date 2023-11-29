@@ -6,5 +6,6 @@ import java.time.LocalDate;
 import java.util.Map;
 
 public record StatusResponse(
-    Map<LocalDate, QuestStatisticsResponse> questStatistics
+        Map<LocalDate, QuestStatisticsResponse> questStatistics,
+        LocalDate selectedDate
 ) {}

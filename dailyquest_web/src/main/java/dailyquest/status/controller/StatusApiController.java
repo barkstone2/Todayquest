@@ -6,6 +6,7 @@ import dailyquest.quest.dto.QuestLogSearchCondition;
 import dailyquest.quest.dto.QuestStatisticsResponse;
 import dailyquest.quest.service.QuestLogService;
 import dailyquest.status.dto.StatisticsResponse;
+import dailyquest.status.dto.StatusResponse;
 import dailyquest.user.dto.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,14 @@ import java.util.function.Function;
 public class StatusApiController {
 
     private final QuestLogService questLogService;
+
+    @GetMapping("")
+    public ResponseEntity<ResponseData<StatusResponse>> getStats(
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        StatusResponse totalStatistics = questLogService.getTotalStatistics(principal.getId());
+        return ResponseEntity.ok(ResponseData.of(totalStatistics));
+    }
 
     @GetMapping("/{selectedDate}")
     public ResponseEntity<ResponseData<StatisticsResponse>> getStatistics(

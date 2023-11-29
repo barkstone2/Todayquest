@@ -6,6 +6,7 @@ import dailyquest.quest.dto.QuestStatisticsResponse;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestLog;
 import dailyquest.quest.repository.QuestLogRepository;
+import dailyquest.status.dto.StatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +56,10 @@ public class QuestLogService {
             }
         );
         return statisticsMap;
+    }
+
+    public StatusResponse getTotalStatistics(Long userId) {
+        return questLogRepository.getTotalStatisticsOfUser(userId);
     }
 
 }

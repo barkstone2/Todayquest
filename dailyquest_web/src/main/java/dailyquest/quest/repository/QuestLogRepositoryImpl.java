@@ -9,6 +9,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import dailyquest.quest.dto.QuestLogSearchCondition;
 import dailyquest.quest.dto.QuestStatisticsResponse;
 import dailyquest.quest.entity.QuestState;
+import dailyquest.status.dto.StatusResponse;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static dailyquest.quest.entity.QQuestLog.questLog;
 
@@ -77,6 +79,36 @@ public class QuestLogRepositoryImpl implements QuestLogRepositoryCustom {
         });
 
         return groupedQuestLogs;
+    }
+
+    @Override
+    public StatusResponse getTotalStatisticsOfUser(Long userId) {
+
+        List<Tuple> fetch = query
+                .select(questLog.state, questLog.count())
+                .from(questLog)
+                .where(questLog.userId.eq(userId),
+                        questLog.state.eq(QuestState.DELETE).not())
+                .groupBy(questLog.state)
+                .fetch();
+
+        Long registeredCount = 0L;
+        Long completedCount = 0L;
+        Long discardedCount = 0L;
+        Long failedCount = 0L;
+
+        for (Tuple tuple : fetch) {
+            QuestState questState = tuple.get(questLog.state);
+            Long count = tuple.get(questLog.count());
+            switch (Objects.requireNonNull(questState)) {
+                case COMPLETE -> completedCount += count;
+                case DISCARD -> discardedCount += count;
+                case FAIL -> failedCount += count;
+            }
+            registeredCount += count;
+        }
+
+        return new StatusResponse(registeredCount, completedCount, discardedCount, failedCount);
     }
 
 }

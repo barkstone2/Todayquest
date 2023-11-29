@@ -5,7 +5,7 @@ import dailyquest.common.TimeUtilKt;
 import dailyquest.quest.dto.QuestLogSearchCondition;
 import dailyquest.quest.dto.QuestStatisticsResponse;
 import dailyquest.quest.service.QuestLogService;
-import dailyquest.status.dto.StatusResponse;
+import dailyquest.status.dto.StatisticsResponse;
 import dailyquest.user.dto.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class StatusApiController {
     private final QuestLogService questLogService;
 
     @GetMapping("/{selectedDate}")
-    public ResponseEntity<ResponseData<StatusResponse>> getStatus(
+    public ResponseEntity<ResponseData<StatisticsResponse>> getStatistics(
             QuestLogSearchCondition questLogSearchCondition,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
@@ -44,7 +44,7 @@ public class StatusApiController {
                 default -> LocalDate::from;
             };
 
-        StatusResponse statusResponse = new StatisticsResponse(questStatistic, dateKeyTransformFunction.apply(selectedDate));
-        return ResponseEntity.ok(ResponseData.of(statusResponse));
+        StatisticsResponse statisticsResponse = new StatisticsResponse(questStatistic, dateKeyTransformFunction.apply(selectedDate));
+        return ResponseEntity.ok(ResponseData.of(statisticsResponse));
     }
 }

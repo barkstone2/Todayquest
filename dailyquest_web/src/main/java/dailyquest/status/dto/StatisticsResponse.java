@@ -5,7 +5,7 @@ import dailyquest.quest.dto.QuestStatisticsResponse;
 import java.time.LocalDate;
 import java.util.Map;
 
-public record StatusResponse(
+public record StatisticsResponse(
         Map<LocalDate, QuestStatisticsResponse> questStatistics,
         LocalDate selectedDate
 ) {}

@@ -2,20 +2,14 @@ name: 배치 애플리케이션 빌드 & 배포
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'dailyquest_batch/**'
-      - 'dailyquest_domain/**'
-      - 'dailyquest_elastic/**'
-      - '*.gradle'
-      - '.github/workflows/batch-**'
+    tags:
+      - batch-v*
 
 env:
   JAVA_PATH: /home/runner/jdk
   GRADLE_USER_HOME: /home/runner/gradle
 
-run-name: '[빌드 & 배포] For "${{ github.event.head_commit.message }}"'
+run-name: '[빌드 & 배포] For "${{ github.ref_name }}"'
 
 jobs:
   build-and-delivery:
@@ -74,8 +68,8 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: 도커 이미지 빌드 & 푸쉬
         run: |
-          docker build -t barkstone2/dailyquest-batch:${{ github.sha }} ./dailyquest_batch/
-          docker push barkstone2/dailyquest-batch:${{ github.sha }}
+          docker build -t barkstone2/dailyquest-batch:${GITHUB_REF#refs/tags/batch-} ./dailyquest_batch/
+          docker push barkstone2/dailyquest-batch:${GITHUB_REF#refs/tags/batch-}
 
   deployment:
     name: EC2 배포
@@ -91,19 +85,19 @@ jobs:
       - name: 버전 정보 생성
         run: |
           cd deploy
-          echo ${{ github.sha }} > version.txt
+          echo ${{ github.ref_name }} > version.txt
       - name: CodeDeploy 푸쉬
         run: |
           aws deploy push \
             --application-name dailyquest-batch \
-            --s3-location s3://dailyquest-store/deploy/batch/dailyquest-batch-${{ github.sha }}.tar \
+            --s3-location s3://dailyquest-store/deploy/batch/dailyquest-batch-${GITHUB_REF#refs/tags/batch-}.tar \
             --source ./dailyquest_batch/deploy
       - name: CodeDeploy 배포
         run: |
           aws deploy create-deployment \
             --application-name dailyquest-batch \
             --deployment-group-name dailyquest-batch-group \
-            --s3-location bucket=dailyquest-store,key=deploy/batch/dailyquest-batch-${{ github.sha}}.tar,bundleType=zip
+            --s3-location bucket=dailyquest-store,key=deploy/batch/dailyquest-batch-${GITHUB_REF#refs/tags/batch-}.tar,bundleType=zip
 
   fail-slack-message:
     name: 파이프라인 실패 알림

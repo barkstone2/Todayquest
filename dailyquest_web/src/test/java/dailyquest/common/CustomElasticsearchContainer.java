@@ -40,7 +40,7 @@ public class CustomElasticsearchContainer extends ElasticsearchContainer {
                                 .build());
 
         setImage(image);
-        this.withCopyFileToContainer(MountableFile.forClasspathResource("/test-keystore/test-http.p12", MountableFile.DEFAULT_FILE_MODE), KEYSTORE_PATH_DEST);
+        this.withCopyToContainer(MountableFile.forClasspathResource("/test-keystore/test-http.p12", MountableFile.DEFAULT_FILE_MODE), KEYSTORE_PATH_DEST);
         this.withPassword(USER_PASSWORD);
 
         addFixedExposedPort(9205, 9200);

@@ -18,6 +18,6 @@ public interface QuestRepository extends JpaRepository<Quest, Long>, QuestReposi
     @Query("select q from Quest q where q.user.id = :userId and q.id in :searchedIds order by q.id desc")
     Page<Quest> getSearchedQuests(@Param("userId") Long userId, @Param("searchedIds") List<Long> searchedIds, Pageable pageable);
 
-    @Query("select q from Quest q where q.user.id = :userId and q.state= :state and q.createdDate between :prevReset and :nextReset")
+    @Query("select q from Quest q where q.user.id = :userId and q.state= :state and (q.createdDate between :prevReset and :nextReset or q.deadLine > now())")
     List<Quest> getCurrentQuests(@Param("userId") Long userId, @Param("state") QuestState state, @Param("prevReset") LocalDateTime prevReset, @Param("nextReset") LocalDateTime nextReset);
 }

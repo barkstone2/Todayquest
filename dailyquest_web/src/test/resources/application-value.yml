@@ -1,0 +1,37 @@
+quest:
+  page:
+    size: 20
+
+security:
+  url:
+    allowed_url: ["/", "/css/**", "/js/**", "/image/**", "/error", "/api/v1/auth/**"]
+    admin_url: ["/admin/**"]
+    logout_url: "/api/v1/auth/logout"
+  origin:
+    allowed_origin: ["http://localhost:9090", "http://dailyquest.mooo.com"]
+
+spring:
+  jwt:
+    secret: and0LWF1dGhlbnRpY2F0aW9uLWZpbHRlci10ZXN0LXNlY3JldC1rZXQtMDAwMA==
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID:test-client-id}
+
+redis:
+  key:
+    exp_table: "et"
+    nickname_prefix: "npr"
+    nickname_postfix: "npo"
+    settings: "s"
+    quest_clear_exp: "qce"
+    quest_clear_gold: "qcg"
+    max_reward_count: "mrc"
+
+elastic:
+  username: ${ELASTIC_USERNAME:elastic}
+  password: ${ELASTIC_PASSWORD:changeit}
+  host: ${ELASTIC_HOST:localhost}
+  port: ${ELASTIC_PORT:9205}
+  truststore:
+    location: ${ELASTIC_TRUSTSTORE_LOCATION:src/test/resources/test-keystore/test-ca.p12}
+    password: ${ELASTIC_TRUSTSTORE_PASSWORD:changeit}

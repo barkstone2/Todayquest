@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+
+    /* kotlin */
+    id 'org.jetbrains.kotlin.jvm'
+    id "org.jetbrains.kotlin.kapt"
+    id "org.jetbrains.kotlin.plugin.jpa"
+    id "org.jetbrains.kotlin.plugin.spring"
+}
+
+dependencies {
+    // 엘라스틱서치 의존성
+    api('org.springframework.boot:spring-boot-starter-data-elasticsearch')
+}
+
+bootJar {
+    enabled = false
+}

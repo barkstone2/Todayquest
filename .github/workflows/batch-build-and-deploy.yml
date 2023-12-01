@@ -1,0 +1,122 @@
+name: 배치 애플리케이션 빌드 & 배포
+
+on:
+  push:
+    tags:
+      - batch-v*
+
+env:
+  JAVA_PATH: /home/runner/jdk
+  GRADLE_USER_HOME: /home/runner/gradle
+
+run-name: '[빌드 & 배포] For "${{ github.ref_name }}"'
+
+jobs:
+  build-and-delivery:
+    name: 그래들 빌드 & 푸쉬 도커 이미지
+    runs-on: ubuntu-latest
+    steps:
+      - id: java-checksum-setup
+        name: 자바 캐시용 체크섬 셋업
+        run: |
+          mkdir -p ${{ env.JAVA_PATH }}
+          echo "java_checksum=$(curl https://corretto.aws/downloads/latest_checksum/amazon-corretto-17-x64-linux-jdk.tar.gz)" >> "$GITHUB_OUTPUT"
+      - id: java-cache-check
+        name: 캐싱된 자바 확인
+        uses: actions/cache@v3
+        with:
+          key: java-corretto-17-${{ steps.java-checksum-setup.outputs.java_checksum }}
+          path: ${{ env.JAVA_PATH }}
+      - id: jdk-install
+        if: ${{ !steps.java-cache-check.outputs.cache-hit }}
+        name: 자바 설치
+        run: |
+          mkdir -p ${{ env.JAVA_PATH }}
+          wget -q https://corretto.aws/downloads/latest/amazon-corretto-17-x64-linux-jdk.tar.gz
+          tar -xzvf *-jdk.tar.gz -C ${{ env.JAVA_PATH }}
+      - name: 자바 환경변수 세팅
+        run: |
+          echo "JAVA_HOME=$(find ${{ env.JAVA_PATH }} -type d -name '*corretto-17*')" >> $GITHUB_ENV
+      - name: 리포지토리 체크아웃
+        uses: actions/checkout@v3
+
+      - name: 그래들 래퍼 버전 셋업
+        id: gradle-version-setup
+        run: |
+          mkdir -p ${{ env.GRADLE_USER_HOME }}
+          echo "gradle_version=$(grep 'distributionUrl' ./gradle/wrapper/gradle-wrapper.properties | sed -n 's/.*distributions\/\(gradle-[^-]*-[^-]*\).*/\1/p')" >> $GITHUB_OUTPUT
+      - name: 그래들 래퍼 캐시 체크
+        id: gradle-wrapper-cache
+        uses: actions/cache@v3
+        with:
+          key: gradle-wrapper-${{ steps.gradle-version-setup.outputs.gradle_version }}
+          path: ${{ env.GRADLE_USER_HOME }}/wrapper
+      - name: 그래들 디펜던시 캐시 체크
+        id: gradle-dependency-cache
+        uses: actions/cache@v3
+        with:
+          key: gradle-dependency-${{ hashFiles('./build.gradle', './dailyquest_batch/build.gradle', './dailyquest_domain/build.gradle', './dailyquest_elastic/build.gradle') }}
+          path: ${{ env.GRADLE_USER_HOME }}/caches
+      - name: 그래들 빌드
+        run: |
+          ./gradlew dailyquest_batch:build -x test
+
+      - name: 도커 허브 로그인
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: 도커 이미지 빌드 & 푸쉬
+        run: |
+          docker build -t barkstone2/dailyquest-batch:${GITHUB_REF#refs/tags/batch-} ./dailyquest_batch/
+          docker push barkstone2/dailyquest-batch:${GITHUB_REF#refs/tags/batch-}
+
+  deployment:
+    name: EC2 배포
+    runs-on: ubuntu-latest
+    needs: build-and-delivery
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_DEPLOY_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_DEPLOY_SECRET_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-2
+    steps:
+      - name: 리포지토리 체크아웃
+        uses: actions/checkout@v3
+      - name: 버전 정보 생성
+        run: |
+          cd ./dailyquest_batch/deploy
+          echo ${GITHUB_REF#refs/tags/batch-} > version.txt
+      - name: CodeDeploy 푸쉬
+        run: |
+          aws deploy push \
+            --application-name dailyquest-batch \
+            --s3-location s3://dailyquest-store/deploy/batch/dailyquest-batch-${GITHUB_REF#refs/tags/batch-}.tar \
+            --source ./dailyquest_batch/deploy
+      - name: CodeDeploy 배포
+        run: |
+          aws deploy create-deployment \
+            --application-name dailyquest-batch \
+            --deployment-group-name dailyquest-batch-group \
+            --s3-location bucket=dailyquest-store,key=deploy/batch/dailyquest-batch-${GITHUB_REF#refs/tags/batch-}.tar,bundleType=zip
+
+  fail-slack-message:
+    name: 파이프라인 실패 알림
+    runs-on: ubuntu-latest
+    needs: deployment
+    if: failure()
+    steps:
+      - name: 실패 메시지 가공
+        id: create-message
+        run: |
+          MESSAGE=$(echo "${{ github.event.head_commit.message }}" | head -n 1)
+          echo "fail_message=$MESSAGE" >> "$GITHUB_OUTPUT"
+      - name: 슬랙 메시지 전송
+        id: slack
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "<!channel> ❗️[${{ github.workflow }}] Failure: For \"${{ steps.create-message.outputs.fail_message }}\""
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

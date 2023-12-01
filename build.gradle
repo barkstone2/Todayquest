@@ -1,107 +1,88 @@
-buildscript {
-	ext {
-		queryDslVersion = "5.0.0";
-	}
-}
-
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.0.2'
-	id 'io.spring.dependency-management' version '1.1.0'
+    id 'java'
+    id 'org.springframework.boot' version '3.0.2'
+    id 'io.spring.dependency-management' version '1.1.0'
 
-	/* kotlin */
-	id 'org.jetbrains.kotlin.jvm' version '1.8.0'
-	id "org.jetbrains.kotlin.kapt" version "1.8.0"
-	id "org.jetbrains.kotlin.plugin.jpa" version "1.8.0"
-	id "org.jetbrains.kotlin.plugin.spring" version "1.8.0"
+    /* kotlin */
+    id 'org.jetbrains.kotlin.jvm' version '1.8.0'
+    id "org.jetbrains.kotlin.kapt" version "1.8.0"
+    id "org.jetbrains.kotlin.plugin.jpa" version "1.8.0"
+    id "org.jetbrains.kotlin.plugin.spring" version "1.8.0"
 }
 
-group = 'todayquest'
-sourceCompatibility = '17'
-
-repositories {
-	mavenCentral()
+ext {
+    queryDslVersion = '5.0.0'
+    testContainersVersion = '1.19.1'
 }
 
-dependencies {
-	implementation ('org.springframework.boot:spring-boot-starter-data-jpa') {
-		exclude group: 'org.hibernate.orm', module: 'hibernate-core'
-	}
-	implementation('org.hibernate.orm:hibernate-core:6.1.7.Final')
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-devtools'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-	implementation('org.springframework.boot:spring-boot-starter-data-redis')
+allprojects {
+    afterEvaluate {
+        group = 'dailyquest'
 
-	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
-	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+        repositories {
+            mavenCentral()
+        }
 
-	// Google Id Token 처리용
-	implementation 'com.google.api-client:google-api-client:2.2.0'
+        test.useJUnitPlatform()
 
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'mysql:mysql-connector-java'
-	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-	annotationProcessor 'org.projectlombok:lombok'
-	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.8.0'
-
-	testRuntimeOnly 'com.h2database:h2'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.mockito:mockito-inline:3.6.0'
-	testImplementation 'com.google.guava:guava:31.1-jre'
-	testCompileOnly 'org.projectlombok:lombok'
-	testAnnotationProcessor 'org.projectlombok:lombok'
-
-	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta"
-
-	/* kotlin */
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-	implementation "org.jetbrains.kotlin:kotlin-reflect"
-	testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
-	testImplementation "org.mockito.kotlin:mockito-kotlin:4.1.0"
-	testImplementation('io.mockk:mockk:1.13.4')
-	kapt "com.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
+        dependencies {
+            // 테스트 의존성
+            testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        }
+    }
 }
 
+subprojects {
+    afterEvaluate {
+        dependencies {
+            // 롬복 의존성
+            compileOnly 'org.projectlombok:lombok'
+            annotationProcessor 'org.projectlombok:lombok'
 
-allOpen {
-	annotation("jakarta.persistence.Entity")
-	annotation("jakarta.persistence.Embeddable")
-	annotation("jakarta.persistence.MappedSuperclass")
+            testCompileOnly 'org.projectlombok:lombok'
+            testAnnotationProcessor 'org.projectlombok:lombok'
+
+            // 모킹
+            testImplementation 'org.mockito:mockito-inline:3.6.0'
+
+            // 코틀린 모킹
+            testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+        }
+
+        kotlin {
+            jvmToolchain(17)
+        }
+
+        kapt {
+            keepJavacAnnotationProcessors = true
+        }
+
+        tasks.withType(Jar).configureEach {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
+    }
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+project(':dailyquest_web') {
+    afterEvaluate {
+        dependencies {
+            implementation(project(':dailyquest_domain'))
+            implementation(project(':dailyquest_elastic'))
+        }
+        test {
+            dependsOn(':dailyquest_domain:test')
+        }
+    }
 }
 
-tasks.withType(Jar).configureEach {
-	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-jar {
-	enabled = false
-}
-test {
-	useJUnitPlatform()
-}
-
-kapt {
-	keepJavacAnnotationProcessors = true
-}
-
-compileKotlin {
-	kotlinOptions {
-		jvmTarget = "17"
-	}
-}
-compileTestKotlin {
-	kotlinOptions {
-		jvmTarget = "17"
-	}
+project(':dailyquest_batch') {
+    afterEvaluate {
+        dependencies {
+            implementation(project(':dailyquest_domain'))
+            implementation(project(':dailyquest_elastic'))
+        }
+        test {
+            dependsOn(':dailyquest_domain:test')
+        }
+    }
 }

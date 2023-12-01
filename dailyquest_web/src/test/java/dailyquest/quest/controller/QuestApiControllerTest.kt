@@ -333,7 +333,7 @@ class QuestApiControllerTest @Autowired constructor(
             //given
             val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
-            for (pageNo in 0..1) {
+            for (pageNo in 1 downTo 0) {
                 for (j in 1..pageSize) {
                     questRepository.save(Quest("$pageNo", "1", testUser, pageNo.toLong(), QuestState.PROCEED, QuestType.MAIN))
                 }
@@ -371,7 +371,7 @@ class QuestApiControllerTest @Autowired constructor(
             //given
             val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
-            for (pageNo in 0..1) {
+            for (pageNo in 1 downTo 0) {
                 for (j in 1..pageSize) {
                     questRepository.save(Quest("$pageNo", "1", testUser, pageNo.toLong(), QuestState.PROCEED, QuestType.MAIN))
                 }

@@ -152,5 +152,26 @@ class TimeUtilUnitTest {
     }
 
 
+    @DisplayName("test")
+    @Test
+    fun `test`() {
+        //given
+        val date1 = LocalDate.of(2023, 1, 2)
+        val date2 = LocalDate.of(2023, 4, 2)
+        val date3 = LocalDate.of(2023, 4, 3)
+
+        //when
+        val firstDayOfQuarter1 = date1.firstDayOfQuarter()
+        val firstDayOfQuarter2 = date2.firstDayOfQuarter()
+        val firstDayOfQuarter3 = date3.firstDayOfQuarter()
+
+        //then
+        println(firstDayOfQuarter1)
+        println(firstDayOfQuarter2)
+        println(firstDayOfQuarter3)
+        println(date3.plusWeeks(13).firstDayOfQuarter())
+        println(date3.plusWeeks(26).firstDayOfQuarter())
+    }
+
 
 }

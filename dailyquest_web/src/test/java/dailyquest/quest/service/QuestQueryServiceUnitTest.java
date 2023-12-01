@@ -1,10 +1,11 @@
 package dailyquest.quest.service;
 
 import dailyquest.common.MessageUtil;
-import dailyquest.quest.dto.QuestResponse;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestRepository;
+import dailyquest.user.entity.UserInfo;
+import dailyquest.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,10 +28,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class QuestQueryServiceUnitTest {
 
-    @InjectMocks
-    QuestQueryService questQueryService;
-    @Mock
-    QuestRepository questRepository;
+    @InjectMocks QuestQueryService questQueryService;
+    @Mock QuestRepository questRepository;
+    @Mock UserRepository userRepository;
     MockedStatic<MessageUtil> messageUtil;
 
     @BeforeEach
@@ -48,6 +49,74 @@ public class QuestQueryServiceUnitTest {
     @Nested
     class CurrentQuestTest {
 
+        @DisplayName("현재 시간이 오늘의 리셋 타임보다 나중이면, 오늘의 리셋 타임이 이전 리셋 타임으로 설정된다")
+        @Test
+        public void setResetTimeOfTodayToPrevIfCurrentTimeIsAfterThan() throws Exception {
+            //given
+            Long userId = 1L;
+            QuestState state = QuestState.PROCEED;
+            List<Quest> list = List.of();
+            UserInfo mockUser = mock(UserInfo.class);
+
+            LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+            LocalDateTime resetTimeOfToday = now.minusHours(1L);
+
+            doReturn(mockUser).when(userRepository).getReferenceById(eq(userId));
+            doReturn(resetTimeOfToday.getHour()).when(mockUser).getResetHour();
+            doReturn(list).when(questRepository).getCurrentQuests(any(), any(), any(), any());
+
+            //when
+            questQueryService.getCurrentQuests(userId, state);
+
+            //then
+            verify(questRepository).getCurrentQuests(eq(userId), eq(state), eq(resetTimeOfToday), eq(resetTimeOfToday.plusDays(1L)));
+        }
+
+        @DisplayName("현재 시간이 오늘의 리셋 타임보다 이전이면, 오늘의 리셋 타임이 다음 리셋 타임으로 설정된다")
+        @Test
+        public void setResetTimeOfTodayToNextIfCurrentTimeIsBeforeThan() throws Exception {
+            //given
+            Long userId = 1L;
+            QuestState state = QuestState.PROCEED;
+            List<Quest> list = List.of();
+            UserInfo mockUser = mock(UserInfo.class);
+
+            LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+            LocalDateTime resetTimeOfToday = now.plusHours(1L);
+
+            doReturn(mockUser).when(userRepository).getReferenceById(eq(userId));
+            doReturn(resetTimeOfToday.getHour()).when(mockUser).getResetHour();
+            doReturn(list).when(questRepository).getCurrentQuests(any(), any(), any(), any());
+
+            //when
+            questQueryService.getCurrentQuests(userId, state);
+
+            //then
+            verify(questRepository).getCurrentQuests(eq(userId), eq(state), eq(resetTimeOfToday.minusDays(1L)), eq(resetTimeOfToday));
+        }
+
+        @DisplayName("현재 시간이 오늘의 리셋 타임과 같으면, 오늘의 리셋 타임이 이전 리셋 타임으로 설정된다")
+        @Test
+        public void setResetTimeOfTodayToPrevIfCurrentTimeIsEqualTo() throws Exception {
+            //given
+            Long userId = 1L;
+            QuestState state = QuestState.PROCEED;
+            List<Quest> list = List.of();
+            UserInfo mockUser = mock(UserInfo.class);
+
+            LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+
+            doReturn(mockUser).when(userRepository).getReferenceById(eq(userId));
+            doReturn(now.getHour()).when(mockUser).getResetHour();
+            doReturn(list).when(questRepository).getCurrentQuests(any(), any(), any(), any());
+
+            //when
+            questQueryService.getCurrentQuests(userId, state);
+
+            //then
+            verify(questRepository).getCurrentQuests(eq(userId), eq(state), eq(now), eq(now.plusDays(1L)));
+        }
+
         @DisplayName("요청 파라미터가 제대로 전달된다")
         @Test
         void parametersDeliveredProperly() {
@@ -55,14 +124,19 @@ public class QuestQueryServiceUnitTest {
             Long userId = 1L;
             QuestState state = QuestState.PROCEED;
             List<Quest> list = List.of();
+            UserInfo mockUser = mock(UserInfo.class);
 
-            doReturn(list).when(questRepository).getCurrentQuests(eq(userId), eq(state));
+            LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+
+            doReturn(mockUser).when(userRepository).getReferenceById(eq(userId));
+            doReturn(now.getHour()).when(mockUser).getResetHour();
+            doReturn(list).when(questRepository).getCurrentQuests(any(), any(), any(), any());
 
             // when
             questQueryService.getCurrentQuests(userId, state);
 
             // then
-            verify(questRepository, times(1)).getCurrentQuests(eq(userId), eq(state));
+            verify(questRepository).getCurrentQuests(eq(userId), eq(state), eq(now), eq(now.plusDays(1L)));
         }
     }
 

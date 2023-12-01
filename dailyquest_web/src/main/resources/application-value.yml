@@ -8,7 +8,7 @@ security:
     admin_url: ["/admin/**"]
     logout_url: "/api/v1/auth/logout"
   origin:
-    allowed_origin: ["http://localhost:9090", "http://dailyquest.mooo.com"]
+    allowed_origin: ["http://localhost:9090", "https://dailyquest.mooo.com"]
 
 spring:
   jwt:

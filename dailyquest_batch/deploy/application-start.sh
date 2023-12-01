@@ -2,7 +2,7 @@ CONTAINER_NAME=dailyquest-batch
 REPOSITORY=barkstone2/dailyquest-batch
 VERSION=$(cat /home/ec2-user/app/batch/version.txt)
 
-REMOVE_IMAGE=$(docker images -f "reference=$REPOSITORY" -f "before=$REPOSITORY:$VERSION" -q)
+REMOVE_IMAGE=$(docker images -f "reference=$REPOSITORY" -q)
 
 docker stop $CONTAINER_NAME
 docker rm $CONTAINER_NAME

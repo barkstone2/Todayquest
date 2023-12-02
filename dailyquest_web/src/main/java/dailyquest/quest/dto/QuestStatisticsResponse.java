@@ -11,6 +11,7 @@ public class QuestStatisticsResponse {
 
     private final LocalDate loggedDate;
 
+    private long registeredCount = 0;
     private long completeCount = 0;
     private long failCount = 0;
     private long discardCount = 0;
@@ -27,6 +28,7 @@ public class QuestStatisticsResponse {
 
     public void addStateCount(String state, long count) {
         switch (QuestState.valueOf(state)) {
+            case PROCEED -> registeredCount += count;
             case COMPLETE -> completeCount += count;
             case DISCARD -> discardCount += count;
             case FAIL -> failCount += count;

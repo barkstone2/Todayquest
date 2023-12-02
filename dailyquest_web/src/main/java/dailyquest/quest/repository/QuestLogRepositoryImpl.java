@@ -87,8 +87,7 @@ public class QuestLogRepositoryImpl implements QuestLogRepositoryCustom {
         List<Tuple> fetch = query
                 .select(questLog.state, questLog.count())
                 .from(questLog)
-                .where(questLog.userId.eq(userId),
-                        questLog.state.eq(QuestState.DELETE).not())
+                .where(questLog.userId.eq(userId))
                 .groupBy(questLog.state)
                 .fetch();
 
@@ -101,11 +100,11 @@ public class QuestLogRepositoryImpl implements QuestLogRepositoryCustom {
             QuestState questState = tuple.get(questLog.state);
             Long count = tuple.get(questLog.count());
             switch (Objects.requireNonNull(questState)) {
-                case COMPLETE -> completedCount += count;
-                case DISCARD -> discardedCount += count;
-                case FAIL -> failedCount += count;
+                case COMPLETE -> completedCount = count;
+                case DISCARD -> discardedCount = count;
+                case FAIL -> failedCount = count;
+                case PROCEED -> registeredCount = count;
             }
-            registeredCount += count;
         }
 
         return new StatusResponse(registeredCount, completedCount, discardedCount, failedCount);

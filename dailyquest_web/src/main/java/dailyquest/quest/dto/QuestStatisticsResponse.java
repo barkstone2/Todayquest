@@ -11,6 +11,7 @@ public class QuestStatisticsResponse {
 
     private final LocalDate loggedDate;
 
+    private long registeredCount = 0;
     private long completeCount = 0;
     private long failCount = 0;
     private long discardCount = 0;
@@ -27,6 +28,7 @@ public class QuestStatisticsResponse {
 
     public void addStateCount(String state, long count) {
         switch (QuestState.valueOf(state)) {
+            case PROCEED -> registeredCount += count;
             case COMPLETE -> completeCount += count;
             case DISCARD -> discardCount += count;
             case FAIL -> failCount += count;
@@ -45,22 +47,19 @@ public class QuestStatisticsResponse {
 
         if(allQuestCount == 0) return;
 
-        double ratio = (double) mainCount / allQuestCount;
-        double percent = ratio * 100;
-        typeRatio = Math.round(percent);
+        double ratio = mainCount * 100d / allQuestCount;
+        typeRatio = Math.round(ratio);
     }
 
     public void calcStateRatio() {
-        long allQuestCount = completeCount + failCount + discardCount;
+        if(registeredCount == 0) return;
 
-        if(allQuestCount == 0) return;
-
-        double ratio = (double) completeCount / allQuestCount;
-        double percent = ratio * 100;
-        stateRatio = Math.round(percent);
+        double ratio = completeCount * 100d / registeredCount;
+        stateRatio = Math.round(ratio);
     }
 
     public void combineCount(QuestStatisticsResponse other) {
+        this.registeredCount += other.registeredCount;
         this.completeCount += other.completeCount;
         this.failCount += other.failCount;
         this.discardCount += other.discardCount;

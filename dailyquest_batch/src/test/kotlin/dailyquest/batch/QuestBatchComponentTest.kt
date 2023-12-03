@@ -27,7 +27,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.TestExecutionListeners
 import org.springframework.transaction.support.TransactionTemplate
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @DisplayName("퀘스트 배치 구성 요소 테스트")
@@ -62,7 +64,6 @@ class QuestBatchComponentTest @Autowired constructor(
 
         testUser = UserInfo("testUser", "testUser", ProviderType.GOOGLE)
         anotherUser = UserInfo("anotherUser", "anotherUser", ProviderType.GOOGLE)
-        anotherUser.updateResetTime(9, LocalDateTime.now())
 
         transactionTemplate.executeWithoutResult {
             entityManager.persist(testUser)
@@ -71,36 +72,44 @@ class QuestBatchComponentTest @Autowired constructor(
         }
     }
 
-    @DisplayName("questResetReader 동작 시 resetTime이 일치하는 유저의 퀘스트만 조회된다")
+    @DisplayName("questResetReader 동작 시 오늘 resetTime 이전에 등록된 퀘스트만 조회된다")
     @Test
-    fun `questResetReader 동작 시 resetTime이 일치하는 유저의 퀘스트만 조회된다`() {
+    fun `questResetReader 동작 시 오늘 resetTime 이전에 등록된 퀘스트만 조회된다`() {
         //given
-        val mustContainList = listOf(
-            questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-            questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-            questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-        )
-        val resetTime = testUser.resetTime
-        val mustNotContainQuest = questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, null))
+        transactionTemplate.executeWithoutResult {
+            val query = entityManager
+                .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(2, testUser.id)
 
-        val jobParameters = JobParametersBuilder()
-            .addString("resetTime", resetTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
-            .toJobParameters()
+            val resetDate = LocalDate.of(2022, 12, 1)
+            val resetDateTime = LocalDateTime.of(resetDate, LocalTime.of(6, 0))
 
-        val stepExecution = MetaDataInstanceFactory.createStepExecution(jobParameters)
-        StepSynchronizationManager.register(stepExecution)
+            val datetime1 = LocalDateTime.of(resetDate, LocalTime.of(5, 59))
+            val datetime2 = LocalDateTime.of(resetDate, LocalTime.of(6, 0))
+            val datetime3 = LocalDateTime.of(resetDate, LocalTime.of(6, 1))
 
-        //when
-        val readQuests = mutableListOf<Quest>()
+            query.setParameter(1, datetime1).executeUpdate()
+            query.setParameter(1, datetime2).executeUpdate()
+            query.setParameter(1, datetime3).executeUpdate()
 
-        while (true) {
-            val quest = questResetReader.read() ?: break
-            readQuests.add(quest)
+            val jobParameters = JobParametersBuilder()
+                .addString("resetDateTime", resetDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .toJobParameters()
+
+            val stepExecution = MetaDataInstanceFactory.createStepExecution(jobParameters)
+            StepSynchronizationManager.register(stepExecution)
+
+            //when
+            val readQuests = mutableListOf<Quest>()
+
+            while (true) {
+                val quest = questResetReader.read() ?: break
+                readQuests.add(quest)
+            }
+
+            //then
+            assertThat(readQuests).noneMatch { q -> q.createdDate?.isAfter(resetDateTime) == true }
         }
-
-        //then
-        assertThat(readQuests).containsAll(mustContainList)
-        assertThat(readQuests).doesNotContain(mustNotContainQuest)
     }
 
     @DisplayName("questDeadLineReader 동작 시 deadLine이 targetDate 이전인 퀘스트만 조회된다")

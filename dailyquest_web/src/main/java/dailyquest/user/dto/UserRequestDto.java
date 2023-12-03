@@ -12,15 +12,10 @@ public class UserRequestDto {
     @Size(max = 20, message = "{nickname.size}")
     private String nickname;
 
-    private Integer resetTime;
     private Integer coreTime;
 
     public String getNickname() {
         return nickname;
-    }
-
-    public Integer getResetTime() {
-        return resetTime;
     }
 
     public Integer getCoreTime() {
@@ -34,8 +29,7 @@ public class UserRequestDto {
     public UserRequestDto() {
     }
 
-    public UserRequestDto(Integer resetTime, Integer coreTime) {
-        this.resetTime = resetTime;
+    public UserRequestDto(Integer coreTime) {
         this.coreTime = coreTime;
     }
 }

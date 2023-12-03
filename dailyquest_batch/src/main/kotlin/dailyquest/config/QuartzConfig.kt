@@ -31,7 +31,7 @@ class QuartzConfig {
             .newTrigger()
             .forJob(questResetJobDetail)
             .withIdentity("questResetTrigger")
-            .withSchedule(CronScheduleBuilder.cronSchedule("0 0 * * * ?"))
+            .withSchedule(CronScheduleBuilder.cronSchedule("0 0 6 * * ?"))
             .build()
     }
 

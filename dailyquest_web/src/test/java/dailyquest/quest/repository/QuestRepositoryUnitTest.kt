@@ -48,7 +48,6 @@ class QuestRepositoryUnitTest {
     fun init() {
         userInfo = if(userInfo.id == 0L) userRepository.save(UserInfo("", "user1", ProviderType.GOOGLE)) else userInfo
         anotherUser = if(anotherUser.id == 0L) userRepository.save(UserInfo("", "user2", ProviderType.GOOGLE)) else anotherUser
-        anotherUser.updateResetTime(9, LocalDateTime.now())
         anotherUser.updateCoreTime(0, LocalDateTime.now())
         userRepository.saveAndFlush(anotherUser)
     }
@@ -349,94 +348,98 @@ class QuestRepositoryUnitTest {
         }
 
 
-        @DisplayName("시작일이 null이 아니고 종료일이 null이면 퀘스트 등록일이 시작일 이상이 퀘스트만 조회된다")
+        @DisplayName("시작일이 null이 아니고 종료일이 null이면 퀘스트 등록일이 시작일 오전 6시와 같거나 이후인 퀘스트만 조회된다")
         @Test
-        fun `시작일이 null이 아니고 종료일이 null이면 퀘스트 등록일이 시작일 이상이 퀘스트만 조회된다`() {
+        fun `시작일이 null이 아니고 종료일이 null이면 퀘스트 등록일이 시작일 오전 6시와 같거나 이후인 퀘스트만 조회된다`() {
             //given
             val query = entityManager
                 .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
                 .setParameter(2, userInfo.id)
 
-            val time = LocalTime.of(12, 0, 0)
-            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
-            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
-            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
-            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+            val startDate = LocalDate.of(2022, 12, 1)
+            val startDateTime = LocalDateTime.of(startDate, LocalTime.of(6, 0))
 
-            query.setParameter(1, date1).executeUpdate()
-            query.setParameter(1, date2).executeUpdate()
-            query.setParameter(1, date3).executeUpdate()
-            query.setParameter(1, date4).executeUpdate()
+            val datetime1 = LocalDateTime.of(startDate, LocalTime.of(5, 59))
+            val datetime2 = LocalDateTime.of(startDate, LocalTime.of(6, 0))
+            val datetime3 = LocalDateTime.of(startDate, LocalTime.of(6, 1))
 
-            val searchCondition = QuestSearchCondition(null, null, null, null, date3, null)
+            query.setParameter(1, datetime1).executeUpdate()
+            query.setParameter(1, datetime2).executeUpdate()
+            query.setParameter(1, datetime3).executeUpdate()
+
+            val searchCondition = QuestSearchCondition(null, null, null, null, startDate, null)
 
             //when
             val result =
                 questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(100))
 
             //then
-            assertThat(result.content).hasSize(2)
-            assertThat(result.content).allMatch { it.createdDate?.isEqual(date3) == true || it.createdDate?.isAfter(date3) == true }
+            assertThat(result.content).noneMatch { it.createdDate?.isBefore(startDateTime) == true }
         }
 
-        @DisplayName("시작일이 null이고 종료일이 null이 아니면 등록일이 종료일 이하인 퀘스트만 조회된다")
+        @DisplayName("시작일이 null이고 종료일이 null이 아니면 등록일이 종료일 다음날 오전 6시와 같거나 이전인 퀘스트만 조회된다")
         @Test
-        fun `시작일이 null이고 종료일이 null이 아니면 등록일이 종료일 이하인 퀘스트만 조회된다`() {
+        fun `시작일이 null이고 종료일이 null이 아니면 등록일이 종료일 다음날 오전 6시와 같거나 이전인 퀘스트만 조회된다`() {
             //given
             val query = entityManager
                 .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
                 .setParameter(2, userInfo.id)
 
-            val time = LocalTime.of(12, 0, 0)
-            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
-            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
-            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
-            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+            val endDate = LocalDate.of(2022, 12, 1)
+            val endDateTime = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
 
-            query.setParameter(1, date1).executeUpdate()
-            query.setParameter(1, date2).executeUpdate()
-            query.setParameter(1, date3).executeUpdate()
-            query.setParameter(1, date4).executeUpdate()
+            val datetime1 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(5, 59))
+            val datetime2 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
+            val datetime3 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 1))
 
-            val searchCondition = QuestSearchCondition(null, null, null, null, null, date2)
+            query.setParameter(1, datetime1).executeUpdate()
+            query.setParameter(1, datetime2).executeUpdate()
+            query.setParameter(1, datetime3).executeUpdate()
+
+            val searchCondition = QuestSearchCondition(null, null, null, null, null, endDate)
 
             //when
             val result =
                 questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(100))
 
             //then
-            assertThat(result.content).hasSize(2)
-            assertThat(result.content).allMatch { it.createdDate?.isEqual(date2) == true || it.createdDate?.isBefore(date2) == true }
+            assertThat(result.content).noneMatch { it.createdDate?.isAfter(endDateTime) == true }
         }
 
-        @DisplayName("시작일과 종료일이 모두 null이 아니면 퀘스트 등록일이 시작일과 종료일 범위에 속한 퀘스트만 조회된다")
+        @DisplayName("시작일과 종료일이 모두 null이 아니면 퀘스트 등록일이 시작일 오전 6시와 같거나 나중이고 종료일 범위 다음날 오전 6시보다 같거나 이전인 퀘스트만 조회된다")
         @Test
-        fun `시작일과 종료일이 모두 null이 아니면 퀘스트 등록일이 시작일과 종료일 범위에 속한 퀘스트만 조회된다`() {
+        fun `시작일과 종료일이 모두 null이 아니면 퀘스트 등록일이 시작일 오전 6시와 같거나 나중이고 종료일 범위 다음날 오전 6시보다 같거나 이전인 퀘스트만 조회된다`() {
             //given
             val query = entityManager
                 .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
                 .setParameter(2, userInfo.id)
 
-            val time = LocalTime.of(12, 0, 0)
-            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
-            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
-            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
-            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+            val startDate = LocalDate.of(2022, 12, 1)
+            val startDateTime = LocalDateTime.of(startDate, LocalTime.of(6, 0))
 
-            query.setParameter(1, date1).executeUpdate()
-            query.setParameter(1, date2).executeUpdate()
-            query.setParameter(1, date3).executeUpdate()
-            query.setParameter(1, date4).executeUpdate()
+            val endDate = LocalDate.of(2022, 12, 10)
+            val endDateTime = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
 
-            val searchCondition = QuestSearchCondition(null, null, null, null, date2, date3)
+            val datetime1 = LocalDateTime.of(startDate, LocalTime.of(5, 59))
+            val datetime2 = LocalDateTime.of(startDate, LocalTime.of(6, 0))
+            val datetime3 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
+            val datetime4 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 1))
+
+            query.setParameter(1, datetime1).executeUpdate()
+            query.setParameter(1, datetime2).executeUpdate()
+            query.setParameter(1, datetime3).executeUpdate()
+            query.setParameter(1, datetime4).executeUpdate()
+
+            val searchCondition = QuestSearchCondition(null, null, null, null, startDate, endDate)
 
             //when
             val result =
                 questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(100))
 
             //then
-            assertThat(result.content).hasSize(2)
-            assertThat(result.content).allMatch { it.createdDate?.isAfter(date1) == true && it.createdDate?.isBefore(date4) == true }
+            assertThat(result.content).noneMatch {
+                it.createdDate?.isBefore(startDateTime) == true || it.createdDate?.isAfter(endDateTime) == true
+            }
         }
 
         @DisplayName("ID 역순으로 정렬된 상태의 퀘스트가 조회된다")

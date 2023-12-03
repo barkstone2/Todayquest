@@ -11,22 +11,35 @@ import org.springframework.batch.core.annotation.AfterWrite
 import org.springframework.batch.core.annotation.OnProcessError
 import org.springframework.batch.core.annotation.OnReadError
 import org.springframework.batch.core.annotation.OnWriteError
+import org.springframework.batch.core.configuration.annotation.StepScope
 import org.springframework.batch.item.Chunk
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
+@StepScope
 @Component
-class BatchQuestFailStepListener(
+class ResetStepListener(
     private val questLogRepository: QuestLogRepository,
     private val questIndexRepository: QuestIndexRepository,
+    @Value("#{jobParameters[resetDateTime]}")
+    private val resetDateTimeStr: String,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     @AfterWrite
     fun afterWrite(items : Chunk<Quest>) {
+        val loggedDate = LocalDate.parse(resetDateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                .minusDays(1)
+
         val questLogList = mutableListOf<QuestLog>();
         val documentList = mutableListOf<QuestDocument>();
+
         for (item in items.items) {
-            questLogList.add(QuestLog(item))
+            val questLog = QuestLog(item, loggedDate)
+            questLogList.add(questLog)
+
             documentList.add(QuestDocument(
                 item.id,
                 item.title,

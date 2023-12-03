@@ -151,7 +151,6 @@ class UserControllerTest @Autowired constructor(
             val url = "${SERVER_ADDR}$port${URI_PREFIX}"
 
             val firstDto = UserRequestDto(
-                LocalTime.of(testUser.resetTime, 0).plusHours(1).hour,
                 LocalTime.of(testUser.coreTime, 0).plusHours(1).hour
             )
 
@@ -166,7 +165,6 @@ class UserControllerTest @Autowired constructor(
                 )
 
             val secondDto = UserRequestDto(
-                LocalTime.of(testUser.resetTime, 0).minusHours(1).hour,
                 LocalTime.of(testUser.coreTime, 0).minusHours(1).hour
             )
 
@@ -183,9 +181,7 @@ class UserControllerTest @Autowired constructor(
             firstRequest.andExpect(status().isOk)
             secondRequest.andExpect(status().isBadRequest)
             val afterUser = userRepository.findById(testUser.id).get()
-            assertThat(afterUser.getResetHour()).isEqualTo(firstDto.resetTime)
             assertThat(afterUser.getCoreHour()).isEqualTo(firstDto.coreTime)
-            assertThat(afterUser.getResetHour()).isNotEqualTo(secondDto.resetTime)
             assertThat(afterUser.getCoreHour()).isNotEqualTo(secondDto.coreTime)
         }
 

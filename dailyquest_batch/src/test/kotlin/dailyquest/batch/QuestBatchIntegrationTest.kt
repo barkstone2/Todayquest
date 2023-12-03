@@ -27,7 +27,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.support.TransactionTemplate
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @Testcontainers
@@ -66,7 +68,6 @@ class QuestBatchIntegrationTest @Autowired constructor(
 
         testUser = UserInfo("testUser", "testUser", ProviderType.GOOGLE)
         anotherUser = UserInfo("anotherUser", "anotherUser", ProviderType.GOOGLE)
-        anotherUser.updateResetTime(9, LocalDateTime.now())
 
         transactionTemplate.executeWithoutResult {
             entityManager.persist(testUser)
@@ -81,24 +82,33 @@ class QuestBatchIntegrationTest @Autowired constructor(
     @DisplayName("퀘스트 초기화 배치 동작 시")
     @Nested
     inner class TestQuestRestBatch {
-        @DisplayName("resetTime이 일치하는 사용자의 퀘스트만 상태를 변경한다")
+        @DisplayName("오늘 resetTime 이전에 등록된 퀘스트만 상태를 변경한다")
         @Test
-        fun onlyChangeQuestOfUserWhoHaveSameResetTime() {
+        fun onlyChangeQuestOfCreatedBeforeResetTimeOfToday() {
             //given
-            val resetTime = testUser.resetTime
+            val filterTitle = "resetTimeTestTarget"
 
-            val savedIds = listOf(
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-            ).map(Quest::id)
+            val resetDate = LocalDate.of(2022, 12, 1)
+            val resetDateTime = LocalDateTime.of(resetDate, LocalTime.of(6, 0))
 
-            val notProcessedId = questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)).id
+            val datetime1 = LocalDateTime.of(resetDate, LocalTime.of(5, 59))
+            val datetime2 = LocalDateTime.of(resetDate, LocalTime.of(6, 0))
+            val datetime3 = LocalDateTime.of(resetDate, LocalTime.of(6, 1))
+
+            transactionTemplate.executeWithoutResult {
+                val query = entityManager
+                    .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', ?, 'MAIN', ?)")
+                    .setParameter(3, testUser.id)
+
+                query.setParameter(1, datetime1).setParameter(2, filterTitle).executeUpdate()
+                query.setParameter(1, datetime2).setParameter(2, filterTitle).executeUpdate()
+                query.setParameter(1, datetime3).setParameter(2, filterTitle).executeUpdate()
+            }
 
             jobLauncherTestUtils.job = questResetBatchJob
 
             val jobParameters = JobParametersBuilder()
-                .addString("resetTime", resetTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
+                .addString("resetDateTime", resetDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .toJobParameters()
 
             //when
@@ -107,67 +117,92 @@ class QuestBatchIntegrationTest @Autowired constructor(
             //then
             assertThat(jobExecution.status).isEqualTo(BatchStatus.COMPLETED)
 
-            val savedQuests = questRepository.findAllById(savedIds)
-            val notProcessedQuest = questRepository.findById(notProcessedId)
-            assertThat(savedQuests).allMatch { q -> q.state == QuestState.FAIL }
-            assertThat(notProcessedQuest).isNotEmpty
-            assertThat(notProcessedQuest.get().state).isEqualTo(QuestState.PROCEED)
+            val filteredQuest = questRepository.findAll().filter { q -> q.title == filterTitle }
+            assertThat(filteredQuest).noneMatch { q ->
+                q.createdDate?.isAfter(resetDateTime) == true && q.state == QuestState.FAIL ||
+                        q.createdDate?.isBefore(resetDateTime) == true && q.state == QuestState.PROCEED
+            }
         }
 
         @DisplayName("작업 종료 후 QuestLog 를 저장한다")
         @Test
         fun saveQuestLogAfterBatch() {
             //given
-            val resetTime = testUser.resetTime
+            val filterTitle = "resetTimeAfterLogTestTarget"
 
-            val savedIds = listOf(
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-            ).map(Quest::id)
+            val resetDate = LocalDate.of(2022, 12, 1)
+            val resetDateTime = LocalDateTime.of(resetDate, LocalTime.of(6, 0))
 
-            jobLauncherTestUtils.job = questResetBatchJob
+            transactionTemplate.executeWithoutResult {
+                val query = entityManager
+                    .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', ?, 'MAIN', ?)")
+                    .setParameter(3, testUser.id)
 
-            val jobParameters = JobParametersBuilder()
-                .addString("resetTime", resetTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
-                .toJobParameters()
+                val datetime1 = LocalDateTime.of(resetDate, LocalTime.of(5, 58))
+                val datetime2 = LocalDateTime.of(resetDate, LocalTime.of(5, 59))
 
-            //when
-            jobLauncherTestUtils.launchJob(jobParameters)
+                query.setParameter(1, datetime1).setParameter(2, filterTitle).executeUpdate()
+                query.setParameter(1, datetime2).setParameter(2, filterTitle).executeUpdate()
+            }
 
-            //then
-            val logs = questLogRepository.findAll()
-            assertThat(logs).isNotEmpty
-            assertThat(logs.map { it.questId }.toList()).containsAll(savedIds)
-        }
+                jobLauncherTestUtils.job = questResetBatchJob
+
+                val jobParameters = JobParametersBuilder()
+                    .addString(
+                        "resetDateTime",
+                        resetDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    )
+                    .toJobParameters()
+
+                //when
+                jobLauncherTestUtils.launchJob(jobParameters)
+
+                //then
+                val filteredQuestId = questRepository.findAll().filter { it.title == filterTitle }.map { it.id }
+                val logs = questLogRepository.findAll()
+                assertThat(logs).isNotEmpty
+                assertThat(logs.map { it.questId }.toList()).containsAll(filteredQuestId)
+            }
 
         @DisplayName("작업 종료 후 QuestDocument 를 업데이트 한다")
         @Test
         fun updateQuestDocumentAfterBatch() {
             //given
-            val resetTime = testUser.resetTime
+            val filterTitle = "resetTimeAfterDocumentTestTarget"
 
-            val savedIds = listOf(
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-            ).map(Quest::id)
+            val resetDate = LocalDate.of(2022, 12, 1)
+            val resetDateTime = LocalDateTime.of(resetDate, LocalTime.of(6, 0))
+
+            val datetime1 = LocalDateTime.of(resetDate, LocalTime.of(5, 58))
+            val datetime2 = LocalDateTime.of(resetDate, LocalTime.of(5, 59))
+
+            transactionTemplate.executeWithoutResult {
+                val query = entityManager
+                    .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', ?, 'MAIN', ?)")
+                    .setParameter(3, testUser.id)
+
+                query.setParameter(1, datetime1).setParameter(2, filterTitle).executeUpdate()
+                query.setParameter(1, datetime2).setParameter(2, filterTitle).executeUpdate()
+            }
 
             jobLauncherTestUtils.job = questResetBatchJob
 
             val jobParameters = JobParametersBuilder()
-                .addString("resetTime", resetTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
+                .addString(
+                    "resetDateTime",
+                    resetDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                )
                 .toJobParameters()
 
             //when
             jobLauncherTestUtils.launchJob(jobParameters)
 
             //then
+            val filteredQuestId = questRepository.findAll().filter { it.title == filterTitle }.map { it.id }
             val documents = questIndexRepository.findAll()
             assertThat(documents).isNotEmpty
-            assertThat(documents.map { it.id }.toList()).containsAll(savedIds)
+            assertThat(documents.map { it.id }.toList()).containsAll(filteredQuestId)
         }
-
     }
 
     @DisplayName("퀘스트 데드라인 배치 동작 시")

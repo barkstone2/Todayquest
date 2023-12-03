@@ -79,12 +79,6 @@ public class UserService {
             throw new IllegalStateException(MessageUtil.getMessage("user.settings.update_limit", MessageUtil.getMessage("user.settings.core_time"), diffStr));
         }
 
-        if(!findUser.updateResetTime(dto.getResetTime(), requestedDate)) {
-            Duration diff = findUser.getRemainTimeUntilResetTimeUpdateAvailable(requestedDate);
-            String diffStr = String.format("%d시간 %d분", diff.toHours(), diff.toMinutes() % 60);
-            throw new IllegalStateException(MessageUtil.getMessage("user.settings.update_limit", MessageUtil.getMessage("user.settings.reset_time"), diffStr));
-        }
-
     }
 
     public void earnExpAndGold(QuestType type, UserInfo user) {

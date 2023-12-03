@@ -2,7 +2,6 @@ package dailyquest.user.entity
 
 import dailyquest.common.BaseTimeEntity
 import dailyquest.quest.entity.QuestType
-import dailyquest.user.entity.RoleType
 import jakarta.persistence.*
 import org.hibernate.annotations.DynamicInsert
 import java.time.Duration
@@ -36,15 +35,9 @@ class UserInfo(
     val providerType: ProviderType = providerType
 
     @Column(nullable = false)
-    var resetTime: LocalTime = LocalTime.of(6,0,0)
-        protected set
-
-    @Column(nullable = false)
     var coreTime: LocalTime = LocalTime.of(8, 0, 0)
         protected set
 
-    var resetTimeLastModifiedDate: LocalDateTime? = null
-        protected set
     var coreTimeLastModifiedDate: LocalDateTime? = null
         protected set
     var exp: Long = 0
@@ -60,18 +53,6 @@ class UserInfo(
         if (nickname != null) {
             this.nickname = nickname
         }
-    }
-
-    fun updateResetTime(resetTime: Int?, requestedDate: LocalDateTime): Boolean {
-        if(resetTime == null || resetTime == getResetHour()) return true
-
-        if(canUpdateTimeSetting(resetTimeLastModifiedDate, requestedDate)) {
-            this.resetTime = LocalTime.of(resetTime, 0, 0)
-            resetTimeLastModifiedDate = requestedDate
-            return true
-        }
-
-        return false
     }
 
     fun updateCoreTime(coreTime: Int?, requestedDate: LocalDateTime): Boolean {
@@ -125,21 +106,12 @@ class UserInfo(
         return Triple(level, remainingExp, requiredExp)
     }
 
-    fun getResetHour(): Int {
-        return resetTime.hour
-    }
-
     fun getCoreHour(): Int {
         return coreTime.hour
     }
 
     fun getRemainTimeUntilCoreTimeUpdateAvailable(requestedDate: LocalDateTime): Duration {
         val oneDayAfter = coreTimeLastModifiedDate?.plusDays(1L)
-        return Duration.between(requestedDate, oneDayAfter)
-    }
-
-    fun getRemainTimeUntilResetTimeUpdateAvailable(requestedDate: LocalDateTime): Duration {
-        val oneDayAfter = resetTimeLastModifiedDate?.plusDays(1L)
         return Duration.between(requestedDate, oneDayAfter)
     }
 

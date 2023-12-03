@@ -19,10 +19,7 @@ class UserPrincipal(
     var currentExp: Long,
     var requireExp: Long,
     var gold: Long,
-    var resetTime: Int,
     var coreTime: Int,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    var resetTimeLastModifiedDate: LocalDateTime? = null,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     var coreTimeLastModifiedDate: LocalDateTime? = null
 ) : UserDetails {
@@ -76,9 +73,7 @@ class UserPrincipal(
                 currentExp = currentExp,
                 requireExp = requireExp,
                 gold = userInfo.gold,
-                resetTime = userInfo.getResetHour(),
                 coreTime = userInfo.getCoreHour(),
-                resetTimeLastModifiedDate = userInfo.resetTimeLastModifiedDate,
                 coreTimeLastModifiedDate = userInfo.coreTimeLastModifiedDate
             )
         }

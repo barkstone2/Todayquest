@@ -21,7 +21,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -130,7 +132,7 @@ public class QuestIndexServiceUnitTest {
         public void addStartDateFilterWhenConditionExist() throws Exception {
             //given
             long userId = 1L;
-            LocalDateTime startDate = LocalDateTime.of(2022, 12, 12, 12, 0, 0);
+            LocalDate startDate = LocalDate.of(2022, 12, 12);
             QuestSearchCondition searchCondition = new QuestSearchCondition(0, null, QuestSearchKeywordType.ALL, "keyword", startDate, null);
             Pageable pageable = PageRequest.of(0, 10);
 
@@ -147,7 +149,7 @@ public class QuestIndexServiceUnitTest {
                             .build()._toQuery())
                     .filter(range()
                             .field("createdDate")
-                            .from(startDate.toString())
+                            .from(LocalDateTime.of(startDate, LocalTime.of(6, 0)).toString())
                             .build()._toQuery())
                     .build()._toQuery();
 
@@ -164,7 +166,7 @@ public class QuestIndexServiceUnitTest {
         public void addEndDateFilterWhenConditionExist() throws Exception {
             //given
             long userId = 1L;
-            LocalDateTime endDate = LocalDateTime.of(2022, 12, 12, 12, 0, 0);
+            LocalDate endDate = LocalDate.of(2022, 12, 12);
             QuestSearchCondition searchCondition = new QuestSearchCondition(0, null, QuestSearchKeywordType.ALL, "keyword", null, endDate);
             Pageable pageable = PageRequest.of(0, 10);
 
@@ -181,7 +183,7 @@ public class QuestIndexServiceUnitTest {
                             .build()._toQuery())
                     .filter(range()
                             .field("createdDate")
-                            .to(endDate.toString())
+                            .to(LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0)).toString())
                             .build()._toQuery())
                     .build()._toQuery();
 
@@ -198,8 +200,8 @@ public class QuestIndexServiceUnitTest {
         public void addStartAndEndDateFilterWhenConditionExist() throws Exception {
             //given
             long userId = 1L;
-            LocalDateTime startDate = LocalDateTime.of(2022, 12, 12, 12, 0, 0);
-            LocalDateTime endDate = LocalDateTime.of(2022, 12, 12, 12, 0, 0);
+            LocalDate startDate = LocalDate.of(2022, 12, 12);
+            LocalDate endDate = LocalDate.of(2022, 12, 12);
             QuestSearchCondition searchCondition = new QuestSearchCondition(0, null, QuestSearchKeywordType.ALL, "keyword", startDate, endDate);
             Pageable pageable = PageRequest.of(0, 10);
 
@@ -216,8 +218,8 @@ public class QuestIndexServiceUnitTest {
                             .build()._toQuery())
                     .filter(range()
                             .field("createdDate")
-                            .from(startDate.toString())
-                            .to(endDate.toString())
+                            .from(LocalDateTime.of(startDate, LocalTime.of(6, 0)).toString())
+                            .to(LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0)).toString())
                             .build()._toQuery())
                     .build()._toQuery();
 

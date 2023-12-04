@@ -63,7 +63,7 @@ public class QuestStatisticsResponseUnitTest {
         QuestStatisticsResponse response = new QuestStatisticsResponse(LocalDate.now());
         int mainCount = 5;
         int subCount = 5;
-        int ratio = (int) (mainCount * 100f / (mainCount + subCount));
+        long ratio = Math.round(mainCount * 100d / (mainCount + subCount));
         response.addTypeCount(QuestType.MAIN.name(), mainCount);
         response.addTypeCount(QuestType.SUB.name(), subCount);
 
@@ -82,8 +82,10 @@ public class QuestStatisticsResponseUnitTest {
         int completeCount = 5;
         int failCount = 4;
         int discardCount = 1;
-        int ratio = (int) (completeCount * 100f / (failCount + discardCount + completeCount));
+        int registeredCount = 10;
+        long stateRatio = Math.round(completeCount * 100d / registeredCount);
 
+        response.addStateCount(QuestState.PROCEED.name(), registeredCount);
         response.addStateCount(QuestState.COMPLETE.name(), completeCount);
         response.addStateCount(QuestState.FAIL.name(), failCount);
         response.addStateCount(QuestState.DISCARD.name(), discardCount);
@@ -92,7 +94,7 @@ public class QuestStatisticsResponseUnitTest {
         response.calcStateRatio();
 
         //then
-        assertThat(response.getStateRatio()).isEqualTo(ratio);
+        assertThat(response.getStateRatio()).isEqualTo(stateRatio);
     }
 
     @DisplayName("combineCount 호출 시 두 DTO의 카운트를 합친다")

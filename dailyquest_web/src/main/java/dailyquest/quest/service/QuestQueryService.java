@@ -7,8 +7,6 @@ import dailyquest.quest.dto.QuestSearchCondition;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestRepository;
-import dailyquest.user.entity.UserInfo;
-import dailyquest.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -27,22 +25,17 @@ import java.util.Optional;
 public class QuestQueryService {
 
     private final QuestRepository questRepository;
-    private final UserRepository userRepository;
 
     public List<QuestResponse> getCurrentQuests(Long userId, QuestState state) {
-        UserInfo findUser = userRepository.getReferenceById(userId);
-        LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
-        LocalDateTime resetDate = now.withHour(findUser.getResetHour());
+        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
 
-        LocalDateTime prevReset;
-        LocalDateTime nextReset;
+        LocalDateTime prevReset = now.withHour(6).withMinute(0);
+        LocalDateTime nextReset = now.withHour(6).withMinute(0);
 
-        if(now.isBefore(resetDate)) {
-            nextReset = resetDate;
-            prevReset = nextReset.minusDays(1L);
+        if(now.isBefore(nextReset)) {
+            prevReset = prevReset.minusDays(1L);
         } else {
-            prevReset = resetDate;
-            nextReset = prevReset.plusDays(1L);
+            nextReset = nextReset.plusDays(1L);
         }
 
         return questRepository

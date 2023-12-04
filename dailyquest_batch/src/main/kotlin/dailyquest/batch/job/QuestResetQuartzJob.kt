@@ -7,6 +7,8 @@ import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException
 import org.springframework.stereotype.Component
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -19,15 +21,16 @@ class QuestResetQuartzJob (
 
     override fun execute(context: JobExecutionContext) {
 
-        val resetTime = LocalTime.of(LocalTime.now().hour, 0, 0)
+        val resetDate = LocalDate.now()
+        val resetDateTime = LocalDateTime.of(resetDate, LocalTime.of(6, 0))
         val jobParameters = JobParametersBuilder()
-            .addString("resetTime", resetTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
+            .addString("resetDateTime", resetDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
             .toJobParameters()
 
         try {
             jobLauncher.run(questResetBatchJob, jobParameters)
         } catch (_: JobInstanceAlreadyCompleteException) {
-            log.info("[Duplicated Batch: QuestResetJob] -> {} 퀘스트 초기화 배치 작업이 중복으로 발생했습니다.", resetTime)
+            log.info("[Duplicated Batch: QuestResetJob] -> {} 퀘스트 초기화 배치 작업이 중복으로 발생했습니다.", resetDate.minusDays(1))
         }
     }
 }

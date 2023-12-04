@@ -22,7 +22,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import dailyquest.annotation.WithCustomMockUser
 import dailyquest.common.MessageUtil
-import dailyquest.common.ResponseData
 import dailyquest.common.RestPage
 import dailyquest.common.UserLevelLock
 import dailyquest.config.SecurityConfig
@@ -237,8 +236,8 @@ class QuestApiControllerUnitTest {
             val state = QuestState.PROCEED.name
             val keywordType = QuestSearchKeywordType.ALL.name
             val keyword = "keyword"
-            val startDate = "2021-12-12 12:00:00"
-            val endDate = "2022-12-12 12:00:00"
+            val startDate = "2021-12-12"
+            val endDate = "2022-12-12"
 
             `when`(questService.searchQuest(any(), any(), any())).thenReturn(searchedQuests)
 

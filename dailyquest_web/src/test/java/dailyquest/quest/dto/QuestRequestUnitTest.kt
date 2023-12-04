@@ -1,21 +1,19 @@
 package dailyquest.quest.dto
 
-import org.assertj.core.api.Assertions.*
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers
-import org.mockito.MockedStatic
-import org.mockito.Mockito
 import dailyquest.common.MessageUtil
 import dailyquest.quest.entity.*
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
+import org.assertj.core.api.Assertions.*
+import org.junit.jupiter.api.*
+import org.mockito.Answers
+import org.mockito.ArgumentMatchers
+import org.mockito.MockedStatic
+import org.mockito.Mockito
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.temporal.ChronoUnit
+
 
 @DisplayName("퀘스트 리퀘스트 DTO 유닛 테스트")
 class QuestRequestUnitTest {
@@ -88,55 +86,155 @@ class QuestRequestUnitTest {
         assertThat(entity.state).isEqualTo(QuestState.PROCEED)
     }
 
+    @DisplayName("데드라인 범위 확인 시")
+    @Nested
+    inner class TestDeadLineRange {
 
-    @DisplayName("deadLine 필드의 범위가 유효하지 않으면 오류가 발생한다")
-    @Test
-    fun `deadLine 필드의 범위가 유효하지 않으면 오류가 발생한다`() {
-        //given
-        val now = LocalDateTime.now()
-        val today = LocalDate.now()
+        @DisplayName("현재 시점이 오늘 오전 6시 이전이면 deadLine 필드의 범위를 오늘 오전 6시를 기준으로 판단한다")
+        @Test
+        fun `현재 시점이 오늘 오전 6시 이전이면 deadLine 필드의 범위를 오늘 오전 6시를 기준으로 판단한다`() {
+            //given
+            val nowDate = LocalDate.now()
+            val mockNow = LocalDateTime.of(nowDate, LocalTime.of(5, 59))
 
-        val resetTime = LocalTime.of(0, 0)
+            val failDeadLine1 = LocalDateTime.of(nowDate, LocalTime.of(5, 59))
+            val failDeadLine2 = LocalDateTime.of(nowDate, LocalTime.of(6, 0))
+            val failDeadLine3 = LocalDateTime.of(nowDate, LocalTime.of(6, 1))
 
-        val beforeBoundaryTime = now.minus(1, ChronoUnit.MINUTES)
-        val afterBoundaryTime = LocalDateTime.of(today.plus(1, ChronoUnit.DAYS), resetTime)
+            Mockito.mockStatic(LocalDateTime::class.java, Answers.CALLS_REAL_METHODS).use {
+                Mockito.`when`(LocalDateTime.now()).thenReturn(mockNow)
 
-        val request1 = QuestRequest("t", "d", null, beforeBoundaryTime)
-        val request2 = QuestRequest("t", "d", null, afterBoundaryTime)
+                val request1 = QuestRequest("t", "d", null, failDeadLine1)
+                val request2 = QuestRequest("t", "d", null, failDeadLine2)
+                val request3 = QuestRequest("t", "d", null, failDeadLine3)
 
-        //when
-        val run1 = { request1.checkRangeOfDeadLine(resetTime) }
-        val run2 = { request2.checkRangeOfDeadLine(resetTime) }
+                //when
+                val run1 = { request1.checkRangeOfDeadLine() }
+                val run2 = { request2.checkRangeOfDeadLine() }
+                val run3 = { request3.checkRangeOfDeadLine() }
 
-        //then
-        assertThatThrownBy(run1).isInstanceOf(IllegalArgumentException::class.java)
-        assertThatThrownBy(run2).isInstanceOf(IllegalArgumentException::class.java)
-    }
+                //then
+                assertThatThrownBy(run1).isInstanceOf(IllegalArgumentException::class.java)
+                assertThatThrownBy(run2).isInstanceOf(IllegalArgumentException::class.java)
+                assertThatThrownBy(run3).isInstanceOf(IllegalArgumentException::class.java)
+            }
+        }
 
-    @DisplayName("deadLine 필드의 범위가 유효하면 오류가 발생하지 않는다")
-    @Test
-    fun `deadLine 필드의 범위가 유효하면 오류가 발생하지 않는다`() {
-        //given
-        val now = LocalDateTime.now()
-        val today = LocalDate.now()
-        val resetTime = LocalTime.of(0, 0)
+        @DisplayName("현재 시점이 오늘 오전 6시 보다 같거나 나중이면, deadLine 필드의 범위를 다음날 오전 6시를 기준으로 판단한다")
+        @Test
+        fun `현재 시점이 오늘 오전 6시 보다 같거나 나중이면, deadLine 필드의 범위를 다음날 오전 6시를 기준으로 판단한다`() {
+            //given
+            val nowDate = LocalDate.now()
+            val mockNow = LocalDateTime.of(nowDate, LocalTime.of(6, 0))
 
-        val beforeBoundaryTime = now.plus(10, ChronoUnit.MINUTES)
-        val afterBoundaryTime = LocalDateTime.of(today.plus(1, ChronoUnit.DAYS), resetTime).minus(10, ChronoUnit.MINUTES)
+            val passDeadLine1 = LocalDateTime.of(nowDate, LocalTime.of(7, 0))
+            val passDeadLine2 = LocalDateTime.of(nowDate.plusDays(1L), LocalTime.of(5, 0))
+            val failDeadLine1 = LocalDateTime.of(nowDate.plusDays(1L), LocalTime.of(5, 59))
+            val failDeadLine2 = LocalDateTime.of(nowDate.plusDays(1L), LocalTime.of(6, 0))
+            val failDeadLine3 = LocalDateTime.of(nowDate.plusDays(1L), LocalTime.of(6, 1))
 
-        val request1 = QuestRequest("t", "d", null, null)
-        val request2 = QuestRequest("t", "d", null, beforeBoundaryTime)
-        val request3 = QuestRequest("t", "d", null, afterBoundaryTime)
+            Mockito.mockStatic(LocalDateTime::class.java, Answers.CALLS_REAL_METHODS).use {
+                Mockito.`when`(LocalDateTime.now()).thenReturn(mockNow)
 
-        //when
-        val run1 = { request1.checkRangeOfDeadLine(resetTime) }
-        val run2 = { request2.checkRangeOfDeadLine(resetTime) }
-        val run3 = { request3.checkRangeOfDeadLine(resetTime) }
+                val request1 = QuestRequest("t", "d", null, passDeadLine1)
+                val request2 = QuestRequest("t", "d", null, passDeadLine2)
+                val request3 = QuestRequest("t", "d", null, failDeadLine1)
+                val request4 = QuestRequest("t", "d", null, failDeadLine2)
+                val request5 = QuestRequest("t", "d", null, failDeadLine3)
 
-        //then
-        assertThatCode(run1).doesNotThrowAnyException()
-        assertThatCode(run2).doesNotThrowAnyException()
-        assertThatCode(run3).doesNotThrowAnyException()
+                //when
+                val run1 = { request1.checkRangeOfDeadLine() }
+                val run2 = { request2.checkRangeOfDeadLine() }
+                val run3 = { request3.checkRangeOfDeadLine() }
+                val run4 = { request4.checkRangeOfDeadLine() }
+                val run5 = { request5.checkRangeOfDeadLine() }
+
+                //then
+                assertDoesNotThrow(run1)
+                assertDoesNotThrow(run2)
+                assertThatThrownBy(run3).isInstanceOf(IllegalArgumentException::class.java)
+                assertThatThrownBy(run4).isInstanceOf(IllegalArgumentException::class.java)
+                assertThatThrownBy(run5).isInstanceOf(IllegalArgumentException::class.java)
+            }
+        }
+
+        @DisplayName("deadLine 필드 값이 현재 시점 +5분 보다 이르거나 같으면 오류가 발생한다")
+        @Test
+        fun `deadLine 필드 값이 현재 시점 +5분 보다 이르거나 같으면 오류가 발생한다`() {
+            //given
+            val nowDate = LocalDate.now()
+            val mockNow = LocalDateTime.of(nowDate, LocalTime.of(5, 0))
+
+            val failDeadLine1 = LocalDateTime.of(nowDate, LocalTime.of(4, 59))
+            val failDeadLine2 = LocalDateTime.of(nowDate, LocalTime.of(5, 0))
+            val failDeadLine3 = LocalDateTime.of(nowDate, LocalTime.of(5, 4))
+            val failDeadLine4 = LocalDateTime.of(nowDate, LocalTime.of(5, 5))
+            val passDeadLine1 = LocalDateTime.of(nowDate, LocalTime.of(5, 6))
+
+            Mockito.mockStatic(LocalDateTime::class.java, Answers.CALLS_REAL_METHODS).use {
+                Mockito.`when`(LocalDateTime.now()).thenReturn(mockNow)
+
+                val request1 = QuestRequest("t", "d", null, failDeadLine1)
+                val request2 = QuestRequest("t", "d", null, failDeadLine2)
+                val request3 = QuestRequest("t", "d", null, failDeadLine3)
+                val request4 = QuestRequest("t", "d", null, failDeadLine4)
+                val request5 = QuestRequest("t", "d", null, passDeadLine1)
+
+                //when
+                val run1 = { request1.checkRangeOfDeadLine() }
+                val run2 = { request2.checkRangeOfDeadLine() }
+                val run3 = { request3.checkRangeOfDeadLine() }
+                val run4 = { request4.checkRangeOfDeadLine() }
+                val run5 = { request5.checkRangeOfDeadLine() }
+
+                //then
+                assertThatThrownBy(run1).isInstanceOf(IllegalArgumentException::class.java)
+                assertThatThrownBy(run2).isInstanceOf(IllegalArgumentException::class.java)
+                assertThatThrownBy(run3).isInstanceOf(IllegalArgumentException::class.java)
+                assertThatThrownBy(run4).isInstanceOf(IllegalArgumentException::class.java)
+                assertDoesNotThrow(run5)
+            }
+
+        }
+
+        @DisplayName("deadLine 필드 값이 다음 초기화 시간 -5분보다 같거나 나중이면 오류가 발생한다")
+        @Test
+        fun `deadLine 필드 값이 다음 초기화 시간 -5분보다 같거나 나중이면 오류가 발생한다`() {
+            //given
+            val nowDate = LocalDate.now()
+            val mockNow = LocalDateTime.of(nowDate, LocalTime.of(5, 0))
+
+            val passDeadLine1 = LocalDateTime.of(nowDate, LocalTime.of(5, 54))
+            val failDeadLine1 = LocalDateTime.of(nowDate, LocalTime.of(5, 55))
+            val failDeadLine2 = LocalDateTime.of(nowDate, LocalTime.of(5, 59))
+            val failDeadLine3 = LocalDateTime.of(nowDate, LocalTime.of(6, 0))
+            val failDeadLine4 = LocalDateTime.of(nowDate, LocalTime.of(6, 1))
+
+            Mockito.mockStatic(LocalDateTime::class.java, Answers.CALLS_REAL_METHODS).use {
+                Mockito.`when`(LocalDateTime.now()).thenReturn(mockNow)
+
+                val request1 = QuestRequest("t", "d", null, passDeadLine1)
+                val request2 = QuestRequest("t", "d", null, failDeadLine1)
+                val request3 = QuestRequest("t", "d", null, failDeadLine2)
+                val request4 = QuestRequest("t", "d", null, failDeadLine3)
+                val request5 = QuestRequest("t", "d", null, failDeadLine4)
+
+                //when
+                val run1 = { request1.checkRangeOfDeadLine() }
+                val run2 = { request2.checkRangeOfDeadLine() }
+                val run3 = { request3.checkRangeOfDeadLine() }
+                val run4 = { request4.checkRangeOfDeadLine() }
+                val run5 = { request5.checkRangeOfDeadLine() }
+
+                //then
+                assertDoesNotThrow(run1)
+                assertThatThrownBy(run2).isInstanceOf(IllegalArgumentException::class.java)
+                assertThatThrownBy(run3).isInstanceOf(IllegalArgumentException::class.java)
+                assertThatThrownBy(run4).isInstanceOf(IllegalArgumentException::class.java)
+                assertThatThrownBy(run5).isInstanceOf(IllegalArgumentException::class.java)
+            }
+        }
+
     }
 
 }

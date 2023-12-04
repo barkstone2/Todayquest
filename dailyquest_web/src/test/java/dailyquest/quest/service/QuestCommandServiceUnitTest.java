@@ -74,7 +74,7 @@ public class QuestCommandServiceUnitTest {
             QuestResponse saveQuest = questCommandService.saveQuest(mockDto, userId);
 
             //then
-            verify(mockDto, times(1)).checkRangeOfDeadLine(any());
+            verify(mockDto, times(1)).checkRangeOfDeadLine();
             verify(mockUser, times(1)).isNowCoreTime();
             verify(mockDto, times(1)).toMainQuest();
             verify(questRepository, times(1)).getNextSeqByUserId(eq(userId));
@@ -104,7 +104,7 @@ public class QuestCommandServiceUnitTest {
             QuestResponse saveQuest = questCommandService.saveQuest(mockDto, userId);
 
             //then
-            verify(mockDto, times(1)).checkRangeOfDeadLine(any());
+            verify(mockDto, times(1)).checkRangeOfDeadLine();
             verify(mockUser, times(1)).isNowCoreTime();
             verify(mockDto, times(0)).toMainQuest();
             verify(questRepository, times(1)).getNextSeqByUserId(eq(userId));
@@ -135,7 +135,7 @@ public class QuestCommandServiceUnitTest {
             //then
             assertThatThrownBy(call::run).isInstanceOf(EntityNotFoundException.class);
             verify(questQueryService).findByIdOrThrow(eq(questId));
-            verify(mockDto, times(0)).checkRangeOfDeadLine(any());
+            verify(mockDto, times(0)).checkRangeOfDeadLine();
         }
 
         @DisplayName("요청 사용자의 퀘스트가 아닐 경우 AccessDeniedException 예외를 던진다")
@@ -144,12 +144,10 @@ public class QuestCommandServiceUnitTest {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
             Quest mockQuest = mock(Quest.class);
-            UserInfo mockUser = mock(UserInfo.class);
             Long questId = 0L;
             Long userId = 1L;
 
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
-            doReturn(mockUser).when(mockQuest).getUser();
             doReturn(false).when(mockQuest).isQuestOfUser(eq(userId));
 
             //when
@@ -160,18 +158,16 @@ public class QuestCommandServiceUnitTest {
             verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
         }
 
-        @DisplayName("퀘스트 진행 상태가 PROCEED 가 아닐 경우 예외를 던진다")
+        @DisplayName("퀘스트 상태가 PROCEED 가 아닐 경우 예외를 던진다")
         @Test
         void ifQuestStateIsNotProceedThanThrow() {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
             Quest mockQuest = mock(Quest.class);
-            UserInfo mockUser = mock(UserInfo.class);
             Long questId = 0L;
             Long userId = 1L;
 
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
-            doReturn(mockUser).when(mockQuest).getUser();
             doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
             doReturn(false).when(mockQuest).isProceed();
 
@@ -189,12 +185,10 @@ public class QuestCommandServiceUnitTest {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
             Quest mockQuest = mock(Quest.class);
-            UserInfo mockUser = mock(UserInfo.class);
             Long questId = 0L;
             Long userId = 1L;
 
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
-            doReturn(mockUser).when(mockQuest).getUser();
             doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
             doReturn(true).when(mockQuest).isProceed();
             doReturn(true).when(mockQuest).isMainQuest();
@@ -212,12 +206,10 @@ public class QuestCommandServiceUnitTest {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
             Quest mockQuest = mock(Quest.class);
-            UserInfo mockUser = mock(UserInfo.class);
             Long questId = 0L;
             Long userId = 1L;
 
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
-            doReturn(mockUser).when(mockQuest).getUser();
             doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
             doReturn(true).when(mockQuest).isProceed();
             doReturn(false).when(mockQuest).isMainQuest();
@@ -235,12 +227,10 @@ public class QuestCommandServiceUnitTest {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
             Quest mockQuest = mock(Quest.class);
-            UserInfo mockUser = mock(UserInfo.class);
             Long questId = 0L;
             Long userId = 1L;
 
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
-            doReturn(mockUser).when(mockQuest).getUser();
             doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
             doReturn(true).when(mockQuest).isProceed();
             doReturn(false).when(mockQuest).isMainQuest();
@@ -249,7 +239,7 @@ public class QuestCommandServiceUnitTest {
             questCommandService.updateQuest(mockDto, questId, userId);
 
             //then
-            verify(mockDto, times(1)).checkRangeOfDeadLine(any());
+            verify(mockDto, times(1)).checkRangeOfDeadLine();
         }
 
         @DisplayName("updateQuestEntity 메서드가 호출된다")
@@ -258,11 +248,9 @@ public class QuestCommandServiceUnitTest {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
             Quest mockQuest = mock(Quest.class);
-            UserInfo mockUser = mock(UserInfo.class);
             Long questId = 0L;
             Long userId = 0L;
 
-            doReturn(mockUser).when(mockQuest).getUser();
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
             doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
             doReturn(true).when(mockQuest).isProceed();
@@ -272,7 +260,7 @@ public class QuestCommandServiceUnitTest {
             questCommandService.updateQuest(mockDto, questId, userId);
 
             //then
-            verify(mockDto, times(1)).checkRangeOfDeadLine(any());
+            verify(mockDto, times(1)).checkRangeOfDeadLine();
             verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
             verify(mockQuest, times(1)).isProceed();
             verify(mockQuest, times(1)).isMainQuest();

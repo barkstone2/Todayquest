@@ -46,14 +46,21 @@ public class QuestRepositoryImpl implements QuestRepositoryCustom {
     @Override
     public Page<Quest> findQuestsByCondition(Long userId, QuestSearchCondition condition, Pageable pageable) {
         QuestState state = condition.state();
-        LocalDateTime startDate = condition.startDate();
-        LocalDateTime endDate = condition.endDate();
+
+        LocalDateTime startDateTime = condition.getStartResetTime();
+        LocalDateTime endDateTime = condition.getEndResetTime();
 
         BooleanExpression wherePredicate = quest.user.id.eq(userId);
         if(state != null) wherePredicate = wherePredicate.and(quest.state.eq(state));
-        if(startDate != null && endDate != null) wherePredicate = wherePredicate.and(quest.createdDate.between(startDate, endDate));
-        if(startDate != null && endDate == null) wherePredicate = wherePredicate.and(quest.createdDate.goe(startDate));
-        if(startDate == null && endDate != null) wherePredicate = wherePredicate.and(quest.createdDate.loe(endDate));
+        if(startDateTime != null && endDateTime != null) {
+            wherePredicate = wherePredicate.and(quest.createdDate.between(startDateTime, endDateTime));
+        }
+        if(startDateTime != null && endDateTime == null) {
+            wherePredicate = wherePredicate.and(quest.createdDate.goe(startDateTime));
+        }
+        if(startDateTime == null && endDateTime != null) {
+            wherePredicate = wherePredicate.and(quest.createdDate.loe(endDateTime));
+        }
 
         List<Quest> fetch = query.select(quest)
                 .from(quest)

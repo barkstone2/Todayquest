@@ -1,17 +1,14 @@
 package dailyquest.quest.dto
 
-import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Size
 import dailyquest.common.MessageUtil
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
 import dailyquest.user.entity.UserInfo
-import java.time.LocalDate
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.temporal.ChronoUnit
 
 class QuestRequest(
     title: String,
@@ -55,11 +52,13 @@ class QuestRequest(
         return "QuestRequest(title='$title', description='$description', details=$details, type=$type)"
     }
 
-    fun checkRangeOfDeadLine(resetTime: LocalTime) {
+    fun checkRangeOfDeadLine() {
         if (deadLine != null) {
-            val now = LocalDateTime.now()
-            val nextReset = LocalDateTime.of(LocalDate.now().plus(1, ChronoUnit.DAYS), resetTime)
-            require(deadLine.isAfter(now) && deadLine.isBefore(nextReset)) { MessageUtil.getMessage("Range.quest.deadLine") }
+            val now = LocalDateTime.now().withSecond(0).withNano(0)
+            var nextReset = now.withHour(6).withMinute(0)
+            if(now.isEqual(nextReset) || now.isAfter(nextReset)) nextReset = nextReset.plusDays(1L)
+
+            require(deadLine.isAfter(now.plusMinutes(5)) && deadLine.isBefore(nextReset.minusMinutes(5))) { MessageUtil.getMessage("Range.quest.deadLine") }
         }
     }
 

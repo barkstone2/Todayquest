@@ -1,6 +1,7 @@
 package dailyquest.config
 
-import dailyquest.batch.job.BatchQuestFailStepListener
+import dailyquest.batch.job.DeadLineStepListener
+import dailyquest.batch.job.ResetStepListener
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.repository.QuestRepository
 import org.springframework.batch.core.Job
@@ -21,7 +22,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.transaction.PlatformTransactionManager
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 
@@ -31,7 +31,8 @@ class BatchConfig(
     private val jobRepository: JobRepository,
     private val transactionManager: PlatformTransactionManager,
     private val questRepository: QuestRepository,
-    private val batchQuestFailStepListener: BatchQuestFailStepListener,
+    private val resetStepListener: ResetStepListener,
+    private val deadLineStepListener: DeadLineStepListener,
 ) {
 
     @Bean
@@ -64,7 +65,7 @@ class BatchConfig(
             .reader(questResetReader)
             .processor(questFailProcessor)
             .writer(questWriter)
-            .listener(batchQuestFailStepListener)
+            .listener(resetStepListener)
             .faultTolerant()
             .retryLimit(3)
             .retry(Exception::class.java)
@@ -83,7 +84,7 @@ class BatchConfig(
             .reader(questDeadLineReader)
             .processor(questFailProcessor)
             .writer(questWriter)
-            .listener(batchQuestFailStepListener)
+            .listener(deadLineStepListener)
             .faultTolerant()
             .retryLimit(3)
             .retry(Exception::class.java)
@@ -92,12 +93,12 @@ class BatchConfig(
 
     @Bean
     @StepScope
-    fun questResetReader(@Value("#{jobParameters[resetTime]}") resetTimeStr: String): RepositoryItemReader<Quest> {
+    fun questResetReader(@Value("#{jobParameters[resetDateTime]}") resetDateTimeStr: String): RepositoryItemReader<Quest> {
 
         return RepositoryItemReaderBuilder<Quest>()
             .repository(questRepository)
             .methodName("getQuestsForResetBatch")
-            .arguments(LocalTime.parse(resetTimeStr))
+            .arguments(LocalDateTime.parse(resetDateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
             .pageSize(10)
             .sorts(sortedMapOf())
             .name("questResetReader")

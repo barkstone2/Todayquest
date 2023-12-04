@@ -1,6 +1,7 @@
 package dailyquest.batch
 
-import dailyquest.batch.job.BatchQuestFailStepListener
+import dailyquest.batch.job.DeadLineStepListener
+import dailyquest.batch.job.ResetStepListener
 import dailyquest.config.BatchConfig
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.repository.QuestRepository
@@ -22,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -48,7 +51,10 @@ class ResetStepUnitTest @Autowired constructor(
     private lateinit var questWriter: RepositoryItemWriter<Quest>
 
     @MockBean
-    private lateinit var batchQuestFailStepListener: BatchQuestFailStepListener
+    private lateinit var resetStepListener: ResetStepListener
+
+    @MockBean
+    private lateinit var deadLineStepListener: DeadLineStepListener
 
     @BeforeEach
     fun clearMetadata() {
@@ -61,9 +67,9 @@ class ResetStepUnitTest @Autowired constructor(
         //given
         jobLauncherTestUtils.job = questResetBatchJob
 
-        val resetTime = LocalTime.of(6, 0)
+        val resetDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(6, 0))
         val jobParameters = JobParametersBuilder()
-            .addString("resetTime", resetTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
+            .addString("resetDateTime", resetDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
             .toJobParameters()
 
         doThrow(Exception("read error")).`when`(questResetReader).read()
@@ -75,9 +81,9 @@ class ResetStepUnitTest @Autowired constructor(
 
         //then
         assertThat(jobExecution.stepExecutions.first().exitStatus.exitCode).isEqualTo(ExitStatus.FAILED.exitCode)
-        verify(batchQuestFailStepListener, times(1)).onReadError(any())
-        verify(batchQuestFailStepListener, times(0)).onProcessError(any(), any())
-        verify(batchQuestFailStepListener, times(0)).onWriteError(any(), any())
+        verify(resetStepListener, times(1)).onReadError(any())
+        verify(resetStepListener, times(0)).onProcessError(any(), any())
+        verify(resetStepListener, times(0)).onWriteError(any(), any())
     }
 
     @DisplayName("처리 과정이나 쓰기 과정에서 오류 발생 시 단계별로 3회까지 재시도 한다")
@@ -87,9 +93,9 @@ class ResetStepUnitTest @Autowired constructor(
         val mockQuest = mock<Quest>()
         jobLauncherTestUtils.job = questResetBatchJob
 
-        val resetTime = LocalTime.of(6, 0)
+        val resetDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(6, 0))
         val jobParameters = JobParametersBuilder()
-            .addString("resetTime", resetTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
+            .addString("resetDateTime", resetDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
             .toJobParameters()
 
         doReturn(mockQuest, null).`when`(questResetReader).read()
@@ -101,8 +107,8 @@ class ResetStepUnitTest @Autowired constructor(
 
         //then
         assertThat(jobExecution.stepExecutions.first().exitStatus.exitCode).isEqualTo(ExitStatus.COMPLETED.exitCode)
-        verify(batchQuestFailStepListener, times(2)).onProcessError(any(), any())
-        verify(batchQuestFailStepListener, times(2)).onWriteError(any(), any())
+        verify(resetStepListener, times(2)).onProcessError(any(), any())
+        verify(resetStepListener, times(2)).onWriteError(any(), any())
     }
 
     @DisplayName("처리 과정이나 쓰기 과정에서 각 단계별로 3회를 초과한 오류 발생 시 스텝이 실패한다")
@@ -112,9 +118,9 @@ class ResetStepUnitTest @Autowired constructor(
         val mockQuest = mock<Quest>()
         jobLauncherTestUtils.job = questResetBatchJob
 
-        val resetTime = LocalTime.of(6, 0)
+        val resetDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(6, 0))
         val jobParameters = JobParametersBuilder()
-            .addString("resetTime", resetTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
+            .addString("resetDateTime", resetDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
             .toJobParameters()
 
         doReturn(mockQuest, null).`when`(questResetReader).read()
@@ -127,8 +133,8 @@ class ResetStepUnitTest @Autowired constructor(
 
         //then
         assertThat(jobExecution.stepExecutions.first().exitStatus.exitCode).isEqualTo(ExitStatus.FAILED.exitCode)
-        verify(batchQuestFailStepListener, times(3)).onProcessError(any(), any())
-        verify(batchQuestFailStepListener, times(0)).onWriteError(any(), any())
+        verify(resetStepListener, times(3)).onProcessError(any(), any())
+        verify(resetStepListener, times(0)).onWriteError(any(), any())
     }
 
     @DisplayName("스텝 종료 후 listener를 통해 afterWrite 가 호출된다")
@@ -138,9 +144,9 @@ class ResetStepUnitTest @Autowired constructor(
         val mockQuest = mock<Quest>()
         jobLauncherTestUtils.job = questResetBatchJob
 
-        val resetTime = LocalTime.of(6, 0)
+        val resetDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(6, 0))
         val jobParameters = JobParametersBuilder()
-            .addString("resetTime", resetTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
+            .addString("resetDateTime", resetDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
             .toJobParameters()
 
         doReturn(mockQuest, null).`when`(questResetReader).read()
@@ -152,7 +158,7 @@ class ResetStepUnitTest @Autowired constructor(
 
         //then
         assertThat(jobExecution.stepExecutions.first().exitStatus.exitCode).isEqualTo(ExitStatus.COMPLETED.exitCode)
-        verify(batchQuestFailStepListener).afterWrite(any())
+        verify(resetStepListener).afterWrite(any())
     }
 
 }

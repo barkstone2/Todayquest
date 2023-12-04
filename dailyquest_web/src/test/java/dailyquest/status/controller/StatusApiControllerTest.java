@@ -116,10 +116,6 @@ public class StatusApiControllerTest {
         @Test
         public void testGetStatusWhenExist() throws Exception {
             //given
-            LocalDate selectedDate = LocalDate.now();
-            String url = SERVER_ADDR + port + URI_PREFIX + "/" + selectedDate;
-            QuestLogSearchType searchType = QuestLogSearchType.DAILY;
-
             QuestLog log = QuestLog.builder()
                     .questId(1L)
                     .state(QuestState.COMPLETE)
@@ -127,7 +123,10 @@ public class StatusApiControllerTest {
                     .type(QuestType.MAIN)
                     .build();
 
-            // 신규 로그는 오늘 날짜로 등록된다.
+            LocalDate selectedDate = log.getLoggedDate();
+            String url = SERVER_ADDR + port + URI_PREFIX + "/" + selectedDate;
+            QuestLogSearchType searchType = QuestLogSearchType.DAILY;
+
             questLogRepository.save(log);
 
             //when
@@ -154,18 +153,17 @@ public class StatusApiControllerTest {
         @Test
         public void testGetStatusWhenNotExist() throws Exception {
             //given
-            LocalDate selectedDate = LocalDate.of(2012, 12, 12);
-            String url = SERVER_ADDR + port + URI_PREFIX + "/" + selectedDate;
-            QuestLogSearchType searchType = QuestLogSearchType.DAILY;
-
             QuestLog log = QuestLog.builder()
                     .questId(1L)
                     .state(QuestState.COMPLETE)
                     .userId(testUser.getId())
                     .type(QuestType.MAIN)
                     .build();
+            LocalDate selectedDate = log.getLoggedDate().plusDays(1);
+            String url = SERVER_ADDR + port + URI_PREFIX + "/" + selectedDate;
+            QuestLogSearchType searchType = QuestLogSearchType.DAILY;
 
-            // 신규 로그는 오늘 날짜로 등록된다.
+
             questLogRepository.save(log);
 
             //when

@@ -3,6 +3,8 @@ package dailyquest.quest.service;
 import dailyquest.quest.dto.QuestLogSearchCondition;
 import dailyquest.quest.dto.QuestLogSearchType;
 import dailyquest.quest.dto.QuestStatisticsResponse;
+import dailyquest.quest.entity.QuestState;
+import dailyquest.quest.entity.QuestType;
 import dailyquest.quest.repository.QuestLogRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,9 +33,9 @@ public class QuestLogServiceUnitTest {
     @Mock
     QuestLogRepository questLogRepository;
 
-    @DisplayName("일별 퀘스트 로그 조회")
+    @DisplayName("일별 퀘스트 로그 조회 테스트")
     @Test
-    public void 일별_퀘스트_로그_조회() throws Exception {
+    public void 일별_퀘스트_로그_조회_테스트() throws Exception {
         //given
         int year = 2022;
         int month = 3;
@@ -44,41 +46,36 @@ public class QuestLogServiceUnitTest {
         int yesterdayFail = 4;
         int yesterdayDiscard = 2;
 
+        int todayRegister = 3;
         int todayComplete = 3;
         int todayMain = 2;
 
         List<QuestStatisticsResponse> groupedLogs = new ArrayList<>();
 
         LocalDate yesterday = LocalDate.of(year, month, day - 1);
-        for (int i = 0; i < yesterdayComplete; i++) {
-            QuestStatisticsResponse e = new QuestStatisticsResponse(yesterday);
-            e.addStateCount("COMPLETE", 1);
-            groupedLogs.add(e);
-        }
+        QuestStatisticsResponse e = new QuestStatisticsResponse(yesterday);
+        e.addStateCount(QuestState.COMPLETE.name(), yesterdayComplete);
+        groupedLogs.add(e);
 
-        for (int i = 0; i < yesterdayFail; i++) {
-            QuestStatisticsResponse e = new QuestStatisticsResponse(yesterday);
-            e.addStateCount("FAIL", 1);
-            groupedLogs.add(e);
-        }
+        e = new QuestStatisticsResponse(yesterday);
+        e.addStateCount(QuestState.FAIL.name(), yesterdayFail);
+        groupedLogs.add(e);
 
-        for (int i = 0; i < yesterdayDiscard; i++) {
-            QuestStatisticsResponse e = new QuestStatisticsResponse(yesterday);
-            e.addStateCount("DISCARD", 1);
-            groupedLogs.add(e);
-        }
+        e = new QuestStatisticsResponse(yesterday);
+        e.addStateCount(QuestState.DISCARD.name(), yesterdayDiscard);
+        groupedLogs.add(e);
 
-        for (int i = 0; i < todayComplete; i++) {
-            QuestStatisticsResponse e = new QuestStatisticsResponse(today);
-            e.addStateCount("COMPLETE", 1);
-            groupedLogs.add(e);
-        }
+        e = new QuestStatisticsResponse(today);
+        e.addStateCount(QuestState.COMPLETE.name(), todayComplete);
+        groupedLogs.add(e);
 
-        for (int i = 0; i < todayMain; i++) {
-            QuestStatisticsResponse e = new QuestStatisticsResponse(today);
-            e.addTypeCount("MAIN", 1);
-            groupedLogs.add(e);
-        }
+        e = new QuestStatisticsResponse(today);
+        e.addStateCount(QuestState.PROCEED.name(), todayRegister);
+        groupedLogs.add(e);
+
+        e = new QuestStatisticsResponse(today);
+        e.addTypeCount(QuestType.MAIN.name(), todayMain);
+        groupedLogs.add(e);
 
         QuestLogSearchCondition condition = new QuestLogSearchCondition(QuestLogSearchType.DAILY, today);
         doReturn(groupedLogs).when(questLogRepository).getGroupedQuestLogs(any(), eq(condition));
@@ -106,6 +103,5 @@ public class QuestLogServiceUnitTest {
         assertThat(questStatistic.get(today).getTypeRatio()).isEqualTo(100);
         assertThat(questStatistic.get(today).getStateRatio()).isEqualTo(100);
     }
-
 
 }

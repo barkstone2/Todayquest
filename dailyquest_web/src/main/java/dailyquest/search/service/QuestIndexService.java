@@ -60,26 +60,26 @@ public class QuestIndexService {
 
         Query rangeQuery = null;
 
-        LocalDateTime startDate = searchCondition.startDate();
-        LocalDateTime endDate = searchCondition.endDate();
+        LocalDateTime startDateTime = searchCondition.getStartResetTime();
+        LocalDateTime endDateTime = searchCondition.getEndResetTime();
 
-        if(startDate != null && endDate != null) {
+        if(startDateTime != null && endDateTime != null) {
             rangeQuery = range()
                     .field("createdDate")
-                    .from(startDate.toString())
-                    .to(endDate.toString())
+                    .from(startDateTime.toString())
+                    .to(endDateTime.toString())
                     .build()._toQuery();
         }
-        if(startDate != null && endDate == null) {
+        if(startDateTime != null && endDateTime == null) {
             rangeQuery = range()
                     .field("createdDate")
-                    .from(startDate.toString())
+                    .from(startDateTime.toString())
                     .build()._toQuery();
         }
-        if(startDate == null && endDate != null) {
+        if(startDateTime == null && endDateTime != null) {
             rangeQuery = range()
                     .field("createdDate")
-                    .to(endDate.toString())
+                    .to(endDateTime.toString())
                     .build()._toQuery();
         }
 

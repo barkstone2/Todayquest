@@ -34,7 +34,7 @@ public class QuestCommandService {
 
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {
         UserInfo findUser = userRepository.getReferenceById(userId);
-        dto.checkRangeOfDeadLine(findUser.getResetTime());
+        dto.checkRangeOfDeadLine();
 
         if (findUser.isNowCoreTime()) {
             dto.toMainQuest();
@@ -58,7 +58,7 @@ public class QuestCommandService {
 
     public QuestResponse updateQuest(QuestRequest dto, Long questId, Long userId) {
         Quest quest = questQueryService.findByIdOrThrow(questId);
-        dto.checkRangeOfDeadLine(quest.getUser().getResetTime());
+        dto.checkRangeOfDeadLine();
         if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
         if(!quest.isProceed()) throw new IllegalStateException(MessageUtil.getMessage("quest.error.not-proceed"));
 

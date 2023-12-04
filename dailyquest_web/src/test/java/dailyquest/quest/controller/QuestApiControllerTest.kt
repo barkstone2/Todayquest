@@ -439,9 +439,9 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(error?.message).isEqualTo(errorMessage)
         }
 
-        @DisplayName("시작 날짜 검색 조건만 존재하는 경우, 요청한 시작 날짜 이후에 등록된 퀘스트만 조회된다")
+        @DisplayName("시작 날짜 검색 조건만 존재하는 경우, 요청한 시작 날짜의 오전 6시 또는 이후에 등록된 퀘스트만 조회된다")
         @Test
-        fun `시작 날짜 검색 조건만 존재하는 경우, 요청한 시작 날짜 이후에 등록된 퀘스트만 조회된다`() {
+        fun `시작 날짜 검색 조건만 존재하는 경우, 요청한 시작 날짜의 오전 6시 또는 이후에 등록된 퀘스트만 조회된다`() {
             //given
             val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
@@ -449,18 +449,16 @@ class QuestApiControllerTest @Autowired constructor(
                 .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
                 .setParameter(2, testUser.id)
 
-            val time = LocalTime.of(12, 0, 0)
-            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
-            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
-            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
-            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+            val startDate = LocalDate.of(2022, 12, 1)
+            val startDateTime = LocalDateTime.of(startDate, LocalTime.of(6, 0))
 
-            query.setParameter(1, date1).executeUpdate()
-            query.setParameter(1, date2).executeUpdate()
-            query.setParameter(1, date3).executeUpdate()
-            query.setParameter(1, date4).executeUpdate()
+            val datetime1 = LocalDateTime.of(startDate, LocalTime.of(5, 59))
+            val datetime2 = LocalDateTime.of(startDate, LocalTime.of(6, 0))
+            val datetime3 = LocalDateTime.of(startDate, LocalTime.of(6, 1))
 
-            val startDate = date3
+            query.setParameter(1, datetime1).executeUpdate()
+            query.setParameter(1, datetime2).executeUpdate()
+            query.setParameter(1, datetime3).executeUpdate()
 
             //when
             val request = mvc
@@ -468,7 +466,7 @@ class QuestApiControllerTest @Autowired constructor(
                     get(url)
                         .contentType(MediaType.APPLICATION_JSON_UTF8)
                         .with(csrf())
-                        .queryParam("startDate", startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .queryParam("startDate", startDate.toString())
                         .cookie(token)
                 )
 
@@ -485,12 +483,12 @@ class QuestApiControllerTest @Autowired constructor(
             val data = result.data
             val list = data?.content
 
-            assertThat(list).noneMatch { quest -> quest.createdDate?.isBefore(startDate) == true }
+            assertThat(list).noneMatch { quest -> quest.createdDate?.isBefore(startDateTime) == true }
         }
 
-        @DisplayName("끝 날짜 검색 조건만 존재하는 경우, 요청한 끝 날짜 이전에 등록된 퀘스트만 조회된다")
+        @DisplayName("끝 날짜 검색 조건만 존재하는 경우, 요청한 끝 날짜의 다음날 오전 6시 이전에 등록된 퀘스트만 조회된다")
         @Test
-        fun `끝 날짜 검색 조건만 존재하는 경우, 요청한 끝 날짜 이전에 등록된 퀘스트만 조회된다`() {
+        fun `끝 날짜 검색 조건만 존재하는 경우, 요청한 끝 날짜의 다음날 오전 6시 이전에 등록된 퀘스트만 조회된다`() {
             //given
             val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
@@ -498,18 +496,16 @@ class QuestApiControllerTest @Autowired constructor(
                 .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
                 .setParameter(2, testUser.id)
 
-            val time = LocalTime.of(12, 0, 0)
-            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
-            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
-            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
-            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+            val endDate = LocalDate.of(2022, 12, 1)
+            val endDateTime = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
 
-            query.setParameter(1, date1).executeUpdate()
-            query.setParameter(1, date2).executeUpdate()
-            query.setParameter(1, date3).executeUpdate()
-            query.setParameter(1, date4).executeUpdate()
+            val datetime1 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(5, 59))
+            val datetime2 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
+            val datetime3 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 1))
 
-            val endDate = date2
+            query.setParameter(1, datetime1).executeUpdate()
+            query.setParameter(1, datetime2).executeUpdate()
+            query.setParameter(1, datetime3).executeUpdate()
 
             //when
             val request = mvc
@@ -517,7 +513,7 @@ class QuestApiControllerTest @Autowired constructor(
                     get(url)
                         .contentType(MediaType.APPLICATION_JSON_UTF8)
                         .with(csrf())
-                        .queryParam("endDate", endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .queryParam("endDate", endDate.toString())
                         .cookie(token)
                 )
 
@@ -534,12 +530,12 @@ class QuestApiControllerTest @Autowired constructor(
             val data = result.data
             val list = data?.content
 
-            assertThat(list).noneMatch { quest -> quest.createdDate?.isAfter(endDate) == true }
+            assertThat(list).noneMatch { quest -> quest.createdDate?.isAfter(endDateTime) == true }
         }
 
-        @DisplayName("날짜 검색 조건이 둘 다 존재하는 경우, 요청한 기간 사이에 등록된 퀘스트만 조회된다")
+        @DisplayName("날짜 검색 조건이 둘 다 존재하는 경우, 시작 날짜 오전 6시 또는 이후부터 종료 날짜 다음날 오전 6시 이전에 등록된 퀘스트만 조회된다")
         @Test
-        fun `날짜 검색 조건이 둘 다 존재하는 경우, 요청한 기간 사이에 등록된 퀘스트만 조회된다`() {
+        fun `날짜 검색 조건이 둘 다 존재하는 경우, 시작 날짜 오전 6시 또는 이후부터 종료 날짜 다음날 오전 6시 이전에 등록된 퀘스트만 조회된다`() {
             //given
             val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
@@ -547,19 +543,21 @@ class QuestApiControllerTest @Autowired constructor(
                 .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
                 .setParameter(2, testUser.id)
 
-            val time = LocalTime.of(12, 0, 0)
-            val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
-            val date2 = LocalDateTime.of(LocalDate.of(2021, 12, 1), time)
-            val date3 = LocalDateTime.of(LocalDate.of(2022, 11, 1), time)
-            val date4 = LocalDateTime.of(LocalDate.of(2022, 11, 2), time)
+            val startDate = LocalDate.of(2022, 12, 1)
+            val startDateTime = LocalDateTime.of(startDate, LocalTime.of(6, 0))
 
-            query.setParameter(1, date1).executeUpdate()
-            query.setParameter(1, date2).executeUpdate()
-            query.setParameter(1, date3).executeUpdate()
-            query.setParameter(1, date4).executeUpdate()
+            val endDate = LocalDate.of(2022, 12, 10)
+            val endDateTime = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
 
-            val startDate = date2
-            val endDate = date3
+            val datetime1 = LocalDateTime.of(startDate, LocalTime.of(5, 59))
+            val datetime2 = LocalDateTime.of(startDate, LocalTime.of(6, 0))
+            val datetime3 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
+            val datetime4 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 1))
+
+            query.setParameter(1, datetime1).executeUpdate()
+            query.setParameter(1, datetime2).executeUpdate()
+            query.setParameter(1, datetime3).executeUpdate()
+            query.setParameter(1, datetime4).executeUpdate()
 
             //when
             val request = mvc
@@ -567,8 +565,8 @@ class QuestApiControllerTest @Autowired constructor(
                     get(url)
                         .contentType(MediaType.APPLICATION_JSON_UTF8)
                         .with(csrf())
-                        .queryParam("startDate", startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                        .queryParam("endDate", endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .queryParam("startDate", startDate.toString())
+                        .queryParam("endDate", endDate.toString())
                         .cookie(token)
                 )
 
@@ -585,7 +583,9 @@ class QuestApiControllerTest @Autowired constructor(
             val data = result.data
             val list = data?.content
 
-            assertThat(list).noneMatch { quest -> quest.createdDate?.isBefore(startDate) == true || quest.createdDate?.isAfter(endDate) == true }
+            assertThat(list).noneMatch {
+                quest -> quest.createdDate?.isBefore(startDateTime) == true || quest.createdDate?.isAfter(endDateTime) == true
+            }
         }
 
         @DisplayName("키워드 타입과 키워드 조건이 존재하는 경우, 해당 키워드가 포함된 퀘스트만 조회된다")

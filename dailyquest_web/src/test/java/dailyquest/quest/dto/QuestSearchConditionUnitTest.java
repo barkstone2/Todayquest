@@ -4,6 +4,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("퀘스트 검색 조건 DTO 단위 테스트")
@@ -60,5 +64,71 @@ public class QuestSearchConditionUnitTest {
             assertThat(keywordTypeNullConditionResult).isFalse();
         }
     }
+
+    @DisplayName("getStartResetTime 호출 시")
+    @Nested
+    class TestGetStartResetTime {
+        @DisplayName("startDate가 null이면 null을 반환한다")
+        @Test
+        public void ifStartDateIsNullThanReturnNull() throws Exception {
+            //given
+            QuestSearchCondition condition = new QuestSearchCondition(null, null, null, null, null, null);
+
+            //when
+            LocalDateTime startResetTime = condition.getStartResetTime();
+
+            //then
+            assertThat(startResetTime).isNull();
+        }
+
+        @DisplayName("startDate가 null이 아니면 startDate 오전 6시의 LocalDateTime을 반환한다")
+        @Test
+        public void ifStartDateIsNotNullThanReturnStartDateAt6Am() throws Exception {
+            //given
+            LocalDate startDate = LocalDate.now();
+            QuestSearchCondition condition = new QuestSearchCondition(null, null, null, null, startDate, null);
+
+            //when
+            LocalDateTime startResetTime = condition.getStartResetTime();
+
+            //then
+            assertThat(startResetTime).isEqualTo(LocalDateTime.of(startDate, LocalTime.of(6, 0)));
+        }
+
+    }
+
+    @DisplayName("getEndResetTime 호출 시")
+    @Nested
+    class TestGetEndResetTime {
+        @DisplayName("endDate가 null이면 null을 반환한다")
+        @Test
+        public void ifEndDateIsNullThanReturnNull() throws Exception {
+            //given
+            QuestSearchCondition condition = new QuestSearchCondition(null, null, null, null, null, null);
+
+            //when
+            LocalDateTime endResetTime = condition.getEndResetTime();
+
+            //then
+            assertThat(endResetTime).isNull();
+        }
+
+        @DisplayName("endDate가 null이 아니면 endDate 다음 날 오전 6시의 LocalDateTime을 반환한다")
+        @Test
+        public void ifEndDateIsNotNullThanReturnNextDayOfEndDateAt6Am() throws Exception {
+            //given
+            LocalDate endDate = LocalDate.now();
+            QuestSearchCondition condition = new QuestSearchCondition(null, null, null, null, null, endDate);
+
+            //when
+            LocalDateTime endResetTime = condition.getEndResetTime();
+
+            //then
+            assertThat(endResetTime).isEqualTo(LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0)));
+        }
+    }
+
+
+
 
 }

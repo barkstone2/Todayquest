@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -23,7 +22,6 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Configuration
-@EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
@@ -36,7 +34,9 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .cors(Customizer.withDefaults());
+                .cors(Customizer.withDefaults())
+                .requestCache(AbstractHttpConfigurer::disable)
+                .anonymous(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests()
                 .requestMatchers(securityUrlProperties.getAllowedUrl()).permitAll()

@@ -11,6 +11,10 @@ class JwtTokenProperties {
     var refreshTokenValidationMillisecondString = ""
     var accessTokenName = ""
     var refreshTokenName = ""
+    var sameSite = ""
+    var useSecure = true
+    var domain = ""
+
     val accessTokenValidationMillisecond
         get() = parseToMillisecond(accessTokenValidationMillisecondString)
     val refreshTokenValidationMillisecond

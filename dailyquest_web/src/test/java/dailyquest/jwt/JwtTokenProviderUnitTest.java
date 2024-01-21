@@ -1,6 +1,7 @@
 package dailyquest.jwt;
 
 import dailyquest.common.MessageUtil;
+import dailyquest.properties.JwtTokenProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import jakarta.servlet.http.Cookie;
@@ -32,11 +33,19 @@ public class JwtTokenProviderUnitTest {
     @Mock
     RedisTemplate<String, String> redisTemplate;
 
+    @Mock
+    JwtTokenProperties jwtTokenProperties;
+
     @InjectMocks
     JwtTokenProvider jwtTokenProvider;
 
     String secretKey = "and0LWF1dGhlbnRpY2F0aW9uLWZpbHRlci10ZXN0LXNlY3JldC1rZXQtMDAwMA==";
     String anotherKey = "xxand0LWF1dGhlbnRpY2F0aW9uLWZpbHRlci10ZXN0LXNlY3JldC1rZXQtMDAwMA==";
+
+    String ACCESS_TOKEN_NAME = "access";
+    String REFRESH_TOKEN_NAME = "refresh";
+    long ACCESS_TOKEN_VALIDATION_MILLISECOND = 1000000;
+    long REFRESH_TOKEN_VALIDATION_MILLISECOND = 10000000;
 
     MockedStatic<MessageUtil> messageUtil;
 
@@ -57,6 +66,12 @@ public class JwtTokenProviderUnitTest {
     @DisplayName("createAccessToken 요청 시")
     @Nested
     class TestCreateAccessToken {
+
+        @BeforeEach
+        public void init() {
+            doReturn(ACCESS_TOKEN_NAME).when(jwtTokenProperties).getAccessTokenName();
+            doReturn(ACCESS_TOKEN_VALIDATION_MILLISECOND).when(jwtTokenProperties).getAccessTokenValidationMillisecond();
+        }
 
         @DisplayName("반환된 토큰에 파라미터에 전달된 ID가 포함되어야 한다")
         @Test
@@ -90,7 +105,7 @@ public class JwtTokenProviderUnitTest {
             Claims body = claims.getBody();
             String token_type = body.get("token_type", String.class);
 
-            assertThat(token_type).isEqualTo(JwtTokenProvider.ACCESS_TOKEN_NAME);
+            assertThat(token_type).isEqualTo(ACCESS_TOKEN_NAME);
         }
 
         @DisplayName("올바른 시크릿 키를 사용해서 생성된 토큰이 반환되야 한다")
@@ -122,7 +137,7 @@ public class JwtTokenProviderUnitTest {
             //given
             Long userId = 9L;
             Date now = new Date();
-            Date expiredDate = new Date(now.getTime() + JwtTokenProvider.ACCESS_TOKEN_VALIDATION_MILLISECOND);
+            Date expiredDate = new Date(now.getTime() + ACCESS_TOKEN_VALIDATION_MILLISECOND);
 
             //when
             String accessToken = jwtTokenProvider.createAccessToken(userId);
@@ -146,6 +161,13 @@ public class JwtTokenProviderUnitTest {
     @DisplayName("createRefreshToken 요청 시")
     @Nested
     class TestCreateRefreshToken {
+
+        @BeforeEach
+        void init() {
+            doReturn(REFRESH_TOKEN_NAME).when(jwtTokenProperties).getRefreshTokenName();
+            doReturn(REFRESH_TOKEN_VALIDATION_MILLISECOND).when(jwtTokenProperties).getRefreshTokenValidationMillisecond();
+        }
+
         @DisplayName("반환된 토큰에 파라미터에 전달된 ID가 포함되어야 한다")
         @Test
         public void haveToIncludeId() throws Exception {
@@ -178,7 +200,7 @@ public class JwtTokenProviderUnitTest {
             Claims body = claims.getBody();
             String token_type = body.get("token_type", String.class);
 
-            assertThat(token_type).isEqualTo(JwtTokenProvider.REFRESH_TOKEN_NAME);
+            assertThat(token_type).isEqualTo(REFRESH_TOKEN_NAME);
         }
 
         @DisplayName("올바른 시크릿 키를 사용해서 생성된 토큰이 반환되야 한다")
@@ -210,7 +232,7 @@ public class JwtTokenProviderUnitTest {
             //given
             Long userId = 9L;
             Date now = new Date();
-            Date expiredDate = new Date(now.getTime() + JwtTokenProvider.REFRESH_TOKEN_VALIDATION_MILLISECOND);
+            Date expiredDate = new Date(now.getTime() + REFRESH_TOKEN_VALIDATION_MILLISECOND);
 
             //when
             String refreshToken = jwtTokenProvider.createRefreshToken(userId);
@@ -241,12 +263,12 @@ public class JwtTokenProviderUnitTest {
             //given
             String invalidSecretKey = "asdsadqwlkdqnmlkqw===1=as12e21==134124adasd12==4214=";
             String invalidToken = Jwts.builder()
-                    .claim("token_type", JwtTokenProvider.REFRESH_TOKEN_NAME)
+                    .claim("token_type", REFRESH_TOKEN_NAME)
                     .signWith(new SecretKeySpec(Decoders.BASE64.decode(invalidSecretKey), SignatureAlgorithm.HS256.getJcaName()))
                     .compact();
 
             //when
-            boolean isValidToken = jwtTokenProvider.isValidToken(invalidToken, JwtTokenProvider.REFRESH_TOKEN_NAME);
+            boolean isValidToken = jwtTokenProvider.isValidToken(invalidToken, REFRESH_TOKEN_NAME);
 
             //then
             assertThat(isValidToken).isFalse();
@@ -256,10 +278,13 @@ public class JwtTokenProviderUnitTest {
         @Test
         public void doReturnFalseWhenIncorrectType() throws Exception {
             //given
+            doReturn(REFRESH_TOKEN_NAME).when(jwtTokenProperties).getRefreshTokenName();
+            doReturn(REFRESH_TOKEN_VALIDATION_MILLISECOND).when(jwtTokenProperties).getRefreshTokenValidationMillisecond();
+
             String validToken = jwtTokenProvider.createRefreshToken(1L);
 
             //when
-            boolean isValidToken = jwtTokenProvider.isValidToken(validToken, JwtTokenProvider.ACCESS_TOKEN_NAME);
+            boolean isValidToken = jwtTokenProvider.isValidToken(validToken, ACCESS_TOKEN_NAME);
 
             //then
             assertThat(isValidToken).isFalse();
@@ -270,13 +295,13 @@ public class JwtTokenProviderUnitTest {
         public void doReturnFalseWhenExpired() throws Exception {
             //given
             String expiredToken = Jwts.builder()
-                    .claim("token_type", JwtTokenProvider.REFRESH_TOKEN_NAME)
+                    .claim("token_type", REFRESH_TOKEN_NAME)
                     .setExpiration(new Date())
                     .signWith(new SecretKeySpec(Decoders.BASE64.decode(secretKey), SignatureAlgorithm.HS256.getJcaName()))
                     .compact();
 
             //when
-            boolean isValidToken = jwtTokenProvider.isValidToken(expiredToken, JwtTokenProvider.REFRESH_TOKEN_NAME);
+            boolean isValidToken = jwtTokenProvider.isValidToken(expiredToken, REFRESH_TOKEN_NAME);
 
             //then
             assertThat(isValidToken).isFalse();
@@ -286,10 +311,13 @@ public class JwtTokenProviderUnitTest {
         @Test
         public void doReturnTrueWhenValid() throws Exception {
             //given
+            doReturn(REFRESH_TOKEN_NAME).when(jwtTokenProperties).getRefreshTokenName();
+            doReturn(REFRESH_TOKEN_VALIDATION_MILLISECOND).when(jwtTokenProperties).getRefreshTokenValidationMillisecond();
+
             String validToken = jwtTokenProvider.createRefreshToken(1L);
 
             //when
-            boolean isValidToken = jwtTokenProvider.isValidToken(validToken, JwtTokenProvider.REFRESH_TOKEN_NAME);
+            boolean isValidToken = jwtTokenProvider.isValidToken(validToken, REFRESH_TOKEN_NAME);
 
             //then
             assertThat(isValidToken).isTrue();
@@ -300,6 +328,9 @@ public class JwtTokenProviderUnitTest {
     @Test
     public void testCreateAccessTokenCookie() throws Exception {
         //given
+        doReturn(ACCESS_TOKEN_NAME).when(jwtTokenProperties).getAccessTokenName();
+        doReturn(ACCESS_TOKEN_VALIDATION_MILLISECOND).when(jwtTokenProperties).getAccessTokenValidationMillisecond();
+
         String accessToken = jwtTokenProvider.createAccessToken(1L);
 
         //when
@@ -314,6 +345,9 @@ public class JwtTokenProviderUnitTest {
     @Test
     public void testCreateRefreshTokenCookie() throws Exception {
         //given
+        doReturn(REFRESH_TOKEN_NAME).when(jwtTokenProperties).getRefreshTokenName();
+        doReturn(REFRESH_TOKEN_VALIDATION_MILLISECOND).when(jwtTokenProperties).getRefreshTokenValidationMillisecond();
+
         String refreshToken = jwtTokenProvider.createRefreshToken(1L);
 
         //when
@@ -354,7 +388,7 @@ public class JwtTokenProviderUnitTest {
 
             String invalidSecretKey = "asdsadqwlkdqnmlkqw===1=as12e21==134124adasd12==4214=";
             String invalidToken = Jwts.builder()
-                    .claim("token_type", JwtTokenProvider.REFRESH_TOKEN_NAME)
+                    .claim("token_type", REFRESH_TOKEN_NAME)
                     .signWith(new SecretKeySpec(Decoders.BASE64.decode(invalidSecretKey), SignatureAlgorithm.HS256.getJcaName()))
                     .compact();
 
@@ -369,6 +403,9 @@ public class JwtTokenProviderUnitTest {
         @Test
         public void doRefresh() throws Exception {
             //given
+            doReturn(REFRESH_TOKEN_NAME).when(jwtTokenProperties).getRefreshTokenName();
+            doReturn(REFRESH_TOKEN_VALIDATION_MILLISECOND).when(jwtTokenProperties).getRefreshTokenValidationMillisecond();
+
             ValueOperations<String, String> mockOperation = mock(ValueOperations.class);
             doReturn(mockOperation).when(redisTemplate).opsForValue();
             doReturn(null).when(mockOperation).get(any());
@@ -388,12 +425,18 @@ public class JwtTokenProviderUnitTest {
     @Nested
     class TokenInvalidateTest {
 
+        @BeforeEach
+        void init() {
+            doReturn(ACCESS_TOKEN_NAME).when(jwtTokenProperties).getAccessTokenName();
+            doReturn(REFRESH_TOKEN_NAME).when(jwtTokenProperties).getRefreshTokenName();
+        }
+
         @DisplayName("이미 만료된 토큰일 경우 빈 토큰을 반환한다")
         @Test
         public void doReturnEmptyTokenWhenExpired() throws Exception {
             //given
             String expiredRefreshToken = Jwts.builder()
-                    .claim("token_type", JwtTokenProvider.REFRESH_TOKEN_NAME)
+                    .claim("token_type", REFRESH_TOKEN_NAME)
                     .setExpiration(new Date())
                     .signWith(new SecretKeySpec(Decoders.BASE64.decode(secretKey), SignatureAlgorithm.HS256.getJcaName()))
                     .compact();
@@ -415,6 +458,8 @@ public class JwtTokenProviderUnitTest {
         @Test
         public void doSaveOnRedis() throws Exception {
             //given
+            doReturn(REFRESH_TOKEN_VALIDATION_MILLISECOND).when(jwtTokenProperties).getRefreshTokenValidationMillisecond();
+
             String refreshToken = jwtTokenProvider.createRefreshToken(1L);
             Cookie[] cookies = new Cookie[]{jwtTokenProvider.createRefreshTokenCookie(refreshToken)};
 
@@ -432,6 +477,8 @@ public class JwtTokenProviderUnitTest {
         @Test
         public void doSetTTLOnRedis() throws Exception {
             //given
+            doReturn(REFRESH_TOKEN_VALIDATION_MILLISECOND).when(jwtTokenProperties).getRefreshTokenValidationMillisecond();
+
             ValueOperations<String, String> mockOperation = mock(ValueOperations.class);
             doReturn(mockOperation).when(redisTemplate).opsForValue();
 

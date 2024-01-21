@@ -1,5 +1,6 @@
 package dailyquest.jwt;
 
+import dailyquest.properties.JwtTokenProperties;
 import dailyquest.properties.SecurityUrlProperties;
 import dailyquest.user.dto.UserPrincipal;
 import dailyquest.user.service.UserService;
@@ -31,6 +32,8 @@ public class JwtAuthorizationFilterUnitTest {
     @Mock HttpServletRequest request;
     @Mock HttpServletResponse response;
     @Mock FilterChain filterChain;
+    @Mock JwtTokenProperties jwtTokenProperties;
+    String REFRESH_TOKEN_NAME = "refresh";
 
     @BeforeEach
     void init() {
@@ -80,6 +83,7 @@ public class JwtAuthorizationFilterUnitTest {
         doReturn(new String[]{"/allowed"}).when(securityUrlProperties).getAllowedUrl();
         doReturn(false).when(jwtTokenProvider).isValidToken(any(), any());
         doReturn(url).when(request).getRequestURI();
+        doReturn(REFRESH_TOKEN_NAME).when(jwtTokenProperties).getRefreshTokenName();
 
         Cookie mockCookie = mock(Cookie.class);
         doReturn(mockCookie).when(jwtTokenProvider).createAccessTokenCookie(any());
@@ -92,7 +96,7 @@ public class JwtAuthorizationFilterUnitTest {
         jwtAuthorizationFilter.doFilterInternal(request, response, filterChain);
 
         //then
-        verify(jwtTokenProvider, times(1)).getJwtFromCookies(any(), eq(JwtTokenProvider.REFRESH_TOKEN_NAME));
+        verify(jwtTokenProvider, times(1)).getJwtFromCookies(any(), eq(REFRESH_TOKEN_NAME));
         verify(jwtTokenProvider, times(1)).silentRefresh(any());
         verify(jwtTokenProvider, times(1)).createAccessTokenCookie(any());
         verify(jwtTokenProvider, times(1)).createRefreshToken(any());
@@ -116,7 +120,7 @@ public class JwtAuthorizationFilterUnitTest {
         jwtAuthorizationFilter.doFilterInternal(request, response, filterChain);
 
         //then
-        verify(jwtTokenProvider, never()).getJwtFromCookies(any(), eq(JwtTokenProvider.REFRESH_TOKEN_NAME));
+        verify(jwtTokenProvider, never()).getJwtFromCookies(any(), eq(REFRESH_TOKEN_NAME));
         verify(jwtTokenProvider, never()).silentRefresh(any());
         verify(jwtTokenProvider, never()).createAccessTokenCookie(any());
         verify(jwtTokenProvider, never()).createRefreshToken(any());

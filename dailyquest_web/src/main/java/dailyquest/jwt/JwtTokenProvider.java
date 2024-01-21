@@ -1,5 +1,6 @@
 package dailyquest.jwt;
 
+import dailyquest.properties.JwtTokenProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import jakarta.annotation.Nullable;
@@ -19,10 +20,7 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    public final static long ACCESS_TOKEN_VALIDATION_MILLISECOND = 1000L * 60 * 30;
-    public final static long REFRESH_TOKEN_VALIDATION_MILLISECOND = 1000L * 60 * 60 * 24 * 14;
-    public final static String ACCESS_TOKEN_NAME = "X-ACCESS-TOKEN";
-    public final static String REFRESH_TOKEN_NAME = "X-REFRESH-TOKEN";
+    public final JwtTokenProperties jwtTokenProperties;
     private final RedisTemplate<String, String> redisTemplate;
 
     @Value("${spring.jwt.secret}")
@@ -32,9 +30,9 @@ public class JwtTokenProvider {
         Date now = new Date();
         return Jwts.builder()
                 .claim("id", userPk)
-                .claim("token_type", ACCESS_TOKEN_NAME)
+                .claim("token_type", jwtTokenProperties.getAccessTokenName())
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_VALIDATION_MILLISECOND))
+                .setExpiration(new Date(now.getTime() + jwtTokenProperties.getAccessTokenValidationMillisecond()))
                 .signWith(new SecretKeySpec(Decoders.BASE64.decode(secretKey), SignatureAlgorithm.HS256.getJcaName()))
                 .compact();
 
@@ -45,9 +43,9 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .claim("id", userId)
-                .claim("token_type", REFRESH_TOKEN_NAME)
+                .claim("token_type", jwtTokenProperties.getRefreshTokenName())
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_VALIDATION_MILLISECOND))
+                .setExpiration(new Date(now.getTime() + jwtTokenProperties.getRefreshTokenValidationMillisecond()))
                 .signWith(new SecretKeySpec(Decoders.BASE64.decode(secretKey), SignatureAlgorithm.HS256.getJcaName()))
                 .compact();
     }
@@ -100,14 +98,14 @@ public class JwtTokenProvider {
     }
 
     public Cookie createAccessTokenCookie(String accessToken) {
-        Cookie cookie = new Cookie(JwtTokenProvider.ACCESS_TOKEN_NAME, accessToken);
+        Cookie cookie = new Cookie(jwtTokenProperties.getAccessTokenName(), accessToken);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         return cookie;
     }
 
     public Cookie createRefreshTokenCookie(String refreshToken) {
-        Cookie cookie = new Cookie(JwtTokenProvider.REFRESH_TOKEN_NAME, refreshToken);
+        Cookie cookie = new Cookie(jwtTokenProperties.getRefreshTokenName(), refreshToken);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         return cookie;
@@ -115,7 +113,7 @@ public class JwtTokenProvider {
 
     public String silentRefresh(String refreshToken) throws JwtException {
         try {
-            if (!isInBlackList(refreshToken) && isValidToken(refreshToken, REFRESH_TOKEN_NAME)) {
+            if (!isInBlackList(refreshToken) && isValidToken(refreshToken, jwtTokenProperties.getRefreshTokenName())) {
                 Long userId = getUserIdFromToken(refreshToken);
                 addToBlackList(refreshToken);
 
@@ -132,13 +130,13 @@ public class JwtTokenProvider {
 
         // 토큰 만료 시 블랙 리스트 추가 불필요
         try {
-            String refreshToken = getJwtFromCookies(cookies, REFRESH_TOKEN_NAME);
+            String refreshToken = getJwtFromCookies(cookies, jwtTokenProperties.getRefreshTokenName());
             addToBlackList(refreshToken);
         } catch (JwtException ignored) {
         }
 
-        Cookie emptyAccessToken = new Cookie(JwtTokenProvider.ACCESS_TOKEN_NAME, "");
-        Cookie emptyRefreshToken = new Cookie(JwtTokenProvider.REFRESH_TOKEN_NAME, "");
+        Cookie emptyAccessToken = new Cookie(jwtTokenProperties.getAccessTokenName(), "");
+        Cookie emptyRefreshToken = new Cookie(jwtTokenProperties.getRefreshTokenName(), "");
 
         emptyAccessToken.setMaxAge(0);
         emptyRefreshToken.setMaxAge(0);

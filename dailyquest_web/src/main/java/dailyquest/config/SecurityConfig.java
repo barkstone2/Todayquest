@@ -1,5 +1,6 @@
 package dailyquest.config;
 
+import dailyquest.properties.JwtTokenProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +14,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import dailyquest.jwt.JwtAuthorizationFilter;
-import dailyquest.jwt.JwtTokenProvider;
 import dailyquest.properties.SecurityOriginProperties;
 import dailyquest.properties.SecurityUrlProperties;
 import dailyquest.user.entity.RoleType;
@@ -27,6 +27,7 @@ public class SecurityConfig {
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
     private final SecurityUrlProperties securityUrlProperties;
     private final SecurityOriginProperties securityOriginProperties;
+    private final JwtTokenProperties jwtTokenProperties;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -46,8 +47,8 @@ public class SecurityConfig {
         http.logout()
                 .logoutUrl(securityUrlProperties.getLogoutUrl())
                 .deleteCookies("JSESSIONID")
-                .deleteCookies(JwtTokenProvider.ACCESS_TOKEN_NAME)
-                .deleteCookies(JwtTokenProvider.REFRESH_TOKEN_NAME);
+                .deleteCookies(jwtTokenProperties.getAccessTokenName())
+                .deleteCookies(jwtTokenProperties.getRefreshTokenName());
 
         http.addFilterBefore(jwtAuthorizationFilter, BasicAuthenticationFilter.class);
 

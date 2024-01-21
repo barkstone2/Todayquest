@@ -1,5 +1,6 @@
 package dailyquest.jwt;
 
+import dailyquest.properties.JwtTokenProperties;
 import dailyquest.properties.SecurityUrlProperties;
 import dailyquest.user.dto.UserPrincipal;
 import dailyquest.user.service.UserService;
@@ -23,6 +24,7 @@ import java.util.Arrays;
 @Component
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
+    private final JwtTokenProperties jwtTokenProperties;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
@@ -39,9 +41,9 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         try {
 
-            String accessToken = jwtTokenProvider.getJwtFromCookies(request.getCookies(), JwtTokenProvider.ACCESS_TOKEN_NAME);
-            if(!jwtTokenProvider.isValidToken(accessToken, JwtTokenProvider.ACCESS_TOKEN_NAME)) {
-                String refreshToken = jwtTokenProvider.getJwtFromCookies(request.getCookies(), JwtTokenProvider.REFRESH_TOKEN_NAME);
+            String accessToken = jwtTokenProvider.getJwtFromCookies(request.getCookies(), jwtTokenProperties.getAccessTokenName());
+            if(!jwtTokenProvider.isValidToken(accessToken, jwtTokenProperties.getAccessTokenName())) {
+                String refreshToken = jwtTokenProvider.getJwtFromCookies(request.getCookies(), jwtTokenProperties.getRefreshTokenName());
 
                 accessToken = jwtTokenProvider.silentRefresh(refreshToken);
                 response.addCookie(jwtTokenProvider.createAccessTokenCookie(accessToken));

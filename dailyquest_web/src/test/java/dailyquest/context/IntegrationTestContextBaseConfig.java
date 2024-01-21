@@ -8,6 +8,7 @@ import dailyquest.config.WebMvcConfig;
 import dailyquest.exception.RestApiExceptionHandler;
 import dailyquest.jwt.JwtAuthorizationFilter;
 import dailyquest.jwt.JwtTokenProvider;
+import dailyquest.properties.JwtTokenProperties;
 import dailyquest.properties.SecurityOriginProperties;
 import dailyquest.properties.SecurityUrlProperties;
 import dailyquest.user.entity.UserInfo;
@@ -22,7 +23,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Import({
         DataSourceConfig.class, SecurityConfig.class, WebMvcConfig.class,
         RestApiExceptionHandler.class, JpaAuditingConfiguration.class, MessageUtil.class,
-        JwtAuthorizationFilter.class, JwtTokenProvider.class,
+        JwtAuthorizationFilter.class, JwtTokenProvider.class, JwtTokenProperties.class,
         SecurityOriginProperties.class, SecurityUrlProperties.class,
         UserService.class
 })

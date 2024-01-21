@@ -98,17 +98,11 @@ public class JwtTokenProvider {
     }
 
     public Cookie createAccessTokenCookie(String accessToken) {
-        Cookie cookie = new Cookie(jwtTokenProperties.getAccessTokenName(), accessToken);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        return cookie;
+        return createSecureCookie(jwtTokenProperties.getAccessTokenName(), accessToken);
     }
 
     public Cookie createRefreshTokenCookie(String refreshToken) {
-        Cookie cookie = new Cookie(jwtTokenProperties.getRefreshTokenName(), refreshToken);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        return cookie;
+        return createSecureCookie(jwtTokenProperties.getRefreshTokenName(), refreshToken);
     }
 
     public String silentRefresh(String refreshToken) throws JwtException {
@@ -135,17 +129,11 @@ public class JwtTokenProvider {
         } catch (JwtException ignored) {
         }
 
-        Cookie emptyAccessToken = new Cookie(jwtTokenProperties.getAccessTokenName(), "");
-        Cookie emptyRefreshToken = new Cookie(jwtTokenProperties.getRefreshTokenName(), "");
+        Cookie emptyAccessToken = createSecureCookie(jwtTokenProperties.getAccessTokenName(), "");
+        Cookie emptyRefreshToken = createSecureCookie(jwtTokenProperties.getRefreshTokenName(), "");
 
         emptyAccessToken.setMaxAge(0);
         emptyRefreshToken.setMaxAge(0);
-
-        emptyAccessToken.setPath("/");
-        emptyRefreshToken.setPath("/");
-
-        emptyAccessToken.setHttpOnly(true);
-        emptyRefreshToken.setHttpOnly(true);
 
         return new Pair<>(emptyAccessToken, emptyRefreshToken);
     }
@@ -163,4 +151,13 @@ public class JwtTokenProvider {
         return redisTemplate.opsForValue().get(token) != null;
     }
 
+    private Cookie createSecureCookie(String cookieName, String value) {
+        Cookie cookie = new Cookie(cookieName, value);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(jwtTokenProperties.getUseSecure());
+        cookie.setAttribute("sameSite", jwtTokenProperties.getSameSite());
+        cookie.setDomain(jwtTokenProperties.getDomain());
+        return cookie;
+    }
 }

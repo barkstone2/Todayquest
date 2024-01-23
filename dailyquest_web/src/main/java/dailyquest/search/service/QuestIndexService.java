@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,14 +27,17 @@ public class QuestIndexService {
     private final QuestQueryService questQueryService;
     private final ElasticsearchOperations operations;
 
+    @Async
     public void saveDocument(QuestResponse questResponse, Long userId) {
         questIndexRepository.save(questResponse.mapToDocument(userId));
     }
 
+    @Async
     public void deleteDocument(Long questId) {
         questIndexRepository.deleteById(questId);
     }
 
+    @Async
     public void updateQuestStateOfDocument(Long questId, Long userId) {
         questIndexRepository.save(questQueryService.getQuestInfo(questId, userId).mapToDocument(userId));
     }

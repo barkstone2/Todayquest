@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -26,16 +27,19 @@ public class QuestIndexService {
     private final QuestIndexRepository questIndexRepository;
     private final ElasticsearchOperations operations;
 
+    @Retryable(retryFor = RuntimeException.class)
     @Async
     public void saveDocument(QuestResponse questResponse, Long userId) {
         questIndexRepository.save(questResponse.mapToDocument(userId));
     }
 
+    @Retryable(retryFor = RuntimeException.class)
     @Async
     public void deleteDocument(Long questId) {
         questIndexRepository.deleteById(questId);
     }
 
+    @Retryable(retryFor = RuntimeException.class)
     @Async
     public void updateQuestStateOfDocument(QuestResponse questResponse, QuestState changedState, Long userId) {
         questResponse.setState(changedState);

@@ -51,9 +51,9 @@ class Quest(
     val detailQuests : List<DetailQuest>
         get() = _detailQuests.toList()
 
-    fun replaceDetailQuests(detailQuests: List<DetailQuest>?) {
+    fun replaceDetailQuests(detailQuests: List<DetailQuest>) {
         _detailQuests.clear()
-        _detailQuests.addAll(detailQuests ?: emptyList())
+        _detailQuests.addAll(detailQuests)
     }
 
     fun updateQuestEntity(title: String, description: String = "", deadLine: LocalDateTime?, details: List<DetailQuest> = emptyList()) {

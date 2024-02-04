@@ -1,14 +1,14 @@
 package dailyquest.quest.entity
 
-import jakarta.persistence.*
 import dailyquest.common.BaseTimeEntity
 import dailyquest.user.entity.UserInfo
+import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
 class Quest(
     title: String,
-    description: String?,
+    description: String = "",
     user: UserInfo,
     seq: Long,
     state: QuestState = QuestState.PROCEED,
@@ -25,7 +25,7 @@ class Quest(
         protected set
 
     @Column(length = 300)
-    var description: String? = description
+    var description: String = description
         protected set
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -51,40 +51,16 @@ class Quest(
     val detailQuests : List<DetailQuest>
         get() = _detailQuests.toList()
 
-    fun updateQuestEntity(title: String, description: String?, deadLine: LocalDateTime?, details: List<Pair<Long?, DetailQuest>>?) {
+    fun replaceDetailQuests(detailQuests: List<DetailQuest>?) {
+        _detailQuests.clear()
+        _detailQuests.addAll(detailQuests ?: emptyList())
+    }
+
+    fun updateQuestEntity(title: String, description: String = "", deadLine: LocalDateTime?, details: List<DetailQuest> = emptyList()) {
         this.title = title
         this.description = description
         this.deadLine = deadLine
-        updateDetailQuests(details ?: emptyList())
-    }
-
-    /**
-     * 퀘스트 저장 시에 이 메서드를 후속 호출 해 세부 퀘스트를 업데이트 해야 한다.
-     * 퀘스트 수정 시에는 이 메서드를 호출해서는 안 된다.
-     * @param [detailRequests] 새로운 세부 퀘스트 목록으로 세부 퀘스트 ID와 엔티티의 [Pair]<[Long]?, [DetailQuest]> 목록이다.
-     */
-    fun updateDetailQuests(detailRequests: List<Pair<Long?, DetailQuest>>) {
-        val newDetailQuests: MutableList<DetailQuest> = mutableListOf()
-
-        val updateCount = detailRequests.size
-        for (i in 0 until updateCount) {
-            val id = detailRequests[i].first
-            val newDetailQuest = detailRequests[i].second
-            try {
-                _detailQuests[i].updateDetailQuest(id, newDetailQuest)
-            } catch (e: IndexOutOfBoundsException) {
-                newDetailQuests.add(newDetailQuest)
-            }
-        }
-
-        val overCount: Int = _detailQuests.size - updateCount
-        if (overCount > 0) {
-            for (i in updateCount until updateCount + overCount) {
-                _detailQuests.removeAt(updateCount)
-            }
-        }
-
-        _detailQuests.addAll(newDetailQuests)
+        replaceDetailQuests(details)
     }
 
     /**
@@ -147,14 +123,7 @@ class Quest(
         val detailQuest = _detailQuests.firstOrNull { it.id == detailQuestId }
             ?: return null
 
-        if(count != null) {
-            detailQuest.changeCount(count)
-        } else if(detailQuest.isCompletedDetailQuest()) {
-            detailQuest.resetCount()
-        } else {
-            detailQuest.addCount()
-        }
-
+        detailQuest.interact(count)
         return detailQuest
     }
 

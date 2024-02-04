@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -66,7 +67,7 @@ public class UserLevelLockTest {
     @Test
     public void testNamedLock() throws Exception {
         //given
-        QuestRequest dto = new QuestRequest("test", "test", null, null);
+        QuestRequest dto = new QuestRequest("test", "test", Collections.emptyList(), null);
 
         int threadCount = 5;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);

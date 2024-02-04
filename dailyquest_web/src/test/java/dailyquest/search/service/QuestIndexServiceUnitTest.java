@@ -5,6 +5,7 @@ import dailyquest.quest.dto.QuestResponse;
 import dailyquest.quest.dto.QuestSearchCondition;
 import dailyquest.quest.dto.QuestSearchKeywordType;
 import dailyquest.quest.entity.QuestState;
+import dailyquest.quest.service.QuestQueryService;
 import dailyquest.search.document.QuestDocument;
 import dailyquest.search.repository.QuestIndexRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -29,8 +30,7 @@ import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("퀘스트 인덱스 서비스 단위 테스트")
@@ -42,23 +42,27 @@ public class QuestIndexServiceUnitTest {
     @Mock
     QuestIndexRepository questIndexRepository;
 
+    @Mock
+    QuestQueryService questQueryService;
+
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     ElasticsearchOperations operations;
 
-    @DisplayName("퀘스트 상태 변경 메서드 호출 시 문서 업데이트 전에 상태가 변경된다")
+    @DisplayName("퀘스트 상태 변경 메서드 호출 시 퀘스트 조회 후 처리된다")
     @Test
-    public void setStateBeforeUpdateDocument() throws Exception {
+    public void getQuestInfoBeforeUpdateStateOfDocument() throws Exception {
         //given
         QuestResponse response = mock(QuestResponse.class, Answers.RETURNS_DEEP_STUBS);
-        QuestState state = QuestState.COMPLETE;
+        doReturn(response).when(questQueryService).getQuestInfo(any(), any());
+        Long questId = 1L;
         Long userId = 1L;
 
         //when
-        questIndexService.updateQuestStateOfDocument(response, state, userId);
+        questIndexService.updateQuestStateOfDocument(questId, userId);
 
         //then
-        verify(response).setState(eq(state));
         verify(questIndexRepository).save(any());
+        verify(questQueryService).getQuestInfo(eq(questId), eq(userId));
     }
 
     @DisplayName("문서 검색 요청 시")

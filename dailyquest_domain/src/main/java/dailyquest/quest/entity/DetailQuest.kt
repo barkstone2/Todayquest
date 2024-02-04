@@ -1,8 +1,8 @@
 package dailyquest.quest.entity
 
 import jakarta.persistence.*
-import jakarta.persistence.EnumType.*
-import jakarta.persistence.FetchType.*
+import jakarta.persistence.EnumType.STRING
+import jakarta.persistence.FetchType.LAZY
 import jakarta.persistence.GenerationType.IDENTITY
 
 @Entity
@@ -46,21 +46,6 @@ class DetailQuest(
     @JoinColumn(name = "quest_id")
     val quest: Quest = quest
 
-    fun updateDetailQuest(id: Long?, detailQuest: DetailQuest) {
-        this.title = detailQuest.title
-        this.type = detailQuest.type
-        this.targetCount = if (type == DetailQuestType.COUNT) detailQuest.targetCount else 1
-
-        if(id != this.id || type != this.type) resetCount()
-
-        if(count < targetCount) this.state = DetailQuestState.PROCEED
-        else {
-            this.state = DetailQuestState.COMPLETE
-            count = targetCount
-        }
-
-    }
-
     fun resetCount() {
         count = 0
         state = DetailQuestState.PROCEED
@@ -84,6 +69,16 @@ class DetailQuest(
         return state == DetailQuestState.COMPLETE
     }
 
+    fun interact(count: Int?) {
+        if(count != null) {
+            this.changeCount(count)
+        } else if(this.isCompletedDetailQuest()) {
+            this.resetCount()
+        } else {
+            this.addCount()
+        }
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -98,5 +93,4 @@ class DetailQuest(
     override fun hashCode(): Int {
         return id.hashCode()
     }
-
 }

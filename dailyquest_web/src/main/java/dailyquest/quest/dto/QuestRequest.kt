@@ -37,7 +37,7 @@ class QuestRequest(
     }
 
     fun mapToEntity(nextSeq: Long, userInfo: UserInfo): Quest {
-        return Quest(
+        val quest = Quest(
             title = title,
             description = description,
             user = userInfo,
@@ -46,6 +46,8 @@ class QuestRequest(
             type = type,
             deadline = deadLine
         )
+        quest.replaceDetailQuests(this.details?.map { it.mapToEntity(quest) })
+        return quest
     }
 
     override fun toString(): String {

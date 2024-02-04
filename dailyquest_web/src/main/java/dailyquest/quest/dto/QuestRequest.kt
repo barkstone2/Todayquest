@@ -11,25 +11,16 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 class QuestRequest(
-    title: String,
-    description: String,
-    details: MutableList<DetailRequest>? = null,
-    deadLine: LocalDateTime? = null,
+    @field:NotBlank(message = "{NotBlank.quest.title}")
+    @field:Size(max = 50, message = "{size.quest.title}")
+    val title: String,
+    @field:Size(max = 300, message = "{Size.quest.description}")
+    val description: String = "",
+    @field:Valid
+    @field:Size(max = 5, message = "{Size.quest.details}")
+    val details: List<DetailRequest> = emptyList(),
+    val deadLine: LocalDateTime? = null,
 ) {
-
-    @NotBlank(message = "{NotBlank.quest.title}")
-    @Size(max = 50, message = "{size.quest.title}")
-    val title = title
-
-    @Size(max = 300, message = "{Size.quest.description}")
-    val description = description
-
-    val deadLine: LocalDateTime? = deadLine
-
-    @Valid
-    @Size(max = 5, message = "{Size.quest.details}")
-    val details = details ?: mutableListOf()
-
     private var type: QuestType = QuestType.SUB
 
     fun toMainQuest() {
@@ -46,7 +37,7 @@ class QuestRequest(
             type = type,
             deadline = deadLine
         )
-        quest.replaceDetailQuests(this.details?.map { it.mapToEntity(quest) })
+        quest.replaceDetailQuests(this.details.map { it.mapToEntity(quest) })
         return quest
     }
 

@@ -4,7 +4,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import dailyquest.quest.dto.QuestResponse;
 import dailyquest.quest.dto.QuestSearchCondition;
-import dailyquest.quest.entity.QuestState;
+import dailyquest.quest.service.QuestQueryService;
 import dailyquest.search.document.QuestDocument;
 import dailyquest.search.repository.QuestIndexRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +23,7 @@ import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.*;
 @Service
 public class QuestIndexService {
     private final QuestIndexRepository questIndexRepository;
+    private final QuestQueryService questQueryService;
     private final ElasticsearchOperations operations;
 
     public void saveDocument(QuestResponse questResponse, Long userId) {
@@ -33,9 +34,8 @@ public class QuestIndexService {
         questIndexRepository.deleteById(questId);
     }
 
-    public void updateQuestStateOfDocument(QuestResponse questResponse, QuestState changedState, Long userId) {
-        questResponse.setState(changedState);
-        questIndexRepository.save(questResponse.mapToDocument(userId));
+    public void updateQuestStateOfDocument(Long questId, Long userId) {
+        questIndexRepository.save(questQueryService.getQuestInfo(questId, userId).mapToDocument(userId));
     }
 
     public List<Long> searchDocuments(QuestSearchCondition searchCondition, Long userId, Pageable pageable) {

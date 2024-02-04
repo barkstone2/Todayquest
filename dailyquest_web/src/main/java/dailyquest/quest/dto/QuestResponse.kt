@@ -8,20 +8,20 @@ import dailyquest.search.document.QuestDocument
 import java.time.LocalDateTime
 
 data class QuestResponse(
-    var id: Long? = null,
-    var title: String? = null,
-    var description: String? = null,
-    var seq: Long? = null,
-    var state: QuestState? = null,
+    val id: Long = 0,
+    val title: String = "",
+    val description: String = "",
+    val seq: Long = 0,
+    val state: QuestState = QuestState.PROCEED,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    var createdDate: LocalDateTime? = null,
+    val createdDate: LocalDateTime = LocalDateTime.now(),
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    var lastModifiedDate: LocalDateTime? = null,
-    var detailQuests: List<DetailResponse>? = null,
-    var canComplete : Boolean = false,
-    var type: QuestType? = null,
+    val lastModifiedDate: LocalDateTime = LocalDateTime.now(),
+    val detailQuests: List<DetailResponse> = emptyList(),
+    val canComplete : Boolean = false,
+    val type: QuestType = QuestType.MAIN,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    var deadLine: LocalDateTime? = null,
+    val deadLine: LocalDateTime? = null,
 ) {
 
     companion object {
@@ -37,7 +37,7 @@ data class QuestResponse(
                 lastModifiedDate = quest.lastModifiedDate,
                 detailQuests = quest.detailQuests.map {
                     DetailResponse.createDto(it)
-                }.toCollection(mutableListOf()),
+                },
                 canComplete = quest.canComplete(),
                 type = quest.type,
                 deadLine = quest.deadLine
@@ -46,17 +46,13 @@ data class QuestResponse(
     }
 
     fun mapToDocument(userId: Long): QuestDocument {
-        var detailQuests = detailQuests
-        if (detailQuests == null) detailQuests = ArrayList()
-
-        val detailTitles = detailQuests.stream().map<String>(DetailResponse::title).toList()
         return QuestDocument(
             id,
             title,
             description,
-            detailTitles,
+            detailQuests.map { it.title },
             userId,
-            state?.name,
+            state.name,
             createdDate
         )
     }

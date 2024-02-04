@@ -135,7 +135,7 @@ public class QuestQueryServiceUnitTest {
             //given
             Long questId = 0L;
             Long userId = 1L;
-            Quest mockQuest = mock(Quest.class);
+            Quest mockQuest = mock(Quest.class, Answers.RETURNS_DEEP_STUBS);
 
             doReturn(Optional.of(mockQuest)).when(questRepository).findById(eq(questId));
             doReturn(false).when(mockQuest).isQuestOfUser(eq(userId));
@@ -154,7 +154,8 @@ public class QuestQueryServiceUnitTest {
             //given
             Long questId = 0L;
             Long userId = 1L;
-            Quest mockQuest = mock(Quest.class);
+
+            Quest mockQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
 
             doReturn(Optional.of(mockQuest)).when(questRepository).findById(eq(questId));
             doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));

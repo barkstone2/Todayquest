@@ -42,6 +42,9 @@ dependencies {
 	implementation('com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.8.0')
 
 	implementation('org.springframework.boot:spring-boot-devtools')
+
+	// 코틀린 Jackson Module
+	implementation('com.fasterxml.jackson.module:jackson-module-kotlin')
 }
 
 // test dependency

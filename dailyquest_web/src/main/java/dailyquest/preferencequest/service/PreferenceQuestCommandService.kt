@@ -34,13 +34,19 @@ class PreferenceQuestCommandService @Autowired constructor(
             title = preferenceQuestRequest.title,
             description = preferenceQuestRequest.description,
             deadLine = preferenceQuestRequest.deadLine,
-            details = preferenceQuestRequest.details.map { Pair(it.id, it.mapToEntity(preferenceQuest)) }
+            details = preferenceQuestRequest.details.map { it.mapToEntity(preferenceQuest) }
         )
 
         return PreferenceQuestResponse.createDto(preferenceQuest)
     }
 
     fun deletePreferenceQuest(preferenceQuestId: Long, userId: Long) {
-        preferenceQuestRepository.deleteByIdAndUserIdAndDeletedDateIsNull(preferenceQuestId, userId)
+        val preferenceQuest =
+            preferenceQuestRepository.findByIdAndUserIdAndDeletedDateIsNull(preferenceQuestId, userId) ?: throw EntityNotFoundException(
+                MessageUtil.getMessage(
+                    "exception.entity.notfound", MessageUtil.getMessage("preference_quest"),
+                )
+            )
+        preferenceQuest.deletePreferenceQuest()
     }
 }

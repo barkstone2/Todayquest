@@ -10,13 +10,12 @@ import java.time.LocalDateTime
 @Entity
 class PreferenceQuest(
     title: String,
-    description: String?,
+    description: String = "",
+    deadLine: LocalDateTime? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     val user: UserInfo,
-
-    var deadLine: LocalDateTime? = null,
 ) : BaseTimeEntity() {
 
     @Id
@@ -29,46 +28,30 @@ class PreferenceQuest(
         protected set
 
     @Column(length = 3000)
-    var description: String? = description
+    var description: String = description
         protected set
 
     var deletedDate: LocalDateTime? = null
         protected set
 
-    @OneToMany(mappedBy = "preference_quest", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var deadLine: LocalDateTime? = deadLine
+        protected set
+
+    @OneToMany(mappedBy = "preferenceQuest", cascade = [CascadeType.ALL], orphanRemoval = true)
     private val _preferenceDetailQuests: MutableList<PreferenceDetailQuest> = mutableListOf()
     val preferenceDetailQuests : List<PreferenceDetailQuest>
         get() = _preferenceDetailQuests.toList()
 
-    fun updatePreferenceQuest(title: String, description: String?, deadLine: LocalDateTime?, details: List<Pair<Long?, PreferenceDetailQuest>>?) {
+    fun updatePreferenceQuest(title: String, description: String, deadLine: LocalDateTime?, details: List<PreferenceDetailQuest> = emptyList()) {
         this.title = title
         this.description = description
         this.deadLine = deadLine
-        updateDetailQuests(details ?: emptyList())
+        replaceDetailQuests(details)
     }
 
-    fun updateDetailQuests(preferenceDetailRequests: List<Pair<Long?, PreferenceDetailQuest>>) {
-        val newPreferenceDetailQuests: MutableList<PreferenceDetailQuest> = mutableListOf()
-
-        val updateCount = preferenceDetailRequests.size
-        for (i in 0 until updateCount) {
-            val id = preferenceDetailRequests[i].first
-            val newDetailQuest = preferenceDetailRequests[i].second
-            try {
-                _preferenceDetailQuests[i].updatePreferenceDetailQuest(id, newDetailQuest)
-            } catch (e: IndexOutOfBoundsException) {
-                newPreferenceDetailQuests.add(newDetailQuest)
-            }
-        }
-
-        val overCount: Int = _preferenceDetailQuests.size - updateCount
-        if (overCount > 0) {
-            for (i in updateCount until updateCount + overCount) {
-                _preferenceDetailQuests.removeAt(updateCount)
-            }
-        }
-
-        _preferenceDetailQuests.addAll(newPreferenceDetailQuests)
+    fun replaceDetailQuests(detailQuests: List<PreferenceDetailQuest>) {
+        _preferenceDetailQuests.clear()
+        _preferenceDetailQuests.addAll(detailQuests)
     }
 
     fun deletePreferenceQuest() {

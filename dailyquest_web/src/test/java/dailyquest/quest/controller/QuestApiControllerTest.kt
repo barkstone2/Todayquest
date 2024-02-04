@@ -45,8 +45,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
@@ -57,7 +56,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.ConcurrentHashMap
 
 
@@ -163,6 +161,8 @@ class QuestApiControllerTest @Autowired constructor(
 
             for (stateEnum in QuestState.values()) {
                 val savedQuest = questRepository.save(Quest("제목", "1", testUser, 1L, stateEnum, QuestType.MAIN))
+                savedQuest.createdDate = savedQuest.createdDate.withNano(0)
+                savedQuest.lastModifiedDate = savedQuest.lastModifiedDate.withNano(0)
                 val questResponse = QuestResponse.createDto(savedQuest)
                 listByState[stateEnum] = listOf(questResponse)
             }
@@ -186,7 +186,6 @@ class QuestApiControllerTest @Autowired constructor(
                 .contentAsString
 
             val result = om.readValue(body, object: TypeReference<ResponseData<List<QuestResponse>>>(){})
-
             val list = result.data
 
             assertThat(list).containsExactlyElementsOf(listByState[state])
@@ -203,6 +202,8 @@ class QuestApiControllerTest @Autowired constructor(
 
             for (i in 1..2) {
                 val savedQuest = questRepository.save(Quest("본인", "1", testUser, i.toLong(), QuestState.PROCEED, QuestType.MAIN))
+                savedQuest.createdDate = savedQuest.createdDate.withNano(0)
+                savedQuest.lastModifiedDate = savedQuest.lastModifiedDate.withNano(0)
                 val questResponse = QuestResponse.createDto(savedQuest)
                 listOfUser += questResponse
             }
@@ -253,6 +254,8 @@ class QuestApiControllerTest @Autowired constructor(
 
             for (stateEnum in QuestState.values()) {
                 val savedQuest = questRepository.save(Quest("제목", "1", testUser, 1L, stateEnum, QuestType.MAIN))
+                savedQuest.createdDate = savedQuest.createdDate.withNano(0)
+                savedQuest.lastModifiedDate = savedQuest.lastModifiedDate.withNano(0)
                 val questResponse = QuestResponse.createDto(savedQuest)
                 listByState[stateEnum] = listOf(questResponse)
             }
@@ -294,6 +297,8 @@ class QuestApiControllerTest @Autowired constructor(
 
             for (i in 1..2) {
                 val savedQuest = questRepository.save(Quest("본인", "1", testUser, i.toLong(), QuestState.PROCEED, QuestType.MAIN))
+                savedQuest.createdDate = savedQuest.createdDate.withNano(0)
+                savedQuest.lastModifiedDate = savedQuest.lastModifiedDate.withNano(0)
                 val questResponse = QuestResponse.createDto(savedQuest)
                 listOfUser += questResponse
             }
@@ -446,8 +451,8 @@ class QuestApiControllerTest @Autowired constructor(
             val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
             val query = entityManager
-                .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
-                .setParameter(2, testUser.id)
+                .createNativeQuery("insert into quest (quest_id, created_date, last_modified_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(3, testUser.id)
 
             val startDate = LocalDate.of(2022, 12, 1)
             val startDateTime = LocalDateTime.of(startDate, LocalTime.of(6, 0))
@@ -456,9 +461,9 @@ class QuestApiControllerTest @Autowired constructor(
             val datetime2 = LocalDateTime.of(startDate, LocalTime.of(6, 0))
             val datetime3 = LocalDateTime.of(startDate, LocalTime.of(6, 1))
 
-            query.setParameter(1, datetime1).executeUpdate()
-            query.setParameter(1, datetime2).executeUpdate()
-            query.setParameter(1, datetime3).executeUpdate()
+            query.setParameter(1, datetime1).setParameter(2, datetime1).executeUpdate()
+            query.setParameter(1, datetime2).setParameter(2, datetime2).executeUpdate()
+            query.setParameter(1, datetime3).setParameter(2, datetime3).executeUpdate()
 
             //when
             val request = mvc
@@ -493,8 +498,8 @@ class QuestApiControllerTest @Autowired constructor(
             val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
             val query = entityManager
-                .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
-                .setParameter(2, testUser.id)
+                .createNativeQuery("insert into quest (quest_id, created_date, last_modified_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(3, testUser.id)
 
             val endDate = LocalDate.of(2022, 12, 1)
             val endDateTime = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
@@ -503,9 +508,9 @@ class QuestApiControllerTest @Autowired constructor(
             val datetime2 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
             val datetime3 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 1))
 
-            query.setParameter(1, datetime1).executeUpdate()
-            query.setParameter(1, datetime2).executeUpdate()
-            query.setParameter(1, datetime3).executeUpdate()
+            query.setParameter(1, datetime1).setParameter(2, datetime1).executeUpdate()
+            query.setParameter(1, datetime2).setParameter(2, datetime2).executeUpdate()
+            query.setParameter(1, datetime3).setParameter(2, datetime3).executeUpdate()
 
             //when
             val request = mvc
@@ -540,8 +545,8 @@ class QuestApiControllerTest @Autowired constructor(
             val url = "${SERVER_ADDR}$port${URI_PREFIX}$uri"
 
             val query = entityManager
-                .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
-                .setParameter(2, testUser.id)
+                .createNativeQuery("insert into quest (quest_id, created_date, last_modified_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(3, testUser.id)
 
             val startDate = LocalDate.of(2022, 12, 1)
             val startDateTime = LocalDateTime.of(startDate, LocalTime.of(6, 0))
@@ -554,10 +559,10 @@ class QuestApiControllerTest @Autowired constructor(
             val datetime3 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
             val datetime4 = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 1))
 
-            query.setParameter(1, datetime1).executeUpdate()
-            query.setParameter(1, datetime2).executeUpdate()
-            query.setParameter(1, datetime3).executeUpdate()
-            query.setParameter(1, datetime4).executeUpdate()
+            query.setParameter(1, datetime1).setParameter(2, datetime1).executeUpdate()
+            query.setParameter(1, datetime2).setParameter(2, datetime2).executeUpdate()
+            query.setParameter(1, datetime3).setParameter(2, datetime3).executeUpdate()
+            query.setParameter(1, datetime4).setParameter(2, datetime4).executeUpdate()
 
             //when
             val request = mvc

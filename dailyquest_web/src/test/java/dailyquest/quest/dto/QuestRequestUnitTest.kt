@@ -104,9 +104,9 @@ class QuestRequestUnitTest {
             Mockito.mockStatic(LocalDateTime::class.java, Answers.CALLS_REAL_METHODS).use {
                 Mockito.`when`(LocalDateTime.now()).thenReturn(mockNow)
 
-                val request1 = QuestRequest("t", "d", null, failDeadLine1)
-                val request2 = QuestRequest("t", "d", null, failDeadLine2)
-                val request3 = QuestRequest("t", "d", null, failDeadLine3)
+                val request1 = QuestRequest("t", "d", deadLine = failDeadLine1)
+                val request2 = QuestRequest("t", "d", deadLine = failDeadLine2)
+                val request3 = QuestRequest("t", "d", deadLine = failDeadLine3)
 
                 //when
                 val run1 = { request1.checkRangeOfDeadLine() }
@@ -136,11 +136,11 @@ class QuestRequestUnitTest {
             Mockito.mockStatic(LocalDateTime::class.java, Answers.CALLS_REAL_METHODS).use {
                 Mockito.`when`(LocalDateTime.now()).thenReturn(mockNow)
 
-                val request1 = QuestRequest("t", "d", null, passDeadLine1)
-                val request2 = QuestRequest("t", "d", null, passDeadLine2)
-                val request3 = QuestRequest("t", "d", null, failDeadLine1)
-                val request4 = QuestRequest("t", "d", null, failDeadLine2)
-                val request5 = QuestRequest("t", "d", null, failDeadLine3)
+                val request1 = QuestRequest("t", "d", deadLine = passDeadLine1)
+                val request2 = QuestRequest("t", "d", deadLine = passDeadLine2)
+                val request3 = QuestRequest("t", "d", deadLine = failDeadLine1)
+                val request4 = QuestRequest("t", "d", deadLine = failDeadLine2)
+                val request5 = QuestRequest("t", "d", deadLine = failDeadLine3)
 
                 //when
                 val run1 = { request1.checkRangeOfDeadLine() }
@@ -174,11 +174,11 @@ class QuestRequestUnitTest {
             Mockito.mockStatic(LocalDateTime::class.java, Answers.CALLS_REAL_METHODS).use {
                 Mockito.`when`(LocalDateTime.now()).thenReturn(mockNow)
 
-                val request1 = QuestRequest("t", "d", null, failDeadLine1)
-                val request2 = QuestRequest("t", "d", null, failDeadLine2)
-                val request3 = QuestRequest("t", "d", null, failDeadLine3)
-                val request4 = QuestRequest("t", "d", null, failDeadLine4)
-                val request5 = QuestRequest("t", "d", null, passDeadLine1)
+                val request1 = QuestRequest("t", "d", deadLine = failDeadLine1)
+                val request2 = QuestRequest("t", "d", deadLine = failDeadLine2)
+                val request3 = QuestRequest("t", "d", deadLine = failDeadLine3)
+                val request4 = QuestRequest("t", "d", deadLine = failDeadLine4)
+                val request5 = QuestRequest("t", "d", deadLine = passDeadLine1)
 
                 //when
                 val run1 = { request1.checkRangeOfDeadLine() }
@@ -213,11 +213,11 @@ class QuestRequestUnitTest {
             Mockito.mockStatic(LocalDateTime::class.java, Answers.CALLS_REAL_METHODS).use {
                 Mockito.`when`(LocalDateTime.now()).thenReturn(mockNow)
 
-                val request1 = QuestRequest("t", "d", null, passDeadLine1)
-                val request2 = QuestRequest("t", "d", null, failDeadLine1)
-                val request3 = QuestRequest("t", "d", null, failDeadLine2)
-                val request4 = QuestRequest("t", "d", null, failDeadLine3)
-                val request5 = QuestRequest("t", "d", null, failDeadLine4)
+                val request1 = QuestRequest("t", "d", deadLine = passDeadLine1)
+                val request2 = QuestRequest("t", "d", deadLine = failDeadLine1)
+                val request3 = QuestRequest("t", "d", deadLine = failDeadLine2)
+                val request4 = QuestRequest("t", "d", deadLine = failDeadLine3)
+                val request5 = QuestRequest("t", "d", deadLine = failDeadLine4)
 
                 //when
                 val run1 = { request1.checkRangeOfDeadLine() }

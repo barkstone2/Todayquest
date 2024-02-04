@@ -10,6 +10,7 @@ class PreferenceDetailQuest(
     title: String,
     targetCount: Int,
     type: DetailQuestType,
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "preference_quest_id")
     val preferenceQuest: PreferenceQuest,
@@ -20,7 +21,7 @@ class PreferenceDetailQuest(
     @Column(name = "preference_detail_quest_id")
     val id: Long = 0
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 300)
     var title: String = title
         protected set
 
@@ -32,12 +33,6 @@ class PreferenceDetailQuest(
     @Column(nullable = false)
     var type: DetailQuestType = type
         protected set
-
-    fun updatePreferenceDetailQuest(id: Long?, preferenceDetailQuest: PreferenceDetailQuest) {
-        this.title = preferenceDetailQuest.title
-        this.type = preferenceDetailQuest.type
-        this.targetCount = if (type == DetailQuestType.COUNT) preferenceDetailQuest.targetCount else 1
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

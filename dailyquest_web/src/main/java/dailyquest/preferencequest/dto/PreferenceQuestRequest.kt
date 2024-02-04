@@ -16,7 +16,7 @@ data class PreferenceQuestRequest(
     val description: String = "",
     @field:Valid
     @field:Size(max = 5, message = "{Size.quest.details}")
-    val details: MutableList<PreferenceDetailRequest> = mutableListOf(),
+    val details: List<PreferenceDetailRequest> = listOf(),
     val deadLine: LocalDateTime? = null,
 ) {
 

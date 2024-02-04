@@ -40,7 +40,7 @@ data class PreferenceQuestResponse(
             title = title,
             description = description,
             deadLine = deadLine,
-            details = preferenceDetailQuests.map { it.mapToDetailRequest() }.toMutableList()
+            details = preferenceDetailQuests.map { it.mapToDetailRequest() }
         )
     }
 }

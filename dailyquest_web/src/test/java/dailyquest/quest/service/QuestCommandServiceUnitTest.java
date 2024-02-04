@@ -15,6 +15,7 @@ import dailyquest.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -61,7 +62,7 @@ public class QuestCommandServiceUnitTest {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
             UserInfo mockUser = mock(UserInfo.class);
-            Quest mockQuest = mock(Quest.class);
+            Quest mockQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
             Long userId = 0L;
             Long nextSeq = 1L;
 
@@ -79,7 +80,6 @@ public class QuestCommandServiceUnitTest {
             verify(mockDto, times(1)).toMainQuest();
             verify(questRepository, times(1)).getNextSeqByUserId(eq(userId));
             verify(questRepository, times(1)).save(mockQuest);
-            verify(mockQuest, times(1)).updateDetailQuests(any());
             verify(questLogService, times(1)).saveQuestLog(mockQuest);
             assertThat(saveQuest).isInstanceOf(QuestResponse.class);
         }
@@ -91,7 +91,7 @@ public class QuestCommandServiceUnitTest {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
             UserInfo mockUser = mock(UserInfo.class);
-            Quest mockQuest = mock(Quest.class);
+            Quest mockQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
             Long userId = 0L;
             Long nextSeq = 1L;
 
@@ -109,7 +109,6 @@ public class QuestCommandServiceUnitTest {
             verify(mockDto, times(0)).toMainQuest();
             verify(questRepository, times(1)).getNextSeqByUserId(eq(userId));
             verify(questRepository, times(1)).save(mockQuest);
-            verify(mockQuest, times(1)).updateDetailQuests(any());
             verify(questLogService, times(1)).saveQuestLog(mockQuest);
             assertThat(saveQuest).isInstanceOf(QuestResponse.class);
         }
@@ -184,7 +183,7 @@ public class QuestCommandServiceUnitTest {
         void ifQuestTypeIsMainThanChangeTypeOfDtoToMain() {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
-            Quest mockQuest = mock(Quest.class);
+            Quest mockQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
             Long questId = 0L;
             Long userId = 1L;
 
@@ -205,7 +204,7 @@ public class QuestCommandServiceUnitTest {
         void ifQuestTypeIsSubThanDoNotChangeTypeOfDto() {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
-            Quest mockQuest = mock(Quest.class);
+            Quest mockQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
             Long questId = 0L;
             Long userId = 1L;
 
@@ -226,7 +225,7 @@ public class QuestCommandServiceUnitTest {
         void invokeDeadLineCheckMethod() {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
-            Quest mockQuest = mock(Quest.class);
+            Quest mockQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
             Long questId = 0L;
             Long userId = 1L;
 
@@ -247,7 +246,7 @@ public class QuestCommandServiceUnitTest {
         void invokeQuestUpdateMethod() {
             //given
             QuestRequest mockDto = mock(QuestRequest.class);
-            Quest mockQuest = mock(Quest.class);
+            Quest mockQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
             Long questId = 0L;
             Long userId = 0L;
 
@@ -625,19 +624,21 @@ public class QuestCommandServiceUnitTest {
 
         @DisplayName("세부 퀘스트 상호 작용 결과가 null이 아니면, 퀘스트 완료 가능 여부가 포함된 응답 DTO가 반환된다")
         @Test
-        void ifInteractResultIsNotNullRetrunResponse() {
+        void ifInteractResultIsNotNullReturnResponse() {
             //given
             Long questId = 0L;
             Long userId = 1L;
             Long detailQuestId = 0L;
+            boolean canComplete = false;
+
             DetailInteractRequest mockDto = mock(DetailInteractRequest.class);
             Quest mockQuest = mock(Quest.class);
-            DetailQuest mockDetailQuest = mock(DetailQuest.class);
+            DetailQuest mockDetailQuest = mock(DetailQuest.class, Answers.RETURNS_SMART_NULLS);
+
             doReturn(mockQuest).when(questQueryService).findByIdOrThrow(eq(questId));
             doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
             doReturn(true).when(mockQuest).isProceed();
             doReturn(mockDetailQuest).when(mockQuest).interactWithDetailQuest(eq(detailQuestId), any());
-            boolean canComplete = false;
             doReturn(canComplete).when(mockQuest).canComplete();
 
             //when

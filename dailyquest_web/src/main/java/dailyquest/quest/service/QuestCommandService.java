@@ -13,7 +13,6 @@ import dailyquest.user.entity.UserInfo;
 import dailyquest.user.repository.UserRepository;
 import dailyquest.user.service.UserService;
 import jakarta.annotation.Nullable;
-import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -44,13 +43,6 @@ public class QuestCommandService {
 
         Quest quest = dto.mapToEntity(nextSeq, findUser);
         questRepository.save(quest);
-
-        List<Pair<Long, DetailQuest>> details = dto.getDetails().stream()
-                .map(detail -> new Pair<>(detail.getId(), detail.mapToEntity(quest)))
-                .toList();
-
-        quest.updateDetailQuests(details);
-
         questLogService.saveQuestLog(quest);
 
         return QuestResponse.createDto(quest);
@@ -64,10 +56,7 @@ public class QuestCommandService {
 
         if(quest.isMainQuest()) dto.toMainQuest();
 
-        List<Pair<Long, DetailQuest>> details = dto.getDetails().stream()
-                .map(detail -> new Pair<>(detail.getId(), detail.mapToEntity(quest)))
-                .toList();
-
+        List<DetailQuest> details = dto.getDetails().stream().map(detail -> detail.mapToEntity(quest)).toList();
         quest.updateQuestEntity(dto.getTitle(), dto.getDescription(), dto.getDeadLine(), details);
 
         return QuestResponse.createDto(quest);

@@ -851,7 +851,7 @@ class QuestApiControllerTest @Autowired constructor(
             val savedQuest = questRepository.save(Quest("제목", "1", testUser, 1L, QuestState.PROCEED, QuestType.MAIN))
 
             val detailRequest = DetailQuest("detail", 3, DetailQuestType.COUNT, DetailQuestState.PROCEED, savedQuest)
-            savedQuest.updateDetailQuests(listOf(Pair(null, detailRequest)))
+            savedQuest.replaceDetailQuests(listOf(detailRequest))
 
             val questId = savedQuest.id
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/$questId"
@@ -1913,7 +1913,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `완료하지 않은 세부 퀘스트가 있다면 BAD_REQUEST가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
             val detailRequest = DetailQuest("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
-            savedQuest.updateDetailQuests(listOf(Pair(null, detailRequest)))
+            savedQuest.replaceDetailQuests(listOf(detailRequest))
 
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/${savedQuest.id}/complete"
             val errorMessage = MessageUtil.getMessage("quest.error.complete.detail")
@@ -2365,7 +2365,7 @@ class QuestApiControllerTest @Autowired constructor(
             val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
 
             val detailRequest = DetailQuest("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
-            savedQuest.updateDetailQuests(listOf(Pair(null, detailRequest)))
+            savedQuest.replaceDetailQuests(listOf(detailRequest))
 
             val detailQuestId = savedQuest.detailQuests[0].id
 
@@ -2413,7 +2413,7 @@ class QuestApiControllerTest @Autowired constructor(
             val savedQuest = questRepository.save(Quest("title", "desc", anotherUser, 1L, QuestState.PROCEED, QuestType.SUB))
 
             val detailRequest = DetailQuest("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
-            savedQuest.updateDetailQuests(listOf(Pair(null, detailRequest)))
+            savedQuest.replaceDetailQuests(listOf(detailRequest))
 
             questRepository.flush()
 
@@ -2520,7 +2520,7 @@ class QuestApiControllerTest @Autowired constructor(
             val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.FAIL, QuestType.SUB))
 
             val detailRequest = DetailQuest("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
-            savedQuest.updateDetailQuests(listOf(Pair(null, detailRequest)))
+            savedQuest.replaceDetailQuests(listOf(detailRequest))
 
             questRepository.flush()
 
@@ -2567,7 +2567,7 @@ class QuestApiControllerTest @Autowired constructor(
 
                 val targetCount = 3
                 val detailRequest = DetailQuest("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
-                savedQuest.updateDetailQuests(listOf(Pair(null, detailRequest)))
+                savedQuest.replaceDetailQuests(listOf(detailRequest))
 
                 questRepository.flush()
 
@@ -2616,7 +2616,7 @@ class QuestApiControllerTest @Autowired constructor(
 
                 val targetCount = 5
                 val detailRequest = DetailQuest("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
-                savedQuest.updateDetailQuests(listOf(Pair(null, detailRequest)))
+                savedQuest.replaceDetailQuests(listOf(detailRequest))
 
                 questRepository.flush()
 
@@ -2678,7 +2678,7 @@ class QuestApiControllerTest @Autowired constructor(
 
                 val targetCount = 5
                 val detailRequest = DetailQuest("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
-                savedQuest.updateDetailQuests(listOf(Pair(null, detailRequest)))
+                savedQuest.replaceDetailQuests(listOf(detailRequest))
 
                 questRepository.flush()
 
@@ -2731,7 +2731,7 @@ class QuestApiControllerTest @Autowired constructor(
 
                 val targetCount = 5
                 val detailRequest = DetailQuest("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
-                savedQuest.updateDetailQuests(listOf(Pair(null, detailRequest)))
+                savedQuest.replaceDetailQuests(listOf(detailRequest))
 
                 questRepository.flush()
 

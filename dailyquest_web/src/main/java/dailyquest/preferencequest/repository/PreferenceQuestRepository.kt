@@ -8,5 +8,4 @@ import org.springframework.stereotype.Repository
 interface PreferenceQuestRepository : JpaRepository<PreferenceQuest, Long> {
     fun findAllByUserIdAndDeletedDateIsNull(userId: Long): List<PreferenceQuest>
     fun findByIdAndUserIdAndDeletedDateIsNull(preferenceQuestId: Long, userId: Long): PreferenceQuest?
-    fun deleteByIdAndUserIdAndDeletedDateIsNull(preferenceQuestId: Long, userId: Long)
 }

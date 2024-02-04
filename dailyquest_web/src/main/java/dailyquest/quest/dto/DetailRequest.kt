@@ -1,33 +1,23 @@
 package dailyquest.quest.dto
 
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Size
-import org.hibernate.validator.constraints.Range
 import dailyquest.quest.entity.DetailQuest
 import dailyquest.quest.entity.DetailQuestState
 import dailyquest.quest.entity.DetailQuestType
 import dailyquest.quest.entity.Quest
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
+import org.hibernate.validator.constraints.Range
 
 class DetailRequest(
-    title: String,
-    type: DetailQuestType,
-    targetCount: Int,
-    id: Long? = null,
+    @field:NotBlank(message = "{NotBlank.details.title}")
+    @field:Size(max = 50, message = "{Size.details.title}")
+    val title: String,
+    val type: DetailQuestType,
+    @field:Range(min = 1, max = 255, message = "{Range.details.targetCount}")
+    val targetCount: Int,
 ) {
 
-    var id = id
-
-    @NotBlank(message = "{NotBlank.details.title}")
-    @Size(max = 50, message = "{Size.details.title}")
-    var title = title
-
-    var type = type
-
-    @Range(min = 1, max = 255, message = "{Range.details.targetCount}")
-    var targetCount = targetCount
-
     fun mapToEntity(quest: Quest): DetailQuest {
-
         return DetailQuest(
             title = title,
             type = type,
@@ -38,7 +28,7 @@ class DetailRequest(
     }
 
     override fun toString(): String {
-        return "DetailRequest(id=$id, title='$title', type=$type, targetCount=$targetCount)"
+        return "DetailRequest(title='$title', type=$type, targetCount=$targetCount)"
     }
 
 }

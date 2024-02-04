@@ -196,16 +196,12 @@ class QuestServiceUnitTest {
             //given
             val questId = 0L
             val userId = 0L
-            val questResponse = mock<QuestResponse>()
-
-            doReturn(questResponse).`when`(questQueryService).getQuestInfo(eq(questId), eq(userId))
 
             //when
             questService.completeQuest(questId, userId)
 
             //then
-            verify(questQueryService).getQuestInfo(eq(questId), eq(userId))
-            verify(questIndexService).updateQuestStateOfDocument(eq(questResponse), eq(QuestState.COMPLETE), eq(userId))
+            verify(questIndexService).updateQuestStateOfDocument(eq(questId), eq(userId))
         }
     }
 
@@ -233,16 +229,12 @@ class QuestServiceUnitTest {
             //given
             val questId = 0L
             val userId = 0L
-            val questResponse = mock<QuestResponse>()
-
-            doReturn(questResponse).`when`(questQueryService).getQuestInfo(eq(questId), eq(userId))
 
             //when
             questService.discardQuest(questId, userId)
 
             //then
-            verify(questQueryService).getQuestInfo(eq(questId), eq(userId))
-            verify(questIndexService).updateQuestStateOfDocument(eq(questResponse), eq(QuestState.DISCARD), eq(userId))
+            verify(questIndexService).updateQuestStateOfDocument(eq(questId), eq(userId))
         }
     }
 

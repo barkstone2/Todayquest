@@ -1,7 +1,6 @@
 package dailyquest.preferencequest.entity
 
 import dailyquest.common.BaseTimeEntity
-import dailyquest.quest.entity.Quest
 import dailyquest.user.entity.UserInfo
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -42,7 +41,7 @@ class PreferenceQuest(
     val preferenceDetailQuests : List<PreferenceDetailQuest>
         get() = _preferenceDetailQuests.toList()
 
-    fun updatePreferenceQuest(title: String, description: String, deadLine: LocalDateTime?, details: List<PreferenceDetailQuest> = emptyList()) {
+    fun updatePreferenceQuest(title: String, description: String = "", deadLine: LocalDateTime? = null, details: List<PreferenceDetailQuest> = emptyList()) {
         this.title = title
         this.description = description
         this.deadLine = deadLine
@@ -58,15 +57,11 @@ class PreferenceQuest(
         deletedDate = LocalDateTime.now()
     }
 
-    fun isPreferenceQuestOfUser(userId: Long): Boolean {
-        return user.id == userId
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Quest
+        other as PreferenceQuest
 
         return id == other.id
     }

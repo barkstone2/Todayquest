@@ -68,7 +68,7 @@ public class UserLevelLockTest {
     @Test
     public void testNamedLock() throws Exception {
         //given
-        QuestRequest dto = new QuestRequest("test", "test", Collections.emptyList(), null);
+        QuestRequest dto = new QuestRequest("test", "test", Collections.emptyList(), null, null);
 
         int threadCount = 5;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);

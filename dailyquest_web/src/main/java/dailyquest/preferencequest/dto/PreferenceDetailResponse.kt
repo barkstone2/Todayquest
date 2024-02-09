@@ -1,7 +1,6 @@
 package dailyquest.preferencequest.dto
 
 import dailyquest.preferencequest.entity.PreferenceDetailQuest
-import dailyquest.quest.dto.DetailRequest
 import dailyquest.quest.entity.DetailQuestType
 
 data class PreferenceDetailResponse(
@@ -19,13 +18,5 @@ data class PreferenceDetailResponse(
                 type = pdq.type,
             )
         }
-    }
-
-    fun mapToDetailRequest(): DetailRequest {
-        return DetailRequest(
-            title = title,
-            type = type,
-            targetCount = targetCount,
-        )
     }
 }

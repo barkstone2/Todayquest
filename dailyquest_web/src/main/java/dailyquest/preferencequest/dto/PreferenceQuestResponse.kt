@@ -15,7 +15,19 @@ data class PreferenceQuestResponse(
     val preferenceDetailQuests: List<PreferenceDetailResponse> = listOf(),
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     val deadLine: LocalDateTime? = null,
+    val usedCount: Long = 0
 ) {
+
+    constructor(preferenceQuest: PreferenceQuest, usedCount: Long) : this(
+        preferenceQuest.id,
+        preferenceQuest.title,
+        preferenceQuest.description,
+        preferenceQuest.createdDate,
+        preferenceQuest.lastModifiedDate,
+        preferenceQuest.preferenceDetailQuests.map { PreferenceDetailResponse.createDto(it) },
+        preferenceQuest.deadLine,
+        usedCount
+    )
 
     companion object {
         @JvmStatic

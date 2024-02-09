@@ -1,6 +1,7 @@
 package dailyquest.quest.entity
 
 import dailyquest.common.BaseTimeEntity
+import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.user.entity.UserInfo
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -13,7 +14,8 @@ class Quest(
     seq: Long,
     state: QuestState = QuestState.PROCEED,
     type: QuestType,
-    deadline: LocalDateTime? = null
+    deadline: LocalDateTime? = null,
+    preferenceQuest: PreferenceQuest? = null,
 ) : BaseTimeEntity() {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,6 +52,10 @@ class Quest(
     private val _detailQuests: MutableList<DetailQuest> = mutableListOf()
     val detailQuests : List<DetailQuest>
         get() = _detailQuests.toList()
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "preference_quest_id")
+    private val preferenceQuest: PreferenceQuest? = preferenceQuest
 
     fun replaceDetailQuests(detailQuests: List<DetailQuest>) {
         _detailQuests.clear()

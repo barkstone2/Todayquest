@@ -60,24 +60,24 @@ public class QuestLogRepositoryUnitTest {
             when(LocalTime.now()).thenReturn(mockTime);
 
             for (int i = 0; i < completeCount; i++) {
-                Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.COMPLETE, QuestType.MAIN, null);
+                Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.COMPLETE, QuestType.MAIN, null, null);
                 Quest savedQuest = questRepository.save(quest);
                 questLogRepository.save(new QuestLog(savedQuest));
             }
 
             for (int i = 0; i < failCount; i++) {
-                Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.FAIL, QuestType.MAIN, null);
+                Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.FAIL, QuestType.MAIN, null, null);
                 Quest savedQuest = questRepository.save(quest);
                 questLogRepository.save(new QuestLog(savedQuest));
             }
 
             for (int i = 0; i < discardCount; i++) {
-                Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.DISCARD, QuestType.SUB, null);
+                Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.DISCARD, QuestType.SUB, null, null);
                 Quest savedQuest = questRepository.save(quest);
                 questLogRepository.save(new QuestLog(savedQuest));
             }
 
-            Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.PROCEED, QuestType.SUB, null);
+            Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.PROCEED, QuestType.SUB, null, null);
             Quest savedQuest = questRepository.save(quest);
             questLogRepository.save(new QuestLog(savedQuest));
 

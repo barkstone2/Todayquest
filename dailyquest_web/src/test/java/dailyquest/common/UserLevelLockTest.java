@@ -3,6 +3,7 @@ package dailyquest.common;
 import dailyquest.context.IntegrationTestContextBaseConfig;
 import dailyquest.context.MockElasticsearchTestContextConfig;
 import dailyquest.context.MockRedisTestContextConfig;
+import dailyquest.preferencequest.entity.PreferenceQuest;
 import dailyquest.quest.dto.QuestRequest;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.repository.QuestRepository;
@@ -47,7 +48,7 @@ public class UserLevelLockTest {
     })
     @ComponentScan(basePackages = {"dailyquest.quest"})
     @EnableJpaRepositories(basePackageClasses = {QuestRepository.class})
-    @EntityScan(basePackageClasses = {Quest.class})
+    @EntityScan(basePackageClasses = {Quest.class, PreferenceQuest.class})
     static class UserLevelLockTestConfig { }
 
     @Autowired

@@ -8,6 +8,7 @@ import dailyquest.context.ElasticsearchTestContextConfig
 import dailyquest.context.IntegrationTestContextBaseConfig
 import dailyquest.context.RedisTestContextConfig
 import dailyquest.jwt.JwtTokenProvider
+import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.properties.RedisKeyProperties
 import dailyquest.quest.controller.QuestApiControllerTest.QuestApiControllerIntegrationConfig
 import dailyquest.quest.dto.*
@@ -88,7 +89,7 @@ class QuestApiControllerTest @Autowired constructor(
     )
     @EnableElasticsearchRepositories(basePackageClasses = [QuestIndexRepository::class])
     @EnableJpaRepositories(basePackageClasses = [QuestRepository::class])
-    @EntityScan(basePackageClasses = [Quest::class])
+    @EntityScan(basePackageClasses = [Quest::class, PreferenceQuest::class])
     class QuestApiControllerIntegrationConfig
 
 

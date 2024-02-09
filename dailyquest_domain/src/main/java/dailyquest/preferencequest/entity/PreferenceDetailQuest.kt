@@ -1,6 +1,5 @@
 package dailyquest.preferencequest.entity
 
-import dailyquest.quest.entity.DetailQuest
 import dailyquest.quest.entity.DetailQuestType
 import jakarta.persistence.*
 
@@ -38,11 +37,9 @@ class PreferenceDetailQuest(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as DetailQuest
+        other as PreferenceDetailQuest
 
-        if (id != other.id) return false
-
-        return true
+        return id == other.id
     }
 
     override fun hashCode(): Int {

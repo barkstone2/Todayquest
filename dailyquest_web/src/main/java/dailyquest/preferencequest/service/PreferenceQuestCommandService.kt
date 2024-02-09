@@ -17,6 +17,7 @@ class PreferenceQuestCommandService @Autowired constructor(
     private val userRepository: UserRepository,
 ) {
     fun savePreferenceQuest(preferenceQuestRequest: PreferenceQuestRequest, userId: Long): PreferenceQuestResponse {
+        preferenceQuestRequest.checkRangeOfDeadLine()
         val userInfo = userRepository.findById(userId).get()
         val preferenceQuest = preferenceQuestRequest.mapToEntity(userInfo)
         return PreferenceQuestResponse.createDto(preferenceQuestRepository.save(preferenceQuest))

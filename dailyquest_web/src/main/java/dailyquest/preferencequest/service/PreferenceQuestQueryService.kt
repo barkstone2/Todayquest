@@ -15,7 +15,7 @@ class PreferenceQuestQueryService @Autowired constructor(
     private val preferenceQuestRepository: PreferenceQuestRepository
 ) {
     fun getAllPreferenceQuests(userId: Long): List<PreferenceQuestResponse> {
-        return preferenceQuestRepository.findAllByUserIdAndDeletedDateIsNull(userId).map { PreferenceQuestResponse.createDto(it) }
+        return preferenceQuestRepository.findAllWithUsedCount(userId)
     }
 
      fun getPreferenceQuest(preferenceQuestId: Long, userId: Long): PreferenceQuest {

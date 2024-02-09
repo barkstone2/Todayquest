@@ -1,6 +1,7 @@
 package dailyquest.quest.dto
 
 import dailyquest.common.MessageUtil
+import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
@@ -20,8 +21,17 @@ class QuestRequest(
     @field:Size(max = 5, message = "{Size.quest.details}")
     val details: List<DetailRequest> = emptyList(),
     val deadLine: LocalDateTime? = null,
+    private val preferenceQuest: PreferenceQuest? = null,
 ) {
     private var type: QuestType = QuestType.SUB
+
+    constructor(preferenceQuest: PreferenceQuest) : this(
+        title = preferenceQuest.title,
+        description = preferenceQuest.description,
+        details = preferenceQuest.preferenceDetailQuests.map { DetailRequest(it) },
+        deadLine = preferenceQuest.deadLine,
+        preferenceQuest = preferenceQuest
+    )
 
     fun toMainQuest() {
         this.type = QuestType.MAIN
@@ -35,7 +45,8 @@ class QuestRequest(
             seq = nextSeq,
             state = QuestState.PROCEED,
             type = type,
-            deadline = deadLine
+            deadline = deadLine,
+            preferenceQuest = preferenceQuest
         )
         quest.replaceDetailQuests(this.details.map { it.mapToEntity(quest) })
         return quest

@@ -2,7 +2,6 @@ package dailyquest.preferencequest.dto
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import dailyquest.preferencequest.entity.PreferenceQuest
-import dailyquest.quest.dto.QuestRequest
 import java.time.LocalDateTime
 
 data class PreferenceQuestResponse(
@@ -33,14 +32,5 @@ data class PreferenceQuestResponse(
                 deadLine = preferenceQuest.deadLine
             )
         }
-    }
-
-    fun mapToQuestRequest(): QuestRequest {
-        return QuestRequest(
-            title = title,
-            description = description,
-            deadLine = deadLine,
-            details = preferenceDetailQuests.map { it.mapToDetailRequest() }
-        )
     }
 }

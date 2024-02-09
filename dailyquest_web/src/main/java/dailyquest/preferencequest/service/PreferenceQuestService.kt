@@ -2,6 +2,7 @@ package dailyquest.preferencequest.service
 
 import dailyquest.preferencequest.dto.PreferenceQuestRequest
 import dailyquest.preferencequest.dto.PreferenceQuestResponse
+import dailyquest.quest.dto.QuestRequest
 import dailyquest.quest.dto.QuestResponse
 import dailyquest.quest.service.QuestService
 import org.springframework.stereotype.Service
@@ -20,7 +21,7 @@ class PreferenceQuestService(
     }
 
     fun getPreferenceQuest(preferenceQuestId: Long, userId: Long): PreferenceQuestResponse {
-        return preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId)
+        return PreferenceQuestResponse.createDto(preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId))
     }
 
     fun savePreferenceQuest(preferenceQuestRequest: PreferenceQuestRequest, userId: Long): PreferenceQuestResponse {
@@ -38,7 +39,7 @@ class PreferenceQuestService(
 
     fun registerQuestByPreferenceQuest(preferenceQuestId: Long, userId: Long): QuestResponse {
         val preferenceQuest = preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId)
-        val questRequest = preferenceQuest.mapToQuestRequest()
+        val questRequest = QuestRequest(preferenceQuest)
         return questService.saveQuest(questRequest, userId)
     }
 

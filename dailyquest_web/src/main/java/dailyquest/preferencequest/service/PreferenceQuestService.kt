@@ -25,7 +25,6 @@ class PreferenceQuestService(
     }
 
     fun savePreferenceQuest(preferenceQuestRequest: PreferenceQuestRequest, userId: Long): PreferenceQuestResponse {
-        preferenceQuestRequest.checkRangeOfDeadLine()
         return preferenceQuestCommandService.savePreferenceQuest(preferenceQuestRequest, userId)
     }
 

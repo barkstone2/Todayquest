@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import org.hibernate.validator.constraints.Range
 
-class DetailRequest(
+data class DetailRequest(
     @field:NotBlank(message = "{NotBlank.details.title}")
     @field:Size(max = 50, message = "{Size.details.title}")
     val title: String,
@@ -33,9 +33,4 @@ class DetailRequest(
             quest = quest
         )
     }
-
-    override fun toString(): String {
-        return "DetailRequest(title='$title', type=$type, targetCount=$targetCount)"
-    }
-
 }

@@ -11,7 +11,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
-class QuestRequest(
+data class QuestRequest(
     @field:NotBlank(message = "{NotBlank.quest.title}")
     @field:Size(max = 50, message = "{size.quest.title}")
     val title: String,
@@ -52,10 +52,6 @@ class QuestRequest(
         return quest
     }
 
-    override fun toString(): String {
-        return "QuestRequest(title='$title', description='$description', details=$details, type=$type)"
-    }
-
     fun checkRangeOfDeadLine() {
         if (deadLine != null) {
             val now = LocalDateTime.now().withSecond(0).withNano(0)
@@ -65,5 +61,4 @@ class QuestRequest(
             require(deadLine.isAfter(now.plusMinutes(5)) && deadLine.isBefore(nextReset.minusMinutes(5))) { MessageUtil.getMessage("Range.quest.deadLine") }
         }
     }
-
 }

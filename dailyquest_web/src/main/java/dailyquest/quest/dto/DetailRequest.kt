@@ -1,5 +1,6 @@
 package dailyquest.quest.dto
 
+import dailyquest.preferencequest.entity.PreferenceDetailQuest
 import dailyquest.quest.entity.DetailQuest
 import dailyquest.quest.entity.DetailQuestState
 import dailyquest.quest.entity.DetailQuestType
@@ -16,6 +17,12 @@ class DetailRequest(
     @field:Range(min = 1, max = 255, message = "{Range.details.targetCount}")
     val targetCount: Int,
 ) {
+
+    constructor(preferenceDetailQuest: PreferenceDetailQuest) : this(
+        title = preferenceDetailQuest.title,
+        type = preferenceDetailQuest.type,
+        targetCount = preferenceDetailQuest.targetCount
+    )
 
     fun mapToEntity(quest: Quest): DetailQuest {
         return DetailQuest(

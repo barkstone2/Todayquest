@@ -4,6 +4,7 @@ import com.jayway.jsonpath.JsonPath;
 import dailyquest.context.IntegrationTestContextBaseConfig;
 import dailyquest.context.MockRedisTestContextConfig;
 import dailyquest.jwt.JwtTokenProvider;
+import dailyquest.preferencequest.entity.PreferenceQuest;
 import dailyquest.quest.dto.QuestLogSearchType;
 import dailyquest.quest.entity.QuestLog;
 import dailyquest.quest.entity.QuestState;
@@ -66,7 +67,7 @@ public class StatusApiControllerTest {
     @EnableJpaRepositories(
             basePackageClasses = {QuestLogRepository.class},
             includeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {QuestLogRepository.class})})
-    @EntityScan(basePackageClasses = {QuestLog.class})
+    @EntityScan(basePackageClasses = {QuestLog.class, PreferenceQuest.class})
     static class StatusControllerIntegrationTestConfig { }
     
     static final String SERVER_ADDR = "http://localhost:";

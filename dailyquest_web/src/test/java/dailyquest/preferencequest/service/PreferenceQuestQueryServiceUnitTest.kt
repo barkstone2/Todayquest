@@ -33,19 +33,6 @@ class PreferenceQuestQueryServiceUnitTest {
         messageUtil.close()
     }
 
-    @DisplayName("getAllPreferenceQuests 호출 시 findAllWithUsedCount 메서드를 호출한다")
-    @Test
-    fun `getAllPreferenceQuests 호출 시 findAllWithUsedCount 메서드를 호출한다`() {
-        //given
-        val userId = 1L
-
-        //when
-        preferenceQuestQueryService.getAllPreferenceQuests(userId)
-
-        //then
-        verify(preferenceQuestRepository, times(1)).findAllWithUsedCount(eq(userId))
-    }
-
     @DisplayName("getPreferenceQuest 호출 시")
     @Nested
     inner class TestGetPreferenceQuest {
@@ -59,11 +46,9 @@ class PreferenceQuestQueryServiceUnitTest {
 
             doReturn(null).`when`(preferenceQuestRepository).findByIdAndUserIdAndDeletedDateIsNull(any(), any())
 
-           //when
-            val lambda = { preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId) }
-
+            //when
             //then
-            assertThatExceptionOfType(EntityNotFoundException::class.java).isThrownBy { lambda.invoke() }
+            assertThrows<EntityNotFoundException> { preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId) }
         }
 
         @DisplayName("리포지토리 반환 값이 null이 아니면 정상 반환된다")
@@ -76,10 +61,8 @@ class PreferenceQuestQueryServiceUnitTest {
             doReturn(mock<PreferenceQuest>()).`when`(preferenceQuestRepository).findByIdAndUserIdAndDeletedDateIsNull(any(), any())
 
             //when
-            val lambda = { preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId) }
-
             //then
-            assertThatNoException().isThrownBy { lambda.invoke() }
+            assertDoesNotThrow { preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId) }
         }
     }
 

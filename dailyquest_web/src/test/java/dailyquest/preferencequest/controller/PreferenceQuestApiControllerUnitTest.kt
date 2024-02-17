@@ -126,7 +126,7 @@ class PreferenceQuestApiControllerUnitTest {
 
         //then
         result.andExpect { status { isOk() } }
-        verify(preferenceQuestService, times(1)).getAllPreferenceQuests(any())
+        verify(preferenceQuestService, times(1)).getActivePreferenceQuests(any())
     }
 
     @DisplayName("단일 선호 퀘스트 조회 시")

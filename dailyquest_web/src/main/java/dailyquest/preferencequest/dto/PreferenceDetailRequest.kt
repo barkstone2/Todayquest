@@ -1,7 +1,6 @@
 package dailyquest.preferencequest.dto
 
 import dailyquest.preferencequest.entity.PreferenceDetailQuest
-import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.quest.entity.DetailQuestType
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -17,12 +16,11 @@ data class PreferenceDetailRequest(
     val id: Long = 0,
 ) {
 
-    fun mapToEntity(preferenceQuest: PreferenceQuest): PreferenceDetailQuest {
-        return PreferenceDetailQuest(
+    fun mapToEntity(): PreferenceDetailQuest {
+        return PreferenceDetailQuest.of(
             title = title,
             type = type,
             targetCount = if (type == DetailQuestType.CHECK) 1 else targetCount,
-            preferenceQuest = preferenceQuest,
         )
     }
 }

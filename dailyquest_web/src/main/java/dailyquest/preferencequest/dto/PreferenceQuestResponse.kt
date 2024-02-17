@@ -18,28 +18,29 @@ data class PreferenceQuestResponse(
     val usedCount: Long = 0
 ) {
 
+    // JPQL 생성자 호출에 사용되므로 팩토리 메서드로 전환 불가
     constructor(preferenceQuest: PreferenceQuest, usedCount: Long) : this(
         preferenceQuest.id,
         preferenceQuest.title,
         preferenceQuest.description,
         preferenceQuest.createdDate,
         preferenceQuest.lastModifiedDate,
-        preferenceQuest.preferenceDetailQuests.map { PreferenceDetailResponse.createDto(it) },
+        preferenceQuest.preferenceDetailQuests.map { PreferenceDetailResponse.from(it) },
         preferenceQuest.deadLine,
         usedCount
     )
 
     companion object {
         @JvmStatic
-        fun createDto(preferenceQuest: PreferenceQuest): PreferenceQuestResponse {
+        fun from(preferenceQuest: PreferenceQuest): PreferenceQuestResponse {
             return PreferenceQuestResponse(
                 id = preferenceQuest.id,
                 title = preferenceQuest.title,
-                description = preferenceQuest.description ?: "",
+                description = preferenceQuest.description,
                 createdDate = preferenceQuest.createdDate,
                 lastModifiedDate = preferenceQuest.lastModifiedDate,
                 preferenceDetailQuests = preferenceQuest.preferenceDetailQuests.map {
-                    PreferenceDetailResponse.createDto(it)
+                    PreferenceDetailResponse.from(it)
                 },
                 deadLine = preferenceQuest.deadLine
             )

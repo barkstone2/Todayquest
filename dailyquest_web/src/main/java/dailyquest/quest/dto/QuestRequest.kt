@@ -25,13 +25,18 @@ data class QuestRequest(
 ) {
     private var type: QuestType = QuestType.SUB
 
-    constructor(preferenceQuest: PreferenceQuest) : this(
-        title = preferenceQuest.title,
-        description = preferenceQuest.description,
-        details = preferenceQuest.preferenceDetailQuests.map { DetailRequest(it) },
-        deadLine = preferenceQuest.deadLine,
-        preferenceQuest = preferenceQuest
-    )
+    companion object {
+        @JvmStatic
+        fun from(preferenceQuest: PreferenceQuest): QuestRequest {
+            return QuestRequest(
+                title = preferenceQuest.title,
+                description = preferenceQuest.description,
+                details = preferenceQuest.preferenceDetailQuests.map { DetailRequest(it) },
+                deadLine = preferenceQuest.deadLine,
+                preferenceQuest = preferenceQuest
+            )
+        }
+    }
 
     fun toMainQuest() {
         this.type = QuestType.MAIN

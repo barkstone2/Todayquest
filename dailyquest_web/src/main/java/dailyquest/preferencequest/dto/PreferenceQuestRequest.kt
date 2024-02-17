@@ -3,6 +3,7 @@ package dailyquest.preferencequest.dto
 import dailyquest.common.MessageUtil
 import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.user.entity.UserInfo
+import dailyquest.util.dto.DeadLineBoundaryResolver
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -18,25 +19,52 @@ data class PreferenceQuestRequest(
     @field:Size(max = 5, message = "{Size.quest.details}")
     val details: List<PreferenceDetailRequest> = listOf(),
     val deadLine: LocalDateTime? = null,
+    val boundaryResolver: DeadLineBoundaryResolver = DeadLineBoundaryResolver()
 ) {
 
-    fun mapToEntity(userInfo: UserInfo): PreferenceQuest {
-        return PreferenceQuest(
-            title = title,
-            description = description,
-            user = userInfo,
-            deadLine = deadLine
-        )
-    }
-
-    fun checkRangeOfDeadLine() {
-        if (deadLine != null) {
-            val now = LocalDateTime.now().withSecond(0).withNano(0)
-            var nextReset = now.withHour(6).withMinute(0)
-            if(now.isEqual(nextReset) || now.isAfter(nextReset)) nextReset = nextReset.plusDays(1L)
-
-            require(deadLine.isAfter(now.plusMinutes(5)) && deadLine.isBefore(nextReset.minusMinutes(5))) { MessageUtil.getMessage("Range.quest.deadLine") }
+    companion object {
+        @JvmStatic
+        fun of(title: String, description: String, details: List<PreferenceDetailRequest>, deadLine: LocalDateTime?): PreferenceQuestRequest {
+            return PreferenceQuestRequest(title, description, details, deadLine)
         }
     }
 
+    fun mapToEntity(userInfo: UserInfo): PreferenceQuest {
+        if (isValidDeadLine())
+            return PreferenceQuest.of(this.title, this.description, this.deadLine, this.details.map { it.mapToEntity() }, userInfo)
+        throw IllegalArgumentException(MessageUtil.getMessage("Range.quest.deadLine"))
+    }
+
+    fun isValidDeadLine(): Boolean {
+        if (this.deadLine == null) return true
+        val deadLine = deadLineWithoutSecondAndNano()
+        val minBoundary = boundaryResolver.resolveMinBoundary()
+        val maxBoundary = boundaryResolver.resolveMaxBoundary()
+        return deadLine.isAfter(minBoundary) && deadLine.isBefore(maxBoundary)
+    }
+
+    private fun deadLineWithoutSecondAndNano(): LocalDateTime =
+        deadLine!!.withSecond(0).withNano(0)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as PreferenceQuestRequest
+
+        if (title != other.title) return false
+        if (description != other.description) return false
+        if (details != other.details) return false
+        if (deadLine != other.deadLine) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = title.hashCode()
+        result = 31 * result + description.hashCode()
+        result = 31 * result + details.hashCode()
+        result = 31 * result + (deadLine?.hashCode() ?: 0)
+        return result
+    }
 }

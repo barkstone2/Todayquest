@@ -14,8 +14,8 @@ import org.springframework.transaction.annotation.Transactional
 class PreferenceQuestQueryService @Autowired constructor(
     private val preferenceQuestRepository: PreferenceQuestRepository
 ) {
-    fun getAllPreferenceQuests(userId: Long): List<PreferenceQuestResponse> {
-        return preferenceQuestRepository.findAllWithUsedCount(userId)
+    fun getActivePreferenceQuests(userId: Long): List<PreferenceQuestResponse> {
+        return preferenceQuestRepository.getActiveEntitiesByUserIdWithUsedCount(userId)
     }
 
      fun getPreferenceQuest(preferenceQuestId: Long, userId: Long): PreferenceQuest {

@@ -16,5 +16,5 @@ interface PreferenceQuestRepository : JpaRepository<PreferenceQuest, Long> {
             "left join Quest q on q.preferenceQuest.id = pq.id " +
             "where pq.user.id = :userId and pq.deletedDate is null " +
             "group by pq.id")
-    fun findAllWithUsedCount(@Param("userId") userId: Long): List<PreferenceQuestResponse>
+    fun getActiveEntitiesByUserIdWithUsedCount(@Param("userId") userId: Long): List<PreferenceQuestResponse>
 }

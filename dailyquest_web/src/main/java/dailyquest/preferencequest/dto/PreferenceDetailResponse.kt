@@ -10,12 +10,12 @@ data class PreferenceDetailResponse(
     val type: DetailQuestType = DetailQuestType.CHECK,
 ) {
     companion object {
-        fun createDto(pdq: PreferenceDetailQuest): PreferenceDetailResponse {
+        fun from(preferenceDetailQuest: PreferenceDetailQuest): PreferenceDetailResponse {
             return PreferenceDetailResponse(
-                id = pdq.id,
-                title = pdq.title,
-                targetCount = pdq.targetCount,
-                type = pdq.type,
+                id = preferenceDetailQuest.id,
+                title = preferenceDetailQuest.title,
+                targetCount = preferenceDetailQuest.targetCount,
+                type = preferenceDetailQuest.type,
             )
         }
     }

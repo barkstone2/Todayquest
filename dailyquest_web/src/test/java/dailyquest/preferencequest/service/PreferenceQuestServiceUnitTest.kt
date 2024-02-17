@@ -7,6 +7,7 @@ import dailyquest.quest.dto.QuestResponse
 import dailyquest.quest.service.QuestService
 import dailyquest.user.entity.UserInfo
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Answers
@@ -31,27 +32,14 @@ class PreferenceQuestServiceUnitTest {
     @Mock
     lateinit var questService: QuestService
 
-    @DisplayName("전체 선호 퀘스트 조회 시 쿼리 서비스에 요청이 위임된다")
-    @Test
-    fun `전체 선호 퀘스트 조회 시 쿼리 서비스에 요청이 위임된다`() {
-        //given
-        val userId = 1L
-
-        //when
-        preferenceQuestService.getAllPreferenceQuests(userId)
-
-        //then
-        verify(preferenceQuestQueryService, times(1)).getAllPreferenceQuests(eq(userId))
-    }
-
     @DisplayName("개별 선호 퀘스트 조회 시 쿼리 서비스에 요청이 위임된다")
     @Test
     fun `개별 선호 퀘스트 조회 시 쿼리 서비스에 요청이 위임된다`() {
         //given
         val preferenceId = 1L
         val userId = 1L
-
-        doReturn(mock<PreferenceQuest>(defaultAnswer = Answers.RETURNS_SMART_NULLS)).`when`(preferenceQuestQueryService).getPreferenceQuest(any(), any())
+        val mockEntity = mock<PreferenceQuest>(defaultAnswer = Answers.RETURNS_SMART_NULLS)
+        doReturn(mockEntity).`when`(preferenceQuestQueryService).getPreferenceQuest(any(), any())
 
         //when
         preferenceQuestService.getPreferenceQuest(preferenceId, userId)
@@ -74,34 +62,82 @@ class PreferenceQuestServiceUnitTest {
         verify(preferenceQuestCommandService, times(1)).savePreferenceQuest(eq(mockRequest), eq(userId))
     }
 
-    @DisplayName("선호 퀘스트 수정 시 커맨드 서비스에 요청이 위임된다")
-    @Test
-    fun `선호 퀘스트 수정 시 커맨드 서비스에 요청이 위임된다`() {
-        //given
-        val mockRequest = mock<PreferenceQuestRequest>()
-        val preferenceQuestId = 1L
-        val userId = 1L
+    @DisplayName("선호 퀘스트 수정 시")
+    @Nested
+    inner class TestUpdatePreferenceQuest {
 
-        //when
-        preferenceQuestService.updatePreferenceQuest(mockRequest, preferenceQuestId, userId)
+        @DisplayName("쿼리 서비스에서 엔티티를 조회한다")
+        @Test
+        fun `쿼리 서비스에서 엔티티를 조회한다`() {
+            //given
+            val mockRequest = mock<PreferenceQuestRequest>()
+            val preferenceQuestId = 1L
+            val userId = 1L
 
-        //then
-        verify(preferenceQuestCommandService, times(1)).updatePreferenceQuest(eq(mockRequest), eq(preferenceQuestId), eq(userId))
+            //when
+            preferenceQuestService.updatePreferenceQuest(mockRequest, preferenceQuestId, userId)
+
+            //then
+            verify(preferenceQuestQueryService, times(1)).getPreferenceQuest(eq(preferenceQuestId), eq(userId))
+        }
+
+        @DisplayName("커맨드 서비스에 업데이트 요청이 위임된다")
+        @Test
+        fun `커맨드 서비스에 업데이트 요청이 위임된다`() {
+            //given
+            val preferenceQuestId = 1L
+            val userId = 1L
+            val mockRequest = mock<PreferenceQuestRequest>()
+            val updateTarget = mock<PreferenceQuest>()
+            doReturn(updateTarget).`when`(preferenceQuestQueryService).getPreferenceQuest(any(), any())
+
+            //when
+            preferenceQuestService.updatePreferenceQuest(mockRequest, preferenceQuestId, userId)
+
+            //then
+            verify(preferenceQuestCommandService, times(1)).updatePreferenceQuest(eq(mockRequest), eq(updateTarget))
+        }
     }
 
-    @DisplayName("선호 퀘스트 삭제 시 커맨드 서비스에 요청이 위임된다")
-    @Test
-    fun `선호 퀘스트 삭제 시 커맨드 서비스에 요청이 위임된다`() {
-        //given
-        val preferenceQuestId = 1L
-        val userId = 1L
+    @DisplayName("선호 퀘스트 삭제 시")
+    @Nested
+    inner class TestDeletePreferenceQuest {
 
-        //when
-        preferenceQuestService.deletePreferenceQuest(preferenceQuestId, userId)
+        @DisplayName("쿼리 서비스에서 엔티티를 조회한다")
+        @Test
+        fun `쿼리 서비스에서 엔티티를 조회한다`() {
+            //given
+            val preferenceQuestId = 1L
+            val userId = 1L
 
-        //then
-        verify(preferenceQuestCommandService, times(1)).deletePreferenceQuest(eq(preferenceQuestId), eq(userId))
+            //when
+            preferenceQuestService.deletePreferenceQuest(preferenceQuestId, userId)
+
+            //then
+            verify(preferenceQuestQueryService, times(1)).getPreferenceQuest(eq(preferenceQuestId), eq(userId))
+        }
+
+
+        @DisplayName("커맨드 서비스에 삭제 요청이 위임된다")
+        @Test
+        fun `커맨드 서비스에 삭제 요청이 위임된다`() {
+            //given
+            val preferenceQuestId = 1L
+            val userId = 1L
+            val deleteTarget = mock<PreferenceQuest>()
+
+            doReturn(deleteTarget).`when`(preferenceQuestQueryService).getPreferenceQuest(eq(preferenceQuestId), eq(userId))
+
+            //when
+            preferenceQuestService.deletePreferenceQuest(preferenceQuestId, userId)
+
+            //then
+            verify(preferenceQuestCommandService, times(1)).deletePreferenceQuest(eq(deleteTarget))
+        }
     }
+
+
+
 
     @DisplayName("퀘스트 등록 요청 시 조회된 선호 퀘스트를 사용해 등록 요청을 위임한다")
     @Test
@@ -110,8 +146,8 @@ class PreferenceQuestServiceUnitTest {
         val preferenceQuestId = 1L
         val userId = 1L
         val mockUser = mock<UserInfo>()
-        val preferenceQuest = PreferenceQuest("pq-save-title", "pq-save-desc", user = mockUser)
-        val questRequest = QuestRequest(preferenceQuest)
+        val preferenceQuest = PreferenceQuest.of("pq-save-title", "pq-save-desc", userInfo = mockUser)
+        val questRequest = QuestRequest.from(preferenceQuest)
         doReturn(preferenceQuest).`when`(preferenceQuestQueryService).getPreferenceQuest(any(), any())
         doReturn(mock<QuestResponse>()).`when`(questService).saveQuest(any(), any())
 

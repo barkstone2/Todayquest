@@ -7,14 +7,11 @@ import java.time.LocalDateTime
 
 @Table(name = "preference_quest")
 @Entity
-class PreferenceQuest(
+class PreferenceQuest private constructor(
     title: String,
     description: String = "",
     deadLine: LocalDateTime? = null,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    val user: UserInfo,
+    user: UserInfo,
 ) : BaseTimeEntity() {
 
     @Id
@@ -36,21 +33,26 @@ class PreferenceQuest(
     var deadLine: LocalDateTime? = deadLine
         protected set
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    val user: UserInfo = user
+
     @OneToMany(mappedBy = "preferenceQuest", cascade = [CascadeType.ALL], orphanRemoval = true)
     private val _preferenceDetailQuests: MutableList<PreferenceDetailQuest> = mutableListOf()
     val preferenceDetailQuests : List<PreferenceDetailQuest>
         get() = _preferenceDetailQuests.toList()
 
-    fun updatePreferenceQuest(title: String, description: String = "", deadLine: LocalDateTime? = null, details: List<PreferenceDetailQuest> = emptyList()) {
-        this.title = title
-        this.description = description
-        this.deadLine = deadLine
-        replaceDetailQuests(details)
+    fun updatePreferenceQuest(requestEntity: PreferenceQuest) {
+        this.title = requestEntity.title
+        this.description = requestEntity.description
+        this.deadLine = requestEntity.deadLine
+        replaceDetailQuests(requestEntity.preferenceDetailQuests)
     }
 
-    fun replaceDetailQuests(detailQuests: List<PreferenceDetailQuest>) {
+    private fun replaceDetailQuests(detailQuests: List<PreferenceDetailQuest>) {
         _preferenceDetailQuests.clear()
         _preferenceDetailQuests.addAll(detailQuests)
+        detailQuests.forEach { it.linkToParent(this) }
     }
 
     fun deletePreferenceQuest() {
@@ -70,4 +72,23 @@ class PreferenceQuest(
         return id.hashCode()
     }
 
+    companion object {
+        @JvmStatic
+        fun of(
+            title: String,
+            description: String = "",
+            deadLine: LocalDateTime? = null,
+            details: List<PreferenceDetailQuest> = emptyList(),
+            userInfo: UserInfo
+        ): PreferenceQuest {
+            val preferenceQuest = PreferenceQuest(
+                title,
+                description,
+                deadLine,
+                userInfo
+            )
+            preferenceQuest.replaceDetailQuests(details)
+            return preferenceQuest
+        }
+    }
 }

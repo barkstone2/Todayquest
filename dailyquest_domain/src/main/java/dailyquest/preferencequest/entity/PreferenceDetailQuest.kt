@@ -5,14 +5,10 @@ import jakarta.persistence.*
 
 @Table(name = "preference_detail_quest")
 @Entity
-class PreferenceDetailQuest(
+class PreferenceDetailQuest private constructor(
     title: String,
     targetCount: Int,
     type: DetailQuestType,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "preference_quest_id")
-    val preferenceQuest: PreferenceQuest,
 ) {
 
     @Id
@@ -33,6 +29,15 @@ class PreferenceDetailQuest(
     var type: DetailQuestType = type
         protected set
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "preference_quest_id")
+    var preferenceQuest: PreferenceQuest? = null
+        protected set
+
+    fun linkToParent(preferenceQuest: PreferenceQuest) {
+        this.preferenceQuest = preferenceQuest
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -46,4 +51,14 @@ class PreferenceDetailQuest(
         return id.hashCode()
     }
 
+    companion object {
+        @JvmStatic
+        fun of(
+            title: String,
+            targetCount: Int,
+            type: DetailQuestType,
+        ): PreferenceDetailQuest {
+            return PreferenceDetailQuest(title, targetCount, type)
+        }
+    }
 }

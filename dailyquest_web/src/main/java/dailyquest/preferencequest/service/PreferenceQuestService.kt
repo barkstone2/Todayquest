@@ -16,12 +16,12 @@ class PreferenceQuestService(
     private val questService: QuestService,
 ) {
 
-    fun getAllPreferenceQuests(userId: Long): List<PreferenceQuestResponse> {
-        return preferenceQuestQueryService.getAllPreferenceQuests(userId)
+    fun getActivePreferenceQuests(userId: Long): List<PreferenceQuestResponse> {
+        return preferenceQuestQueryService.getActivePreferenceQuests(userId)
     }
 
     fun getPreferenceQuest(preferenceQuestId: Long, userId: Long): PreferenceQuestResponse {
-        return PreferenceQuestResponse.createDto(preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId))
+        return PreferenceQuestResponse.from(preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId))
     }
 
     fun savePreferenceQuest(preferenceQuestRequest: PreferenceQuestRequest, userId: Long): PreferenceQuestResponse {
@@ -29,18 +29,18 @@ class PreferenceQuestService(
     }
 
     fun updatePreferenceQuest(preferenceQuestRequest: PreferenceQuestRequest, preferenceQuestId: Long, userId: Long): PreferenceQuestResponse {
-        return preferenceQuestCommandService.updatePreferenceQuest(preferenceQuestRequest, preferenceQuestId, userId)
+        val updateTarget = preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId)
+        return preferenceQuestCommandService.updatePreferenceQuest(preferenceQuestRequest, updateTarget)
     }
 
     fun deletePreferenceQuest(preferenceQuestId: Long, userId: Long) {
-        preferenceQuestCommandService.deletePreferenceQuest(preferenceQuestId, userId)
+        val deleteTarget = preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId)
+        preferenceQuestCommandService.deletePreferenceQuest(deleteTarget)
     }
 
     fun registerQuestByPreferenceQuest(preferenceQuestId: Long, userId: Long): QuestResponse {
         val preferenceQuest = preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId)
-        val questRequest = QuestRequest(preferenceQuest)
+        val questRequest = QuestRequest.from(preferenceQuest)
         return questService.saveQuest(questRequest, userId)
     }
-
-
 }

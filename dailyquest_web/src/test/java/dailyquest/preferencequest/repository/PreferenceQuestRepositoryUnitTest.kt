@@ -50,14 +50,14 @@ class PreferenceQuestRepositoryUnitTest {
         @Test
         fun `userId가 일치하는 결과만 조회된다`() {
             //given
-            val valid = listOf(PreferenceQuest("t", user = userInfo), PreferenceQuest("t", user = userInfo))
-            val invalid = PreferenceQuest("t", user = anotherUser)
+            val valid = listOf(PreferenceQuest.of("t", userInfo = userInfo), PreferenceQuest.of("t", userInfo = userInfo))
+            val invalid = PreferenceQuest.of("t", userInfo = anotherUser)
             preferenceQuestRepository.saveAll(valid)
             preferenceQuestRepository.save(invalid)
 
             val validIds = valid.map { it.id }
             //when
-            val foundIds = preferenceQuestRepository.findAllWithUsedCount(userInfo.id).map { it.id }
+            val foundIds = preferenceQuestRepository.getActiveEntitiesByUserIdWithUsedCount(userInfo.id).map { it.id }
 
             //then
             assertThat(foundIds).isNotEmpty
@@ -69,15 +69,15 @@ class PreferenceQuestRepositoryUnitTest {
         @Test
         fun `deletedDate가 null인 레코드만 조회된다`() {
             //given
-            val valid = listOf(PreferenceQuest("t", user = userInfo), PreferenceQuest("t", user = userInfo))
-            val invalid = PreferenceQuest("t", user = userInfo)
+            val valid = listOf(PreferenceQuest.of("t", userInfo = userInfo), PreferenceQuest.of("t", userInfo = userInfo))
+            val invalid = PreferenceQuest.of("t", userInfo = userInfo)
             invalid.deletePreferenceQuest()
             preferenceQuestRepository.saveAll(valid)
             preferenceQuestRepository.save(invalid)
 
             val validIds = valid.map { it.id }
             //when
-            val foundIds = preferenceQuestRepository.findAllWithUsedCount(userInfo.id).map { it.id }
+            val foundIds = preferenceQuestRepository.getActiveEntitiesByUserIdWithUsedCount(userInfo.id).map { it.id }
 
             //then
             assertThat(foundIds).isNotEmpty
@@ -90,9 +90,9 @@ class PreferenceQuestRepositoryUnitTest {
         @Test
         fun `퀘스트 테이블에서 참조 중인 레코드 수와 같이 조회된다`() {
             //given
-            val pq1 = PreferenceQuest("t", user = userInfo)
-            val pq2 = PreferenceQuest("t", user = userInfo)
-            val pq3 = PreferenceQuest("t", user = userInfo)
+            val pq1 = PreferenceQuest.of("t", userInfo = userInfo)
+            val pq2 = PreferenceQuest.of("t", userInfo = userInfo)
+            val pq3 = PreferenceQuest.of("t", userInfo = userInfo)
             val pqList = listOf(pq1, pq2, pq3)
             preferenceQuestRepository.saveAll(pqList)
 
@@ -105,7 +105,7 @@ class PreferenceQuestRepositoryUnitTest {
             }
 
             //when
-            val found = preferenceQuestRepository.findAllWithUsedCount(userInfo.id)
+            val found = preferenceQuestRepository.getActiveEntitiesByUserIdWithUsedCount(userInfo.id)
 
             //then
             assertThat(found).isNotEmpty

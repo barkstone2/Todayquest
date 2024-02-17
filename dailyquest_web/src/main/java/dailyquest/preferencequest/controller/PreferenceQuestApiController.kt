@@ -26,7 +26,7 @@ class PreferenceQuestApiController(
     fun getPreferenceQuestList(
         @AuthenticationPrincipal principal: UserPrincipal
     ): ResponseEntity<ResponseData<List<PreferenceQuestResponse>>> {
-        return ResponseEntity.ok(ResponseData.of(preferenceQuestService.getAllPreferenceQuests(principal.id)))
+        return ResponseEntity.ok(ResponseData.of(preferenceQuestService.getActivePreferenceQuests(principal.id)))
     }
 
     @GetMapping("/{preferenceQuestId}")

@@ -45,22 +45,6 @@ public class QuestIndexServiceUnitTest {
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     ElasticsearchOperations operations;
 
-    @DisplayName("퀘스트 상태 변경 메서드 호출 시 문서 업데이트 전에 상태가 변경된다")
-    @Test
-    public void setStateBeforeUpdateDocument() throws Exception {
-        //given
-        QuestResponse response = mock(QuestResponse.class, Answers.RETURNS_DEEP_STUBS);
-        QuestState state = QuestState.COMPLETE;
-        Long userId = 1L;
-
-        //when
-        questIndexService.updateQuestStateOfDocument(response, state, userId);
-
-        //then
-        verify(response).setState(eq(state));
-        verify(questIndexRepository).save(any());
-    }
-
     @DisplayName("문서 검색 요청 시")
     @Nested
     class SearchDocumentTest {

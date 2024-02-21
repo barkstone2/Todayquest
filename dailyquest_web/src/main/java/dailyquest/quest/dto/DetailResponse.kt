@@ -1,5 +1,6 @@
 package dailyquest.quest.dto
 
+import dailyquest.common.MessageUtil
 import dailyquest.quest.entity.DetailQuest
 import dailyquest.quest.entity.DetailQuestState
 import dailyquest.quest.entity.DetailQuestType
@@ -15,14 +16,16 @@ data class DetailResponse(
 ) {
 
     companion object {
-        fun createDto(dq: DetailQuest, canCompleteParent: Boolean? = false): DetailResponse {
+        @JvmStatic
+        fun of(interactResult: DetailQuest?, canCompleteParent: Boolean? = false): DetailResponse {
+            checkNotNull(interactResult) { MessageUtil.getMessage("exception.badRequest") }
             return DetailResponse(
-                id = dq.id,
-                title = dq.title,
-                targetCount = dq.targetCount,
-                count = dq.count,
-                type = dq.type,
-                state = dq.state,
+                id = interactResult.id,
+                title = interactResult.title,
+                targetCount = interactResult.targetCount,
+                count = interactResult.count,
+                type = interactResult.type,
+                state = interactResult.state,
                 canCompleteParent = canCompleteParent
             )
         }

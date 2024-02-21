@@ -157,18 +157,20 @@ class QuestServiceUnitTest {
             verify(questCommandService).deleteQuest(eq(questId), eq(userId))
         }
 
-        @DisplayName("오픈서치 인덱스에서 도큐먼트를 삭제한다")
+        @DisplayName("커맨드 서비스의 반환 결과로 엘라스틱서치 업데이트를 요청한다")
         @Test
-        fun `오픈서치 인덱스에서 도큐먼트를 삭제한다`() {
+        fun `커맨드 서비스의 반환 결과로 엘라스틱서치 업데이트를 요청한다`() {
             //given
             val questId = 0L
             val userId = 0L
+            val deletedQuest = mock<QuestResponse>()
+            doReturn(deletedQuest).`when`(questCommandService).deleteQuest(any(), any())
 
             //when
             questService.deleteQuest(questId, userId)
 
             //then
-            verify(questIndexService).deleteDocument(eq(questId))
+            verify(questIndexService).deleteDocument(eq(deletedQuest))
         }
     }
 
@@ -190,18 +192,20 @@ class QuestServiceUnitTest {
             verify(questCommandService).completeQuest(eq(questId), eq(userId))
         }
 
-        @DisplayName("엘라스틱서치 서비스에 문서 업데이트를 위임한다")
+        @DisplayName("커맨드 서비스의 반환 결과로 엘라스틱서치 업데이트를 요청한다")
         @Test
-        fun `엘라스틱서치 서비스에 문서 업데이트를 위임한다`() {
+        fun `커맨드 서비스의 반환 결과로 엘라스틱서치 업데이트를 요청한다`() {
             //given
             val questId = 0L
             val userId = 0L
+            val completedQuest = mock<QuestResponse>()
+            doReturn(completedQuest).`when`(questCommandService).completeQuest(any(), any())
 
             //when
             questService.completeQuest(questId, userId)
 
             //then
-            verify(questIndexService).updateQuestStateOfDocument(eq(questId), eq(userId))
+            verify(questIndexService).updateQuestStateOfDocument(eq(completedQuest), eq(userId))
         }
     }
 
@@ -223,18 +227,20 @@ class QuestServiceUnitTest {
             verify(questCommandService).discardQuest(eq(questId), eq(userId))
         }
 
-        @DisplayName("엘라스틱서치 서비스에 문서 업데이트를 위임한다")
+        @DisplayName("커맨드 서비스의 반환 결과로 엘라스틱서치 업데이트를 요청한다")
         @Test
-        fun `엘라스틱서치 서비스에 문서 업데이트를 위임한다`() {
+        fun `커맨드 서비스의 반환 결과로 엘라스틱서치 업데이트를 요청한다`() {
             //given
             val questId = 0L
             val userId = 0L
+            val discardedQuest = mock<QuestResponse>()
+            doReturn(discardedQuest).`when`(questCommandService).discardQuest(any(), any())
 
             //when
             questService.discardQuest(questId, userId)
 
             //then
-            verify(questIndexService).updateQuestStateOfDocument(eq(questId), eq(userId))
+            verify(questIndexService).updateQuestStateOfDocument(eq(discardedQuest), eq(userId))
         }
     }
 

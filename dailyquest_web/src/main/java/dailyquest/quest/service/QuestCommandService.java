@@ -62,14 +62,15 @@ public class QuestCommandService {
         return QuestResponse.createDto(quest);
     }
 
-    public void deleteQuest(Long questId, Long userId) {
+    public QuestResponse deleteQuest(Long questId, Long userId) {
         Quest quest = questQueryService.findByIdOrThrow(questId);
         if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
 
         quest.deleteQuest();
+        return QuestResponse.createDto(quest);
     }
 
-    public void completeQuest(Long questId, Long userId) {
+    public QuestResponse completeQuest(Long questId, Long userId) {
         Quest quest = questQueryService.findByIdOrThrow(questId);
         if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
 
@@ -85,9 +86,10 @@ public class QuestCommandService {
             default -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.not-proceed"));
         }
 
+        return QuestResponse.createDto(quest);
     }
 
-    public void discardQuest(Long questId, Long userId) {
+    public QuestResponse discardQuest(Long questId, Long userId) {
         Quest quest = questQueryService.findByIdOrThrow(questId);
         if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
 
@@ -99,6 +101,7 @@ public class QuestCommandService {
             case DELETE -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.deleted"));
             default -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.not-proceed"));
         }
+        return QuestResponse.createDto(quest);
     }
 
     public DetailResponse interactWithDetailQuest(Long userId, Long questId, Long detailQuestId, @Nullable DetailInteractRequest request) {

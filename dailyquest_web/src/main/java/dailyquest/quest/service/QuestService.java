@@ -10,6 +10,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/* TODO
+    다른 서비스를 통한 작업이 추가되고 트랜잭션을 필요로 할 경우
+    반드시 비동기 로직을 트랜잭션 밖으로 분리하거나
+    비동기 로직 호출 전에 flush를 호출해 트랜잭션 커밋 중에 발생하는 오류로 인한
+    데이터 불일치를 방지해야함
+*/
 @RequiredArgsConstructor
 @Service
 public class QuestService {
@@ -53,18 +59,18 @@ public class QuestService {
     }
 
     public void deleteQuest(Long questId, Long userId) {
-        questCommandService.deleteQuest(questId, userId);
-        questIndexService.deleteDocument(questId);
+        QuestResponse deletedQuest = questCommandService.deleteQuest(questId, userId);
+        questIndexService.deleteDocument(deletedQuest);
     }
 
     public void completeQuest(Long questId, Long userId) {
-        questCommandService.completeQuest(questId, userId);
-        questIndexService.updateQuestStateOfDocument(questId, userId);
+        QuestResponse questResponse = questCommandService.completeQuest(questId, userId);
+        questIndexService.updateQuestStateOfDocument(questResponse, userId);
     }
 
     public void discardQuest(Long questId, Long userId) {
-        questCommandService.discardQuest(questId, userId);
-        questIndexService.updateQuestStateOfDocument(questId, userId);
+        QuestResponse questResponse = questCommandService.discardQuest(questId, userId);
+        questIndexService.updateQuestStateOfDocument(questResponse, userId);
     }
 
     public DetailResponse interactWithDetailQuest(Long userId, Long questId, Long detailQuestId, DetailInteractRequest request) {

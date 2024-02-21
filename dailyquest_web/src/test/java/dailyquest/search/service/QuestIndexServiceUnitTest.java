@@ -48,23 +48,6 @@ public class QuestIndexServiceUnitTest {
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     ElasticsearchOperations operations;
 
-    @DisplayName("퀘스트 상태 변경 메서드 호출 시 퀘스트 조회 후 처리된다")
-    @Test
-    public void getQuestInfoBeforeUpdateStateOfDocument() throws Exception {
-        //given
-        QuestResponse response = mock(QuestResponse.class, Answers.RETURNS_DEEP_STUBS);
-        doReturn(response).when(questQueryService).getQuestInfo(any(), any());
-        Long questId = 1L;
-        Long userId = 1L;
-
-        //when
-        questIndexService.updateQuestStateOfDocument(questId, userId);
-
-        //then
-        verify(questIndexRepository).save(any());
-        verify(questQueryService).getQuestInfo(eq(questId), eq(userId));
-    }
-
     @DisplayName("문서 검색 요청 시")
     @Nested
     class SearchDocumentTest {

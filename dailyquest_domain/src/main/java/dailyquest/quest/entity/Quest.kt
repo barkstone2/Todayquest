@@ -106,10 +106,6 @@ class Quest(
         return state == QuestState.PROCEED
     }
 
-    fun isQuestOfUser(userId: Long): Boolean {
-        return user.id == userId
-    }
-
     fun canComplete(): Boolean {
         return detailQuests.stream()
             .allMatch(DetailQuest::isCompletedDetailQuest)

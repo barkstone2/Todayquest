@@ -7,21 +7,20 @@ import dailyquest.quest.repository.QuestRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -125,80 +124,81 @@ public class QuestQueryServiceUnitTest {
         }
     }
 
-    @DisplayName("퀘스트 조회 시")
+    @DisplayName("getEntityOfUser 메서드 호출 시")
     @Nested
-    class GetQuestTest {
-
-        @DisplayName("요청 유저의 퀘스트가 아니면 예외가 발생한다")
+    class TestGetEntityOfUser {
+        @DisplayName("조회한 엔티티가 null이면 예외를 던진다")
         @Test
-        void ifNotQuestOfUserThanThrow() {
+        public void ifEntityIsNullThrowException() throws Exception {
             //given
-            Long questId = 0L;
-            Long userId = 1L;
-            Quest mockQuest = mock(Quest.class, Answers.RETURNS_DEEP_STUBS);
-
-            doReturn(Optional.of(mockQuest)).when(questRepository).findById(eq(questId));
-            doReturn(false).when(mockQuest).isQuestOfUser(eq(userId));
+            doReturn(null).when(questRepository).findByIdAndUserId(any(), any());
 
             //when
-            Runnable run = () -> questQueryService.getQuestInfo(questId, userId);
+            Executable call = () -> questQueryService.getEntityOfUser(1L, 1L);
 
             //then
-            assertThatThrownBy(run::run).isInstanceOf(AccessDeniedException.class);
-            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
+            assertThrows(EntityNotFoundException.class, call);
         }
 
-        @DisplayName("요청 유저의 퀘스트라면 예외가 발생하지 않는다")
-        @Test
-        void ifQuestOfUserThanDoesNotThrow() {
-            //given
-            Long questId = 0L;
-            Long userId = 1L;
-
-            Quest mockQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-
-            doReturn(Optional.of(mockQuest)).when(questRepository).findById(eq(questId));
-            doReturn(true).when(mockQuest).isQuestOfUser(eq(userId));
-
-            //when
-            questQueryService.getQuestInfo(questId, userId);
-
-            //then
-            verify(mockQuest, times(1)).isQuestOfUser(eq(userId));
-        }
-    }
-
-    @DisplayName("findByIdOrThrow 메서드 호출 시")
-    @Nested
-    class TestFindByIdOrThrow {
-        @DisplayName("엔티티 조회에 실패하면 EntityNotFound 예외를 던진다")
-        @Test
-        public void ifFailGetEntityByIdThenThrow() throws Exception {
-            //given
-            Long questId = 1L;
-            doReturn(Optional.empty()).when(questRepository).findById(eq(questId));
-
-            //when
-            Runnable call = () -> questQueryService.findByIdOrThrow(questId);
-
-            //then
-            assertThatThrownBy(call::run).isInstanceOf(EntityNotFoundException.class);
-        }
-
-        @DisplayName("엔티티 조회 성공 시 엔티티를 반환한다")
+        @DisplayName("조회한 엔티티가 null이 아니면 엔티티를 반환한다")
         @Test
         public void ifSucceedThenReturn() throws Exception {
             //given
-            Long questId = 1L;
-            Quest mockQuest = mock(Quest.class);
-            doReturn(Optional.of(mockQuest)).when(questRepository).findById(eq(questId));
+            Quest foundQuest = mock(Quest.class);
+            doReturn(foundQuest).when(questRepository).findByIdAndUserId(any(), any());
 
             //when
-            Quest result = questQueryService.findByIdOrThrow(questId);
+            Quest returnQuest = questQueryService.getEntityOfUser(1L, 1L);
 
             //then
-            assertThat(result).isEqualTo(mockQuest);
+            assertThat(returnQuest).isEqualTo(foundQuest);
         }
     }
 
+    @DisplayName("getProceedEntityOfUser 호출 시")
+    @Nested
+    class TestGetProceedEntityOfUser {
+        @DisplayName("조회한 엔티티가 null이면 예외를 던진다")
+        @Test
+        public void ifEntityIsNullThrowException() throws Exception {
+            //given
+            doReturn(null).when(questRepository).findByIdAndUserId(any(), any());
+
+            //when
+            Executable testMethod = () -> questQueryService.getProceedEntityOfUser(1L, 1L);
+
+            //then
+            assertThrows(EntityNotFoundException.class, testMethod);
+        }
+
+        @DisplayName("조회한 엔티티가 proceed 상태가 아니면 예외를 던진다")
+        @Test
+        public void ifResultIsNotProceedThenThrow() throws Exception {
+            //given
+            Quest foundEntity = mock(Quest.class);
+            doReturn(foundEntity).when(questRepository).findByIdAndUserId(any(), any());
+            doReturn(false).when(foundEntity).isProceed();
+
+            //when
+            Executable testMethod = () -> questQueryService.getProceedEntityOfUser(1L, 1L);
+
+            //then
+            assertThrows(IllegalStateException.class, testMethod);
+        }
+
+        @DisplayName("조회한 엔티티가 null이 아니고 proceed 상태면 엔티티를 반환한다")
+        @Test
+        public void ifResultExistAndIsProceedThenReturn() throws Exception {
+            //given
+            Quest foundEntity = mock(Quest.class);
+            doReturn(foundEntity).when(questRepository).findByIdAndUserId(any(), any());
+            doReturn(true).when(foundEntity).isProceed();
+
+            //when
+            Quest returnEntity = questQueryService.getProceedEntityOfUser(1L, 1L);
+
+            //then
+            assertThat(returnEntity).isEqualTo(foundEntity);
+        }
+    }
 }

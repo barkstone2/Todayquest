@@ -36,7 +36,7 @@ data class QuestResponse(
                 createdDate = quest.createdDate,
                 lastModifiedDate = quest.lastModifiedDate,
                 detailQuests = quest.detailQuests.map {
-                    DetailResponse.createDto(it)
+                    DetailResponse.of(it)
                 },
                 canComplete = quest.canComplete(),
                 type = quest.type,

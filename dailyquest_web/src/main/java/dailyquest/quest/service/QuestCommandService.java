@@ -12,9 +12,8 @@ import dailyquest.quest.repository.QuestRepository;
 import dailyquest.user.entity.UserInfo;
 import dailyquest.user.repository.UserRepository;
 import dailyquest.user.service.UserService;
-import jakarta.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -49,11 +48,8 @@ public class QuestCommandService {
     }
 
     public QuestResponse updateQuest(QuestRequest dto, Long questId, Long userId) {
-        Quest quest = questQueryService.findByIdOrThrow(questId);
+        Quest quest = questQueryService.getProceedEntityOfUser(questId, userId);
         dto.checkRangeOfDeadLine();
-        if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
-        if(!quest.isProceed()) throw new IllegalStateException(MessageUtil.getMessage("quest.error.not-proceed"));
-
         if(quest.isMainQuest()) dto.toMainQuest();
 
         List<DetailQuest> details = dto.getDetails().stream().map(detail -> detail.mapToEntity(quest)).toList();
@@ -63,17 +59,13 @@ public class QuestCommandService {
     }
 
     public QuestResponse deleteQuest(Long questId, Long userId) {
-        Quest quest = questQueryService.findByIdOrThrow(questId);
-        if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
-
+        Quest quest = questQueryService.getEntityOfUser(questId, userId);
         quest.deleteQuest();
         return QuestResponse.createDto(quest);
     }
 
     public QuestResponse completeQuest(Long questId, Long userId) {
-        Quest quest = questQueryService.findByIdOrThrow(questId);
-        if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
-
+        Quest quest = questQueryService.getEntityOfUser(questId, userId);
         QuestState resultState = quest.completeQuest();
 
         switch (resultState) {
@@ -90,9 +82,7 @@ public class QuestCommandService {
     }
 
     public QuestResponse discardQuest(Long questId, Long userId) {
-        Quest quest = questQueryService.findByIdOrThrow(questId);
-        if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
-
+        Quest quest = questQueryService.getEntityOfUser(questId, userId);
         QuestState resultState = quest.discardQuest();
         switch (resultState) {
             case DISCARD -> {
@@ -103,15 +93,10 @@ public class QuestCommandService {
         }
         return QuestResponse.createDto(quest);
     }
-    // TODO 메서드 리팩터링
+
     public DetailResponse interactWithDetailQuest(Long userId, DetailInteractRequest request) {
-        Quest quest = questQueryService.findByIdOrThrow(request.getQuestId());
-        if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
-        if(!quest.isProceed()) throw new IllegalStateException(MessageUtil.getMessage("quest.error.not-proceed"));
-
+        Quest quest = questQueryService.getProceedEntityOfUser(request.getQuestId(), userId);
         DetailQuest interactResult = quest.interactWithDetailQuest(request.getDetailQuestId(), request.getCount());
-        if(interactResult == null) throw new IllegalStateException(MessageUtil.getMessage("exception.badRequest"));
-
-        return DetailResponse.Companion.createDto(interactResult, quest.canComplete());
+        return DetailResponse.of(interactResult, quest.canComplete());
     }
 }

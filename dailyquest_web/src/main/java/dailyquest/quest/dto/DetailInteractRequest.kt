@@ -2,9 +2,17 @@ package dailyquest.quest.dto
 
 import org.hibernate.validator.constraints.Range
 
-class DetailInteractRequest(
-    count: Int? = null
-){
+data class DetailInteractRequest(
     @Range(min = 0, max = 255, message = "{Range.details.count}")
-    var count = count ?: 1
+    val count: Int? = null
+){
+    var questId: Long = 0
+        private set
+    var detailQuestId: Long = 0
+        private set
+
+    fun setPathVariables(questId: Long, detailQuestId: Long) {
+        this.questId = questId
+        this.detailQuestId = detailQuestId
+    }
 }

@@ -114,13 +114,13 @@ public class QuestCommandService {
         }
         return QuestResponse.createDto(quest);
     }
-
-    public DetailResponse interactWithDetailQuest(Long userId, Long questId, Long detailQuestId, @Nullable DetailInteractRequest request) {
-        Quest quest = questQueryService.findByIdOrThrow(questId);
+    // TODO 메서드 리팩터링
+    public DetailResponse interactWithDetailQuest(Long userId, DetailInteractRequest request) {
+        Quest quest = questQueryService.findByIdOrThrow(request.getQuestId());
         if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
         if(!quest.isProceed()) throw new IllegalStateException(MessageUtil.getMessage("quest.error.not-proceed"));
 
-        DetailQuest interactResult = quest.interactWithDetailQuest(detailQuestId, request == null ? null : request.getCount());
+        DetailQuest interactResult = quest.interactWithDetailQuest(request.getDetailQuestId(), request.getCount());
         if(interactResult == null) throw new IllegalStateException(MessageUtil.getMessage("exception.badRequest"));
 
         return DetailResponse.Companion.createDto(interactResult, quest.canComplete());

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 
+import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,4 +21,7 @@ public interface QuestRepository extends JpaRepository<Quest, Long>, QuestReposi
 
     @Query("select q from Quest q where q.user.id = :userId and q.state= :state and (q.createdDate between :prevReset and :nextReset or q.deadLine > now())")
     List<Quest> getCurrentQuests(@Param("userId") Long userId, @Param("state") QuestState state, @Param("prevReset") LocalDateTime prevReset, @Param("nextReset") LocalDateTime nextReset);
+
+    @Nullable
+    Quest findByIdAndUserId(Long questId, Long userId);
 }

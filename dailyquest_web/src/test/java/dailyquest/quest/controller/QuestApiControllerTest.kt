@@ -2561,8 +2561,8 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(error?.message).isEqualTo(errorMessage)
         }
 
-
-        @DisplayName("카운트 값이 있으면 조건에 따라 대입한다")
+        // TODO 좀 더 명확한 테스트로 변경
+        @DisplayName("카운트 값이 있을 때")
         @Nested
         inner class ChangeCountTest {
 

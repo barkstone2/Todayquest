@@ -2,6 +2,7 @@ package dailyquest.quest.service
 
 import dailyquest.quest.dto.*
 import dailyquest.quest.entity.QuestState
+import dailyquest.quest.repository.QuestRepository
 import dailyquest.search.service.QuestIndexService
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

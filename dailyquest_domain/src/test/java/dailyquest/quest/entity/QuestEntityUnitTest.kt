@@ -246,39 +246,6 @@ class QuestEntityUnitTest {
         }
     }
 
-
-    @DisplayName("퀘스트 소유자 체크 메서드 테스트")
-    @Nested
-    inner class QuestOwnerTest {
-
-        @DisplayName("퀘스트 소유자와 요청자 ID가 다른 경우 false 를 반환한다")
-        @Test
-        fun `퀘스트 소유자와 요청자 ID가 다른 경우 false 를 반환한다`() {
-            //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
-
-            //when
-            val isQuestOfUser = quest.isQuestOfUser(userInfo.id+ 1L)
-
-            //then
-            assertThat(isQuestOfUser).isFalse()
-        }
-
-
-        @DisplayName("퀘스트 소유자와 요청자 ID가 같은 경우 true 를 반환한다")
-        @Test
-        fun `퀘스트 소유자와 요청자 ID가 같은 경우 true 를 반환한다`() {
-            //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
-
-            //when
-            val isQuestOfUser = quest.isQuestOfUser(userInfo.id)
-
-            //then
-            assertThat(isQuestOfUser).isTrue()
-        }
-    }
-
     @Nested
     @DisplayName("세부 퀘스트 전체 완료 학인 테스트")
     inner class CanCompleteTest {

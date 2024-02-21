@@ -43,7 +43,7 @@ public class QuestService {
     }
 
     public QuestResponse getQuestInfo(Long questId, Long userId) {
-        return questQueryService.getQuestInfo(questId, userId);
+        return QuestResponse.createDto(questQueryService.getEntityOfUser(questId, userId));
     }
 
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {

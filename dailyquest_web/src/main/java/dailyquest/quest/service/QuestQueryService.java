@@ -11,13 +11,11 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -55,17 +53,20 @@ public class QuestQueryService {
         );
     }
 
-    public QuestResponse getQuestInfo(Long questId, Long userId) {
-        Quest quest = findByIdOrThrow(questId);
-        if(!quest.isQuestOfUser(userId)) throw new AccessDeniedException(MessageUtil.getMessage("exception.access.denied"));
-
-        return QuestResponse.createDto(quest);
+    public Quest getProceedEntityOfUser(Long questId, Long userId) throws IllegalStateException {
+        Quest quest = getEntityOfUser(questId, userId);
+        if(!quest.isProceed())
+            throw new IllegalStateException(MessageUtil.getMessage("quest.error.not-proceed"));
+        return quest;
     }
 
-    Quest findByIdOrThrow(Long questId) {
-        Optional<Quest> findQuest = questRepository.findById(questId);
-        return findQuest.orElseThrow(() -> new EntityNotFoundException(
-                MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))));
+    public Quest getEntityOfUser(Long questId, Long userId) throws EntityNotFoundException {
+        Quest findQuest = questRepository.findByIdAndUserId(questId, userId);
+        if (findQuest == null) {
+            String entityNotFoundMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"));
+            throw new EntityNotFoundException(entityNotFoundMessage);
+        }
+        return findQuest;
     }
 
     public RestPage<QuestResponse> getSearchedQuests(List<Long> searchedIds, Long userId, Pageable pageable) {

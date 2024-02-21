@@ -256,12 +256,13 @@ class QuestServiceUnitTest {
             val userId = 0L
             val detailQuestId = 1L
             val detailInteractRequest = DetailInteractRequest()
+            detailInteractRequest.setPathVariables(questId, detailQuestId)
 
             //when
-            questService.interactWithDetailQuest(userId, questId, detailQuestId, detailInteractRequest)
+            questService.interactWithDetailQuest(userId, detailInteractRequest)
 
             //then
-            verify(questCommandService).interactWithDetailQuest(eq(userId), eq(questId), eq(detailQuestId), eq(detailInteractRequest))
+            verify(questCommandService).interactWithDetailQuest(eq(userId), eq(detailInteractRequest))
         }
     }
 

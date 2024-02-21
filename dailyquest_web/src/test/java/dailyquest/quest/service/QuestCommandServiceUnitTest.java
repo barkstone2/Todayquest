@@ -534,6 +534,7 @@ public class QuestCommandServiceUnitTest {
         }
     }
 
+    // TODO 테스트 코드 가동성 리팩터링
     @DisplayName("세부 퀘스트 상호 작용 시")
     @Nested
     class DetailQuestInteractTest {
@@ -547,7 +548,7 @@ public class QuestCommandServiceUnitTest {
             doThrow(EntityNotFoundException.class).when(questQueryService).findByIdOrThrow(eq(questId));
 
             //when
-            Runnable call = () -> questCommandService.interactWithDetailQuest(userId, questId, 1L, new DetailInteractRequest());
+            Runnable call = () -> questCommandService.interactWithDetailQuest(userId, new DetailInteractRequest());
 
             //then
             assertThatThrownBy(call::run).isInstanceOf(EntityNotFoundException.class);
@@ -567,7 +568,7 @@ public class QuestCommandServiceUnitTest {
             doReturn(false).when(mockQuest).isQuestOfUser(eq(userId));
 
             //when
-            Runnable run = () -> questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto);
+            Runnable run = () -> questCommandService.interactWithDetailQuest(userId, mockDto);
 
             //then
             assertThatThrownBy(run::run).isInstanceOf(AccessDeniedException.class);
@@ -589,7 +590,7 @@ public class QuestCommandServiceUnitTest {
             doReturn(false).when(mockQuest).isProceed();
 
             //when
-            Runnable run = () -> questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto);
+            Runnable run = () -> questCommandService.interactWithDetailQuest(userId, mockDto);
 
             //then
             assertThatThrownBy(run::run).isInstanceOf(IllegalStateException.class);
@@ -613,7 +614,7 @@ public class QuestCommandServiceUnitTest {
             doReturn(null).when(mockQuest).interactWithDetailQuest(eq(detailQuestId), any());
 
             //when
-            Runnable run = () -> questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto);
+            Runnable run = () -> questCommandService.interactWithDetailQuest(userId, mockDto);
 
             //then
             assertThatThrownBy(run::run).isInstanceOf(IllegalStateException.class);
@@ -642,7 +643,7 @@ public class QuestCommandServiceUnitTest {
             doReturn(canComplete).when(mockQuest).canComplete();
 
             //when
-            DetailResponse result = questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, mockDto);
+            DetailResponse result = questCommandService.interactWithDetailQuest(userId, mockDto);
 
             //then
             verify(mockQuest, times(1)).isQuestOfUser(eq(userId));

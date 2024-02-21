@@ -30,6 +30,7 @@ import dailyquest.quest.dto.*
 import dailyquest.quest.entity.DetailQuestType
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.service.QuestService
+import org.mockito.kotlin.doReturn
 import java.math.BigInteger
 import java.util.function.Supplier
 import java.util.stream.Stream
@@ -609,17 +610,18 @@ class QuestApiControllerUnitTest {
     inner class DetailInteractTest {
 
         @ValueSource(longs = [1, 5, 100, 5000])
-        @DisplayName("PathVariable 값이 올바르다면 200 OK가 반환된다")
+        @DisplayName("PathVariable 값이 올바르다면 validation error가 발생하지 않는다")
         @ParameterizedTest(name = "{0} 값이 들어오면 200을 반환한다")
-        fun `PathVariable 값이 올바르다면 200 OK가 반환된다`(questId: Long) {
+        fun `PathVariable 값이 올바르다면 200 OK가 반환된다`(validQuestId: Long) {
             //given
-            `when`(questService.interactWithDetailQuest(anyLong(), anyLong(), anyLong(), any()))
-                .thenReturn(detailResponse)
+            val interactRequest = DetailInteractRequest(3)
+            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), any())
 
             //when
             val result = mvc.perform(
-                patch("$URI_PREFIX/$questId/details/$questId")
+                patch("$URI_PREFIX/$validQuestId/details/$validQuestId")
                     .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .content(om.writeValueAsBytes(interactRequest))
                     .with(csrf())
             )
 
@@ -634,12 +636,13 @@ class QuestApiControllerUnitTest {
         @ArgumentsSource(InvalidLongSources::class)
         @DisplayName("PathVariable 값이 올바르지 않으면 400 BAD_REQUEST가 반환된다")
         @ParameterizedTest(name = "{0} 값이 들어오면 400이 반환한다")
-        fun `PathVariable 값이 올바르지 않으면 400 BAD_REQUEST가 반환된다`(questId: Any) {
+        fun `PathVariable 값이 올바르지 않으면 400 BAD_REQUEST가 반환된다`(invalidQuestId: Any) {
             //given
+            val validDetailQuestId = 1L
 
             //when
             val result = mvc.perform(
-                patch("$URI_PREFIX/$questId/discard")
+                patch("$URI_PREFIX/$invalidQuestId/details/$validDetailQuestId")
                     .contentType(MediaType.APPLICATION_JSON_UTF8)
                     .characterEncoding("UTF-8")
                     .with(csrf())
@@ -660,11 +663,34 @@ class QuestApiControllerUnitTest {
         @ParameterizedTest(name = "{0} 값이 들어오면 200을 반환한다")
         fun `RequestBody 값이 유효하다면 200 OK가 반환된다`(count: Int) {
             //given
-            val questId = 1L
-            `when`(questService.interactWithDetailQuest(anyLong(), anyLong(), anyLong(), any()))
-                .thenReturn(detailResponse)
+            val validPathVariable = 1L
+            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), any())
 
             val interactRequest = DetailInteractRequest(count)
+
+            //when
+            val result = mvc.perform(
+                patch("$URI_PREFIX/$validPathVariable/details/$validPathVariable")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .content(om.writeValueAsBytes(interactRequest))
+                    .with(csrf())
+            )
+
+            //then
+            result
+                .andExpect(status().isOk)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.data").exists())
+                .andExpect(jsonPath("$.errorResponse").doesNotExist())
+        }
+
+        @DisplayName("count 값이 없어도 200 OK가 반환된다")
+        @Test
+        fun `count 값이 없어도 200 OK가 반환된다`() {
+            //given
+            val questId = 1L
+            val interactRequest = DetailInteractRequest()
+            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), any())
 
             //when
             val result = mvc.perform(
@@ -682,13 +708,12 @@ class QuestApiControllerUnitTest {
                 .andExpect(jsonPath("$.errorResponse").doesNotExist())
         }
 
-        @DisplayName("RequestBody를 생략하면 200 OK가 반환된다")
+        @DisplayName("requestBody가 없어도 200 OK가 반환된다")
         @Test
-        fun `RequestBody를 생략하면 200 OK가 반환된다`() {
+        fun `requestBody가 없어도 200 OK가 반환된다`() {
             //given
             val questId = 1L
-            `when`(questService.interactWithDetailQuest(anyLong(), anyLong(), anyLong(), any()))
-                .thenReturn(detailResponse)
+            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), any())
 
             //when
             val result = mvc.perform(
@@ -712,8 +737,7 @@ class QuestApiControllerUnitTest {
         fun `RequestBody 값이 유효하지 않다면 400 BAD_REQUEST가 반환된다`(count: String?) {
             //given
             val questId = 1L
-            `when`(questService.interactWithDetailQuest(anyLong(), anyLong(), anyLong(), any()))
-                .thenReturn(detailResponse)
+            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), any())
 
             //when
             val result = mvc.perform(
@@ -731,6 +755,5 @@ class QuestApiControllerUnitTest {
                 .andExpect(jsonPath("$.errorResponse").exists())
         }
     }
-
 
 }

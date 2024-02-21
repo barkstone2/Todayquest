@@ -73,8 +73,8 @@ public class QuestService {
         questIndexService.updateQuestStateOfDocument(questResponse, userId);
     }
 
-    public DetailResponse interactWithDetailQuest(Long userId, Long questId, Long detailQuestId, DetailInteractRequest request) {
-        return questCommandService.interactWithDetailQuest(userId, questId, detailQuestId, request);
+    public DetailResponse interactWithDetailQuest(Long userId, DetailInteractRequest request) {
+        return questCommandService.interactWithDetailQuest(userId, request);
     }
 
 }

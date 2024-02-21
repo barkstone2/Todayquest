@@ -36,14 +36,14 @@ public class QuestIndexService {
 
     @Retryable(retryFor = RuntimeException.class)
     @Async
-    public void deleteDocument(Long questId) {
-        questIndexRepository.deleteById(questId);
+    public void deleteDocument(QuestResponse deletedQuest) {
+        questIndexRepository.deleteById(deletedQuest.getId());
     }
 
     @Retryable(retryFor = RuntimeException.class)
     @Async
-    public void updateQuestStateOfDocument(Long questId, Long userId) {
-        questIndexRepository.save(questQueryService.getQuestInfo(questId, userId).mapToDocument(userId));
+    public void updateQuestStateOfDocument(QuestResponse questResponse, Long userId) {
+        questIndexRepository.save(questResponse.mapToDocument(userId));
     }
 
     public List<Long> searchDocuments(QuestSearchCondition searchCondition, Long userId, Pageable pageable) {

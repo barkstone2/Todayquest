@@ -46,7 +46,8 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
@@ -610,7 +611,7 @@ class QuestApiControllerTest @Autowired constructor(
             questRepository.save(Quest("제목", "$keyword 설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
 
             val q = Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)
-            DetailQuest("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
+            DetailQuest.of("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
 
             questRepository.save(q).let { mustContainIds.add(it.id) }
             val mustNotContainId = questRepository.save(Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).id
@@ -661,7 +662,7 @@ class QuestApiControllerTest @Autowired constructor(
             questRepository.save(Quest("제목", "$keyword 설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
 
             val q = Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)
-            DetailQuest("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
+            DetailQuest.of("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
             questRepository.save(q).let { mustNotContainIds.add(it.id) }
             questRepository.save(Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
 
@@ -710,7 +711,7 @@ class QuestApiControllerTest @Autowired constructor(
             questRepository.save(Quest("제목", "$keyword 설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
 
             val q = Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)
-            DetailQuest("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
+            DetailQuest.of("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
             questRepository.save(q).let { mustNotContainIds.add(it.id) }
 
             questRepository.save(Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
@@ -761,7 +762,7 @@ class QuestApiControllerTest @Autowired constructor(
             questRepository.save(Quest("제목", "$keyword 설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
 
             val q = Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)
-            DetailQuest("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
+            DetailQuest.of("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
 
             questRepository.save(q).let { mustNotContainIds.add(it.id) }
             questRepository.save(Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
@@ -811,7 +812,7 @@ class QuestApiControllerTest @Autowired constructor(
             questRepository.save(Quest("제목", "$keyword 설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
 
             val q = Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)
-            DetailQuest("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
+            DetailQuest.of("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
 
             questRepository.save(q).let { mustContainIds.add(it.id) }
             questRepository.save(Quest("제목", "설명", testUser, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
@@ -855,8 +856,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `본인의 퀘스트 요청 시 퀘스트가 조회된다`() {
             //given
             val savedQuest = questRepository.save(Quest("제목", "1", testUser, 1L, QuestState.PROCEED, QuestType.MAIN))
-
-            val detailRequest = DetailQuest("detail", 3, DetailQuestType.COUNT, DetailQuestState.PROCEED, savedQuest)
+            val detailRequest = DetailQuest.of("detail", 3, DetailQuestType.COUNT, DetailQuestState.PROCEED, savedQuest)
             savedQuest.replaceDetailQuests(listOf(detailRequest))
 
             val questId = savedQuest.id
@@ -927,14 +927,14 @@ class QuestApiControllerTest @Autowired constructor(
         }
 
 
-        @DisplayName("타인의 퀘스트 요청 시 FORBIDDEN 이 반환된다")
+        @DisplayName("타인의 퀘스트 요청 시 NOT_FOUND가 반환된다")
         @Test
-        fun `타인의 퀘스트 요청 시 FORBIDDEN 이 반환된다`() {
+        fun `타인의 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
             //given
             val savedQuest = questRepository.save(Quest("제목", "1", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
             val questId = savedQuest.id
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/$questId"
-            val errorMessage = MessageUtil.getMessage("exception.access.denied")
+            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
             //when
             val request = mvc
@@ -947,7 +947,7 @@ class QuestApiControllerTest @Autowired constructor(
 
             //then
             val body = request
-                .andExpect(status().isForbidden)
+                .andExpect(status().isNotFound)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andReturn()
                 .response
@@ -1399,13 +1399,13 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(error?.errors?.values?.map { it[0] }).containsExactlyInAnyOrderElementsOf(bindingMessages)
         }
 
-        @DisplayName("다른 유저의 퀘스트를 요청하면 FORBIDDEN이 반환된다")
+        @DisplayName("다른 유저의 퀘스트를 요청하면 NOT_FOUND가 반환된다")
         @Test
-        fun `다른 유저의 퀘스트를 요청하면 FORBIDDEN이 반환된다`() {
+        fun `다른 유저의 퀘스트를 요청하면 NOT_FOUND가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", anotherUser, 1L, QuestState.PROCEED, QuestType.SUB))
 
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/${savedQuest.id}"
-            val errorMessage = MessageUtil.getMessage("exception.access.denied")
+            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
             val detailRequest = DetailRequest("update", DetailQuestType.COUNT, 1)
             val questRequest = QuestRequest("update", "update", mutableListOf(detailRequest))
@@ -1424,7 +1424,7 @@ class QuestApiControllerTest @Autowired constructor(
 
             //then
             val body = request
-                .andExpect(status().isForbidden)
+                .andExpect(status().isNotFound)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andReturn()
                 .response
@@ -1683,13 +1683,13 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(error?.message).isEqualTo(errorMessage)
         }
 
-        @DisplayName("다른 유저의 퀘스트를 요청하면 FORBIDDEN이 반환된다")
+        @DisplayName("다른 유저의 퀘스트를 요청하면 NOT_FOUND가 반환된다")
         @Test
-        fun `다른 유저의 퀘스트를 요청하면 FORBIDDEN이 반환된다`() {
+        fun `다른 유저의 퀘스트를 요청하면 NOT_FOUND가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", anotherUser, 1L, QuestState.PROCEED, QuestType.SUB))
 
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/${savedQuest.id}/delete"
-            val errorMessage = MessageUtil.getMessage("exception.access.denied")
+            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
             //when
             val request = mvc
@@ -1702,7 +1702,7 @@ class QuestApiControllerTest @Autowired constructor(
 
             //then
             val body = request
-                .andExpect(status().isForbidden)
+                .andExpect(status().isNotFound)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andReturn()
                 .response
@@ -1918,7 +1918,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `완료하지 않은 세부 퀘스트가 있다면 BAD_REQUEST가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
-            val detailRequest = DetailQuest("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
+            val detailRequest = DetailQuest.of("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
             savedQuest.replaceDetailQuests(listOf(detailRequest))
 
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/${savedQuest.id}/complete"
@@ -2294,9 +2294,10 @@ class QuestApiControllerTest @Autowired constructor(
         }
     }
 
-    @DisplayName("세부 퀘스트 상호작용 시")
+    // TODO 테스트 코드 가독성 향상
+    @DisplayName("세부 퀘스트 카운트 변경 시")
     @Nested
-    inner class DetailInteractTest {
+    inner class TestUpdateDetailQuestCount {
 
         @DisplayName("Path Variable의 quest id가 유효한 Long 타입이 아니면 BAD_REQUEST가 반환된다")
         @ArgumentsSource(QuestApiControllerUnitTest.InvalidLongSources::class)
@@ -2369,8 +2370,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `DTO Validation에 실패하면 BAD_REQUEST가 반환된다`() {
             //given
             val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
-
-            val detailRequest = DetailQuest("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
+            val detailRequest = DetailQuest.of("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
             savedQuest.replaceDetailQuests(listOf(detailRequest))
 
             val detailQuestId = savedQuest.detailQuests[0].id
@@ -2413,12 +2413,11 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(error?.errors?.values?.map { it[0] }).containsExactlyInAnyOrderElementsOf(bindingMessages)
         }
 
-        @DisplayName("다른 유저의 퀘스트를 요청하면 FORBIDDEN이 반환된다")
+        @DisplayName("다른 유저의 퀘스트를 요청하면 NOT_FOUND가 반환된다")
         @Test
-        fun `다른 유저의 퀘스트를 요청하면 FORBIDDEN이 반환된다`() {
+        fun `다른 유저의 퀘스트를 요청하면 NOT_FOUND가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", anotherUser, 1L, QuestState.PROCEED, QuestType.SUB))
-
-            val detailRequest = DetailQuest("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
+            val detailRequest = DetailQuest.of("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
             savedQuest.replaceDetailQuests(listOf(detailRequest))
 
             questRepository.flush()
@@ -2426,7 +2425,7 @@ class QuestApiControllerTest @Autowired constructor(
             val detailQuestId = savedQuest.detailQuests[0].id
 
             val url = "${SERVER_ADDR}$port${URI_PREFIX}/${savedQuest.id}/details/$detailQuestId"
-            val errorMessage = MessageUtil.getMessage("exception.access.denied")
+            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
             //when
             val request = mvc
@@ -2439,7 +2438,7 @@ class QuestApiControllerTest @Autowired constructor(
 
             //then
             val body = request
-                .andExpect(status().isForbidden)
+                .andExpect(status().isNotFound)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andReturn()
                 .response
@@ -2524,8 +2523,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `진행중인 퀘스트가 아니라면 BAD_REQUEST가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.FAIL, QuestType.SUB))
-
-            val detailRequest = DetailQuest("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
+            val detailRequest = DetailQuest.of("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
             savedQuest.replaceDetailQuests(listOf(detailRequest))
 
             questRepository.flush()
@@ -2572,7 +2570,7 @@ class QuestApiControllerTest @Autowired constructor(
                 val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
 
                 val targetCount = 3
-                val detailRequest = DetailQuest("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
+                val detailRequest = DetailQuest.of("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
                 savedQuest.replaceDetailQuests(listOf(detailRequest))
 
                 questRepository.flush()
@@ -2621,7 +2619,7 @@ class QuestApiControllerTest @Autowired constructor(
                 val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
 
                 val targetCount = 5
-                val detailRequest = DetailQuest("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
+                val detailRequest = DetailQuest.of("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
                 savedQuest.replaceDetailQuests(listOf(detailRequest))
 
                 questRepository.flush()
@@ -2683,7 +2681,7 @@ class QuestApiControllerTest @Autowired constructor(
                 val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
 
                 val targetCount = 5
-                val detailRequest = DetailQuest("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
+                val detailRequest = DetailQuest.of("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
                 savedQuest.replaceDetailQuests(listOf(detailRequest))
 
                 questRepository.flush()
@@ -2736,7 +2734,7 @@ class QuestApiControllerTest @Autowired constructor(
                 val savedQuest = questRepository.save(Quest("title", "desc", testUser, 1L, QuestState.PROCEED, QuestType.SUB))
 
                 val targetCount = 5
-                val detailRequest = DetailQuest("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
+                val detailRequest = DetailQuest.of("detail", targetCount, DetailQuestType.COUNT, DetailQuestState.PROCEED , savedQuest)
                 savedQuest.replaceDetailQuests(listOf(detailRequest))
 
                 questRepository.flush()

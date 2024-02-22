@@ -76,7 +76,7 @@ class Quest(
      * 세부 퀘스트가 완료되지 않은 상태라면 현재 상태인 [QuestState.PROCEED] 상태가 반환된다.
      */
     fun completeQuest(): QuestState {
-        if(state == QuestState.PROCEED && canComplete()) {
+        if(isProceed() && canComplete()) {
             state = QuestState.COMPLETE
         }
         return state
@@ -92,7 +92,7 @@ class Quest(
      * 현재 퀘스트의 상태 변경이 불가능하다면, 현재 퀘스트의 상태가 반환된다.
      */
     fun discardQuest(): QuestState {
-        if(state == QuestState.PROCEED) {
+        if(isProceed()) {
             state = QuestState.DISCARD
         }
         return state
@@ -108,25 +108,16 @@ class Quest(
 
     fun canComplete(): Boolean {
         return detailQuests.stream()
-            .allMatch(DetailQuest::isCompletedDetailQuest)
+            .allMatch(DetailQuest::isCompleted)
     }
 
     fun isMainQuest(): Boolean {
         return type == QuestType.MAIN
     }
 
-    /**
-     * 세부 퀘스트의 카운트 값을 변경하거나 1 증가시킨다.
-     * @param [detailQuestId] 변경할 세부 퀘스트의 ID를 나타냄.
-     * @param [count] 변경할 카운트 값을 나타내며 null 값을 지정할 경우 1 증가함.
-     * @return [DetailQuest] 변경된 세부 퀘스트 객체를 반환함. ID에 일치하는 세부 퀘스트가 없는 경우 null을 반환.
-     */
-    fun interactWithDetailQuest(detailQuestId: Long, count: Int?): DetailQuest? {
-        val detailQuest = _detailQuests.firstOrNull { it.id == detailQuestId }
-            ?: return null
-
-        detailQuest.interact(count)
-        return detailQuest
+    fun updateDetailQuestCount(detailQuestId: Long, count: Int?): DetailQuest? {
+        val detailQuest = _detailQuests.firstOrNull { it.id == detailQuestId } ?: return null
+        return detailQuest.updateCountAndState(count)
     }
 
     override fun equals(other: Any?): Boolean {

@@ -23,7 +23,6 @@ import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -618,7 +617,7 @@ class QuestApiControllerUnitTest {
         fun `PathVariable 값이 올바르다면 200 OK가 반환된다`(validQuestId: Long) {
             //given
             val interactRequest = DetailInteractRequest(3)
-            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), any())
+            doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), any())
 
             //when
             val result = mvc.perform(
@@ -667,7 +666,7 @@ class QuestApiControllerUnitTest {
         fun `RequestBody 값이 유효하다면 200 OK가 반환된다`(count: Int) {
             //given
             val validPathVariable = 1L
-            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), any())
+            doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), any())
 
             val interactRequest = DetailInteractRequest(count)
 
@@ -693,7 +692,7 @@ class QuestApiControllerUnitTest {
             //given
             val questId = 1L
             val interactRequest = DetailInteractRequest()
-            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), any())
+            doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), any())
 
             //when
             val result = mvc.perform(
@@ -716,7 +715,7 @@ class QuestApiControllerUnitTest {
         fun `requestBody가 없어도 200 OK가 반환된다`() {
             //given
             val questId = 1L
-            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), any())
+            doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), any())
 
             //when
             val result = mvc.perform(
@@ -740,7 +739,7 @@ class QuestApiControllerUnitTest {
         fun `RequestBody 값이 유효하지 않다면 400 BAD_REQUEST가 반환된다`(count: String?) {
             //given
             val questId = 1L
-            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), any())
+            doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), any())
 
             //when
             val result = mvc.perform(
@@ -765,7 +764,7 @@ class QuestApiControllerUnitTest {
             val questId = 1L
             val detailQuestId = 1L
             val requestDtoCaptor = argumentCaptor<DetailInteractRequest>()
-            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), requestDtoCaptor.capture())
+            doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), requestDtoCaptor.capture())
             val interactRequest = DetailInteractRequest()
             interactRequest.setPathVariables(questId = 2, detailQuestId = 2)
 
@@ -790,7 +789,7 @@ class QuestApiControllerUnitTest {
             val questId = 1L
             val detailQuestId = 1L
             val requestDtoCaptor = argumentCaptor<DetailInteractRequest>()
-            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), requestDtoCaptor.capture())
+            doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), requestDtoCaptor.capture())
 
             //when
             mvc.perform(

@@ -94,9 +94,9 @@ public class QuestCommandService {
         return QuestResponse.createDto(quest);
     }
 
-    public DetailResponse interactWithDetailQuest(Long userId, DetailInteractRequest request) {
+    public DetailResponse updateDetailQuestCount(Long userId, DetailInteractRequest request) {
         Quest quest = questQueryService.getProceedEntityOfUser(request.getQuestId(), userId);
-        DetailQuest interactResult = quest.interactWithDetailQuest(request.getDetailQuestId(), request.getCount());
+        DetailQuest interactResult = quest.updateDetailQuestCount(request.getDetailQuestId(), request.getCount());
         return DetailResponse.of(interactResult, quest.canComplete());
     }
 }

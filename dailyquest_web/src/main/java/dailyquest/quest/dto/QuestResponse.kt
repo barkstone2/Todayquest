@@ -37,7 +37,7 @@ data class QuestResponse(
                 lastModifiedDate = quest.lastModifiedDate,
                 detailQuests = quest.detailQuests.map {
                     DetailResponse.of(it)
-                },
+                }.toCollection(mutableListOf()),
                 canComplete = quest.canComplete(),
                 type = quest.type,
                 deadLine = quest.deadLine

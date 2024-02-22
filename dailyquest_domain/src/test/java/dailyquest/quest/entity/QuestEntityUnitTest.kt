@@ -112,7 +112,7 @@ class QuestEntityUnitTest {
             val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
 
-            doReturn(false).`when`(mockDetail).isCompletedDetailQuest()
+            doReturn(false).`when`(mockDetail).isCompleted()
 
             //when
             val resultState = quest.completeQuest()
@@ -133,7 +133,7 @@ class QuestEntityUnitTest {
             val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
 
-            doReturn(true).`when`(mockDetail).isCompletedDetailQuest()
+            doReturn(true).`when`(mockDetail).isCompleted()
 
             //when
             val resultState = quest.completeQuest()
@@ -277,7 +277,7 @@ class QuestEntityUnitTest {
             val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
 
-            doReturn(true).`when`(mockDetail).isCompletedDetailQuest()
+            doReturn(true).`when`(mockDetail).isCompleted()
 
             //when
             val canComplete = quest.canComplete()
@@ -299,7 +299,7 @@ class QuestEntityUnitTest {
             val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
 
-            doReturn(false).`when`(mockDetail).isCompletedDetailQuest()
+            doReturn(false).`when`(mockDetail).isCompleted()
 
             //when
             val canComplete = quest.canComplete()
@@ -341,9 +341,9 @@ class QuestEntityUnitTest {
     }
 
 
-    @DisplayName("세부 퀘스트 상호 작용 시")
+    @DisplayName("세부 퀘스트 카운트 변경 시")
     @Nested
-    inner class InteractWithDetailQuestTest {
+    inner class TestUpdateDetailQuestCount {
 
         @DisplayName("ID가 일치하는 세부 퀘스트가 없다면 null이 반환된다")
         @Test
@@ -352,15 +352,15 @@ class QuestEntityUnitTest {
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
 
             //when
-            val interactResult = quest.interactWithDetailQuest(1, 1)
+            val interactResult = quest.updateDetailQuestCount(1, 1)
 
             //then
             assertThat(interactResult).isNull()
         }
 
-        @DisplayName("detailQuest의 interact 메서드를 호출한다")
+        @DisplayName("세부 퀘스트가 존재하면 updateCountAndState 메서드가 호출된다")
         @Test
-        fun `detailQuest의 interact 메서드를 호출한다`() {
+        fun ifDetailFoundThenCallUpdateMethod() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
             val mockDetail = Mockito.mock(DetailQuest::class.java)
@@ -369,11 +369,10 @@ class QuestEntityUnitTest {
             val count = 3
 
             //when
-            val interactResult = quest.interactWithDetailQuest(0, count)
+            quest.updateDetailQuestCount(0, count)
 
             //then
-            verify(mockDetail, times(1)).interact(eq(count))
-            assertThat(interactResult).isEqualTo(mockDetail)
+            verify(mockDetail, times(1)).updateCountAndState(eq(count))
         }
     }
 

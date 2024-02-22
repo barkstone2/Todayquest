@@ -2,7 +2,6 @@ package dailyquest.quest.service
 
 import dailyquest.quest.dto.*
 import dailyquest.quest.entity.QuestState
-import dailyquest.quest.repository.QuestRepository
 import dailyquest.search.service.QuestIndexService
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -260,10 +259,10 @@ class QuestServiceUnitTest {
             detailInteractRequest.setPathVariables(questId, detailQuestId)
 
             //when
-            questService.interactWithDetailQuest(userId, detailInteractRequest)
+            questService.updateDetailQuestCount(userId, detailInteractRequest)
 
             //then
-            verify(questCommandService).interactWithDetailQuest(eq(userId), eq(detailInteractRequest))
+            verify(questCommandService).updateDetailQuestCount(eq(userId), eq(detailInteractRequest))
         }
     }
 

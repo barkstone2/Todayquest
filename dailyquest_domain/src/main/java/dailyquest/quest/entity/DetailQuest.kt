@@ -1,15 +1,17 @@
 package dailyquest.quest.entity
 
 import jakarta.persistence.*
-import jakarta.persistence.EnumType.*
-import jakarta.persistence.FetchType.*
+import jakarta.persistence.EnumType.STRING
+import jakarta.persistence.FetchType.LAZY
 import jakarta.persistence.GenerationType.IDENTITY
+import kotlin.math.min
 
 @Entity
 @Table(name = "detail_quest")
-class DetailQuest(
+class DetailQuest private constructor(
     title: String,
     targetCount: Int,
+    count: Int = 0,
     type: DetailQuestType,
     state: DetailQuestState,
     quest: Quest,
@@ -29,7 +31,7 @@ class DetailQuest(
         protected set
 
     @Column(nullable = false)
-    var count: Int = 0
+    var count: Int = count
         protected set
 
     @Enumerated(STRING)
@@ -49,16 +51,47 @@ class DetailQuest(
     fun updateDetailQuest(id: Long?, detailQuest: DetailQuest) {
         this.title = detailQuest.title
         this.type = detailQuest.type
-        this.targetCount = if (type == DetailQuestType.COUNT) detailQuest.targetCount else 1
-
         if(id != this.id || type != this.type) resetCount()
+        updateTargetCountBasedOnType()
+        updateCountAndStateBasedOnCount(detailQuest.count)
+    }
 
-        if(count < targetCount) this.state = DetailQuestState.PROCEED
-        else {
-            this.state = DetailQuestState.COMPLETE
-            count = targetCount
+    private fun updateTargetCountBasedOnType() {
+        this.targetCount = when (this.type) {
+            DetailQuestType.CHECK -> 1
+            else -> targetCount
         }
+    }
 
+    fun updateCountAndState(count: Int?): DetailQuest {
+        when (count) {
+            null -> adjustCountBasedOnCompletion()
+            else -> updateCountAndStateBasedOnCount(count)
+        }
+        return this
+    }
+
+    private fun adjustCountBasedOnCompletion() {
+        when {
+            this.isCompleted() -> resetCount()
+            else -> addCount()
+        }
+    }
+
+    private fun updateCountAndStateBasedOnCount(count: Int) {
+        this.count = min(targetCount, count)
+        this.state = decideStateBasedOnCount()
+    }
+
+    private fun decideStateBasedOnCount(): DetailQuestState {
+        return when {
+            count < targetCount -> DetailQuestState.PROCEED
+            else -> DetailQuestState.COMPLETE
+        }
+    }
+
+    fun isCompleted() : Boolean {
+        return state == DetailQuestState.COMPLETE
     }
 
     fun resetCount() {
@@ -67,21 +100,10 @@ class DetailQuest(
     }
 
     fun addCount() {
-        count++
-        if (count == targetCount) state = DetailQuestState.COMPLETE
-    }
-
-    fun changeCount(count: Int) {
-        this.count = if(count > targetCount) targetCount else count
-
-        state = when {
-            count < targetCount -> DetailQuestState.PROCEED
-            else -> DetailQuestState.COMPLETE
-        }
-    }
-
-    fun isCompletedDetailQuest() : Boolean {
-        return state == DetailQuestState.COMPLETE
+        if (count < targetCount)
+            count++
+        if (count == targetCount)
+            state = DetailQuestState.COMPLETE
     }
 
     override fun equals(other: Any?): Boolean {
@@ -99,4 +121,32 @@ class DetailQuest(
         return id.hashCode()
     }
 
+    companion object {
+        @JvmStatic
+        fun of(
+            title: String,
+            targetCount: Int,
+            count: Int,
+            type: DetailQuestType,
+            state: DetailQuestState,
+            quest: Quest,
+        ): DetailQuest {
+            val detailQuest = DetailQuest(title, targetCount, count, type, state, quest)
+            detailQuest.updateTargetCountBasedOnType()
+            return detailQuest
+        }
+
+        @JvmStatic
+        fun of(
+            title: String,
+            targetCount: Int,
+            type: DetailQuestType,
+            state: DetailQuestState,
+            quest: Quest,
+        ): DetailQuest {
+            val detailQuest = DetailQuest(title, targetCount, type = type, state = state, quest = quest)
+            detailQuest.updateTargetCountBasedOnType()
+            return detailQuest
+        }
+    }
 }

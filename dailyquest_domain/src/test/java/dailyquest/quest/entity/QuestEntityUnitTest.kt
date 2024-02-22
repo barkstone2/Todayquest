@@ -98,9 +98,9 @@ class QuestEntityUnitTest {
             detailQuests.set(quest, details)
 
             val detailRequests = listOf(
-                Pair(1L, DetailQuest("d1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
-                Pair(2L, DetailQuest("d2", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
-                Pair(3L, DetailQuest("d3", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
+                Pair(1L, DetailQuest.of("d1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
+                Pair(2L, DetailQuest.of("d2", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
+                Pair(3L, DetailQuest.of("d3", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
             )
 
             val currentDetailsSize = 1
@@ -133,9 +133,9 @@ class QuestEntityUnitTest {
             detailQuests.set(quest, details)
 
             val detailRequests = listOf(
-                Pair(1L, DetailQuest("d1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
-                Pair(2L, DetailQuest("d2", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
-                Pair(3L, DetailQuest("d3", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
+                Pair(1L, DetailQuest.of("d1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
+                Pair(2L, DetailQuest.of("d2", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
+                Pair(3L, DetailQuest.of("d3", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
             )
 
             doReturn(mockDetail).`when`(details)[any()]
@@ -166,9 +166,9 @@ class QuestEntityUnitTest {
             detailQuests.set(quest, details)
 
             val detailRequests = listOf(
-                Pair(1L, DetailQuest("d1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
-                Pair(2L, DetailQuest("d2", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
-                Pair(3L, DetailQuest("d3", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
+                Pair(1L, DetailQuest.of("d1", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
+                Pair(2L, DetailQuest.of("d2", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
+                Pair(3L, DetailQuest.of("d3", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, quest)),
             )
 
             val currentDetailsSize = 5
@@ -214,7 +214,7 @@ class QuestEntityUnitTest {
             val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
 
-            doReturn(false).`when`(mockDetail).isCompletedDetailQuest()
+            doReturn(false).`when`(mockDetail).isCompleted()
 
             //when
             val resultState = quest.completeQuest()
@@ -235,7 +235,7 @@ class QuestEntityUnitTest {
             val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
 
-            doReturn(true).`when`(mockDetail).isCompletedDetailQuest()
+            doReturn(true).`when`(mockDetail).isCompleted()
 
             //when
             val resultState = quest.completeQuest()
@@ -348,39 +348,6 @@ class QuestEntityUnitTest {
         }
     }
 
-
-    @DisplayName("퀘스트 소유자 체크 메서드 테스트")
-    @Nested
-    inner class QuestOwnerTest {
-
-        @DisplayName("퀘스트 소유자와 요청자 ID가 다른 경우 false 를 반환한다")
-        @Test
-        fun `퀘스트 소유자와 요청자 ID가 다른 경우 false 를 반환한다`() {
-            //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
-
-            //when
-            val isQuestOfUser = quest.isQuestOfUser(userInfo.id+ 1L)
-
-            //then
-            assertThat(isQuestOfUser).isFalse()
-        }
-
-
-        @DisplayName("퀘스트 소유자와 요청자 ID가 같은 경우 true 를 반환한다")
-        @Test
-        fun `퀘스트 소유자와 요청자 ID가 같은 경우 true 를 반환한다`() {
-            //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
-
-            //when
-            val isQuestOfUser = quest.isQuestOfUser(userInfo.id)
-
-            //then
-            assertThat(isQuestOfUser).isTrue()
-        }
-    }
-
     @Nested
     @DisplayName("세부 퀘스트 전체 완료 학인 테스트")
     inner class CanCompleteTest {
@@ -412,7 +379,7 @@ class QuestEntityUnitTest {
             val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
 
-            doReturn(true).`when`(mockDetail).isCompletedDetailQuest()
+            doReturn(true).`when`(mockDetail).isCompleted()
 
             //when
             val canComplete = quest.canComplete()
@@ -434,7 +401,7 @@ class QuestEntityUnitTest {
             val details = mutableListOf(mockDetail)
             detailQuests.set(quest, details)
 
-            doReturn(false).`when`(mockDetail).isCompletedDetailQuest()
+            doReturn(false).`when`(mockDetail).isCompleted()
 
             //when
             val canComplete = quest.canComplete()
@@ -476,9 +443,9 @@ class QuestEntityUnitTest {
     }
 
 
-    @DisplayName("세부 퀘스트 상호 작용 시")
+    @DisplayName("세부 퀘스트 카운트 변경 시")
     @Nested
-    inner class InteractWithDetailQuestTest {
+    inner class TestUpdateDetailQuestCount {
 
         @DisplayName("ID가 일치하는 세부 퀘스트가 없다면 null이 반환된다")
         @Test
@@ -487,15 +454,15 @@ class QuestEntityUnitTest {
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
 
             //when
-            val interactResult = quest.interactWithDetailQuest(1, 1)
+            val interactResult = quest.updateDetailQuestCount(1, 1)
 
             //then
             assertThat(interactResult).isNull()
         }
 
-        @DisplayName("count 값이 null이 아니면 changeCount 메서드가 호출되고 변경된 엔티티가 반환된다")
+        @DisplayName("세부 퀘스트가 존재하면 updateCountAndState 메서드가 호출된다")
         @Test
-        fun `count 값이 null이 아니면 changeCount 메서드가 호출되고 변경된 엔티티가 반환된다`() {
+        fun ifDetailFoundThenCallUpdateMethod() {
             //given
             val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
             val count = 3
@@ -507,60 +474,10 @@ class QuestEntityUnitTest {
             detailQuests.set(quest, details)
 
             //when
-            val interactResult = quest.interactWithDetailQuest(0, count)
+            quest.updateDetailQuestCount(0, count)
 
             //then
-            verify(mockDetail, times(1)).changeCount(eq(count))
-            verify(mockDetail, never()).resetCount()
-            verify(mockDetail, never()).addCount()
-            assertThat(interactResult).isEqualTo(mockDetail)
-        }
-
-        @DisplayName("count가 null이고 세부 퀘스트가 완료 상태면 resetCount가 호출되고 변경된 엔티티가 반환된다")
-        @Test
-        fun `count가 null이고 세부 퀘스트가 완료 상태면 resetCount가 호출되고 변경된 엔티티가 반환된다`() {
-            //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
-            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
-            detailQuests.isAccessible = true
-
-            val mockDetail = Mockito.mock(DetailQuest::class.java)
-            val details = mutableListOf(mockDetail)
-            detailQuests.set(quest, details)
-
-            doReturn(true).`when`(mockDetail).isCompletedDetailQuest()
-
-            //when
-            val interactResult = quest.interactWithDetailQuest(0, null)
-
-            //then
-            verify(mockDetail, never()).changeCount(any())
-            verify(mockDetail, times(1)).resetCount()
-            verify(mockDetail, never()).addCount()
-            assertThat(interactResult).isEqualTo(mockDetail)
-        }
-
-
-        @DisplayName("count가 null이고 세부 퀘스트가 완료 상태가 아니면 addCount가 호출되고 변경된 엔티티가 반환된다")
-        @Test
-        fun `count가 null이고 세부 퀘스트가 완료 상태가 아니면 addCount가 호출되고 변경된 엔티티가 반환된다`() {
-            //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
-            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
-            detailQuests.isAccessible = true
-
-            val mockDetail = Mockito.mock(DetailQuest::class.java)
-            val details = mutableListOf(mockDetail)
-            detailQuests.set(quest, details)
-
-            //when
-            val interactResult = quest.interactWithDetailQuest(0, null)
-
-            //then
-            verify(mockDetail, never()).changeCount(any())
-            verify(mockDetail, never()).resetCount()
-            verify(mockDetail, times(1)).addCount()
-            assertThat(interactResult).isEqualTo(mockDetail)
+            verify(mockDetail, times(1)).updateCountAndState(eq(count))
         }
     }
 

@@ -121,7 +121,7 @@ public class QuestApiController {
     }
 
     @PatchMapping(value = "/{questId}/details/{detailQuestId}")
-    public ResponseEntity<ResponseData<DetailResponse>> interactWithDetailQuest(
+    public ResponseEntity<ResponseData<DetailResponse>> updateDetailQuestCount(
             @Min(1) @PathVariable("questId") Long questId,
             @Min(1) @PathVariable("detailQuestId") Long detailQuestId,
             @Valid @RequestBody(required = false) DetailInteractRequest requestDto,
@@ -129,7 +129,7 @@ public class QuestApiController {
     ) {
         if (requestDto == null) requestDto = new DetailInteractRequest();
         requestDto.setPathVariables(questId, detailQuestId);
-        DetailResponse interactDetail = questService.interactWithDetailQuest(principal.getId(), requestDto);
+        DetailResponse interactDetail = questService.updateDetailQuestCount(principal.getId(), requestDto);
         return ResponseEntity.ok(new ResponseData<>(interactDetail));
     }
 

@@ -28,11 +28,11 @@ class DetailRequest(
 
     fun mapToEntity(quest: Quest): DetailQuest {
 
-        return DetailQuest(
+        return DetailQuest.of(
             title = title,
             type = type,
             state = DetailQuestState.PROCEED,
-            targetCount = if (type == DetailQuestType.CHECK) 1 else targetCount,
+            targetCount = targetCount,
             quest = quest
         )
     }

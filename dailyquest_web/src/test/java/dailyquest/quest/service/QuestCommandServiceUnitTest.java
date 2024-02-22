@@ -438,10 +438,10 @@ public class QuestCommandServiceUnitTest {
         void getQuestEntityViaQueryService() {
             //given
             doReturn(foundEntity).when(questQueryService).getProceedEntityOfUser(any(), any());
-            doReturn(interactResult).when(foundEntity).interactWithDetailQuest(anyLong(), any());
+            doReturn(interactResult).when(foundEntity).updateDetailQuestCount(anyLong(), any());
 
             //when
-            questCommandService.interactWithDetailQuest(userId, interactRequest);
+            questCommandService.updateDetailQuestCount(userId, interactRequest);
 
             //then
             verify(questQueryService).getProceedEntityOfUser(eq(interactRequest.getQuestId()), eq(userId));
@@ -453,10 +453,10 @@ public class QuestCommandServiceUnitTest {
             //given
             Quest foundEntity = mock(Quest.class);
             doReturn(foundEntity).when(questQueryService).getProceedEntityOfUser(any(), any());
-            doReturn(null).when(foundEntity).interactWithDetailQuest(anyLong(), any());
+            doReturn(null).when(foundEntity).updateDetailQuestCount(anyLong(), any());
 
             //when
-            Executable testMethod = () -> questCommandService.interactWithDetailQuest(userId, mock(DetailInteractRequest.class));
+            Executable testMethod = () -> questCommandService.updateDetailQuestCount(userId, mock(DetailInteractRequest.class));
 
             //then
             assertThrows(IllegalStateException.class, testMethod, badRequestMessage);
@@ -470,10 +470,10 @@ public class QuestCommandServiceUnitTest {
             Quest foundEntity = mock(Quest.class);
             doReturn(foundEntity).when(questQueryService).getProceedEntityOfUser(any(), any());
             DetailQuest interactResult = mock(DetailQuest.class);
-            doReturn(interactResult).when(foundEntity).interactWithDetailQuest(anyLong(), any());
+            doReturn(interactResult).when(foundEntity).updateDetailQuestCount(anyLong(), any());
 
             //when
-            DetailResponse result = questCommandService.interactWithDetailQuest(userId, mock(DetailInteractRequest.class));
+            DetailResponse result = questCommandService.updateDetailQuestCount(userId, mock(DetailInteractRequest.class));
 
             //then
             assertThat(result).isNotNull();

@@ -80,7 +80,7 @@ class QuestResponseUnitTest {
             type = type
         )
 
-        val details = mutableListOf(DetailQuest(detailTitle, 15, detailType, detailState, quest))
+        val details = mutableListOf(DetailQuest.of(detailTitle, 15, detailType, detailState, quest))
 
         val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
         detailQuests.isAccessible = true

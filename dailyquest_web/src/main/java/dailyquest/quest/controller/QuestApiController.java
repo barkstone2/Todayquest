@@ -127,7 +127,6 @@ public class QuestApiController {
             @Valid @RequestBody(required = false) DetailInteractRequest requestDto,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        // TODO 값이 제대로 세팅되는지 확인하는 테스트가 반드시 필요. 그래야 뒤에서 값이 존재하지 않는 문제를 방지할 수 있음
         if (requestDto == null) requestDto = new DetailInteractRequest();
         requestDto.setPathVariables(questId, detailQuestId);
         DetailResponse interactDetail = questService.interactWithDetailQuest(principal.getId(), requestDto);

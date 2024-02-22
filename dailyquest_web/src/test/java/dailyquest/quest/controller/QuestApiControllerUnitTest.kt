@@ -2,24 +2,6 @@ package dailyquest.quest.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.*
-import org.mockito.ArgumentMatchers.*
-import org.mockito.MockedStatic
-import org.mockito.Mockito.mockStatic
-import org.mockito.Mockito.`when`
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.context.annotation.ComponentScan.Filter
-import org.springframework.context.annotation.FilterType
-import org.springframework.http.MediaType
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import dailyquest.annotation.WithCustomMockUser
 import dailyquest.common.MessageUtil
 import dailyquest.common.RestPage
@@ -30,7 +12,28 @@ import dailyquest.quest.dto.*
 import dailyquest.quest.entity.DetailQuestType
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.service.QuestService
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.*
+import org.mockito.ArgumentMatchers.*
+import org.mockito.MockedStatic
+import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.`when`
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.verify
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.ComponentScan.Filter
+import org.springframework.context.annotation.FilterType
+import org.springframework.http.MediaType
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.math.BigInteger
 import java.util.function.Supplier
 import java.util.stream.Stream
@@ -753,6 +756,53 @@ class QuestApiControllerUnitTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$.data").doesNotExist())
                 .andExpect(jsonPath("$.errorResponse").exists())
+        }
+
+        @DisplayName("requestBody가 있을 때 pathVariable 정보가 RequestDto에 담긴다")
+        @Test
+        fun `requestBody가 있을 때 pathVariable 정보가 RequestDto에 담긴다`() {
+            //given
+            val questId = 1L
+            val detailQuestId = 1L
+            val requestDtoCaptor = argumentCaptor<DetailInteractRequest>()
+            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), requestDtoCaptor.capture())
+            val interactRequest = DetailInteractRequest()
+            interactRequest.setPathVariables(questId = 2, detailQuestId = 2)
+
+            //when
+            mvc.perform(
+                patch("$URI_PREFIX/$questId/details/$detailQuestId")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .content(om.writeValueAsBytes(interactRequest))
+                    .with(csrf())
+            )
+
+            //then
+            val requestDto = requestDtoCaptor.firstValue
+            assertThat(requestDto.questId).isEqualTo(questId)
+            assertThat(requestDto.detailQuestId).isEqualTo(detailQuestId)
+        }
+
+        @DisplayName("requestBody가 없어도 pathVariable 정보가 RequestDto에 담긴다")
+        @Test
+        fun `requestBody가 없어도 pathVariable 정보가 RequestDto에 담긴다`() {
+            //given
+            val questId = 1L
+            val detailQuestId = 1L
+            val requestDtoCaptor = argumentCaptor<DetailInteractRequest>()
+            doReturn(detailResponse).`when`(questService).interactWithDetailQuest(anyLong(), requestDtoCaptor.capture())
+
+            //when
+            mvc.perform(
+                patch("$URI_PREFIX/$questId/details/$detailQuestId")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .with(csrf())
+            )
+
+            //then
+            val requestDto = requestDtoCaptor.firstValue
+            assertThat(requestDto.questId).isEqualTo(questId)
+            assertThat(requestDto.detailQuestId).isEqualTo(detailQuestId)
         }
     }
 

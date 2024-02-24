@@ -67,4 +67,8 @@ public class QuestLogService {
         return questLogRepository.findAllByUserIdAndState(userId, QuestState.PROCEED).size();
     }
 
+    public Integer getTotalCompletionCount(Long userId) {
+        return questLogRepository.findAllByUserIdAndState(userId, QuestState.COMPLETE).size();
+    }
+
 }

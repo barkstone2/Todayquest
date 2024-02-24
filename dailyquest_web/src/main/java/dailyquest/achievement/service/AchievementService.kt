@@ -1,6 +1,6 @@
 package dailyquest.achievement.service
 
-import dailyquest.achievement.dto.AchievementRequest
+import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.quest.service.QuestLogService
 import dailyquest.user.service.UserService
@@ -18,16 +18,26 @@ class AchievementService @Autowired constructor(
 ) {
 
     fun checkAndAchieveAchievements(achievementType: AchievementType, userId: Long) {
-        val currentValue = this.getCurrentValue(achievementType, userId)
-        val achievementRequest = AchievementRequest(achievementType, currentValue)
-        val achievableAchievements = achievementQueryService.getAchievableAchievements(achievementRequest)
+        val notAchievedAchievements = achievementQueryService.getNotAchievedAchievements(achievementType, userId)
+        val achievableAchievements = mutableListOf<Achievement>()
+        for (targetAchievement in notAchievedAchievements) {
+            if (this.canAchieve(targetAchievement, userId)) {
+                achievableAchievements.add(targetAchievement)
+            } else {
+                break
+            }
+        }
+
         achievementLogService.achieveAll(achievableAchievements, userId)
     }
 
-    private fun getCurrentValue(type: AchievementType, userId: Long): Int {
-        return when (type) {
+    private fun canAchieve(targetAchievement: Achievement, userId: Long): Boolean {
+        val targetValue = targetAchievement.targetValue
+        val currentValue = when (targetAchievement.type) {
             AchievementType.QUEST_TOTAL_REGISTRATION -> questLogService.getTotalRegistrationCount(userId)
             AchievementType.QUEST_TOTAL_COMPLETION -> questLogService.getTotalCompletionCount(userId)
+            AchievementType.QUEST_CONTINUOUS_REGISTRATION_DAYS -> questLogService.getContinuousRegistrationCount(userId, targetValue)
         }
+        return currentValue >= targetValue
     }
 }

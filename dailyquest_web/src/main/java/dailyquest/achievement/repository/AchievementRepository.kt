@@ -7,6 +7,11 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface AchievementRepository: JpaRepository<Achievement, Long>{
-    @Query("select a from Achievement a where a.type = :type and a.targetValue <= :currentValue")
-    fun getAchievableAchievements(@Param("type") type: AchievementType, @Param("currentValue") currentValue: Int): List<Achievement>
+    @Query("select a " +
+            "from Achievement a " +
+            "left join AchievementLog al " +
+            "on al.user.id = :userId and al.achievement.id = a.id " +
+            "where a.type = :type and al.achievement.id is null " +
+            "order by a.targetValue")
+    fun getNotAchievedAchievements(@Param("type") type: AchievementType, @Param("userId") userId: Long): List<Achievement>
 }

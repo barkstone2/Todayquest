@@ -64,11 +64,16 @@ public class QuestLogService {
     }
 
     public Integer getTotalRegistrationCount(Long userId) {
-        return questLogRepository.findAllByUserIdAndState(userId, QuestState.PROCEED).size();
+        return questLogRepository.countByUserIdAndState(userId, QuestState.PROCEED);
     }
 
     public Integer getTotalCompletionCount(Long userId) {
-        return questLogRepository.findAllByUserIdAndState(userId, QuestState.COMPLETE).size();
+        return questLogRepository.countByUserIdAndState(userId, QuestState.COMPLETE);
+    }
+
+    public Integer getContinuousRegistrationCount(Long userId, Integer targetValue) {
+        LocalDate today = LocalDate.now();
+        return questLogRepository.getDistinctDateCount(userId, today.minusDays(targetValue));
     }
 
 }

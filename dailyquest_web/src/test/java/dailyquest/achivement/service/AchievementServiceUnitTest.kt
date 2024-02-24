@@ -1,20 +1,22 @@
 package dailyquest.achivement.service
 
+import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementLogService
 import dailyquest.achievement.service.AchievementQueryService
 import dailyquest.achievement.service.AchievementService
 import dailyquest.quest.service.QuestLogService
 import dailyquest.user.service.UserService
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.eq
 import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.verify
+import org.mockito.kotlin.*
 
 @ExtendWith(MockitoExtension::class)
 @DisplayName("업적 서비스 단위 테스트")
@@ -36,32 +38,72 @@ class AchievementServiceUnitTest {
     @Nested
     inner class TestCheckAndAchieveAchievements {
 
-        @DisplayName("QUEST_TOTAL_REGISTRATION 타입인 경우 questLogService를 통해 현재 값을 조회한다")
+        private val savedAchievements = mutableListOf<Achievement>()
+
+        @BeforeEach
+        fun init() {
+            savedAchievements.clear()
+            doAnswer { savedAchievements.addAll(it.getArgument(0)) }.`when`(achievementLogService).achieveAll(any(), any())
+        }
+
+        @DisplayName("QUEST_TOTAL_REGISTRATION 타입에 대한 요청인 경우 반환값이 목표값보다 크거나 같은 업적이 달성된다")
         @Test
-        fun `QUEST_TOTAL_REGISTRATION 타입인 경우 questLogService를 통해 현재 값을 조회한다`() {
+        fun `QUEST_TOTAL_REGISTRATION 타입에 대한 요청인 경우 반환값이 목표값보다 크거나 같은 업적이 달성된다`() {
             //given
             val achievementType = AchievementType.QUEST_TOTAL_REGISTRATION
             val userId = 1L
+            val notAchievedAchievements = listOf(
+                Achievement(achievementType, 0),
+                Achievement(achievementType, 1),
+            )
+            doReturn(notAchievedAchievements).`when`(achievementQueryService).getNotAchievedAchievements(any(), any())
+            doReturn(1).`when`(questLogService).getTotalRegistrationCount(any())
 
             //when
             achievementService.checkAndAchieveAchievements(achievementType, userId)
 
             //then
-            verify(questLogService).getTotalRegistrationCount(eq(userId))
+            assertThat(savedAchievements).isNotEmpty.containsAll(notAchievedAchievements)
         }
 
-        @DisplayName("QUEST_TOTAL_COMPLETION 타입인 경우 questLogService를 통해 현재 값을 조회한다")
+        @DisplayName("QUEST_TOTAL_COMPLETION 타입에 대한 요청인 경우 반환값이 목표값보다 크거나 같은 업적이 달성된다")
         @Test
-        fun `QUEST_TOTAL_COMPLETION 타입인 경우 questLogService를 통해 현재 값을 조회한다`() {
+        fun `QUEST_TOTAL_COMPLETION 타입에 대한 요청인 경우 반환값이 목표값보다 크거나 같은 업적이 달성된다`() {
             //given
             val achievementType = AchievementType.QUEST_TOTAL_COMPLETION
             val userId = 1L
+            val notAchievedAchievements = listOf(
+                Achievement(achievementType, 0),
+                Achievement(achievementType, 1),
+            )
+            doReturn(notAchievedAchievements).`when`(achievementQueryService).getNotAchievedAchievements(any(), any())
+            doReturn(1).`when`(questLogService).getTotalCompletionCount(any())
 
             //when
             achievementService.checkAndAchieveAchievements(achievementType, userId)
 
             //then
-            verify(questLogService).getTotalCompletionCount(eq(userId))
+            assertThat(savedAchievements).isNotEmpty.containsAll(notAchievedAchievements)
+        }
+
+        @DisplayName("QUEST_CONTINUOUS_REGISTRATION_DAYS 타입에 대한 요청인 경우 반환값이 목표값보다 크거나 같은 업적이 달성된다")
+        @Test
+        fun `QUEST_CONTINUOUS_REGISTRATION_DAYS 타입에 대한 요청인 경우 반환값이 목표값보다 크거나 같은 업적이 달성된다`() {
+            //given
+            val achievementType = AchievementType.QUEST_CONTINUOUS_REGISTRATION_DAYS
+            val userId = 1L
+            val notAchievedAchievements = listOf(
+                Achievement(achievementType, 0),
+                Achievement(achievementType, 1),
+            )
+            doReturn(notAchievedAchievements).`when`(achievementQueryService).getNotAchievedAchievements(any(), any())
+            doReturn(1).`when`(questLogService).getContinuousRegistrationCount(any(), any())
+
+            //when
+            achievementService.checkAndAchieveAchievements(achievementType, userId)
+
+            //then
+            assertThat(savedAchievements).isNotEmpty.containsAll(notAchievedAchievements)
         }
     }
 }

@@ -1,7 +1,7 @@
 package dailyquest.achievement.service
 
-import dailyquest.achievement.dto.AchievementRequest
 import dailyquest.achievement.entity.Achievement
+import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
 import org.springframework.stereotype.Service
 
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 class AchievementQueryService(
     val achievementRepository: AchievementRepository
 ) {
-    fun getAchievableAchievements(request: AchievementRequest): List<Achievement> {
-        return achievementRepository.getAchievableAchievements(request.type, request.currentValue)
+    fun getNotAchievedAchievements(type: AchievementType, userId: Long): List<Achievement> {
+        return achievementRepository.getNotAchievedAchievements(type, userId)
     }
 }

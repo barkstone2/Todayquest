@@ -13,7 +13,8 @@ import java.time.LocalTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity(name = "quest_log")
+@Table(name ="quest_log")
+@Entity
 public class QuestLog extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -37,6 +37,7 @@ class AchievementService @Autowired constructor(
             AchievementType.QUEST_TOTAL_REGISTRATION -> questLogService.getTotalRegistrationCount(userId)
             AchievementType.QUEST_TOTAL_COMPLETION -> questLogService.getTotalCompletionCount(userId)
             AchievementType.QUEST_CONTINUOUS_REGISTRATION_DAYS -> questLogService.getContinuousRegistrationCount(userId, targetValue)
+            AchievementType.USER_LEVEL -> userService.getUserById(userId).level
         }
         return currentValue >= targetValue
     }

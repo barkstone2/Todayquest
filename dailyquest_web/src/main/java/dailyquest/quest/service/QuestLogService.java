@@ -5,6 +5,7 @@ import dailyquest.quest.dto.QuestLogSearchCondition;
 import dailyquest.quest.dto.QuestStatisticsResponse;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestLog;
+import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestLogRepository;
 import dailyquest.status.dto.StatusResponse;
 import lombok.RequiredArgsConstructor;
@@ -60,6 +61,10 @@ public class QuestLogService {
 
     public StatusResponse getTotalStatistics(Long userId) {
         return questLogRepository.getTotalStatisticsOfUser(userId);
+    }
+
+    public Integer getTotalRegistrationCount(Long userId) {
+        return questLogRepository.findAllByUserIdAndState(userId, QuestState.PROCEED).size();
     }
 
 }

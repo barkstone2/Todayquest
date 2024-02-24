@@ -49,5 +49,19 @@ class AchievementServiceUnitTest {
             //then
             verify(questLogService).getTotalRegistrationCount(eq(userId))
         }
+
+        @DisplayName("QUEST_TOTAL_COMPLETION 타입인 경우 questLogService를 통해 현재 값을 조회한다")
+        @Test
+        fun `QUEST_TOTAL_COMPLETION 타입인 경우 questLogService를 통해 현재 값을 조회한다`() {
+            //given
+            val achievementType = AchievementType.QUEST_TOTAL_COMPLETION
+            val userId = 1L
+
+            //when
+            achievementService.checkAndAchieveAchievements(achievementType, userId)
+
+            //then
+            verify(questLogService).getTotalCompletionCount(eq(userId))
+        }
     }
 }

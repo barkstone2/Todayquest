@@ -27,6 +27,7 @@ class AchievementService @Autowired constructor(
     private fun getCurrentValue(type: AchievementType, userId: Long): Int {
         return when (type) {
             AchievementType.QUEST_TOTAL_REGISTRATION -> questLogService.getTotalRegistrationCount(userId)
+            AchievementType.QUEST_TOTAL_COMPLETION -> questLogService.getTotalCompletionCount(userId)
         }
     }
 }

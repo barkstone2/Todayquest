@@ -12,9 +12,9 @@ class AchievementLogService(
     val userRepository: UserRepository,
 ) {
 
-    fun achieveAll(achievableAchievements: List<Achievement>, userId: Long) {
+    fun achieve(achievableAchievement: Achievement, userId: Long) {
         val user = userRepository.findById(userId).get()
-        val achievementLogs = achievableAchievements.map { AchievementLog.of(it, user) }
-        achievementLogRepository.saveAll(achievementLogs)
+        val achievementLog = AchievementLog.of(achievableAchievement, user)
+        achievementLogRepository.save(achievementLog)
     }
 }

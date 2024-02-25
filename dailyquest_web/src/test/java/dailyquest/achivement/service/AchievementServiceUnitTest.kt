@@ -1,14 +1,11 @@
 package dailyquest.achivement.service
 
+import dailyquest.achievement.dto.AchievementAchieveRequest
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementLogService
 import dailyquest.achievement.service.AchievementQueryService
 import dailyquest.achievement.service.AchievementService
-import dailyquest.log.gold.earn.service.GoldEarnLogService
-import dailyquest.quest.service.QuestLogService
-import dailyquest.user.dto.UserPrincipal
-import dailyquest.user.service.UserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -17,8 +14,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.lenient
 import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
 
 @ExtendWith(MockitoExtension::class)
 @DisplayName("업적 서비스 단위 테스트")
@@ -27,14 +28,7 @@ class AchievementServiceUnitTest {
     @Mock
     lateinit var achievementQueryService: AchievementQueryService
     @Mock
-    lateinit var questLogService: QuestLogService
-    @Mock
     lateinit var achievementLogService: AchievementLogService
-    @Mock
-    lateinit var userService: UserService
-    @Mock
-    lateinit var goldEarnLogService: GoldEarnLogService
-
     @InjectMocks
     lateinit var achievementService: AchievementService
 
@@ -47,137 +41,75 @@ class AchievementServiceUnitTest {
         @BeforeEach
         fun init() {
             savedAchievements.clear()
-            doAnswer { savedAchievements.addAll(it.getArgument(0)) }.`when`(achievementLogService).achieveAll(any(), any())
+            lenient().doAnswer { savedAchievements.add(it.getArgument(0)) }.`when`(achievementLogService).achieve(any(), any())
         }
 
-        @DisplayName("목표값이 현재값보다 작은 업적이 달성된다")
+        @DisplayName("요청 타입과 같은 타입의 업적 조회를 요청한다")
         @Test
-        fun `목표값이 현재값보다 작은 업적이 달성된다`() {
+        fun `요청 타입과 같은 타입의 업적 조회를 요청한다`() {
             //given
-            val targetValue = 0
-            val currentValue = 1
-            val mustAchieve = Achievement(AchievementType.QUEST_TOTAL_REGISTRATION, targetValue)
-            doReturn(currentValue).`when`(questLogService).getTotalRegistrationCount(any())
-            doReturn(listOf(mustAchieve)).`when`(achievementQueryService).getNotAchievedAchievements(any(), any())
+            val achievementType = AchievementType.QUEST_TOTAL_REGISTRATION
+            val achieveRequest = AchievementAchieveRequest(achievementType, 1, 1L)
 
             //when
-            achievementService.checkAndAchieveAchievements(AchievementType.QUEST_TOTAL_REGISTRATION, 1L)
+            achievementService.checkAndAchieveAchievements(achieveRequest)
+
+            //then
+            verify(achievementQueryService).getNotAchievedAchievement(eq(achievementType), eq(1L))
+        }
+
+        @DisplayName("목표값이 현재값보다 작으면 업적이 달성된다")
+        @Test
+        fun `목표값이 현재값보다 작으면 업적이 달성된다`() {
+            //given
+            val currentValue = 1
+            val achieveRequest = AchievementAchieveRequest(AchievementType.QUEST_TOTAL_REGISTRATION, currentValue, 1L)
+
+            val targetValue = currentValue - 1
+            val mustAchieve = Achievement(AchievementType.QUEST_TOTAL_REGISTRATION, targetValue)
+            doReturn(mustAchieve).`when`(achievementQueryService).getNotAchievedAchievement(any(), any())
+
+            //when
+            achievementService.checkAndAchieveAchievements(achieveRequest)
 
             //then
             assertThat(savedAchievements).isNotEmpty.contains(mustAchieve)
         }
 
-        @DisplayName("목표값이 현재값과 같은 업적이 달성된다")
+        @DisplayName("목표값이 현재값과 같으면 업적이 달성된다")
         @Test
-        fun `목표값이 현재값과 같은 업적이 달성된다`() {
+        fun `목표값이 현재값과 같으면 업적이 달성된다`() {
             //given
-            val targetValue = 1
             val currentValue = 1
+            val achieveRequest = AchievementAchieveRequest(AchievementType.QUEST_TOTAL_REGISTRATION, currentValue, 1L)
+
+            val targetValue = currentValue
             val mustAchieve = Achievement(AchievementType.QUEST_TOTAL_REGISTRATION, targetValue)
-            doReturn(currentValue).`when`(questLogService).getTotalRegistrationCount(any())
-            doReturn(listOf(mustAchieve)).`when`(achievementQueryService).getNotAchievedAchievements(any(), any())
+            doReturn(mustAchieve).`when`(achievementQueryService).getNotAchievedAchievement(any(), any())
 
             //when
-            achievementService.checkAndAchieveAchievements(AchievementType.QUEST_TOTAL_REGISTRATION, 1L)
+            achievementService.checkAndAchieveAchievements(achieveRequest)
 
             //then
             assertThat(savedAchievements).isNotEmpty.contains(mustAchieve)
         }
 
-        @DisplayName("목표값이 현재값보다 큰 업적은 달성되지 않는다")
+        @DisplayName("목표값이 현재값보다 크면 업적이 달성되지 않는다")
         @Test
-        fun `목표값이 현재값보다 큰 업적은 달성되지 않는다`() {
+        fun `목표값이 현재값보다 크면 업적이 달성되지 않는다`() {
             //given
-            val targetValue = 2
             val currentValue = 1
+            val achieveRequest = AchievementAchieveRequest(AchievementType.QUEST_TOTAL_REGISTRATION, currentValue, 1L)
+
+            val targetValue = currentValue + 1
             val mustNotAchieve = Achievement(AchievementType.QUEST_TOTAL_REGISTRATION, targetValue)
-            doReturn(currentValue).`when`(questLogService).getTotalRegistrationCount(any())
-            doReturn(listOf(mustNotAchieve)).`when`(achievementQueryService).getNotAchievedAchievements(any(), any())
+            doReturn(mustNotAchieve).`when`(achievementQueryService).getNotAchievedAchievement(any(), any())
 
             //when
-            achievementService.checkAndAchieveAchievements(AchievementType.QUEST_TOTAL_REGISTRATION, 1L)
+            achievementService.checkAndAchieveAchievements(achieveRequest)
 
             //then
             assertThat(savedAchievements).doesNotContain(mustNotAchieve)
-        }
-
-        @DisplayName("QUEST_TOTAL_REGISTRATION 타입에 대한 요청인 경우 questLogService로부터 현재값을 조회한다")
-        @Test
-        fun `QUEST_TOTAL_REGISTRATION 타입에 대한 요청인 경우 questLogService로부터 현재값을 조회한다`() {
-            //given
-            val achievementType = AchievementType.QUEST_TOTAL_REGISTRATION
-            val userId = 1L
-            doReturn(listOf(Achievement(achievementType, 0))).`when`(achievementQueryService).getNotAchievedAchievements(any(), any())
-
-            //when
-            achievementService.checkAndAchieveAchievements(achievementType, userId)
-
-            //then
-            verify(questLogService, atLeastOnce()).getTotalRegistrationCount(eq(userId))
-        }
-
-        @DisplayName("QUEST_TOTAL_COMPLETION 타입에 대한 요청인 경우 questLogService로부터 현재값을 조회한다")
-        @Test
-        fun `QUEST_TOTAL_COMPLETION 타입에 대한 요청인 경우 questLogService로부터 현재값을 조회한다`() {
-            //given
-            val achievementType = AchievementType.QUEST_TOTAL_COMPLETION
-            val userId = 1L
-            doReturn(listOf(Achievement(achievementType, 0))).`when`(achievementQueryService).getNotAchievedAchievements(any(), any())
-
-            //when
-            achievementService.checkAndAchieveAchievements(achievementType, userId)
-
-            //then
-            verify(questLogService, atLeastOnce()).getTotalCompletionCount(eq(userId))
-        }
-
-        @DisplayName("QUEST_CONTINUOUS_REGISTRATION_DAYS 타입에 대한 요청인 경우 questLogService로부터 현재값을 조회한다")
-        @Test
-        fun `QUEST_CONTINUOUS_REGISTRATION_DAYS 타입에 대한 요청인 경우 questLogService로부터 현재값을 조회한다`() {
-            //given
-            val achievementType = AchievementType.QUEST_CONTINUOUS_REGISTRATION_DAYS
-            val userId = 1L
-            val targetValue = 0
-            doReturn(listOf(Achievement(achievementType, targetValue))).`when`(achievementQueryService).getNotAchievedAchievements(any(), any())
-
-            //when
-            achievementService.checkAndAchieveAchievements(achievementType, userId)
-
-            //then
-            verify(questLogService, atLeastOnce()).getContinuousRegistrationCount(eq(userId), eq(targetValue))
-        }
-
-        @DisplayName("USER_LEVEL 타입에 대한 요청인 경우 userService로부터 현재값을 조회한다")
-        @Test
-        fun `USER_LEVEL 타입에 대한 요청인 경우 userService로부터 현재값을 조회한다`() {
-            //given
-            val achievementType = AchievementType.USER_LEVEL
-            val userId = 1L
-            doReturn(listOf(Achievement(achievementType, 0))).`when`(achievementQueryService).getNotAchievedAchievements(any(), any())
-            val user = mock<UserPrincipal>()
-            doReturn(user).`when`(userService).getUserById(any())
-
-            //when
-            achievementService.checkAndAchieveAchievements(achievementType, userId)
-
-            //then
-            verify(userService, atLeastOnce()).getUserById(eq(userId))
-            verify(user, atLeastOnce()).level
-        }
-
-        @DisplayName("USER_GOLD_EARN 타입에 대한 요청인 경우 goldEarnLogService로부터 현재값을 조회한다")
-        @Test
-        fun `USER_GOLD_EARN 타입에 대한 요청인 경우 goldEarnLogService로부터 현재값을 조회한다`() {
-            //given
-            val achievementType = AchievementType.USER_GOLD_EARN
-            val userId = 1L
-            doReturn(listOf(Achievement(achievementType, 0))).`when`(achievementQueryService).getNotAchievedAchievements(any(), any())
-
-            //when
-            achievementService.checkAndAchieveAchievements(achievementType, userId)
-
-            //then
-            verify(goldEarnLogService, atLeastOnce()).getTotalGoldEarnOfUser(eq(userId))
         }
     }
 }

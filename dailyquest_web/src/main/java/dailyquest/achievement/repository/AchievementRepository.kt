@@ -12,6 +12,7 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
             "left join AchievementLog al " +
             "on al.user.id = :userId and al.achievement.id = a.id " +
             "where a.type = :type and al.achievement.id is null " +
-            "order by a.targetValue")
-    fun getNotAchievedAchievements(@Param("type") type: AchievementType, @Param("userId") userId: Long): List<Achievement>
+            "order by a.targetValue " +
+            "limit 1")
+    fun findNotAchievedAchievement(@Param("type") type: AchievementType, @Param("userId") userId: Long): Achievement?
 }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 class AchievementQueryService(
     val achievementRepository: AchievementRepository
 ) {
-    fun getNotAchievedAchievements(type: AchievementType, userId: Long): List<Achievement> {
-        return achievementRepository.getNotAchievedAchievements(type, userId)
+    fun getNotAchievedAchievement(type: AchievementType, userId: Long): Achievement? {
+        return achievementRepository.findNotAchievedAchievement(type, userId)
     }
 }

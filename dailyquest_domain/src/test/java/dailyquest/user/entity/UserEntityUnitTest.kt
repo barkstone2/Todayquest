@@ -133,45 +133,6 @@ class UserEntityUnitTest {
 
     }
 
-    @DisplayName("경험치 골드 획득 로직 호출시")
-    @Nested
-    inner class UpdateExpAndGoldTest {
-
-        @DisplayName("퀘스트 타입이 메인이면 2배의 보상을 획득한다")
-        @Test
-        fun `퀘스트 타입이 메인이면 2배의 보상을 획득한다`() {
-            //given
-            val earnedExp = 1L
-            val earnedGold = 1L
-            val questType = QuestType.MAIN
-            val user = UserInfo("", "", ProviderType.GOOGLE)
-
-            //when
-            user.updateExpAndGold(questType, earnedExp, earnedGold)
-
-            //then
-            assertThat(user.exp).isEqualTo(earnedExp*2)
-            assertThat(user.gold).isEqualTo(earnedGold*2)
-        }
-
-        @DisplayName("퀘스트 타입이 서브면 1배의 보상을 획득한다")
-        @Test
-        fun `퀘스트 타입이 서브면 1배의 보상을 획득한다`() {
-            //given
-            val earnedExp = 1L
-            val earnedGold = 1L
-            val questType = QuestType.SUB
-            val user = UserInfo("", "", ProviderType.GOOGLE)
-
-            //when
-            user.updateExpAndGold(questType, earnedExp, earnedGold)
-
-            //then
-            assertThat(user.exp).isEqualTo(earnedExp)
-            assertThat(user.gold).isEqualTo(earnedGold)
-        }
-    }
-
     @DisplayName("코어타임 확인 로직 호출시")
     @Nested
     inner class IsNowCoreTimeTest {
@@ -225,7 +186,7 @@ class UserEntityUnitTest {
             val expTable = mapOf(1 to 10L, 2 to 20L, 3 to 30L, 4 to 40L)
             val user = UserInfo("", "", ProviderType.GOOGLE)
             val remain = 10L
-            user.updateExpAndGold(QuestType.SUB, (expTable[1]?.plus(expTable[2]!!)!! + remain), 0)
+            user.updateExpAndGold((expTable[1]?.plus(expTable[2]!!)!! + remain), 0)
 
             //when
             val (level, remainExp, requireExp) = user.calculateLevel(expTable)

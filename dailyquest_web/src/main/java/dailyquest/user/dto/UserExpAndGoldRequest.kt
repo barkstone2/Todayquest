@@ -3,10 +3,24 @@ package dailyquest.user.dto
 import dailyquest.quest.entity.QuestType
 
 data class UserExpAndGoldRequest(
-    val type: QuestType,
-    val earnedExp: Long = 0,
-    val earnedGold: Long = 0
+    private val type: QuestType,
+    private val earnedExp: Long,
+    private val earnedGold: Long,
 ) {
+    fun calculateEarnedExp(): Long {
+        return earnedExp * getMultiplierBasedOnType()
+    }
+
+    fun calculateEarnedGold(): Long {
+        return earnedGold * getMultiplierBasedOnType()
+    }
+
+    private fun getMultiplierBasedOnType(): Long {
+        return when (type) {
+            QuestType.MAIN -> 2
+            QuestType.SUB -> 1
+        }
+    }
 
     companion object {
         @JvmStatic

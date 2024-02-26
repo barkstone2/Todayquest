@@ -3,13 +3,11 @@ package dailyquest.user.entity
 import dailyquest.common.BaseTimeEntity
 import dailyquest.quest.entity.QuestType
 import jakarta.persistence.*
-import org.hibernate.annotations.DynamicInsert
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-@DynamicInsert
 @Entity
 @Table(name = "user_info", uniqueConstraints = [UniqueConstraint(name = "unique_nickname", columnNames = ["nickname"])])
 class UserInfo(
@@ -40,8 +38,12 @@ class UserInfo(
 
     var coreTimeLastModifiedDate: LocalDateTime? = null
         protected set
+
+    @Column(nullable = false)
     var exp: Long = 0
         protected set
+
+    @Column(nullable = false)
     var gold: Long = 0
         protected set
 
@@ -67,15 +69,9 @@ class UserInfo(
         return false
     }
 
-    fun updateExpAndGold(questType: QuestType, earnedExp: Long, earnedGold: Long) {
-
-        val multiplier = when (questType) {
-            QuestType.MAIN -> 2
-            else -> 1
-        }
-
-        this.gold += earnedGold * multiplier
-        this.exp += earnedExp * multiplier
+    fun updateExpAndGold(earnedExp: Long, earnedGold: Long) {
+        this.gold += earnedGold
+        this.exp += earnedExp
     }
 
     fun isNowCoreTime() : Boolean {

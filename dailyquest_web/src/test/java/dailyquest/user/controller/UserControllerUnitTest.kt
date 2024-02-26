@@ -28,7 +28,7 @@ import dailyquest.annotation.WithCustomMockUser
 import dailyquest.common.MessageUtil
 import dailyquest.config.SecurityConfig
 import dailyquest.jwt.JwtAuthorizationFilter
-import dailyquest.user.dto.UserRequestDto
+import dailyquest.user.dto.UserUpdateRequest
 import dailyquest.user.service.UserService
 import java.util.stream.Stream
 
@@ -73,19 +73,19 @@ class UserControllerUnitTest {
 
     class InValidUserSettingRequest: ArgumentsProvider {
         override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
-            val invalidPattern = UserRequestDto()
+            val invalidPattern = UserUpdateRequest()
             invalidPattern.nickname = "ㄱㅂㄷㄴinvalidpattern"
 
-            val invalidLength = UserRequestDto()
+            val invalidLength = UserUpdateRequest()
             invalidLength.nickname = "overnicknamelengthlimit123456789012345678901"
 
-            val startWithWhiteSpace = UserRequestDto()
+            val startWithWhiteSpace = UserUpdateRequest()
             startWithWhiteSpace.nickname = " startWhiteSpace"
 
-            val endWithWhiteSpace = UserRequestDto()
+            val endWithWhiteSpace = UserUpdateRequest()
             endWithWhiteSpace.nickname = "endWhiteSpace "
 
-            val specialCharacter = UserRequestDto()
+            val specialCharacter = UserUpdateRequest()
             specialCharacter.nickname = "contain_special_chracter"
 
             return Stream.of(
@@ -105,7 +105,7 @@ class UserControllerUnitTest {
         @ArgumentsSource(InValidUserSettingRequest::class)
         @DisplayName("올바른 닉네임 패턴 요청이 아닌 경우 400이 반환된다")
         @ParameterizedTest(name = "{0} 값이 들어오면 400이 반환된다")
-        fun `올바른 닉네임 패턴 요청이 아닌 경우 400이 반환된다`(dto: UserRequestDto) {
+        fun `올바른 닉네임 패턴 요청이 아닌 경우 400이 반환된다`(dto: UserUpdateRequest) {
             //given
 
             //when
@@ -125,7 +125,7 @@ class UserControllerUnitTest {
         @Test
         fun `올바른 닉네임 패턴 요청일 경우 200이 반환된다`() {
             //given
-            val dto = UserRequestDto()
+            val dto = UserUpdateRequest()
             dto.nickname = "newNickname"
 
             //when
@@ -145,7 +145,7 @@ class UserControllerUnitTest {
         @Test
         fun `닉네임이 null일 경우 200이 반환된다`() {
             //given
-            val dto = UserRequestDto()
+            val dto = UserUpdateRequest()
 
             //when
             val result = mvc.perform(
@@ -164,7 +164,7 @@ class UserControllerUnitTest {
         @Test
         fun `제약조건 위반 예외 발생 시 409를 반환한다`() {
             //given
-            val dto = UserRequestDto()
+            val dto = UserUpdateRequest()
             doThrow(DataIntegrityViolationException::class).`when`(userService).changeUserSettings(any(), any())
 
             //when

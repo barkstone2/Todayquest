@@ -1,249 +1,106 @@
 package dailyquest.user.service
 
-import jakarta.persistence.EntityManager
-import org.assertj.core.api.Assertions.*
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.InjectMocks
-import org.mockito.Mock
-import org.mockito.MockedStatic
-import org.mockito.Mockito
-import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.*
-import org.springframework.data.redis.core.BoundHashOperations
-import org.springframework.data.redis.core.HashOperations
-import org.springframework.data.redis.core.RedisTemplate
-import org.springframework.data.redis.core.SetOperations
 import dailyquest.common.MessageUtil
-import dailyquest.exception.RedisDataNotFoundException
 import dailyquest.properties.RedisKeyProperties
 import dailyquest.user.dto.UserPrincipal
-import dailyquest.user.dto.UserRequestDto
 import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.UserInfo
-import dailyquest.user.repository.UserRepository
-import java.util.*
+import io.mockk.*
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.core.SetOperations
 
-@ExtendWith(MockitoExtension::class)
+@ExtendWith(MockKExtension::class)
 @DisplayName("유저 서비스 단위 테스트")
 class UserServiceUnitTest {
 
-    @InjectMocks
+    @InjectMockKs
     lateinit var userService: UserService
 
-    @Mock
-    lateinit var userRepository: UserRepository
+    @MockK(relaxed = true)
+    lateinit var userQueryService: UserQueryService
 
-    @Mock
-    lateinit var entityManager: EntityManager
+    @MockK(relaxed = true)
+    lateinit var userCommandService: UserCommandService
 
-    @Mock
+    @MockK(relaxed = true)
     lateinit var redisTemplate: RedisTemplate<String, String>
 
-    @Mock
+    @MockK(relaxed = true)
     lateinit var redisKeyProperties: RedisKeyProperties
-
-    private lateinit var messageUtil: MockedStatic<MessageUtil>
 
     @BeforeEach
     fun beforeEach() {
-        messageUtil = Mockito.mockStatic(MessageUtil::class.java)
-        Mockito.`when`(MessageUtil.getMessage(any())).thenReturn("")
-        Mockito.`when`(MessageUtil.getMessage(any(), any())).thenReturn("")
+        mockkStatic(MessageUtil::class)
+        mockkObject(UserPrincipal.Companion)
+        every { UserPrincipal.create(any(), any()) } returns mockk()
+        val setOps = mockk<SetOperations<String, String>>(relaxed = true)
+        every { redisTemplate.opsForSet() } returns setOps
+        every { setOps.randomMember(any()) } returns ""
     }
 
-    @AfterEach
-    fun afterEach() {
-        messageUtil.close()
-    }
-
-
-    @DisplayName("getOrRegisterUser 호출 시 유저 정보가 없다면 신규 유저 등록 로직이 호출된다")
-    @Test
-    fun `getOrRegisterUser 호출 시 유저 정보가 없다면 신규 유저 등록 로직이 호출된다`() {
-        //given
-        val user = UserInfo("", "", ProviderType.GOOGLE)
-        doReturn(null).`when`(userRepository).findByOauth2Id(any())
-
-        val prefixKey = "prefix"
-        val postfixKey = "postfix"
-        val tableKey = "tableKey"
-
-        doReturn(prefixKey).`when`(redisKeyProperties).nicknamePrefix
-        doReturn(postfixKey).`when`(redisKeyProperties).nicknamePostfix
-        doReturn(tableKey).`when`(redisKeyProperties).expTable
-
-        val mockOpsForSet = mock<SetOperations<String, String>>()
-        val mockOpsForHash = mock<HashOperations<String, String, Long>>()
-
-        doReturn(mockOpsForSet).`when`(redisTemplate).opsForSet()
-        doReturn(mockOpsForHash).`when`(redisTemplate).opsForHash<String, Long>()
-
-        val nickname = "nickname"
-        val mockExpTable = mock<Map<String, Long>>()
-        doReturn(nickname).`when`(mockOpsForSet).randomMember(any())
-        doReturn(mockExpTable).`when`(mockOpsForHash).entries(any())
-
-        doReturn(user).`when`(userRepository).saveAndFlush(any())
-        doReturn(user).`when`(userRepository).getReferenceById(any())
-
-        //when
-        val userPrincipal = userService.getOrRegisterUser("", ProviderType.GOOGLE)
-
-        //then
-        verify(mockOpsForSet, times(1)).randomMember(prefixKey)
-        verify(mockOpsForSet, times(1)).randomMember(postfixKey)
-        verify(userRepository, times(1)).saveAndFlush(any())
-        verify(entityManager, times(1)).detach(user)
-        verify(userRepository, times(1)).getReferenceById(any())
-
-    }
-
-    @DisplayName("getOrRegisterUser 호출 시 유저 정보가 있다면 유저 정보를 반환한다")
-    @Test
-    fun `getOrRegisterUser 호출 시 유저 정보가 있다면 유저 정보를 반환한다`() {
-        //given
-        val user = UserInfo("", "", ProviderType.GOOGLE)
-        doReturn(user).`when`(userRepository).findByOauth2Id(any())
-
-        val mockOpsForHash = mock<HashOperations<String, String, Long>>()
-        doReturn(mockOpsForHash).`when`(redisTemplate).opsForHash<String, Long>()
-
-        val mockExpTable = mock<Map<String, Long>>()
-        doReturn(mockExpTable).`when`(mockOpsForHash).entries(any())
-
-        val tableKey = "tableKey"
-        doReturn(tableKey).`when`(redisKeyProperties).expTable
-
-        //when
-        val userPrincipal = userService.getOrRegisterUser("", ProviderType.GOOGLE)
-
-        //then
-        verify(userRepository, times(0)).saveAndFlush(any())
-        verify(entityManager, times(0)).detach(user)
-        verify(userRepository, times(0)).getReferenceById(any())
-
-    }
-
-
-    @DisplayName("getUserById 호출 시 존재하지 않는 유저 정보라면 예외가 던져진다")
-    @Test
-    fun `getUserById 호출 시 존재하지 않는 유저 정보라면 예외가 던져진다`() {
-        //given
-        doReturn(Optional.ofNullable(null)).`when`(userRepository).findById(any())
-
-        //when
-        val call: () -> Unit = { userService.getUserById(1) }
-
-        //then
-        assertThatThrownBy(call).isInstanceOf(IllegalStateException::class.java)
-    }
-
-
-    @DisplayName("유저 정보 변경 시")
+    @DisplayName("getOrRegisterUser 호출 시")
     @Nested
-    inner class UserSettingsChangeTest {
-
-        @DisplayName("닉네임 변경 메서드가 호출된다")
+    inner class TestGetPrincipalOrRegistration {
+        @DisplayName("등록된 유저 정보가 있으면 유저 정보를 새로 등록하지 않는다")
         @Test
-        fun `닉네임 변경 메서드가 호출된다`() {
+        fun `등록된 유저 정보가 있으면 유저 정보를 새로 등록하지 않는다`() {
             //given
-            val mockPrincipal = mock<UserPrincipal>()
-            val mockRequest = mock<UserRequestDto>()
-            val mockUser = mock<UserInfo>()
-
-            doReturn(mockUser).`when`(userRepository).getReferenceById(any())
-            doReturn(true).`when`(mockUser).updateCoreTime(any(), any())
+            every { userQueryService.findUser(any(String::class)) } returns mockk()
 
             //when
-            userService.changeUserSettings(mockPrincipal, mockRequest)
+            userService.getOrRegisterUser("", ProviderType.GOOGLE)
 
             //then
-            verify(mockUser).updateNickname(eq(mockRequest.nickname))
+            verify { userCommandService.saveUser(any()) wasNot Called }
         }
 
-        @DisplayName("코어 타임 변경에 실패하면 예외를 던진다")
+        @DisplayName("등록된 유저 정보가 없을 때 새로 유저 정보를 등록한다")
         @Test
-        fun `코어 타임 변경에 실패하면 예외를 던진다`() {
+        fun `등록된 유저 정보가 없을 때 새로 유저 정보를 등록한다`() {
             //given
-            val mockPrincipal = mock<UserPrincipal>()
-            val mockRequest = mock<UserRequestDto>()
-            val mockUser = mock<UserInfo>()
-
-            doReturn(mockUser).`when`(userRepository).getReferenceById(any())
-            doReturn(false).`when`(mockUser).updateCoreTime(any(), any())
+            every { userQueryService.findUser(any(String::class)) } returns null
 
             //when
-            val run = { userService.changeUserSettings(mockPrincipal, mockRequest) }
+            userService.getOrRegisterUser("", ProviderType.GOOGLE)
 
             //then
-            assertThatThrownBy(run).isInstanceOf(IllegalStateException::class.java)
-            verify(mockUser).updateCoreTime(any(), any())
+            verify { userCommandService.saveUser(any()) }
         }
 
+        @DisplayName("새 유저 등록에 필요한 랜덤 닉네임 중복되지 않으면 닉네임을 다시 생성하지 않는다")
+        @Test
+        fun `새 유저 등록에 필요한 랜덤 닉네임 중복되지 않으면 닉네임을 다시 생성하지 않는다`() {
+            //given
+            every { userQueryService.findUser(any(String::class)) } returns null
+            every { userQueryService.isDuplicateNickname(any()) } returns false
+
+            //when
+            userService.getOrRegisterUser("", ProviderType.GOOGLE)
+
+            //then
+            verify(exactly = 1) { userQueryService.isDuplicateNickname(any()) }
+        }
+
+        @DisplayName("새 유저 등록에 필요한 랜덤 닉네임 중복이 발생하면 닉네임을 다시 생성한다")
+        @Test
+        fun `새 유저 등록에 필요한 랜덤 닉네임 중복이 발생하면 닉네임을 다시 생성한다`() {
+            //given
+            every { userQueryService.findUser(any(String::class)) } returns null
+            val duplicateCount = 1
+            every { userQueryService.isDuplicateNickname(any()) } returnsMany MutableList(duplicateCount) { true } andThen false
+
+            //when
+            userService.getOrRegisterUser("", ProviderType.GOOGLE)
+
+            //then
+            verify(exactly = duplicateCount + 1) { userQueryService.isDuplicateNickname(any()) }
+        }
     }
-
-    @DisplayName("보상 획득 시")
-    @Nested
-    inner class EarnRewardTest {
-
-        @DisplayName("레디스 설정값 조회에 실패하면 RedisDataNotFound 예외가 발생한다")
-        @Test
-        fun `레디스 설정값 조회에 실패하면 RedisDataNotFound 예외가 발생한다`() {
-            //given
-            val settingsKey = "key"
-            doReturn(settingsKey).`when`(redisKeyProperties).settings
-
-            val mockOps = mock<BoundHashOperations<String, String, Long>>()
-            doReturn(mockOps).`when`(redisTemplate).boundHashOps<String, Long>(settingsKey)
-
-            val expKey = "expKey"
-            val goldKey = "goldKey"
-            doReturn(expKey).`when`(redisKeyProperties).questClearExp
-            doReturn(goldKey).`when`(redisKeyProperties).questClearGold
-
-            doReturn(null).`when`(mockOps)[expKey]
-            doReturn(null).`when`(mockOps)[goldKey]
-
-            val mockUser = mock<UserInfo>()
-
-            //when
-            val run = { userService.earnExpAndGold(mock(), mockUser) }
-
-            //then
-            assertThatThrownBy(run).isInstanceOf(RedisDataNotFoundException::class.java)
-            verify(mockUser, times(0)).updateExpAndGold(any(), any(), any())
-        }
-
-
-        @DisplayName("설정값 조회에 성공하면 정상 로직이 호출된다")
-        @Test
-        fun `설정값 조회에 성공하면 정상 로직이 호출된다`() {
-            //given
-            val settingsKey = "key"
-            doReturn(settingsKey).`when`(redisKeyProperties).settings
-
-            val mockOps = mock<BoundHashOperations<String, String, Long>>()
-            doReturn(mockOps).`when`(redisTemplate).boundHashOps<String, Long>(settingsKey)
-
-            val expKey = "expKey"
-            val goldKey = "goldKey"
-            doReturn(expKey).`when`(redisKeyProperties).questClearExp
-            doReturn(goldKey).`when`(redisKeyProperties).questClearGold
-
-            doReturn(0L).`when`(mockOps)[expKey]
-            doReturn(0L).`when`(mockOps)[goldKey]
-
-            val mockUser = mock<UserInfo>()
-
-            //when
-            val run = { userService.earnExpAndGold(mock(), mockUser) }
-
-            //then
-            assertThatCode(run).doesNotThrowAnyException()
-            verify(mockUser, times(1)).updateExpAndGold(any(), any(), any())
-        }
-
-    }
-
 }

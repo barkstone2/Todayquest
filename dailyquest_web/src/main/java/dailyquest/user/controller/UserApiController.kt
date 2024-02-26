@@ -10,7 +10,7 @@ import dailyquest.common.MessageUtil
 import dailyquest.common.ResponseData
 import dailyquest.exception.DuplicateNicknameException
 import dailyquest.user.dto.UserPrincipal
-import dailyquest.user.dto.UserRequestDto
+import dailyquest.user.dto.UserUpdateRequest
 import dailyquest.user.service.UserService
 
 @Validated
@@ -27,7 +27,7 @@ class UserApiController(
 
     @PatchMapping
     fun updateUser(
-        @Valid @RequestBody dto: UserRequestDto,
+        @Valid @RequestBody dto: UserUpdateRequest,
         @AuthenticationPrincipal principal: UserPrincipal
     ) {
         try {

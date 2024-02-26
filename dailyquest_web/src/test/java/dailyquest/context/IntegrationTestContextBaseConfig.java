@@ -11,6 +11,8 @@ import dailyquest.jwt.JwtTokenProvider;
 import dailyquest.properties.JwtTokenProperties;
 import dailyquest.properties.SecurityOriginProperties;
 import dailyquest.properties.SecurityUrlProperties;
+import dailyquest.redis.repository.RedisRepository;
+import dailyquest.redis.service.RedisService;
 import dailyquest.user.entity.UserInfo;
 import dailyquest.user.repository.UserRepository;
 import dailyquest.user.service.UserCommandService;
@@ -27,7 +29,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         RestApiExceptionHandler.class, JpaAuditingConfiguration.class, MessageUtil.class,
         JwtAuthorizationFilter.class, JwtTokenProvider.class, JwtTokenProperties.class,
         SecurityOriginProperties.class, SecurityUrlProperties.class,
-        UserService.class, UserQueryService.class, UserCommandService.class
+        UserService.class, UserQueryService.class, UserCommandService.class, RedisService.class, RedisRepository.class
 })
 @EnableJpaRepositories(basePackageClasses = UserRepository.class)
 @EntityScan(basePackageClasses = UserInfo.class)

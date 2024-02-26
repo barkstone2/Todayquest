@@ -10,7 +10,7 @@ import dailyquest.context.RedisTestContextConfig
 import dailyquest.jwt.JwtTokenProvider
 import dailyquest.user.controller.UserControllerTest.UserControllerIntegrationTestConfig
 import dailyquest.user.dto.UserPrincipal
-import dailyquest.user.dto.UserRequestDto
+import dailyquest.user.dto.UserUpdateRequest
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
 import dailyquest.user.repository.UserRepository
@@ -114,7 +114,7 @@ class UserControllerTest @Autowired constructor(
             val url = "${SERVER_ADDR}$port${URI_PREFIX}"
             val anotherUser = userRepository.saveAndFlush(UserInfo("", "duplicate", ProviderType.GOOGLE))
 
-            val userRequest = UserRequestDto()
+            val userRequest = UserUpdateRequest()
             userRequest.nickname = anotherUser.nickname
 
             val requestBody = om.writeValueAsString(userRequest)
@@ -150,7 +150,7 @@ class UserControllerTest @Autowired constructor(
             //given
             val url = "${SERVER_ADDR}$port${URI_PREFIX}"
 
-            val firstDto = UserRequestDto(
+            val firstDto = UserUpdateRequest(
                 LocalTime.of(testUser.coreTime, 0).plusHours(1).hour
             )
 
@@ -164,7 +164,7 @@ class UserControllerTest @Autowired constructor(
                         .content(om.writeValueAsString(firstDto))
                 )
 
-            val secondDto = UserRequestDto(
+            val secondDto = UserUpdateRequest(
                 LocalTime.of(testUser.coreTime, 0).minusHours(1).hour
             )
 

@@ -1,7 +1,7 @@
 package dailyquest.status.controller;
 
 import dailyquest.common.ResponseData;
-import dailyquest.common.TimeUtilKt;
+import dailyquest.common.DateTimeExtensionKt;
 import dailyquest.quest.dto.QuestLogSearchCondition;
 import dailyquest.quest.dto.QuestStatisticsResponse;
 import dailyquest.quest.service.QuestLogService;
@@ -48,8 +48,8 @@ public class StatusApiController {
         LocalDate selectedDate = questLogSearchCondition.getSelectedDate();
         Function<LocalDate, LocalDate> dateKeyTransformFunction =
             switch (questLogSearchCondition.getSearchType()) {
-                case WEEKLY -> TimeUtilKt::firstDayOfWeek;
-                case MONTHLY -> TimeUtilKt::firstDayOfMonth;
+                case WEEKLY -> DateTimeExtensionKt::firstDayOfWeek;
+                case MONTHLY -> DateTimeExtensionKt::firstDayOfMonth;
                 default -> LocalDate::from;
             };
 

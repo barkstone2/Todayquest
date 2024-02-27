@@ -1,9 +1,7 @@
 package dailyquest.user.entity
 
 import dailyquest.common.BaseTimeEntity
-import dailyquest.quest.entity.QuestType
 import jakarta.persistence.*
-import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -80,9 +78,9 @@ class UserInfo(
         return coreTimeLastModifiedDate?.plusDays(1L) ?: LocalDateTime.now()
     }
 
-    fun updateExpAndGold(earnedExp: Long, earnedGold: Long) {
-        this.gold += earnedGold
+    fun addExpAndGold(earnedExp: Long, earnedGold: Long) {
         this.exp += earnedExp
+        this.gold += earnedGold
     }
 
     fun isNowCoreTime() : Boolean {

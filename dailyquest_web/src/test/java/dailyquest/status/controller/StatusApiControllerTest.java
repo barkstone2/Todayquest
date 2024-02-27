@@ -12,8 +12,8 @@ import dailyquest.quest.entity.QuestType;
 import dailyquest.quest.repository.QuestLogRepository;
 import dailyquest.quest.service.QuestLogService;
 import dailyquest.status.controller.StatusApiControllerTest.StatusControllerIntegrationTestConfig;
-import dailyquest.user.dto.UserPrincipal;
 import dailyquest.user.entity.ProviderType;
+import dailyquest.user.entity.UserInfo;
 import dailyquest.user.repository.UserRepository;
 import dailyquest.user.service.UserService;
 import jakarta.servlet.http.Cookie;
@@ -92,7 +92,7 @@ public class StatusApiControllerTest {
     QuestLogRepository questLogRepository;
 
     MockMvc mvc;
-    UserPrincipal testUser;
+    UserInfo testUser;
     Cookie token;
 
     @BeforeEach
@@ -103,7 +103,7 @@ public class StatusApiControllerTest {
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
 
-        testUser = userService.getOrRegisterUser("user1", ProviderType.GOOGLE);
+        testUser = userService.getOrSaveUser("user1", ProviderType.GOOGLE);
 
         String accessToken = jwtTokenProvider.createAccessToken(testUser.getId());
         token = jwtTokenProvider.createAccessTokenCookie(accessToken);

@@ -1,5 +1,7 @@
 package dailyquest.user.service;
 
+import dailyquest.common.DateTimeExtensionKt;
+import dailyquest.common.MessageUtil;
 import dailyquest.quest.entity.QuestType;
 import dailyquest.redis.service.RedisService;
 import dailyquest.user.dto.UserExpAndGoldRequest;
@@ -11,6 +13,8 @@ import dailyquest.user.entity.UserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Transactional
 @RequiredArgsConstructor
@@ -44,9 +48,15 @@ public class UserService {
         return UserPrincipal.create(userInfo, redisService.getExpTable());
     }
 
-    public void changeUserSettings(UserPrincipal principal, UserUpdateRequest updateRequest) {
+    public void updateUser(UserPrincipal principal, UserUpdateRequest updateRequest) throws IllegalStateException {
         UserInfo updateTarget = userQueryService.findUser(principal.getId());
-        userCommandService.updateUser(updateTarget, updateRequest);
+        boolean updateFailed = !userCommandService.updateUser(updateTarget, updateRequest);
+        if (updateFailed) {
+            LocalDateTime updateAvailableTime = updateTarget.getUpdateAvailableDateTimeOfCoreTime();
+            String timeSinceNowUntilAvailable = DateTimeExtensionKt.timeSinceNowAsString(updateAvailableTime);
+            String errorMessage = MessageUtil.getMessage("user.settings.updateLimit", timeSinceNowUntilAvailable);
+            throw new IllegalStateException(errorMessage);
+        }
     }
 
     public void earnExpAndGold(QuestType type, UserInfo user) {

@@ -75,7 +75,7 @@ public class UserLevelLockTest {
         CountDownLatch latch = new CountDownLatch(threadCount);
 
         Future<Long> resultUserId = executorService.submit(() -> {
-            Long userId = userService.getOrRegisterUser("user1", ProviderType.GOOGLE).getId();
+            Long userId = userService.getOrSaveUser("user1", ProviderType.GOOGLE).getId();
 
             //when
             for (int i = 0; i < threadCount; i++) {

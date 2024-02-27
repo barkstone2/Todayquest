@@ -36,10 +36,9 @@ class JwtService(
         val oauth2Id = idToken.payload.subject
         val providerType = tokenRequest.providerType
 
-        val userPrincipal = userService.getOrRegisterUser(oauth2Id, providerType)
-
-        val accessToken = jwtTokenProvider.createAccessToken(userPrincipal.id)
-        val refreshToken = jwtTokenProvider.createRefreshToken(userPrincipal.id)
+        val retrievedUser = userService.getOrSaveUser(oauth2Id, providerType)
+        val accessToken = jwtTokenProvider.createAccessToken(retrievedUser.id)
+        val refreshToken = jwtTokenProvider.createRefreshToken(retrievedUser.id)
 
         return jwtTokenProvider.createAccessTokenCookie(accessToken) to jwtTokenProvider.createRefreshTokenCookie(refreshToken)
     }

@@ -90,7 +90,7 @@ public class JwtAuthorizationFilterUnitTest {
         doReturn(mockCookie).when(jwtTokenProvider).createRefreshTokenCookie(any());
 
         UserPrincipal mockUserDetail = mock(UserPrincipal.class);
-        doReturn(mockUserDetail).when(userService).getUserById(any());
+        doReturn(mockUserDetail).when(userService).getUserPrincipal(any());
 
         //when
         jwtAuthorizationFilter.doFilterInternal(request, response, filterChain);
@@ -114,7 +114,7 @@ public class JwtAuthorizationFilterUnitTest {
         doReturn(url).when(request).getRequestURI();
 
         UserPrincipal mockUserDetail = mock(UserPrincipal.class);
-        doReturn(mockUserDetail).when(userService).getUserById(any());
+        doReturn(mockUserDetail).when(userService).getUserPrincipal(any());
 
         //when
         jwtAuthorizationFilter.doFilterInternal(request, response, filterChain);

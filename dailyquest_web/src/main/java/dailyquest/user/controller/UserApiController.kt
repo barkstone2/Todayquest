@@ -31,7 +31,7 @@ class UserApiController(
         @AuthenticationPrincipal principal: UserPrincipal
     ) {
         try {
-            userService.changeUserSettings(principal, dto)
+            userService.updateUser(principal, dto)
         } catch (e: DataIntegrityViolationException) {
             throw DuplicateNicknameException(MessageUtil.getMessage("nickname.duplicate"))
         }

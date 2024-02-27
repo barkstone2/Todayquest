@@ -1,6 +1,7 @@
 package dailyquest.user.entity
 
-import dailyquest.quest.entity.QuestType
+import io.mockk.every
+import io.mockk.spyk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -47,90 +48,80 @@ class UserEntityUnitTest {
         }
     }
 
-
     @DisplayName("코어 타임 변경시")
     @Nested
     inner class UpdateCoreTimeTest {
 
-        @DisplayName("인자 값이 null인 경우 업데이트 하지 않고 true 를 반환한다")
+        @DisplayName("인자 값이 null인 경우 true가 반환된다")
         @Test
-        fun `인자 값이 null인 경우 업데이트 하지 않고 true 를 반환한다`() {
+        fun `인자 값이 null인 경우 true가 반환된다`() {
             //given
             val user = UserInfo("", "", ProviderType.GOOGLE)
 
             //when
-            val isUpdated = user.updateCoreTime(null, LocalDateTime.now())
+            val updateSucceed = user.updateCoreTime(null)
 
             //then
-            assertThat(user.coreTimeLastModifiedDate).isNull()
-            assertThat(isUpdated).isTrue()
+            assertThat(updateSucceed).isTrue()
         }
 
-        @DisplayName("인자 값이 기존값과 동일한 경우 업데이트 하지 않고 true 를 반환한다")
+        @DisplayName("인자 값이 기존값과 동일한 경우 true가 반환된다")
         @Test
-        fun `인자 값이 기존값과 동일한 경우 업데이트 하지 않고 true 를 반환한다`() {
+        fun `인자 값이 기존값과 동일한 경우 true가 반환된다`() {
             //given
             val user = UserInfo("", "", ProviderType.GOOGLE)
 
             //when
-            val isUpdated = user.updateCoreTime(user.getCoreHour(), LocalDateTime.now())
+            val updateSucceed = user.updateCoreTime(user.getCoreHour())
 
             //then
-            assertThat(user.coreTimeLastModifiedDate).isNull()
-            assertThat(isUpdated).isTrue()
+            assertThat(updateSucceed).isTrue()
         }
 
-        @DisplayName("최종 수정일로부터 1일이 경과하지 않았다면, 수정하지 않고 false 를 반환한다")
+        @DisplayName("인자값이 null이 아니고 기존과 다르면서 최종 수정일로부터 1일이 경과하지 않았다면 false가 반환된다")
         @Test
-        fun `최종 수정일로부터 1일이 경과하지 않았다면, 수정하지 않고 false 를 반환한다`() {
+        fun `인자값이 null이 아니고 기존과 다르면서 최종 수정일로부터 1일이 경과하지 않았다면 false가 반환된다`() {
             //given
             val user = UserInfo("", "", ProviderType.GOOGLE)
-            val requestedDate = LocalDateTime.now()
-            user.updateCoreTime(user.getCoreHour()+1, requestedDate)
+            user.updateCoreTime(user.getCoreHour()+1)
             val newCoreHour = user.getCoreHour()+1
 
             //when
-            val isUpdated = user.updateCoreTime(newCoreHour, requestedDate)
+            val updateSucceed = user.updateCoreTime(newCoreHour)
 
             //then
-            assertThat(isUpdated).isFalse()
+            assertThat(updateSucceed).isFalse()
         }
 
-        @DisplayName("최종 수정일이 null이라면, 수정하고 true 를 반환한다")
+        @DisplayName("인자값이 null이 아니고 기존과 다르면서 최종 수정일이 null이라면 true가 반환된다")
         @Test
-        fun `최종 수정일이 null이라면, 수정하고 true 를 반환한다`() {
+        fun `인자값이 null이 아니고 기존과 다르면서 최종 수정일이 null이라면 true가 반환된다`() {
             //given
             val user = UserInfo("", "", ProviderType.GOOGLE)
-            val requestedDate = LocalDateTime.now()
             val newCoreHour = user.getCoreHour()+1
 
             //when
-            val isUpdated = user.updateCoreTime(newCoreHour, requestedDate)
+            val isUpdated = user.updateCoreTime(newCoreHour)
 
             //then
-            assertThat(user.coreTimeLastModifiedDate).isEqualTo(requestedDate)
-            assertThat(user.getCoreHour()).isEqualTo(newCoreHour)
             assertThat(isUpdated).isTrue()
         }
 
-        @DisplayName("최종 수정일로부터 1일이 경과했다면, 수정하고 true 를 반환한다")
+        @DisplayName("인자값이 null이 아니고 기존과 다르면서 최종 수정일로부터 1일이 경과했다면 true 를 반환한다")
         @Test
-        fun `최종 수정일로부터 1일이 경과했다면, 수정하고 true 를 반환한다`() {
+        fun `인자값이 null이 아니고 기존과 다르면서 최종 수정일로부터 1일이 경과했다면 true 를 반환한다`() {
             //given
-            val user = UserInfo("", "", ProviderType.GOOGLE)
-            val requestedDate = LocalDateTime.now()
-            user.updateCoreTime(user.getCoreHour()+1, requestedDate.minusDays(1).minusSeconds(1))
-            val newCoreHour = user.getCoreHour()+1
+            val user = spyk(UserInfo("", "", ProviderType.GOOGLE))
+            val yesterday = LocalDateTime.now().minusDays(1)
+            every { user.coreTimeLastModifiedDate } returns yesterday
+            val newCoreHour = user.getCoreHour() + 1
 
             //when
-            val isUpdated = user.updateCoreTime(newCoreHour, requestedDate)
+            val isUpdated = user.updateCoreTime(newCoreHour)
 
             //then
-            assertThat(user.coreTimeLastModifiedDate).isEqualTo(requestedDate)
-            assertThat(user.getCoreHour()).isEqualTo(newCoreHour)
             assertThat(isUpdated).isTrue()
         }
-
     }
 
     @DisplayName("코어타임 확인 로직 호출시")
@@ -146,7 +137,7 @@ class UserEntityUnitTest {
 
             val coreTime = now.minusHours(1).hour
 
-            user.updateCoreTime(coreTime, LocalDateTime.now())
+            user.updateCoreTime(coreTime)
 
             //when
             val nowCoreTime = user.isNowCoreTime()
@@ -164,7 +155,7 @@ class UserEntityUnitTest {
 
             val coreTime = now.hour
 
-            user.updateCoreTime(coreTime, LocalDateTime.now())
+            user.updateCoreTime(coreTime)
 
             //when
             val nowCoreTime = user.isNowCoreTime()

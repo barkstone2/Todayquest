@@ -1131,7 +1131,7 @@ class QuestApiControllerTest @Autowired constructor(
             val url = "${SERVER_ADDR}$port${URI_PREFIX}"
             val questRequest = QuestRequest("t", "d", mutableListOf(DetailRequest("dt", DetailQuestType.COUNT, 1)))
             val requestBody = om.writeValueAsString(questRequest)
-            testUser.updateCoreTime(LocalTime.now().hour, LocalDateTime.now())
+            testUser.updateCoreTime(LocalTime.now().hour)
 
             //when
             val request = mvc
@@ -1167,7 +1167,7 @@ class QuestApiControllerTest @Autowired constructor(
             val requestBody = om.writeValueAsString(questRequest)
 
             val now = LocalTime.now()
-            testUser.updateCoreTime(now.plusHours(2).hour, LocalDateTime.now())
+            testUser.updateCoreTime(now.plusHours(2).hour)
 
             //when
             val request = mvc

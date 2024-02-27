@@ -70,7 +70,7 @@ public class QuestCommandService {
 
         switch (resultState) {
             case COMPLETE -> {
-                userService.earnExpAndGold(quest.getType(), quest.getUser());
+                userService.giveExpAndGoldToUser(quest.getType(), quest.getUser());
                 questLogService.saveQuestLog(quest);
             }
             case DELETE -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.deleted"));

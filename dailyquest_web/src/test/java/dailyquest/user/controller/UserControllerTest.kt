@@ -82,7 +82,7 @@ class UserControllerTest @Autowired constructor(
     lateinit var jwtTokenProvider: JwtTokenProvider
 
     lateinit var mvc: MockMvc
-    lateinit var testUser: UserPrincipal
+    lateinit var testUser: UserInfo
     lateinit var token: Cookie
     val om: ObjectMapper = ObjectMapper().registerModule(JavaTimeModule())
 
@@ -94,7 +94,7 @@ class UserControllerTest @Autowired constructor(
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
 
-        testUser = userService.getOrRegisterUser("user1", ProviderType.GOOGLE)
+        testUser = userService.getOrSaveUser("user1", ProviderType.GOOGLE)
 
         val accessToken = jwtTokenProvider.createAccessToken(testUser.id)
         token = jwtTokenProvider.createAccessTokenCookie(accessToken)
@@ -151,7 +151,7 @@ class UserControllerTest @Autowired constructor(
             val url = "${SERVER_ADDR}$port${URI_PREFIX}"
 
             val firstDto = UserUpdateRequest(
-                LocalTime.of(testUser.coreTime, 0).plusHours(1).hour
+                LocalTime.of(testUser.getCoreHour(), 0).plusHours(1).hour
             )
 
             //when
@@ -165,7 +165,7 @@ class UserControllerTest @Autowired constructor(
                 )
 
             val secondDto = UserUpdateRequest(
-                LocalTime.of(testUser.coreTime, 0).minusHours(1).hour
+                LocalTime.of(testUser.getCoreHour(), 0).minusHours(1).hour
             )
 
             val secondRequest = mvc

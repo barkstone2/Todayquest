@@ -57,16 +57,27 @@ class UserInfo(
         }
     }
 
-    fun updateCoreTime(coreTime: Int?, requestedDate: LocalDateTime): Boolean {
-        if(coreTime == null || coreTime == getCoreHour()) return true
-
-        if(canUpdateTimeSetting(coreTimeLastModifiedDate, requestedDate)) {
-            this.coreTime = LocalTime.of(coreTime, 0, 0)
-            coreTimeLastModifiedDate = requestedDate
+    fun updateCoreTime(coreTime: Int?): Boolean {
+        if (this.isSameOrNullCoreTime(coreTime)) return true
+        if (this.canUpdateCoreTime()) {
+            this.coreTime = LocalTime.of(coreTime!!, 0, 0)
+            coreTimeLastModifiedDate = LocalDateTime.now()
             return true
         }
-
         return false
+    }
+
+    private fun isSameOrNullCoreTime(coreTime: Int?) = coreTime == null || coreTime == getCoreHour()
+
+    private fun canUpdateCoreTime(): Boolean {
+        if (this.coreTimeLastModifiedDate == null) return true
+        val updateAvailableDateTime = this.getUpdateAvailableDateTimeOfCoreTime()
+        val now = LocalDateTime.now()
+        return now.isAfter(updateAvailableDateTime)
+    }
+
+    fun getUpdateAvailableDateTimeOfCoreTime(): LocalDateTime {
+        return coreTimeLastModifiedDate?.plusDays(1L) ?: LocalDateTime.now()
     }
 
     fun updateExpAndGold(earnedExp: Long, earnedGold: Long) {
@@ -105,17 +116,4 @@ class UserInfo(
     fun getCoreHour(): Int {
         return coreTime.hour
     }
-
-    fun getRemainTimeUntilCoreTimeUpdateAvailable(requestedDate: LocalDateTime): Duration {
-        val oneDayAfter = coreTimeLastModifiedDate?.plusDays(1L)
-        return Duration.between(requestedDate, oneDayAfter)
-    }
-
-    private fun canUpdateTimeSetting(settingLastModifiedDate: LocalDateTime?, requestedDate: LocalDateTime): Boolean {
-        if(settingLastModifiedDate == null) return true
-
-        val oneDayAfter = settingLastModifiedDate.plusDays(1L)
-        return requestedDate.isAfter(oneDayAfter)
-    }
-
 }

@@ -320,7 +320,7 @@ public class QuestCommandServiceUnitTest {
             questCommandService.completeQuest(1L, 1L);
 
             //then
-            verify(userService, times(1)).earnExpAndGold(eq(targetType), eq(targetOwner));
+            verify(userService, times(1)).giveExpAndGoldToUser(eq(targetType), eq(targetOwner));
             verify(questLogService, times(1)).saveQuestLog(eq(completeTarget));
         }
     }

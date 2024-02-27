@@ -8,7 +8,6 @@ import dailyquest.redis.service.RedisService
 import dailyquest.user.dto.UserPrincipal
 import dailyquest.user.dto.UserUpdateRequest
 import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.UserInfo
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -48,7 +47,7 @@ class UserServiceUnitTest {
             every { userQueryService.findUser(any(String::class)) } returns mockk()
 
             //when
-            userService.getOrRegisterUser("", ProviderType.GOOGLE)
+            userService.getOrSaveUser("", ProviderType.GOOGLE)
 
             //then
             verify { userCommandService.saveUser(any()) wasNot Called }
@@ -61,7 +60,7 @@ class UserServiceUnitTest {
             every { userQueryService.findUser(any(String::class)) } returns null
 
             //when
-            userService.getOrRegisterUser("", ProviderType.GOOGLE)
+            userService.getOrSaveUser("", ProviderType.GOOGLE)
 
             //then
             verify { userCommandService.saveUser(any()) }
@@ -74,7 +73,7 @@ class UserServiceUnitTest {
             every { userQueryService.findUser(any(String::class)) } returns null
 
             //when
-            userService.getOrRegisterUser("", ProviderType.GOOGLE)
+            userService.getOrSaveUser("", ProviderType.GOOGLE)
 
             //then
             verify(exactly = 1) { redisService.createRandomNickname() }
@@ -89,7 +88,7 @@ class UserServiceUnitTest {
             every { userQueryService.isDuplicateNickname(any()) } returnsMany MutableList(duplicateCount) { true } andThen false
 
             //when
-            userService.getOrRegisterUser("", ProviderType.GOOGLE)
+            userService.getOrSaveUser("", ProviderType.GOOGLE)
 
             //then
             verify(exactly = duplicateCount + 1) { redisService.createRandomNickname() }

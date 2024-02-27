@@ -7,12 +7,12 @@ import dailyquest.common.MessageUtil;
 import dailyquest.jwt.JwtTokenProvider;
 import dailyquest.jwt.dto.TokenRequest;
 import dailyquest.user.dto.UserPrincipal;
+import dailyquest.user.entity.UserInfo;
 import dailyquest.user.service.UserService;
 import jakarta.servlet.http.Cookie;
 import kotlin.Pair;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -100,8 +100,8 @@ public class JwtServiceUnitTest {
             GoogleIdToken.Payload mockPayload = mock(GoogleIdToken.Payload.class);
             doReturn(mockPayload).when(mockIdToken).getPayload();
 
-            UserPrincipal mockUser = mock(UserPrincipal.class);
-            doReturn(mockUser).when(userService).getOrRegisterUser(any(), any());
+            UserInfo mockUser = mock(UserInfo.class);
+            doReturn(mockUser).when(userService).getOrSaveUser(any(), any());
 
             String accessToken = "access";
             String refreshToken = "refresh";
@@ -113,7 +113,7 @@ public class JwtServiceUnitTest {
             jwtService.issueTokenCookie(mockRequest);
 
             //then
-            verify(userService).getOrRegisterUser(any(), any());
+            verify(userService).getOrSaveUser(any(), any());
 
             verify(jwtTokenProvider).createAccessToken(any());
             verify(jwtTokenProvider).createRefreshToken(any());

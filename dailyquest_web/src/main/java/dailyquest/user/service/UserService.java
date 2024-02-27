@@ -24,7 +24,7 @@ public class UserService {
     private final UserCommandService userCommandService;
     private final RedisService redisService;
 
-    public UserPrincipal getOrRegisterUser(String oauth2Id, ProviderType providerType) {
+    public UserInfo getOrSaveUser(String oauth2Id, ProviderType providerType) {
         UserInfo foundUser = userQueryService.findUser(oauth2Id);
         boolean needSave = foundUser == null;
         if (needSave) {
@@ -32,7 +32,7 @@ public class UserService {
             UserSaveRequest saveRequest = new UserSaveRequest(oauth2Id, randomNickname, providerType);
             foundUser = userCommandService.saveUser(saveRequest);
         }
-        return UserPrincipal.create(foundUser, redisService.getExpTable());
+        return foundUser;
     }
 
     private String createRandomNickname() {
@@ -43,9 +43,12 @@ public class UserService {
         return candidateNickname;
     }
 
-    public UserPrincipal getUserById(Long userId) {
-        UserInfo userInfo = userQueryService.findUser(userId);
-        return UserPrincipal.create(userInfo, redisService.getExpTable());
+    public UserInfo getUser(Long userId) {
+        return userQueryService.findUser(userId);
+    }
+
+    public UserPrincipal getUserPrincipal(Long userId) {
+        return UserPrincipal.create(this.getUser(userId), redisService.getExpTable());
     }
 
     public void updateUser(UserPrincipal principal, UserUpdateRequest updateRequest) throws IllegalStateException {
@@ -59,7 +62,7 @@ public class UserService {
         }
     }
 
-    public void earnExpAndGold(QuestType type, UserInfo user) {
+    public void giveExpAndGoldToUser(QuestType type, UserInfo user) {
         UserInfo foundUser = userQueryService.findUser(user.getId());
         long questClearExp = redisService.getQuestClearExp();
         long questClearGold = redisService.getQuestClearGold();

@@ -23,6 +23,6 @@ class UserCommandService(
     }
 
     fun updateUserExpAndGold(updateTarget: UserInfo, updateRequest: UserExpAndGoldRequest) {
-        updateTarget.updateExpAndGold(updateRequest.calculateEarnedExp(), updateRequest.calculateEarnedGold())
+        updateTarget.addExpAndGold(updateRequest.calculateEarnedExp(), updateRequest.calculateEarnedGold())
     }
 }

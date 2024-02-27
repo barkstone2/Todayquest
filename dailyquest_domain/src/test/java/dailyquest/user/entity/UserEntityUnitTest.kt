@@ -177,7 +177,7 @@ class UserEntityUnitTest {
             val expTable = mapOf(1 to 10L, 2 to 20L, 3 to 30L, 4 to 40L)
             val user = UserInfo("", "", ProviderType.GOOGLE)
             val remain = 10L
-            user.updateExpAndGold((expTable[1]?.plus(expTable[2]!!)!! + remain), 0)
+            user.addExpAndGold((expTable[1]?.plus(expTable[2]!!)!! + remain), 0)
 
             //when
             val (level, remainExp, requireExp) = user.calculateLevel(expTable)

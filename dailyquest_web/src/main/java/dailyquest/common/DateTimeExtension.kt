@@ -1,7 +1,9 @@
 package dailyquest.common
 
 import java.time.DayOfWeek
+import java.time.Duration
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjuster
 import java.time.temporal.TemporalAdjusters
 
@@ -47,4 +49,20 @@ fun LocalDate.firstDayOfWeek() : LocalDate {
 
 fun LocalDate.firstDayOfMonth() : LocalDate {
     return LocalDate.from(this.with(TemporalAdjusters.firstDayOfMonth()))
+}
+
+fun LocalDateTime.hoursSinceNow(): Long {
+    val now = LocalDateTime.now()
+    val difference = Duration.between(now, this)
+    return difference.toHours()
+}
+
+fun LocalDateTime.minutesSinceNow(): Long {
+    val now = LocalDateTime.now()
+    val difference = Duration.between(now, this)
+    return difference.toMinutes()
+}
+
+fun LocalDateTime.timeSinceNowAsString(): String {
+    return String.format("%d시간 %d분", this.hoursSinceNow(), this.minutesSinceNow() % 60)
 }

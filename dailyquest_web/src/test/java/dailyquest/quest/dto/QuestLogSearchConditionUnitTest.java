@@ -1,6 +1,6 @@
 package dailyquest.quest.dto;
 
-import dailyquest.common.TimeUtilKt;
+import dailyquest.common.DateTimeExtensionKt;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +30,7 @@ public class QuestLogSearchConditionUnitTest {
 
         //then
         assertThat(dailyStart).isEqualTo(now.with(TemporalAdjusters.firstDayOfMonth()));
-        assertThat(weeklyStart).isEqualTo(TimeUtilKt.firstDayOfQuarter(now));
+        assertThat(weeklyStart).isEqualTo(DateTimeExtensionKt.firstDayOfQuarter(now));
         assertThat(monthlyStart).isEqualTo(now.with(TemporalAdjusters.firstDayOfYear()));
     }
 
@@ -50,7 +50,7 @@ public class QuestLogSearchConditionUnitTest {
 
         //then
         assertThat(dailyEnd).isEqualTo(now.with(TemporalAdjusters.lastDayOfMonth()));
-        assertThat(weeklyEnd).isEqualTo(TimeUtilKt.lastDayOfQuarter(now));
+        assertThat(weeklyEnd).isEqualTo(DateTimeExtensionKt.lastDayOfQuarter(now));
         assertThat(monthlyEnd).isEqualTo(now.with(TemporalAdjusters.lastDayOfYear()));
     }
 

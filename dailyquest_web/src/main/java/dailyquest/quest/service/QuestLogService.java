@@ -1,6 +1,6 @@
 package dailyquest.quest.service;
 
-import dailyquest.common.TimeUtilKt;
+import dailyquest.common.DateTimeExtensionKt;
 import dailyquest.quest.dto.QuestLogSearchCondition;
 import dailyquest.quest.dto.QuestStatisticsResponse;
 import dailyquest.quest.entity.Quest;
@@ -33,8 +33,8 @@ public class QuestLogService {
 
         Function<LocalDate, LocalDate> dateKeyTransformFunction =
             switch (condition.getSearchType()) {
-                case WEEKLY -> TimeUtilKt::firstDayOfWeek;
-                case MONTHLY -> TimeUtilKt::firstDayOfMonth;
+                case WEEKLY -> DateTimeExtensionKt::firstDayOfWeek;
+                case MONTHLY -> DateTimeExtensionKt::firstDayOfMonth;
                 default -> LocalDate::from;
             };
 

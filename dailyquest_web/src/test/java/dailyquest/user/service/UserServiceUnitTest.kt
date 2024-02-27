@@ -3,13 +3,18 @@ package dailyquest.user.service
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import dailyquest.common.MessageUtil
+import dailyquest.common.timeSinceNowAsString
 import dailyquest.redis.service.RedisService
 import dailyquest.user.dto.UserPrincipal
+import dailyquest.user.dto.UserUpdateRequest
 import dailyquest.user.entity.ProviderType
+import dailyquest.user.entity.UserInfo
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
 @DisplayName("유저 서비스 단위 테스트")
@@ -29,7 +34,6 @@ class UserServiceUnitTest {
 
     @BeforeEach
     fun beforeEach() {
-        mockkStatic(MessageUtil::class)
         mockkObject(UserPrincipal.Companion)
         every { UserPrincipal.create(any(), any()) } returns mockk()
     }
@@ -89,6 +93,47 @@ class UserServiceUnitTest {
 
             //then
             verify(exactly = duplicateCount + 1) { redisService.createRandomNickname() }
+        }
+    }
+
+    @DisplayName("userUpdate 호출 시")
+    @Nested
+    inner class TestUserUpdate {
+
+        @RelaxedMockK
+        private lateinit var principal: UserPrincipal
+        @RelaxedMockK
+        private lateinit var updateRequest: UserUpdateRequest
+
+        @BeforeEach
+        fun init() {
+            mockkStatic(LocalDateTime::timeSinceNowAsString)
+            every { any<LocalDateTime>().timeSinceNowAsString() } returns ""
+
+            mockkStatic(MessageUtil::class)
+            every { MessageUtil.getMessage(any(), any()) } returns ""
+        }
+
+        @DisplayName("업데이트 결과가 true면 예외가 발생하지 않는다")
+        @Test
+        fun `업데이트 결과가 true면 예외가 발생하지 않는다`() {
+            //given
+            every { userCommandService.updateUser(any(), any()) } returns true
+
+            //when
+            //then
+            assertDoesNotThrow { userService.updateUser(principal, updateRequest) }
+        }
+
+        @DisplayName("업데이트 결과가 false면 예외가 발생한다")
+        @Test
+        fun `업데이트 결과가 false면 예외가 발생한다`() {
+            //given
+            every { userCommandService.updateUser(any(), any()) } returns false
+
+            //when
+            //then
+            assertThrows<IllegalStateException> { userService.updateUser(principal, updateRequest) }
         }
     }
 }

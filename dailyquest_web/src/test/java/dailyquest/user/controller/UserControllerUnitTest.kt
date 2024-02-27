@@ -165,7 +165,7 @@ class UserControllerUnitTest {
         fun `제약조건 위반 예외 발생 시 409를 반환한다`() {
             //given
             val dto = UserUpdateRequest()
-            doThrow(DataIntegrityViolationException::class).`when`(userService).changeUserSettings(any(), any())
+            doThrow(DataIntegrityViolationException::class).`when`(userService).updateUser(any(), any())
 
             //when
             val result = mvc.perform(

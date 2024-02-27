@@ -48,7 +48,7 @@ class QuestRepositoryUnitTest {
     fun init() {
         userInfo = if(userInfo.id == 0L) userRepository.save(UserInfo("", "user1", ProviderType.GOOGLE)) else userInfo
         anotherUser = if(anotherUser.id == 0L) userRepository.save(UserInfo("", "user2", ProviderType.GOOGLE)) else anotherUser
-        anotherUser.updateCoreTime(0, LocalDateTime.now())
+        anotherUser.updateCoreTime(0)
         userRepository.saveAndFlush(anotherUser)
     }
 

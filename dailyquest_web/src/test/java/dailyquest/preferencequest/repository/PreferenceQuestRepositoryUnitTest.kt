@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
-import java.time.LocalDateTime
 
 @DisplayName("선호 퀘스트 리포지토리 유닛 테스트")
 @DataJpaTest
@@ -39,7 +38,7 @@ class PreferenceQuestRepositoryUnitTest {
     fun init() {
         userInfo = if(userInfo.id == 0L) userRepository.save(UserInfo("", "user1", ProviderType.GOOGLE)) else userInfo
         anotherUser = if(anotherUser.id == 0L) userRepository.save(UserInfo("", "user2", ProviderType.GOOGLE)) else anotherUser
-        anotherUser.updateCoreTime(0, LocalDateTime.now())
+        anotherUser.updateCoreTime(0)
         userRepository.saveAndFlush(anotherUser)
     }
 

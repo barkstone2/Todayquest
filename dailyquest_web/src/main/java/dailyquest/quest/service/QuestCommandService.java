@@ -1,5 +1,8 @@
 package dailyquest.quest.service;
 
+import dailyquest.achievement.dto.AchievementAchieveRequest;
+import dailyquest.achievement.entity.AchievementType;
+import dailyquest.achievement.service.AchievementService;
 import dailyquest.common.MessageUtil;
 import dailyquest.quest.dto.DetailInteractRequest;
 import dailyquest.quest.dto.DetailResponse;
@@ -30,6 +33,8 @@ public class QuestCommandService {
     private final UserService userService;
     private final QuestLogService questLogService;
 
+    private final AchievementService achievementService;
+
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {
         UserInfo findUser = userRepository.getReferenceById(userId);
         dto.checkRangeOfDeadLine();
@@ -43,6 +48,10 @@ public class QuestCommandService {
         Quest quest = dto.mapToEntity(nextSeq, findUser);
         questRepository.save(quest);
         questLogService.saveQuestLog(quest);
+
+        Integer totalRegistrationCount = questLogService.getTotalRegistrationCount(userId);
+        AchievementAchieveRequest achievementRequest = new AchievementAchieveRequest(AchievementType.QUEST_REGISTRATION, totalRegistrationCount, userId);
+        achievementService.checkAndAchieveAchievements(achievementRequest);
 
         return QuestResponse.createDto(quest);
     }

@@ -7,15 +7,15 @@ import org.springframework.transaction.annotation.Transactional
 
 @Transactional
 @Service
-class AchievementService @Autowired constructor(
+class AchievementCommandService @Autowired constructor(
     val achievementQueryService: AchievementQueryService,
-    val achievementLogService: AchievementLogService,
+    val achievementLogCommandService: AchievementLogCommandService,
 ) {
 
     fun checkAndAchieveAchievements(achieveRequest: AchievementAchieveRequest) {
         val notAchievedAchievement = achievementQueryService.getNotAchievedAchievement(achieveRequest.type, achieveRequest.userId) ?: return
         if (notAchievedAchievement.canAchieve(achieveRequest.currentValue)) {
-            achievementLogService.achieve(notAchievedAchievement, achieveRequest.userId)
+            achievementLogCommandService.achieve(notAchievedAchievement, achieveRequest.userId)
         }
     }
 }

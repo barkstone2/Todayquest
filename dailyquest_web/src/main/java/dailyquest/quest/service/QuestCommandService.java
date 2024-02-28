@@ -86,7 +86,9 @@ public class QuestCommandService {
             case PROCEED -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.complete.detail"));
             default -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.not-proceed"));
         }
-
+        Integer totalCompletionCount = questLogService.getTotalCompletionCount(userId);
+        AchievementAchieveRequest achievementRequest = new AchievementAchieveRequest(AchievementType.QUEST_COMPLETION, totalCompletionCount, userId);
+        achievementCommandService.checkAndAchieveAchievements(achievementRequest);
         return QuestResponse.createDto(quest);
     }
 

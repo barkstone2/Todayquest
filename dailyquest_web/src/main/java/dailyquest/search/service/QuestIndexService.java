@@ -4,7 +4,6 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import dailyquest.quest.dto.QuestResponse;
 import dailyquest.quest.dto.QuestSearchCondition;
-import dailyquest.quest.service.QuestQueryService;
 import dailyquest.search.document.QuestDocument;
 import dailyquest.search.repository.QuestIndexRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +13,8 @@ import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,11 +22,11 @@ import java.util.Objects;
 
 import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.*;
 
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 @RequiredArgsConstructor
 @Service
 public class QuestIndexService {
     private final QuestIndexRepository questIndexRepository;
-    private final QuestQueryService questQueryService;
     private final ElasticsearchOperations operations;
 
     @Retryable(retryFor = RuntimeException.class)

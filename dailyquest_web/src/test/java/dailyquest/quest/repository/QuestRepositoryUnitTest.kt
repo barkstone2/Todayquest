@@ -69,33 +69,12 @@ class QuestRepositoryUnitTest {
             val listOfQuestIds = listOf(savedQuest1.id, savedQuest2.id, savedQuest3.id)
 
             //when
-            val questsList = questRepository.getSearchedQuests(userInfo.id, listOfQuestIds, Pageable.ofSize(100))
+            val questsList = questRepository.getSearchedQuests(listOfQuestIds, Pageable.ofSize(100))
 
             //then
             assertThat(questsList).containsExactlyInAnyOrder(savedQuest1, savedQuest2, savedQuest3)
             assertThat(questsList).doesNotContain(savedQuest4, savedQuest5)
             assertThat(questsList).hasSize(3)
-        }
-
-        @ValueSource(longs = [1, 2])
-        @DisplayName("조회한 유저의 퀘스트만 조회된다")
-        @ParameterizedTest(name = "userId {0} 값이 들어오면 {0}번 유저의 퀘스트만 조회된다")
-        fun `퀘스트 유저별 조회`(userId: Long) {
-            //given
-            val savedQuest1 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
-            val savedQuest2 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN))
-
-            val savedQuest3 = questRepository.save(Quest("", "", anotherUser, 1L, QuestState.DISCARD, QuestType.MAIN))
-            val savedQuest4 = questRepository.save(Quest("", "", anotherUser, 1L, QuestState.DELETE, QuestType.MAIN))
-            val savedQuest5 = questRepository.save(Quest("", "", anotherUser, 1L, QuestState.COMPLETE, QuestType.MAIN))
-
-            val listOfQuestIds = listOf(savedQuest1.id, savedQuest2.id, savedQuest3.id, savedQuest4.id, savedQuest5.id)
-
-            //when
-            val questsList = questRepository.getSearchedQuests(userId, listOfQuestIds, Pageable.ofSize(100))
-
-            //then
-            assertThat(questsList).allMatch { quest -> quest.user.id == userId }
         }
 
         @DisplayName("ID 역순으로 정렬되어 조회된다")
@@ -111,7 +90,7 @@ class QuestRepositoryUnitTest {
             val listOfQuestIds = listOf(savedQuest5.id, savedQuest1.id, savedQuest4.id, savedQuest2.id, savedQuest3.id)
 
             //when
-            val questsList = questRepository.getSearchedQuests(userInfo.id, listOfQuestIds, Pageable.ofSize(100))
+            val questsList = questRepository.getSearchedQuests(listOfQuestIds, Pageable.ofSize(100))
 
             //then
             assertThat(questsList).containsExactly(savedQuest5, savedQuest4, savedQuest3, savedQuest2, savedQuest1)

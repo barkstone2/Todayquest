@@ -1,5 +1,7 @@
 package dailyquest.quest.service;
 
+import dailyquest.achievement.dto.AchievementAchieveRequest;
+import dailyquest.achievement.entity.AchievementType;
 import dailyquest.achievement.service.AchievementCommandService;
 import dailyquest.common.MessageUtil;
 import dailyquest.quest.dto.DetailInteractRequest;
@@ -45,6 +47,17 @@ public class QuestCommandServiceUnitTest {
     @DisplayName("퀘스트 저장 시")
     @Nested
     class QuestSaveTest {
+
+        @Mock private UserInfo foundUser;
+        @Mock private QuestRequest saveRequest;
+        @Mock(answer = Answers.RETURNS_SMART_NULLS) private Quest saveEntity;
+
+        @BeforeEach
+        void init() {
+            doReturn(foundUser).when(userRepository).getReferenceById(any());
+            doReturn(saveEntity).when(saveRequest).mapToEntity(anyLong(), any());
+        }
+
 
         @DisplayName("현재 시간이 유저의 코어타임이라면 타입 변경 로직을 호출한다")
         @Test
@@ -103,6 +116,23 @@ public class QuestCommandServiceUnitTest {
             assertThat(saveQuest).isInstanceOf(QuestResponse.class);
         }
 
+        @DisplayName("총 퀘스트 등록 횟수를 조회해 업적 완료 여부 확인을 요청한다")
+        @Test
+        public void getTotalRegistrationCountWhenSaving() throws Exception {
+            //given
+            long userId = 1L;
+            int totalRegistrationCount = 1;
+            AchievementType achievementType = AchievementType.QUEST_REGISTRATION;
+            AchievementAchieveRequest achieveRequest = new AchievementAchieveRequest(achievementType, totalRegistrationCount, userId);
+            doReturn(totalRegistrationCount).when(questLogService).getTotalRegistrationCount(any());
+
+            //when
+            questCommandService.saveQuest(saveRequest, userId);
+
+            //then
+            verify(questLogService).getTotalRegistrationCount(eq(userId));
+            verify(achievementCommandService).checkAndAchieveAchievements(eq(achieveRequest));
+        }
     }
 
     @DisplayName("퀘스트 수정 시")
@@ -325,6 +355,28 @@ public class QuestCommandServiceUnitTest {
             //then
             verify(userService, times(1)).giveExpAndGoldToUser(eq(targetType), eq(targetOwner));
             verify(questLogService, times(1)).saveQuestLog(eq(completeTarget));
+        }
+
+        @DisplayName("총 퀘스트 완료 횟수를 조회해 업적 완료 여부 확인을 요청한다")
+        @Test
+        public void getTotalCompletionCountWhenSaving() throws Exception {
+            //given
+            long questId = 1L;
+            long userId = 1L;
+            int totalCompletionCount = 1;
+            AchievementType achievementType = AchievementType.QUEST_COMPLETION;
+            AchievementAchieveRequest achieveRequest = new AchievementAchieveRequest(achievementType, totalCompletionCount, userId);
+            doReturn(totalCompletionCount).when(questLogService).getTotalCompletionCount(any());
+            Quest completedQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
+            doReturn(completedQuest).when(questQueryService).getEntityOfUser(any(), any());
+            doReturn(QuestState.COMPLETE).when(completedQuest).completeQuest();
+
+            //when
+            questCommandService.completeQuest(questId, userId);
+
+            //then
+            verify(questLogService).getTotalCompletionCount(eq(userId));
+            verify(achievementCommandService).checkAndAchieveAchievements(eq(achieveRequest));
         }
     }
 

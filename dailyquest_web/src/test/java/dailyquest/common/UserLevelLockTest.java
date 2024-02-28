@@ -1,5 +1,6 @@
 package dailyquest.common;
 
+import dailyquest.context.AchievementTestContextConfig;
 import dailyquest.context.IntegrationTestContextBaseConfig;
 import dailyquest.context.MockElasticsearchTestContextConfig;
 import dailyquest.context.MockRedisTestContextConfig;
@@ -44,7 +45,8 @@ public class UserLevelLockTest {
             IntegrationTestContextBaseConfig.class,
             MockRedisTestContextConfig.class,
             MockElasticsearchTestContextConfig.class,
-            UserLevelLock.class
+            UserLevelLock.class,
+            AchievementTestContextConfig.class
     })
     @ComponentScan(basePackages = {"dailyquest.quest"})
     @EnableJpaRepositories(basePackageClasses = {QuestRepository.class})

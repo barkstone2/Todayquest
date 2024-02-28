@@ -48,7 +48,7 @@ class AchievementServiceUnitTest {
         @Test
         fun `요청 타입과 같은 타입의 업적 조회를 요청한다`() {
             //given
-            val achievementType = AchievementType.QUEST_TOTAL_REGISTRATION
+            val achievementType = AchievementType.QUEST_REGISTRATION
             val achieveRequest = AchievementAchieveRequest(achievementType, 1, 1L)
 
             //when
@@ -63,10 +63,10 @@ class AchievementServiceUnitTest {
         fun `목표값이 현재값보다 작으면 업적이 달성된다`() {
             //given
             val currentValue = 1
-            val achieveRequest = AchievementAchieveRequest(AchievementType.QUEST_TOTAL_REGISTRATION, currentValue, 1L)
+            val achieveRequest = AchievementAchieveRequest(AchievementType.QUEST_REGISTRATION, currentValue, 1L)
 
             val targetValue = currentValue - 1
-            val mustAchieve = Achievement(AchievementType.QUEST_TOTAL_REGISTRATION, targetValue)
+            val mustAchieve = Achievement(AchievementType.QUEST_REGISTRATION, targetValue)
             doReturn(mustAchieve).`when`(achievementQueryService).getNotAchievedAchievement(any(), any())
 
             //when
@@ -81,10 +81,10 @@ class AchievementServiceUnitTest {
         fun `목표값이 현재값과 같으면 업적이 달성된다`() {
             //given
             val currentValue = 1
-            val achieveRequest = AchievementAchieveRequest(AchievementType.QUEST_TOTAL_REGISTRATION, currentValue, 1L)
+            val achieveRequest = AchievementAchieveRequest(AchievementType.QUEST_REGISTRATION, currentValue, 1L)
 
             val targetValue = currentValue
-            val mustAchieve = Achievement(AchievementType.QUEST_TOTAL_REGISTRATION, targetValue)
+            val mustAchieve = Achievement(AchievementType.QUEST_REGISTRATION, targetValue)
             doReturn(mustAchieve).`when`(achievementQueryService).getNotAchievedAchievement(any(), any())
 
             //when
@@ -99,10 +99,10 @@ class AchievementServiceUnitTest {
         fun `목표값이 현재값보다 크면 업적이 달성되지 않는다`() {
             //given
             val currentValue = 1
-            val achieveRequest = AchievementAchieveRequest(AchievementType.QUEST_TOTAL_REGISTRATION, currentValue, 1L)
+            val achieveRequest = AchievementAchieveRequest(AchievementType.QUEST_REGISTRATION, currentValue, 1L)
 
             val targetValue = currentValue + 1
-            val mustNotAchieve = Achievement(AchievementType.QUEST_TOTAL_REGISTRATION, targetValue)
+            val mustNotAchieve = Achievement(AchievementType.QUEST_REGISTRATION, targetValue)
             doReturn(mustNotAchieve).`when`(achievementQueryService).getNotAchievedAchievement(any(), any())
 
             //when

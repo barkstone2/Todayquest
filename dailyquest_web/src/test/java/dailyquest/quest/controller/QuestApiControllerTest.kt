@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import dailyquest.common.*
+import dailyquest.context.AchievementTestContextConfig
 import dailyquest.context.ElasticsearchTestContextConfig
 import dailyquest.context.IntegrationTestContextBaseConfig
 import dailyquest.context.RedisTestContextConfig
@@ -87,6 +88,7 @@ class QuestApiControllerTest @Autowired constructor(
         RedisTestContextConfig::class,
         ElasticsearchTestContextConfig::class,
         UserLevelLock::class,
+        AchievementTestContextConfig::class
     )
     @EnableElasticsearchRepositories(basePackageClasses = [QuestIndexRepository::class])
     @EnableJpaRepositories(basePackageClasses = [QuestRepository::class])

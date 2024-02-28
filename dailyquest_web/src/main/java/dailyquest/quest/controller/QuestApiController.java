@@ -1,6 +1,13 @@
 package dailyquest.quest.controller;
 
+import dailyquest.common.ResponseData;
+import dailyquest.common.RestPage;
+import dailyquest.common.UserLevelLock;
+import dailyquest.quest.dto.*;
 import dailyquest.quest.entity.QuestState;
+import dailyquest.quest.service.QuestService;
+import dailyquest.search.service.QuestIndexService;
+import dailyquest.user.dto.UserPrincipal;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import dailyquest.common.ResponseData;
-import dailyquest.common.RestPage;
-import dailyquest.common.UserLevelLock;
-import dailyquest.quest.dto.*;
-import dailyquest.quest.service.QuestService;
-import dailyquest.user.dto.UserPrincipal;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,6 +31,7 @@ import java.util.List;
 public class QuestApiController {
     private final QuestService questService;
     private final UserLevelLock userLevelLock;
+    private final QuestIndexService questIndexService;
 
     @Value("${quest.page.size}")
     private int pageSize;
@@ -45,15 +47,17 @@ public class QuestApiController {
 
     @GetMapping("/search")
     public ResponseEntity<ResponseData<RestPage<QuestResponse>>> searchQuest(
-            @Valid QuestSearchCondition condition,
+            @Valid QuestSearchCondition searchCondition,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-
-        RestPage<QuestResponse> questList = questService.searchQuest(
-                principal.getId(),
-                condition,
-                PageRequest.of(condition.page(), pageSize)
-        );
+        RestPage<QuestResponse> questList;
+        PageRequest pageable = PageRequest.of(searchCondition.page(), pageSize);
+        if(searchCondition.isKeywordSearch()) {
+            List<Long> searchedIds = questIndexService.searchDocuments(searchCondition, principal.getId(), pageable);
+            questList = questService.searchQuest(searchedIds, pageable);
+        } else {
+            questList = questService.searchQuest(principal.getId(), searchCondition, pageable);
+        }
         return ResponseEntity.ok(new ResponseData<>(questList));
     }
 
@@ -77,7 +81,7 @@ public class QuestApiController {
                 3,
                 () -> questService.saveQuest(dto, principal.getId())
         );
-
+        questIndexService.saveDocument(savedQuest, principal.getId());
         return ResponseEntity.ok(new ResponseData<>(savedQuest));
     }
 
@@ -89,7 +93,7 @@ public class QuestApiController {
     ) {
 
         QuestResponse updatedQuest = questService.updateQuest(dto, questId, principal.getId());
-
+        questIndexService.saveDocument(updatedQuest, principal.getId());
         return new ResponseEntity<>(new ResponseData<>(updatedQuest), HttpStatus.OK);
     }
 
@@ -98,7 +102,8 @@ public class QuestApiController {
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        questService.deleteQuest(questId, principal.getId());
+        QuestResponse deletedQuest = questService.deleteQuest(questId, principal.getId());
+        questIndexService.deleteDocument(deletedQuest);
         return ResponseEntity.ok(new ResponseData<>());
     }
 
@@ -107,7 +112,8 @@ public class QuestApiController {
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) throws IOException {
-        questService.completeQuest(questId, principal.getId());
+        QuestResponse completedQuest = questService.completeQuest(questId, principal.getId());
+        questIndexService.updateQuestStateOfDocument(completedQuest, principal.getId());
         return ResponseEntity.ok(new ResponseData<>());
     }
 
@@ -116,7 +122,8 @@ public class QuestApiController {
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        questService.discardQuest(questId, principal.getId());
+        QuestResponse questResponse = questService.discardQuest(questId, principal.getId());
+        questIndexService.updateQuestStateOfDocument(questResponse, principal.getId());
         return ResponseEntity.ok(new ResponseData<>());
     }
 

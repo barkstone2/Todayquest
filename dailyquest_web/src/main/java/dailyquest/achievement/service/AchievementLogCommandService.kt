@@ -5,9 +5,11 @@ import dailyquest.achievement.entity.AchievementLog
 import dailyquest.achievement.repository.AchievementLogRepository
 import dailyquest.user.repository.UserRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
+@Transactional
 @Service
-class AchievementLogService(
+class AchievementLogCommandService(
     val achievementLogRepository: AchievementLogRepository,
     val userRepository: UserRepository,
 ) {

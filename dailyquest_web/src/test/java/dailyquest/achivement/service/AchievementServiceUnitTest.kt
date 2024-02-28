@@ -3,9 +3,9 @@ package dailyquest.achivement.service
 import dailyquest.achievement.dto.AchievementAchieveRequest
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
-import dailyquest.achievement.service.AchievementLogService
+import dailyquest.achievement.service.AchievementLogCommandService
 import dailyquest.achievement.service.AchievementQueryService
-import dailyquest.achievement.service.AchievementService
+import dailyquest.achievement.service.AchievementCommandService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -28,9 +28,9 @@ class AchievementServiceUnitTest {
     @Mock
     lateinit var achievementQueryService: AchievementQueryService
     @Mock
-    lateinit var achievementLogService: AchievementLogService
+    lateinit var achievementLogService: AchievementLogCommandService
     @InjectMocks
-    lateinit var achievementService: AchievementService
+    lateinit var achievementService: AchievementCommandService
 
     @DisplayName("업적 확인 후 달성 요청 시")
     @Nested

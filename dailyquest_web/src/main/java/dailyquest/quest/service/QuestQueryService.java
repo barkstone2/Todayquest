@@ -69,9 +69,9 @@ public class QuestQueryService {
         return findQuest;
     }
 
-    public RestPage<QuestResponse> getSearchedQuests(List<Long> searchedIds, Long userId, Pageable pageable) {
+    public RestPage<QuestResponse> getSearchedQuests(List<Long> searchedIds,Pageable pageable) {
         return new RestPage<>(
-                questRepository.getSearchedQuests(userId, searchedIds, pageable)
+                questRepository.getSearchedQuests(searchedIds, pageable)
                         .map(QuestResponse::createDto)
         );
     }

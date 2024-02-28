@@ -12,6 +12,7 @@ import dailyquest.quest.dto.*
 import dailyquest.quest.entity.DetailQuestType
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.service.QuestService
+import dailyquest.search.service.QuestIndexService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -102,6 +103,9 @@ class QuestApiControllerUnitTest {
 
     @MockBean
     lateinit var userLevelLock: UserLevelLock
+
+    @MockBean
+    lateinit var questIndexService: QuestIndexService
 
     private lateinit var messageUtil: MockedStatic<MessageUtil>
 
@@ -242,7 +246,7 @@ class QuestApiControllerUnitTest {
             val startDate = "2021-12-12"
             val endDate = "2022-12-12"
 
-            `when`(questService.searchQuest(any(), any(), any())).thenReturn(searchedQuests)
+            `when`(questService.searchQuest(any(), any())).thenReturn(searchedQuests)
 
             //when
             val result = mvc.perform(

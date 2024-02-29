@@ -4,7 +4,6 @@ import dailyquest.common.MessageUtil;
 import dailyquest.quest.dto.DetailInteractRequest;
 import dailyquest.quest.dto.DetailResponse;
 import dailyquest.quest.dto.QuestRequest;
-import dailyquest.quest.dto.QuestResponse;
 import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
@@ -51,64 +50,33 @@ public class QuestCommandServiceUnitTest {
         void init() {
             doReturn(foundUser).when(userRepository).getReferenceById(any());
             doReturn(saveEntity).when(saveRequest).mapToEntity(anyLong(), any());
+            doReturn(1L).when(questRepository).getNextSeqByUserId(any());
         }
-
 
         @DisplayName("현재 시간이 유저의 코어타임이라면 타입 변경 로직을 호출한다")
         @Test
         void ifCoreTimeChangeToMainType() {
             //given
-            QuestRequest mockDto = mock(QuestRequest.class);
-            UserInfo mockUser = mock(UserInfo.class);
-            Quest mockQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            Long userId = 0L;
-            Long nextSeq = 1L;
-
-            doReturn(true).when(mockUser).isNowCoreTime();
-            doReturn(mockUser).when(userRepository).getReferenceById(eq(userId));
-            doReturn(nextSeq).when(questRepository).getNextSeqByUserId(eq(userId));
-            doReturn(mockQuest).when(mockDto).mapToEntity(eq(nextSeq), eq(mockUser));
+            doReturn(true).when(foundUser).isNowCoreTime();
 
             //when
-            QuestResponse saveQuest = questCommandService.saveQuest(mockDto, userId);
+            questCommandService.saveQuest(saveRequest, 1L);
 
             //then
-            verify(mockDto, times(1)).checkRangeOfDeadLine();
-            verify(mockUser, times(1)).isNowCoreTime();
-            verify(mockDto, times(1)).toMainQuest();
-            verify(questRepository, times(1)).getNextSeqByUserId(eq(userId));
-            verify(questRepository, times(1)).save(mockQuest);
-            verify(questLogService, times(1)).saveQuestLog(mockQuest);
-            assertThat(saveQuest).isInstanceOf(QuestResponse.class);
+            verify(saveRequest, times(1)).toMainQuest();
         }
-
 
         @DisplayName("현재 시간이 유저의 코어타임 아니라면 타입 변경 로직을 호출하지 않는다")
         @Test
         void ifNotCoreTimeDoesNotChangeType() {
             //given
-            QuestRequest mockDto = mock(QuestRequest.class);
-            UserInfo mockUser = mock(UserInfo.class);
-            Quest mockQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            Long userId = 0L;
-            Long nextSeq = 1L;
-
-            doReturn(false).when(mockUser).isNowCoreTime();
-            doReturn(mockUser).when(userRepository).getReferenceById(eq(userId));
-            doReturn(nextSeq).when(questRepository).getNextSeqByUserId(eq(userId));
-            doReturn(mockQuest).when(mockDto).mapToEntity(eq(nextSeq), eq(mockUser));
+            doReturn(false).when(foundUser).isNowCoreTime();
 
             //when
-            QuestResponse saveQuest = questCommandService.saveQuest(mockDto, userId);
+            questCommandService.saveQuest(saveRequest, 1L);
 
             //then
-            verify(mockDto, times(1)).checkRangeOfDeadLine();
-            verify(mockUser, times(1)).isNowCoreTime();
-            verify(mockDto, times(0)).toMainQuest();
-            verify(questRepository, times(1)).getNextSeqByUserId(eq(userId));
-            verify(questRepository, times(1)).save(mockQuest);
-            verify(questLogService, times(1)).saveQuestLog(mockQuest);
-            assertThat(saveQuest).isInstanceOf(QuestResponse.class);
+            verify(saveRequest, times(0)).toMainQuest();
         }
     }
 

@@ -1,7 +1,5 @@
 package dailyquest.quest.service;
 
-import dailyquest.achievement.dto.AchievementAchieveRequest;
-import dailyquest.achievement.service.AchievementCommandService;
 import dailyquest.common.MessageUtil;
 import dailyquest.quest.dto.DetailInteractRequest;
 import dailyquest.quest.dto.DetailResponse;
@@ -20,8 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static dailyquest.achievement.entity.AchievementType.*;
-
 @RequiredArgsConstructor
 @Transactional
 @Service
@@ -33,8 +29,6 @@ public class QuestCommandService {
 
     private final UserService userService;
     private final QuestLogService questLogService;
-
-    private final AchievementCommandService achievementCommandService;
 
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {
         UserInfo findUser = userRepository.getReferenceById(userId);
@@ -50,8 +44,6 @@ public class QuestCommandService {
         questRepository.save(quest);
         questLogService.saveQuestLog(quest);
 
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_REGISTRATION, userId));
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION_DAYS, userId));
         return QuestResponse.createDto(quest);
     }
 
@@ -85,7 +77,6 @@ public class QuestCommandService {
             case PROCEED -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.complete.detail"));
             default -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.not-proceed"));
         }
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_COMPLETION, userId));
         return QuestResponse.createDto(quest);
     }
 

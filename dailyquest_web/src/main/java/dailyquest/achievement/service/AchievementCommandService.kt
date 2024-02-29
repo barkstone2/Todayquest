@@ -36,7 +36,8 @@ class AchievementCommandService @Autowired constructor(
             QUEST_REGISTRATION -> questLogService.getTotalRegistrationCount(achieveRequest.userId)
             QUEST_COMPLETION -> questLogService.getTotalCompletionCount(achieveRequest.userId)
             QUEST_CONTINUOUS_REGISTRATION_DAYS -> questLogService.getRegDaysFrom(achieveRequest.userId, targetAchievement.targetValue)
-            EMPTY, USER_LEVEL, USER_GOLD_EARN -> 0
+            USER_LEVEL -> userService.getUserPrincipal(achieveRequest.userId).level
+            EMPTY, USER_GOLD_EARN -> 0
         }
     }
 }

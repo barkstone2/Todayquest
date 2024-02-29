@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 
+import static dailyquest.achievement.entity.AchievementType.*;
+
 @Validated
 @Slf4j
 @RequiredArgsConstructor
@@ -86,7 +88,8 @@ public class QuestApiController {
                 () -> questService.saveQuest(dto, principal.getId())
         );
         questIndexService.saveDocument(savedQuest, principal.getId());
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(AchievementType.QUEST_REGISTRATION, principal.getId()));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_REGISTRATION, principal.getId()));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION_DAYS, principal.getId()));
         return ResponseEntity.ok(new ResponseData<>(savedQuest));
     }
 
@@ -119,7 +122,8 @@ public class QuestApiController {
     ) throws IOException {
         QuestResponse completedQuest = questService.completeQuest(questId, principal.getId());
         questIndexService.updateQuestStateOfDocument(completedQuest, principal.getId());
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(AchievementType.QUEST_COMPLETION, principal.getId()));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_COMPLETION, principal.getId()));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(USER_LEVEL, principal.getId()));
         return ResponseEntity.ok(new ResponseData<>());
     }
 

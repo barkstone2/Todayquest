@@ -23,6 +23,6 @@ class Achievement(
     val targetValue: Int = targetValue
 
     fun canAchieve(currentValue: Int): Boolean {
-        return targetValue <= currentValue
+        return this.type != AchievementType.EMPTY && targetValue <= currentValue
     }
 }

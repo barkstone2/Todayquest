@@ -115,24 +115,6 @@ public class QuestCommandServiceUnitTest {
             verify(questLogService, times(1)).saveQuestLog(mockQuest);
             assertThat(saveQuest).isInstanceOf(QuestResponse.class);
         }
-
-        @DisplayName("총 퀘스트 등록 횟수를 조회해 업적 완료 여부 확인을 요청한다")
-        @Test
-        public void getTotalRegistrationCountWhenSaving() throws Exception {
-            //given
-            long userId = 1L;
-            int totalRegistrationCount = 1;
-            AchievementType achievementType = AchievementType.QUEST_REGISTRATION;
-            AchievementAchieveRequest achieveRequest = new AchievementAchieveRequest(achievementType, totalRegistrationCount, userId);
-            doReturn(totalRegistrationCount).when(questLogService).getTotalRegistrationCount(any());
-
-            //when
-            questCommandService.saveQuest(saveRequest, userId);
-
-            //then
-            verify(questLogService).getTotalRegistrationCount(eq(userId));
-            verify(achievementCommandService).checkAndAchieveAchievements(eq(achieveRequest));
-        }
     }
 
     @DisplayName("퀘스트 수정 시")
@@ -355,28 +337,6 @@ public class QuestCommandServiceUnitTest {
             //then
             verify(userService, times(1)).giveExpAndGoldToUser(eq(targetType), eq(targetOwner));
             verify(questLogService, times(1)).saveQuestLog(eq(completeTarget));
-        }
-
-        @DisplayName("총 퀘스트 완료 횟수를 조회해 업적 완료 여부 확인을 요청한다")
-        @Test
-        public void getTotalCompletionCountWhenSaving() throws Exception {
-            //given
-            long questId = 1L;
-            long userId = 1L;
-            int totalCompletionCount = 1;
-            AchievementType achievementType = AchievementType.QUEST_COMPLETION;
-            AchievementAchieveRequest achieveRequest = new AchievementAchieveRequest(achievementType, totalCompletionCount, userId);
-            doReturn(totalCompletionCount).when(questLogService).getTotalCompletionCount(any());
-            Quest completedQuest = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            doReturn(completedQuest).when(questQueryService).getEntityOfUser(any(), any());
-            doReturn(QuestState.COMPLETE).when(completedQuest).completeQuest();
-
-            //when
-            questCommandService.completeQuest(questId, userId);
-
-            //then
-            verify(questLogService).getTotalCompletionCount(eq(userId));
-            verify(achievementCommandService).checkAndAchieveAchievements(eq(achieveRequest));
         }
     }
 

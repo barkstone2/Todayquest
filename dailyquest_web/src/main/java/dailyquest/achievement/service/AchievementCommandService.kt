@@ -6,6 +6,7 @@ import dailyquest.achievement.entity.AchievementType.*
 import dailyquest.quest.service.QuestLogService
 import dailyquest.user.service.UserService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -18,6 +19,7 @@ class AchievementCommandService @Autowired constructor(
     val userService: UserService,
 ) {
 
+    @Async
     fun checkAndAchieveAchievement(achieveRequest: AchievementAchieveRequest) {
         val targetAchievement = achievementQueryService.getNotAchievedAchievement(achieveRequest.type, achieveRequest.userId)
         val currentValue = this.resolveCurrentValue(achieveRequest, targetAchievement)

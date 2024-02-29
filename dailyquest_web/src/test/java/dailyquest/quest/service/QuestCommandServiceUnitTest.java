@@ -1,8 +1,5 @@
 package dailyquest.quest.service;
 
-import dailyquest.achievement.dto.AchievementAchieveRequest;
-import dailyquest.achievement.entity.AchievementType;
-import dailyquest.achievement.service.AchievementCommandService;
 import dailyquest.common.MessageUtil;
 import dailyquest.quest.dto.DetailInteractRequest;
 import dailyquest.quest.dto.DetailResponse;
@@ -41,8 +38,6 @@ public class QuestCommandServiceUnitTest {
     @Mock UserRepository userRepository;
     @Mock UserService userService;
     @Mock QuestLogService questLogService;
-    @Mock
-    AchievementCommandService achievementCommandService;
 
     @DisplayName("퀘스트 저장 시")
     @Nested

@@ -129,5 +129,18 @@ class AchievementCommandServiceUnitTest {
             //then
             verify { targetAchievement.canAchieve(eq(0)) }
         }
+
+        @DisplayName("요청 타입이 USER_LEVEL이면 조회한 사용자의 레벨이 현재값으로 사용된다")
+        @Test
+        fun `요청 타입이 USER_LEVEL이면 조회한 사용자의 레벨이 현재값으로 사용된다`() {
+            //given
+            every { achieveRequest.type } returns AchievementType.USER_LEVEL
+
+            //when
+            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
+
+            //then
+            verify { userService.getUserPrincipal(any()) }
+        }
     }
 }

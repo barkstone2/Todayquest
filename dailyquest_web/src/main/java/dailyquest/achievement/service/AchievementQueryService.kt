@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional
 class AchievementQueryService(
     val achievementRepository: AchievementRepository
 ) {
-    fun getNotAchievedAchievement(type: AchievementType, userId: Long): Achievement? {
-        return achievementRepository.findNotAchievedAchievement(type, userId)
+    fun getNotAchievedAchievement(type: AchievementType, userId: Long): Achievement {
+        return achievementRepository.findNotAchievedAchievement(type, userId) ?: Achievement(AchievementType.EMPTY, 0)
     }
 }

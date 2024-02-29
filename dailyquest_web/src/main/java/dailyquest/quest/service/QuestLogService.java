@@ -71,9 +71,9 @@ public class QuestLogService {
         return questLogRepository.countByUserIdAndState(userId, QuestState.COMPLETE);
     }
 
-    public Integer getContinuousRegistrationCount(Long userId, Integer targetValue) {
+    public Integer getRegDaysFrom(Long userId, int beforeDays) {
         LocalDate today = LocalDate.now();
-        return questLogRepository.getDistinctDateCount(userId, today.minusDays(targetValue));
+        return questLogRepository.getDistinctDateCountFrom(userId, today.minusDays(beforeDays));
     }
 
 }

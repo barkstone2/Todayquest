@@ -4,7 +4,13 @@ import dailyquest.achievement.entity.AchievementType
 
 data class AchievementAchieveRequest(
     val type: AchievementType,
-    val currentValue: Int,
     val userId: Long
 ) {
+
+    companion object {
+        @JvmStatic
+        fun of(type: AchievementType, userId: Long): AchievementAchieveRequest {
+            return AchievementAchieveRequest(type, userId)
+        }
+    }
 }

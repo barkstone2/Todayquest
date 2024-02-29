@@ -1,7 +1,6 @@
 package dailyquest.quest.service;
 
 import dailyquest.achievement.dto.AchievementAchieveRequest;
-import dailyquest.achievement.entity.AchievementType;
 import dailyquest.achievement.service.AchievementCommandService;
 import dailyquest.common.MessageUtil;
 import dailyquest.quest.dto.DetailInteractRequest;
@@ -15,11 +14,13 @@ import dailyquest.quest.repository.QuestRepository;
 import dailyquest.user.entity.UserInfo;
 import dailyquest.user.repository.UserRepository;
 import dailyquest.user.service.UserService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
+
+import static dailyquest.achievement.entity.AchievementType.*;
 
 @RequiredArgsConstructor
 @Transactional
@@ -49,10 +50,8 @@ public class QuestCommandService {
         questRepository.save(quest);
         questLogService.saveQuestLog(quest);
 
-        Integer totalRegistrationCount = questLogService.getTotalRegistrationCount(userId);
-        AchievementAchieveRequest achievementRequest = new AchievementAchieveRequest(AchievementType.QUEST_REGISTRATION, totalRegistrationCount, userId);
-        achievementCommandService.checkAndAchieveAchievements(achievementRequest);
-
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_REGISTRATION, userId));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION_DAYS, userId));
         return QuestResponse.createDto(quest);
     }
 
@@ -86,9 +85,7 @@ public class QuestCommandService {
             case PROCEED -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.complete.detail"));
             default -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.not-proceed"));
         }
-        Integer totalCompletionCount = questLogService.getTotalCompletionCount(userId);
-        AchievementAchieveRequest achievementRequest = new AchievementAchieveRequest(AchievementType.QUEST_COMPLETION, totalCompletionCount, userId);
-        achievementCommandService.checkAndAchieveAchievements(achievementRequest);
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_COMPLETION, userId));
         return QuestResponse.createDto(quest);
     }
 

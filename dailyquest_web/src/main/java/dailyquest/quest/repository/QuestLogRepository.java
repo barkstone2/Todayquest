@@ -13,5 +13,5 @@ public interface QuestLogRepository extends JpaRepository<QuestLog, Long>, Quest
     Integer countByUserIdAndState(Long userId, QuestState state);
 
     @Query("select count(distinct ql.loggedDate) from QuestLog ql where ql.userId = :userId and ql.loggedDate >= :startDate")
-    Integer getDistinctDateCount(@Param("userId") Long userId, @Param("startDate") LocalDate startDate);
+    Integer getDistinctDateCountFrom(@Param("userId") Long userId, @Param("startDate") LocalDate startDate);
 }

@@ -1,5 +1,8 @@
 package dailyquest.quest.controller;
 
+import dailyquest.achievement.dto.AchievementAchieveRequest;
+import dailyquest.achievement.entity.AchievementType;
+import dailyquest.achievement.service.AchievementCommandService;
 import dailyquest.common.ResponseData;
 import dailyquest.common.RestPage;
 import dailyquest.common.UserLevelLock;
@@ -32,6 +35,7 @@ public class QuestApiController {
     private final QuestService questService;
     private final UserLevelLock userLevelLock;
     private final QuestIndexService questIndexService;
+    private final AchievementCommandService achievementCommandService;
 
     @Value("${quest.page.size}")
     private int pageSize;
@@ -82,6 +86,7 @@ public class QuestApiController {
                 () -> questService.saveQuest(dto, principal.getId())
         );
         questIndexService.saveDocument(savedQuest, principal.getId());
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(AchievementType.QUEST_REGISTRATION, principal.getId()));
         return ResponseEntity.ok(new ResponseData<>(savedQuest));
     }
 
@@ -114,6 +119,7 @@ public class QuestApiController {
     ) throws IOException {
         QuestResponse completedQuest = questService.completeQuest(questId, principal.getId());
         questIndexService.updateQuestStateOfDocument(completedQuest, principal.getId());
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(AchievementType.QUEST_COMPLETION, principal.getId()));
         return ResponseEntity.ok(new ResponseData<>());
     }
 

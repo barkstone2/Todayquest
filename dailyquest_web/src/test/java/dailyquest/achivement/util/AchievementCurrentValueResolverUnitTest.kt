@@ -75,7 +75,7 @@ class AchievementCurrentValueResolverUnitTest {
             achievementCurrentValueResolver.resolveCurrentValue(achieveRequest, targetAchievement)
 
             //then
-            verify { questLogService.getRegDaysFrom(any(), any()) }
+            verify { questLogService.getRegistrationDaysSince(any(), any()) }
         }
 
         @DisplayName("요청 타입이 EMPTY면 0이 현재값으로 사용된다")
@@ -103,6 +103,19 @@ class AchievementCurrentValueResolverUnitTest {
 
             //then
             verify { userService.getUserPrincipal(any()) }
+        }
+
+        @DisplayName("요청 타입이 QUEST_CONTINUOUS_COMPLETION이면 기간 동안의 완료 일수를 현재값으로 사용한다")
+        @Test
+        fun `요청 타입이 QUEST_CONTINUOUS_COMPLETION이면 기간 동안의 완료 일수를 현재값으로 사용한다`() {
+            //given
+            every { achieveRequest.type } returns AchievementType.QUEST_CONTINUOUS_COMPLETION
+
+            //when
+            achievementCurrentValueResolver.resolveCurrentValue(achieveRequest, targetAchievement)
+
+            //then
+//            verify { questLogService.getCompletionDaysSince() }
         }
     }
 

@@ -12,6 +12,9 @@ public interface QuestLogRepository extends JpaRepository<QuestLog, Long>, Quest
 
     Integer countByUserIdAndState(Long userId, QuestState state);
 
-    @Query("select count(distinct ql.loggedDate) from QuestLog ql where ql.userId = :userId and ql.loggedDate >= :startDate")
-    Integer getDistinctDateCountFrom(@Param("userId") Long userId, @Param("startDate") LocalDate startDate);
+    @Query("select count(distinct ql.loggedDate) from QuestLog ql where ql.userId = :userId and ql.state = 'PROCEED' and ql.loggedDate >= :fromDate")
+    Integer getDistinctRegistrationDateCountFrom(@Param("fromDate") LocalDate fromDate, @Param("userId") Long userId);
+
+    @Query("select count(distinct ql.loggedDate) from QuestLog ql where ql.userId = :userId and ql.state = 'COMPLETE' and ql.loggedDate >= :fromDate")
+    Integer getDistinctCompletionDateCountFrom(@Param("fromDate") LocalDate fromDate, @Param("userId") Long userId);
 }

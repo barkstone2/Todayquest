@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -71,9 +72,24 @@ public class QuestLogService {
         return questLogRepository.countByUserIdAndState(userId, QuestState.COMPLETE);
     }
 
-    public Integer getRegDaysFrom(Long userId, int beforeDays) {
-        LocalDate today = LocalDate.now();
-        return questLogRepository.getDistinctDateCountFrom(userId, today.minusDays(beforeDays));
+    public Integer getRegistrationDaysSince(Long userId, int beforeDays) {
+        LocalDate fromDate = calculateFromDate(beforeDays);
+        return questLogRepository.getDistinctRegistrationDateCountFrom(fromDate, userId);
     }
+
+    private LocalDate calculateFromDate(int beforeDays) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
+        if (now.isBefore(now.withHour(6).withMinute(0).withSecond(0).withNano(0))) {
+            today = today.minusDays(1);
+        }
+        return today.minusDays(beforeDays);
+    }
+
+    public Integer getCompletionDaysSince(Long userId, int beforeDays) {
+        LocalDate fromDate = calculateFromDate(beforeDays);
+        return questLogRepository.getDistinctCompletionDateCountFrom(fromDate, userId);
+    }
+
 
 }

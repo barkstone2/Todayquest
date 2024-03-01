@@ -8,6 +8,8 @@ import jakarta.persistence.Id
 
 @Entity
 class Achievement(
+    title: String = "",
+    description: String = "",
     type: AchievementType,
     targetValue: Int,
 ): BaseTimeEntity() {
@@ -15,6 +17,12 @@ class Achievement(
     @Id @GeneratedValue
     @Column(name = "achievement_id")
     val id: Long = 0
+
+    @Column(nullable = false)
+    val title: String = title
+
+    @Column(nullable = false)
+    val description: String = description
 
     @Column(nullable = false)
     val type: AchievementType = type

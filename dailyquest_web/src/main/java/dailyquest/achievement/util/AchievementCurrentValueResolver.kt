@@ -19,7 +19,8 @@ class AchievementCurrentValueResolver(
         return when (achieveRequest.type) {
             AchievementType.QUEST_REGISTRATION -> questLogService.getTotalRegistrationCount(achieveRequest.userId)
             AchievementType.QUEST_COMPLETION -> questLogService.getTotalCompletionCount(achieveRequest.userId)
-            AchievementType.QUEST_CONTINUOUS_REGISTRATION_DAYS -> questLogService.getRegDaysFrom(achieveRequest.userId, targetAchievement.targetValue)
+            AchievementType.QUEST_CONTINUOUS_REGISTRATION_DAYS -> questLogService.getRegistrationDaysSince(achieveRequest.userId, targetAchievement.targetValue)
+            AchievementType.QUEST_CONTINUOUS_COMPLETION -> questLogService.getCompletionDaysSince(achieveRequest.userId, targetAchievement.targetValue)
             AchievementType.USER_LEVEL -> userService.getUserPrincipal(achieveRequest.userId).level
             AchievementType.EMPTY, AchievementType.USER_GOLD_EARN -> 0
         }

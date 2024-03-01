@@ -6,18 +6,21 @@ import dailyquest.quest.dto.QuestStatisticsResponse;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.entity.QuestType;
 import dailyquest.quest.repository.QuestLogRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -104,4 +107,66 @@ public class QuestLogServiceUnitTest {
         assertThat(questStatistic.get(today).getStateRatio()).isEqualTo(100);
     }
 
+    @DisplayName("getRegistrationDaysSince 호출 시")
+    @Nested
+    class TestGetRegistrationDaysSince {
+        private MockedStatic<LocalDateTime> localDateTimeMockedStatic;
+        private final Long userId = 1L;
+        private final int beforeDays = 1;
+
+        @BeforeEach
+        void init() {
+            localDateTimeMockedStatic = mockStatic(LocalDateTime.class, Answers.CALLS_REAL_METHODS);
+        }
+
+        @AfterEach
+        void close() {
+            localDateTimeMockedStatic.close();
+        }
+
+        @DisplayName("현재 시간이 오늘 오전 6시 이전이라면 fromDate가 (오늘-beforeDays-1)이 된다")
+        @Test
+        public void ifNowIsBefore6amThenFromDateBeSubtractedOneDayMore() throws Exception {
+            //given
+            LocalDateTime baseTime = LocalDateTime.of(2012, 12, 12, 5, 59);
+            when(LocalDateTime.now()).thenReturn(baseTime);
+            LocalDate fromDate = baseTime.minusDays(beforeDays + 1).toLocalDate();
+
+            //when
+            questLogService.getRegistrationDaysSince(userId, beforeDays);
+
+            //then
+            verify(questLogRepository).getDistinctRegistrationDateCountFrom(eq(fromDate), eq(userId));
+        }
+
+        @DisplayName("현재 시간이 오늘 오전 6시라면, fromDate가 beforeDays 만큼만 뺀 날이 된다")
+        @Test
+        public void ifNowIs6amThenFromDateBeSubtractedOnlyBeforeDays() throws Exception {
+            //given
+            LocalDateTime baseTime = LocalDateTime.of(2012, 12, 12, 6, 0);
+            when(LocalDateTime.now()).thenReturn(baseTime);
+            LocalDate fromDate = baseTime.minusDays(beforeDays).toLocalDate();
+
+            //when
+            questLogService.getRegistrationDaysSince(userId, beforeDays);
+
+            //then
+            verify(questLogRepository).getDistinctRegistrationDateCountFrom(eq(fromDate), eq(userId));
+        }
+
+        @DisplayName("현재 시간이 오늘 오전 6시 이후라면, fromDate가 beforeDays 만큼만 뺀 날이 된다")
+        @Test
+        public void ifNowIsAfter6amThenFromDateBeSubtractedOnlyBeforeDays() throws Exception {
+            //given
+            LocalDateTime baseTime = LocalDateTime.of(2012, 12, 12, 6, 0);
+            when(LocalDateTime.now()).thenReturn(baseTime);
+            LocalDate fromDate = baseTime.minusDays(beforeDays).toLocalDate();
+
+            //when
+            questLogService.getRegistrationDaysSince(userId, beforeDays);
+
+            //then
+            verify(questLogRepository).getDistinctRegistrationDateCountFrom(eq(fromDate), eq(userId));
+        }
+    }
 }

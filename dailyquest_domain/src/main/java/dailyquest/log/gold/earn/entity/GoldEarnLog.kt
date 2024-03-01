@@ -8,7 +8,7 @@ import jakarta.persistence.*
 @Entity
 class GoldEarnLog(
     user: UserInfo,
-    amount: Int,
+    amount: Long,
     source: GoldEarnSource
 ): CreatedTimeEntity() {
     @Column(name = "gold_earn_log_id")
@@ -24,5 +24,5 @@ class GoldEarnLog(
     val source: GoldEarnSource = source
 
     @Column(nullable = false)
-    val amount: Int = amount
+    val amount: Long = amount
 }

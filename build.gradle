@@ -48,6 +48,7 @@ subprojects {
             // 코틀린 모킹
             testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
             testImplementation("io.mockk:mockk:1.13.9")
+            testImplementation("com.ninja-squad:springmockk:4.0.2")
         }
 
         kotlin {

@@ -13,10 +13,10 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @Service
 class AchievementCommandService @Autowired constructor(
-    val achievementQueryService: AchievementQueryService,
-    val achievementLogCommandService: AchievementLogCommandService,
-    val questLogService: QuestLogService,
-    val userService: UserService,
+    private val achievementQueryService: AchievementQueryService,
+    private val achievementLogCommandService: AchievementLogCommandService,
+    private val questLogService: QuestLogService,
+    private val userService: UserService,
 ) {
 
     @Async

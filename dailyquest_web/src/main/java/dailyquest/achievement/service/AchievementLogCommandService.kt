@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @Service
 class AchievementLogCommandService(
-    val achievementLogRepository: AchievementLogRepository,
-    val userRepository: UserRepository,
+    private val achievementLogRepository: AchievementLogRepository,
+    private val userRepository: UserRepository,
 ) {
 
     fun achieve(achievableAchievement: Achievement, userId: Long) {

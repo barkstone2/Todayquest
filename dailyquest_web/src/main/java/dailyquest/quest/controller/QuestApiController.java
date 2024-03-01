@@ -124,6 +124,7 @@ public class QuestApiController {
         questIndexService.updateQuestStateOfDocument(completedQuest, principal.getId());
         achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_COMPLETION, principal.getId()));
         achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(USER_LEVEL, principal.getId()));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(GOLD_EARN, principal.getId()));
         return ResponseEntity.ok(new ResponseData<>());
     }
 

@@ -4,6 +4,7 @@ import dailyquest.achievement.dto.AchievementAchieveRequest
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.util.AchievementCurrentValueResolver
+import dailyquest.log.gold.earn.service.GoldEarnLogService
 import dailyquest.quest.service.QuestLogService
 import dailyquest.user.service.UserService
 import io.mockk.every
@@ -29,6 +30,9 @@ class AchievementCurrentValueResolverUnitTest {
 
     @RelaxedMockK
     lateinit var userService: UserService
+
+    @RelaxedMockK
+    lateinit var goldEarnLogService: GoldEarnLogService
 
     @DisplayName("현재값 결정 요청 시")
     @Nested
@@ -115,7 +119,20 @@ class AchievementCurrentValueResolverUnitTest {
             achievementCurrentValueResolver.resolveCurrentValue(achieveRequest, targetAchievement)
 
             //then
-//            verify { questLogService.getCompletionDaysSince() }
+            verify { questLogService.getCompletionDaysSince(any(), any()) }
+        }
+        
+        @DisplayName("요청 타입이 GOLD_EARN이면 총 골드 획득량을 현재값으로 사용한다")
+        @Test
+        fun `요청 타입이 GOLD_EARN이면 총 골드 획득량을 현재값으로 사용한다`() {
+            //given
+            every { achieveRequest.type } returns AchievementType.GOLD_EARN
+            
+            //when
+            achievementCurrentValueResolver.resolveCurrentValue(achieveRequest, targetAchievement)
+            
+            //then
+            verify { goldEarnLogService.getTotalGoldEarnOfUser(any()) }
         }
     }
 

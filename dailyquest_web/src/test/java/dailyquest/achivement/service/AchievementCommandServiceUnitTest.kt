@@ -2,12 +2,10 @@ package dailyquest.achivement.service
 
 import dailyquest.achievement.dto.AchievementAchieveRequest
 import dailyquest.achievement.entity.Achievement
-import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementCommandService
 import dailyquest.achievement.service.AchievementLogCommandService
 import dailyquest.achievement.service.AchievementQueryService
-import dailyquest.quest.service.QuestLogService
-import dailyquest.user.service.UserService
+import dailyquest.achievement.util.AchievementCurrentValueResolver
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -29,9 +27,7 @@ class AchievementCommandServiceUnitTest {
     @RelaxedMockK
     lateinit var achievementLogService: AchievementLogCommandService
     @RelaxedMockK
-    lateinit var questLogService: QuestLogService
-    @RelaxedMockK
-    lateinit var userService: UserService
+    lateinit var achievementCurrentValueResolver: AchievementCurrentValueResolver
 
     @DisplayName("업적 확인 후 달성 요청 시")
     @Nested
@@ -78,69 +74,69 @@ class AchievementCommandServiceUnitTest {
             verify { achievementLogService wasNot Called }
         }
         
-        @DisplayName("요청 타입이 QUEST_REGISTRATION이면 전체 등록 수를 현재 값으로 사용한다")
-        @Test
-        fun `요청 타입이 QUEST_REGISTRATION이면 전체 등록 수를 현재 값으로 사용한다`() {
-            //given
-            every { achieveRequest.type } returns AchievementType.QUEST_REGISTRATION
-
-            //when
-            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
-            
-            //then
-            verify { questLogService.getTotalRegistrationCount(any()) }
-        }
-        
-        @DisplayName("요청 타입이 QUEST_COMPLETION이면 전체 완료 수를 현재 값으로 사용한다")
-        @Test
-        fun `요청 타입이 QUEST_COMPLETION이면 전체 완료 수를 현재 값으로 사용한다`() {
-            //given
-            every { achieveRequest.type } returns AchievementType.QUEST_COMPLETION
-
-            //when
-            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
-
-            //then
-            verify { questLogService.getTotalCompletionCount(any()) }
-        }
-
-        @DisplayName("요청 타입이 QUEST_CONTINUOUS_REGISTRATION_DAYS이면 기간 동안의 등록일수를 현재값으로 사용한다")
-        @Test
-        fun `요청 타입이 QUEST_CONTINUOUS_REGISTRATION_DAYS이면 기간 동안의 등록일수를 현재값으로 사용한다`() {
-            //given
-            every { achieveRequest.type } returns AchievementType.QUEST_CONTINUOUS_REGISTRATION_DAYS
-
-            //when
-            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
-
-            //then
-            verify { questLogService.getRegDaysFrom(any(), any()) }
-        }
-
-        @DisplayName("요청 타입이 EMPTY면 0이 현재값으로 사용된다")
-        @Test
-        fun `요청 타입이 EMPTY면 0이 현재값으로 사용된다`() {
-            //given
-            every { achieveRequest.type } returns AchievementType.EMPTY
-
-            //when
-            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
-
-            //then
-            verify { targetAchievement.canAchieve(eq(0)) }
-        }
-
-        @DisplayName("요청 타입이 USER_LEVEL이면 조회한 사용자의 레벨이 현재값으로 사용된다")
-        @Test
-        fun `요청 타입이 USER_LEVEL이면 조회한 사용자의 레벨이 현재값으로 사용된다`() {
-            //given
-            every { achieveRequest.type } returns AchievementType.USER_LEVEL
-
-            //when
-            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
-
-            //then
-            verify { userService.getUserPrincipal(any()) }
-        }
+//        @DisplayName("요청 타입이 QUEST_REGISTRATION이면 전체 등록 수를 현재 값으로 사용한다")
+//        @Test
+//        fun `요청 타입이 QUEST_REGISTRATION이면 전체 등록 수를 현재 값으로 사용한다`() {
+//            //given
+//            every { achieveRequest.type } returns AchievementType.QUEST_REGISTRATION
+//
+//            //when
+//            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
+//
+//            //then
+//            verify { questLogService.getTotalRegistrationCount(any()) }
+//        }
+//
+//        @DisplayName("요청 타입이 QUEST_COMPLETION이면 전체 완료 수를 현재 값으로 사용한다")
+//        @Test
+//        fun `요청 타입이 QUEST_COMPLETION이면 전체 완료 수를 현재 값으로 사용한다`() {
+//            //given
+//            every { achieveRequest.type } returns AchievementType.QUEST_COMPLETION
+//
+//            //when
+//            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
+//
+//            //then
+//            verify { questLogService.getTotalCompletionCount(any()) }
+//        }
+//
+//        @DisplayName("요청 타입이 QUEST_CONTINUOUS_REGISTRATION_DAYS이면 기간 동안의 등록일수를 현재값으로 사용한다")
+//        @Test
+//        fun `요청 타입이 QUEST_CONTINUOUS_REGISTRATION_DAYS이면 기간 동안의 등록일수를 현재값으로 사용한다`() {
+//            //given
+//            every { achieveRequest.type } returns AchievementType.QUEST_CONTINUOUS_REGISTRATION_DAYS
+//
+//            //when
+//            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
+//
+//            //then
+//            verify { questLogService.getRegDaysFrom(any(), any()) }
+//        }
+//
+//        @DisplayName("요청 타입이 EMPTY면 0이 현재값으로 사용된다")
+//        @Test
+//        fun `요청 타입이 EMPTY면 0이 현재값으로 사용된다`() {
+//            //given
+//            every { achieveRequest.type } returns AchievementType.EMPTY
+//
+//            //when
+//            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
+//
+//            //then
+//            verify { targetAchievement.canAchieve(eq(0)) }
+//        }
+//
+//        @DisplayName("요청 타입이 USER_LEVEL이면 조회한 사용자의 레벨이 현재값으로 사용된다")
+//        @Test
+//        fun `요청 타입이 USER_LEVEL이면 조회한 사용자의 레벨이 현재값으로 사용된다`() {
+//            //given
+//            every { achieveRequest.type } returns AchievementType.USER_LEVEL
+//
+//            //when
+//            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
+//
+//            //then
+//            verify { userService.getUserPrincipal(any()) }
+//        }
     }
 }

@@ -1,19 +1,19 @@
 package dailyquest.achivement.service
 
 import dailyquest.achievement.dto.AchievementAchieveRequest
+import dailyquest.achievement.dto.AchievementRequest
 import dailyquest.achievement.entity.Achievement
+import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.achievement.service.AchievementCommandService
 import dailyquest.achievement.service.AchievementLogCommandService
 import dailyquest.achievement.service.AchievementQueryService
 import dailyquest.achievement.util.AchievementCurrentValueResolver
+import dailyquest.common.MessageUtil
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
@@ -28,6 +28,8 @@ class AchievementCommandServiceUnitTest {
     lateinit var achievementLogService: AchievementLogCommandService
     @RelaxedMockK
     lateinit var achievementCurrentValueResolver: AchievementCurrentValueResolver
+    @RelaxedMockK
+    lateinit var achievementRepository: AchievementRepository
 
     @DisplayName("업적 확인 후 달성 요청 시")
     @Nested
@@ -73,70 +75,44 @@ class AchievementCommandServiceUnitTest {
             //then
             verify { achievementLogService wasNot Called }
         }
-        
-//        @DisplayName("요청 타입이 QUEST_REGISTRATION이면 전체 등록 수를 현재 값으로 사용한다")
-//        @Test
-//        fun `요청 타입이 QUEST_REGISTRATION이면 전체 등록 수를 현재 값으로 사용한다`() {
-//            //given
-//            every { achieveRequest.type } returns AchievementType.QUEST_REGISTRATION
-//
-//            //when
-//            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
-//
-//            //then
-//            verify { questLogService.getTotalRegistrationCount(any()) }
-//        }
-//
-//        @DisplayName("요청 타입이 QUEST_COMPLETION이면 전체 완료 수를 현재 값으로 사용한다")
-//        @Test
-//        fun `요청 타입이 QUEST_COMPLETION이면 전체 완료 수를 현재 값으로 사용한다`() {
-//            //given
-//            every { achieveRequest.type } returns AchievementType.QUEST_COMPLETION
-//
-//            //when
-//            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
-//
-//            //then
-//            verify { questLogService.getTotalCompletionCount(any()) }
-//        }
-//
-//        @DisplayName("요청 타입이 QUEST_CONTINUOUS_REGISTRATION_DAYS이면 기간 동안의 등록일수를 현재값으로 사용한다")
-//        @Test
-//        fun `요청 타입이 QUEST_CONTINUOUS_REGISTRATION_DAYS이면 기간 동안의 등록일수를 현재값으로 사용한다`() {
-//            //given
-//            every { achieveRequest.type } returns AchievementType.QUEST_CONTINUOUS_REGISTRATION_DAYS
-//
-//            //when
-//            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
-//
-//            //then
-//            verify { questLogService.getRegDaysFrom(any(), any()) }
-//        }
-//
-//        @DisplayName("요청 타입이 EMPTY면 0이 현재값으로 사용된다")
-//        @Test
-//        fun `요청 타입이 EMPTY면 0이 현재값으로 사용된다`() {
-//            //given
-//            every { achieveRequest.type } returns AchievementType.EMPTY
-//
-//            //when
-//            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
-//
-//            //then
-//            verify { targetAchievement.canAchieve(eq(0)) }
-//        }
-//
-//        @DisplayName("요청 타입이 USER_LEVEL이면 조회한 사용자의 레벨이 현재값으로 사용된다")
-//        @Test
-//        fun `요청 타입이 USER_LEVEL이면 조회한 사용자의 레벨이 현재값으로 사용된다`() {
-//            //given
-//            every { achieveRequest.type } returns AchievementType.USER_LEVEL
-//
-//            //when
-//            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
-//
-//            //then
-//            verify { userService.getUserPrincipal(any()) }
-//        }
+    }
+
+    @DisplayName("업적 신규 등록 시")
+    @Nested
+    inner class TestSaveAchievement {
+
+        @RelaxedMockK
+        private lateinit var saveRequest: AchievementRequest
+
+        @BeforeEach
+        fun init() {
+            mockkStatic(MessageUtil::class)
+            every { MessageUtil.getMessage(any()) } returns ""
+            every { achievementRepository.save(any()) } answers { nothing }
+        }
+
+        @DisplayName("타입과 목표값이 모두 동일한 업적이 있다면 예외를 던진다")
+        @Test
+        fun `타입과 목표값이 모두 동일한 업적이 있다면 예외를 던진다`() {
+            //given
+            every { achievementRepository.existsByTypeAndTargetValue(any(), any()) } returns true
+
+            //when
+            //then
+            assertThrows<IllegalStateException> { achievementCommandService.saveAchievement(saveRequest) }
+        }
+
+        @DisplayName("타입과 목표값이 모두 동일한 업적이 없다면 업적을 저장한다")
+        @Test
+        fun `타입과 목표값이 모두 동일한 업적이 없다면 업적을 저장한다`() {
+            //given
+            every { achievementRepository.existsByTypeAndTargetValue(any(), any()) } returns false
+
+            //when
+            achievementCommandService.saveAchievement(saveRequest)
+
+            //then
+            verify { achievementRepository.save(any()) }
+        }
     }
 }

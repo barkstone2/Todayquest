@@ -33,4 +33,11 @@ class Achievement(
     fun canAchieve(currentValue: Int): Boolean {
         return this.type != AchievementType.EMPTY && targetValue <= currentValue
     }
+
+    companion object {
+        @JvmStatic
+        fun empty(): Achievement {
+            return Achievement(type = AchievementType.EMPTY, targetValue = 0)
+        }
+    }
 }

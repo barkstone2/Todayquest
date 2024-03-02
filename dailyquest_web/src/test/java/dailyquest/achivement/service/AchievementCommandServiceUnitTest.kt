@@ -6,7 +6,6 @@ import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.achievement.service.AchievementCommandService
 import dailyquest.achievement.service.AchievementAchieveLogCommandService
-import dailyquest.achievement.service.AchievementQueryService
 import dailyquest.achievement.util.AchievementCurrentValueResolver
 import dailyquest.common.MessageUtil
 import io.mockk.*
@@ -22,8 +21,6 @@ class AchievementCommandServiceUnitTest {
 
     @InjectMockKs
     lateinit var achievementCommandService: AchievementCommandService
-    @RelaxedMockK
-    lateinit var achievementQueryService: AchievementQueryService
     @RelaxedMockK
     lateinit var achieveLogCommandService: AchievementAchieveLogCommandService
     @RelaxedMockK
@@ -46,7 +43,7 @@ class AchievementCommandServiceUnitTest {
         @BeforeEach
         fun init() {
             savedAchievements.clear()
-            every { achievementQueryService.getNotAchievedAchievement(any(), any()) } returns targetAchievement
+            every { achievementRepository.findNotAchievedAchievement(any(), any()) } returns targetAchievement
             every { targetAchievement.canAchieve(any()) } returns true
         }
 

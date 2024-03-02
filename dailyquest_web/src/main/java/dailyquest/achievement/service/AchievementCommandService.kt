@@ -15,7 +15,7 @@ import kotlin.IllegalStateException
 @Service
 class AchievementCommandService @Autowired constructor(
     private val achievementQueryService: AchievementQueryService,
-    private val achievementLogCommandService: AchievementLogCommandService,
+    private val achieveLogCommandService: AchievementAchieveLogCommandService,
     private val achievementCurrentValueResolver: AchievementCurrentValueResolver,
     private val achievementRepository: AchievementRepository,
 ) {
@@ -25,7 +25,7 @@ class AchievementCommandService @Autowired constructor(
         val targetAchievement = achievementQueryService.getNotAchievedAchievement(achieveRequest.type, achieveRequest.userId)
         val currentValue = achievementCurrentValueResolver.resolveCurrentValue(achieveRequest, targetAchievement)
         if (targetAchievement.canAchieve(currentValue)) {
-            achievementLogCommandService.achieve(targetAchievement, achieveRequest.userId)
+            achieveLogCommandService.achieve(targetAchievement, achieveRequest.userId)
         }
     }
 

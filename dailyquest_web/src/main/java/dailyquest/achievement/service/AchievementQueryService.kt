@@ -1,7 +1,6 @@
 package dailyquest.achievement.service
 
 import dailyquest.achievement.dto.AchievementResponse
-import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
 import org.springframework.stereotype.Service
@@ -13,13 +12,11 @@ import java.time.LocalDateTime
 class AchievementQueryService(
     private val achievementRepository: AchievementRepository
 ) {
-    fun getNotAchievedAchievement(type: AchievementType, userId: Long): Achievement {
-        return achievementRepository.findNotAchievedAchievement(type, userId) ?: Achievement(type = AchievementType.EMPTY, targetValue = 0)
-    }
-
     fun getAchievementsWithAchieveInfo(type: AchievementType, userId: Long): List<AchievementResponse> {
+        val achievedDateNullLastAsc = compareBy<AchievementResponse, LocalDateTime?>(nullsLast()) { it.achievedDate }
+        val targetValueAsc = compareBy<AchievementResponse> { it.targetValue }
+        val achievedDateNullLastAscThenTargetValueAsc = achievedDateNullLastAsc.then(targetValueAsc)
         return achievementRepository.getAchievementsWithAchieveInfo(type, userId)
-            .sortedWith(compareBy<AchievementResponse, LocalDateTime?>(nullsLast()) { it.achievedDate }
-                .thenBy { it.targetValue })
+            .sortedWith(achievedDateNullLastAscThenTargetValueAsc)
     }
 }

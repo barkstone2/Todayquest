@@ -1,9 +1,9 @@
 package dailyquest.achivement.repository
 
 import dailyquest.achievement.entity.Achievement
-import dailyquest.achievement.entity.AchievementLog
+import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.entity.AchievementType
-import dailyquest.achievement.repository.AchievementLogRepository
+import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.UserInfo
@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import kotlin.random.Random
 
 @ExtendWith(MockKExtension::class)
 @DisplayName("업적 리포지토리 유닛 테스트")
@@ -28,7 +27,7 @@ class AchievementRepositoryUnitTest {
     private lateinit var achievementRepository: AchievementRepository
 
     @Autowired
-    private lateinit var achievementLogRepository: AchievementLogRepository
+    private lateinit var achieveLogRepository: AchievementAchieveLogRepository
 
     @Autowired
     private lateinit var userRepository: UserRepository
@@ -68,7 +67,7 @@ class AchievementRepositoryUnitTest {
         fun `완료한 업적은 완료 상태로 표시된다`() {
             //given
             val achievementType = AchievementType.QUEST_REGISTRATION
-            achievementLogRepository.save(AchievementLog(achievementMapByType[achievementType]!!, user))
+            achieveLogRepository.save(AchievementAchieveLog(achievementMapByType[achievementType]!!, user))
 
             //when
             val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, user.id)

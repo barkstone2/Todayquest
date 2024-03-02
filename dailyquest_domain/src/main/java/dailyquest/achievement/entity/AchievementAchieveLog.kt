@@ -4,15 +4,15 @@ import dailyquest.common.BaseTimeEntity
 import dailyquest.user.entity.UserInfo
 import jakarta.persistence.*
 
-@Table(name = "achievement_log")
+@Table(name = "achievement_achieve_log")
 @Entity
-class AchievementLog(
+class AchievementAchieveLog(
     achievement: Achievement,
     user: UserInfo,
 ): BaseTimeEntity() {
 
     @Id @GeneratedValue
-    @Column(name = "achievement_log_id")
+    @Column(name = "achievement_achieve_log_id")
     val id: Long = 0
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -24,8 +24,8 @@ class AchievementLog(
     val user: UserInfo = user
 
     companion object {
-        fun of(achievement: Achievement, user: UserInfo): AchievementLog {
-            return AchievementLog(achievement, user)
+        fun of(achievement: Achievement, user: UserInfo): AchievementAchieveLog {
+            return AchievementAchieveLog(achievement, user)
         }
     }
 

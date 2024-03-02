@@ -5,7 +5,7 @@ import dailyquest.achievement.dto.AchievementRequest
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.achievement.service.AchievementCommandService
-import dailyquest.achievement.service.AchievementLogCommandService
+import dailyquest.achievement.service.AchievementAchieveLogCommandService
 import dailyquest.achievement.service.AchievementQueryService
 import dailyquest.achievement.util.AchievementCurrentValueResolver
 import dailyquest.common.MessageUtil
@@ -25,7 +25,7 @@ class AchievementCommandServiceUnitTest {
     @RelaxedMockK
     lateinit var achievementQueryService: AchievementQueryService
     @RelaxedMockK
-    lateinit var achievementLogService: AchievementLogCommandService
+    lateinit var achieveLogCommandService: AchievementAchieveLogCommandService
     @RelaxedMockK
     lateinit var achievementCurrentValueResolver: AchievementCurrentValueResolver
     @RelaxedMockK
@@ -60,7 +60,7 @@ class AchievementCommandServiceUnitTest {
             achievementCommandService.checkAndAchieveAchievement(achieveRequest)
 
             //then
-            verify { achievementLogService.achieve(eq(targetAchievement), any()) }
+            verify { achieveLogCommandService.achieve(eq(targetAchievement), any()) }
         }
 
         @DisplayName("업적 달성 가능 여부가 false면 achieve가 호출되지 않는다")
@@ -73,7 +73,7 @@ class AchievementCommandServiceUnitTest {
             achievementCommandService.checkAndAchieveAchievement(achieveRequest)
 
             //then
-            verify { achievementLogService wasNot Called }
+            verify { achieveLogCommandService wasNot Called }
         }
     }
 

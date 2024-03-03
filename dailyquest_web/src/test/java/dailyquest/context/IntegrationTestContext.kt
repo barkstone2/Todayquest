@@ -22,9 +22,9 @@ import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.filter.CharacterEncodingFilter
 
 open class IntegrationTestContext(
-    private val context: WebApplicationContext,
-    private val userRepository: UserRepository,
-    private val jwtTokenProvider: JwtTokenProvider,
+    protected val context: WebApplicationContext,
+    protected val userRepository: UserRepository,
+    protected val jwtTokenProvider: JwtTokenProvider,
 ) {
     companion object {
         const val SERVER_ADDR = "http://localhost:"
@@ -34,10 +34,13 @@ open class IntegrationTestContext(
     @LocalServerPort
     var port = 0
 
-    lateinit var mvc: MockMvc
-    private lateinit var userToken: Cookie
-    private lateinit var anotherUserToken: Cookie
-    private lateinit var adminToken: Cookie
+    protected lateinit var mvc: MockMvc
+    protected lateinit var userToken: Cookie
+    protected lateinit var anotherUserToken: Cookie
+    protected lateinit var adminToken: Cookie
+    protected lateinit var user: UserInfo
+    protected lateinit var anotherUser: UserInfo
+    protected lateinit var admin: UserInfo
 
     @BeforeEach
     fun baseSetup() {
@@ -47,22 +50,22 @@ open class IntegrationTestContext(
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
 
-        val user = UserInfo("user", "user", ProviderType.GOOGLE)
-        val anotherUser = UserInfo("anotherUser", "anotherUser", ProviderType.GOOGLE)
-        val admin = UserInfo("admin", "admin", ProviderType.GOOGLE)
+        user = UserInfo("user", "user", ProviderType.GOOGLE)
+        anotherUser = UserInfo("anotherUser", "anotherUser", ProviderType.GOOGLE)
+        admin = UserInfo("admin", "admin", ProviderType.GOOGLE)
         admin.role = RoleType.ADMIN
 
-        val savedUser = userRepository.save(user)
-        val savedAnotherUser = userRepository.save(anotherUser)
-        val savedAdmin = userRepository.save(admin)
+        user = userRepository.save(user)
+        anotherUser = userRepository.save(anotherUser)
+        admin = userRepository.save(admin)
 
-        val userAccessToken = jwtTokenProvider.createAccessToken(savedUser.id)
+        val userAccessToken = jwtTokenProvider.createAccessToken(user.id)
         userToken = jwtTokenProvider.createAccessTokenCookie(userAccessToken)
 
-        val anotherUserAccessToken = jwtTokenProvider.createAccessToken(savedAnotherUser.id)
+        val anotherUserAccessToken = jwtTokenProvider.createAccessToken(anotherUser.id)
         anotherUserToken = jwtTokenProvider.createAccessTokenCookie(anotherUserAccessToken)
 
-        val adminAccessToken = jwtTokenProvider.createAccessToken(savedAdmin.id)
+        val adminAccessToken = jwtTokenProvider.createAccessToken(admin.id)
         adminToken = jwtTokenProvider.createAccessTokenCookie(adminAccessToken)
     }
 

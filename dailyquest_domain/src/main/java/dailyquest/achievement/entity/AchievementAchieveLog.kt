@@ -1,6 +1,6 @@
 package dailyquest.achievement.entity
 
-import dailyquest.common.BaseTimeEntity
+import dailyquest.common.CreatedTimeEntity
 import dailyquest.user.entity.UserInfo
 import jakarta.persistence.*
 
@@ -9,9 +9,9 @@ import jakarta.persistence.*
 class AchievementAchieveLog(
     achievement: Achievement,
     user: UserInfo,
-): BaseTimeEntity() {
+): CreatedTimeEntity() {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "achievement_achieve_log_id")
     val id: Long = 0
 

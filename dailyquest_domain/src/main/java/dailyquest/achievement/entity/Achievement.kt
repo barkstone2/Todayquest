@@ -1,10 +1,7 @@
 package dailyquest.achievement.entity
 
 import dailyquest.common.BaseTimeEntity
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.Id
+import jakarta.persistence.*
 
 @Entity
 class Achievement(
@@ -14,7 +11,7 @@ class Achievement(
     targetValue: Int,
 ): BaseTimeEntity() {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "achievement_id")
     val id: Long = 0
 
@@ -24,6 +21,7 @@ class Achievement(
     @Column(nullable = false)
     val description: String = description
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     val type: AchievementType = type
 

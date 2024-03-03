@@ -31,6 +31,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final SecurityUrlProperties securityUrlProperties;
 
     @Override
+    protected boolean shouldNotFilterAsyncDispatch() {
+        return false;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestUri = request.getRequestURI();
 

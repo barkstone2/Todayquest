@@ -1,5 +1,6 @@
 package dailyquest.notification.entity
 
+import dailyquest.common.CreatedTimeEntity
 import dailyquest.user.entity.UserInfo
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -11,7 +12,7 @@ class Notification(
     title: String,
     content: String = "",
     metadata: String = "",
-) {
+): CreatedTimeEntity() {
 
     @Column(name = "notification_id")
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,9 +40,6 @@ class Notification(
 
     @Column(name = "deleted_date", insertable = false)
     var deletedDate: LocalDateTime? = null
-
-    @Column(name = "created_date", nullable = false, updatable = false)
-    val createdDate: LocalDateTime = LocalDateTime.now()
 
     fun confirmNotification() {
         this.confirmedDate = LocalDateTime.now()

@@ -6,7 +6,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event
 import java.util.concurrent.ConcurrentHashMap
 
-@Async
 @Service
 class SseService {
     private val sseEmitters = ConcurrentHashMap<Long, SseEmitter>()
@@ -17,6 +16,7 @@ class SseService {
         return sseEmitter
     }
 
+    @Async
     fun sendNotificationEvent(userId: Long) {
         val sseEmitter = this.getEmitter(userId)
         sseEmitter?.send(event().name("notification").data(""))

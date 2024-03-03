@@ -24,7 +24,5 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
             "on al.user.id = :userId and al.achievement.id = a.id " +
             "where a.type = :type")
     fun getAchievementsWithAchieveInfo(@Param("type") type: AchievementType, @Param("userId") userId: Long): List<AchievementResponse>
-
-    // TODO 확실한 제약을 부여하려면 유니크 키 제약조건도 설정해야 한다.
     fun existsByTypeAndTargetValue(type: AchievementType, targetValue: Int): Boolean
 }

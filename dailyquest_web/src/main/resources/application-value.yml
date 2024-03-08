@@ -2,6 +2,10 @@ quest:
   page:
     size: 20
 
+notification:
+  page:
+    size: 10
+
 security:
   url:
     allowed_url: ["/", "/css/**", "/js/**", "/image/**", "/error", "/api/v1/auth/**"]

@@ -40,7 +40,7 @@ class NotificationApiController @Autowired constructor(
         return ResponseEntity.ok(ResponseData.of(activeNotificationsOfUser))
     }
 
-    @PatchMapping("/{notificationId}")
+    @PatchMapping("/{notificationId}/confirm")
     fun confirmNotification(
         @AuthenticationPrincipal principal: UserPrincipal,
         @PathVariable notificationId: Long,
@@ -55,4 +55,18 @@ class NotificationApiController @Autowired constructor(
         notificationService.confirmAllNotifications(principal.id)
     }
 
+    @PatchMapping("/{notificationId}/delete")
+    fun deleteNotification(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @PathVariable notificationId: Long,
+    ) {
+        notificationService.deleteNotification(notificationId, principal.id)
+    }
+
+    @PatchMapping("/delete-all")
+    fun deleteAllNotifications(
+        @AuthenticationPrincipal principal: UserPrincipal,
+    ) {
+        notificationService.deleteAllNotifications(principal.id)
+    }
 }

@@ -40,4 +40,16 @@ class NotificationService @Autowired constructor(
         notificationCommandService.confirmAllNotifications(userId)
         sseService.sendNotificationEvent(userId)
     }
+
+    @Async
+    fun deleteNotification(notificationId: Long, userId: Long) {
+        notificationCommandService.deleteNotification(notificationId, userId)
+        sseService.sendNotificationEvent(userId)
+    }
+
+    @Async
+    fun deleteAllNotifications(userId: Long) {
+        notificationCommandService.deleteAllNotifications(userId)
+        sseService.sendNotificationEvent(userId)
+    }
 }

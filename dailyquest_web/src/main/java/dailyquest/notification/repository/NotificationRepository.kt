@@ -12,4 +12,8 @@ interface NotificationRepository: JpaRepository<Notification, Long>, Notificatio
     @Modifying(clearAutomatically = true)
     @Query("update Notification n set n.confirmedDate = now() where n.user.id = :userId and n.confirmedDate is null and n.deletedDate is null")
     fun confirmAllNotifications(@Param("userId") userId: Long)
+
+    @Modifying(clearAutomatically = true)
+    @Query("update Notification n set n.deletedDate = now() where n.user.id = :userId and n.deletedDate is null")
+    fun deleteAllNotifications(@Param("userId") userId: Long)
 }

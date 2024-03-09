@@ -3,7 +3,7 @@ package dailyquest.sse
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.*
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event
 import java.util.concurrent.ConcurrentHashMap
 
 @Async

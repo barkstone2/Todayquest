@@ -7,6 +7,7 @@ import dailyquest.notification.entity.NotificationType
 import java.time.LocalDateTime
 
 class NotificationResponse private constructor(
+    val id: Long,
     val title: String,
     val content: String,
     val type: NotificationType,
@@ -18,13 +19,13 @@ class NotificationResponse private constructor(
         @JvmStatic
         fun from(notification: Notification, objectMapper: ObjectMapper): NotificationResponse {
             val metadataMap: Map<String, String> = objectMapper.readValue(notification.metadata)
-            return NotificationResponse(notification.title, notification.content, notification.type, notification.createdDate, metadataMap, notification.confirmedDate)
+            return NotificationResponse(notification.id, notification.title, notification.content, notification.type, notification.createdDate, metadataMap, notification.confirmedDate)
         }
 
         @JvmStatic
-        fun of(title: String, content: String, type: NotificationType, createdDate: LocalDateTime, metadata: String, objectMapper: ObjectMapper, confirmedDate: LocalDateTime? = null): NotificationResponse {
+        fun of(id: Long, title: String, content: String, type: NotificationType, createdDate: LocalDateTime, metadata: String, objectMapper: ObjectMapper, confirmedDate: LocalDateTime? = null): NotificationResponse {
             val metadataMap: Map<String, String> = objectMapper.readValue(metadata)
-            return NotificationResponse(title, content, type, createdDate, metadataMap, confirmedDate)
+            return NotificationResponse(id, title, content, type, createdDate, metadataMap, confirmedDate)
         }
     }
 }

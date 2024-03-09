@@ -30,4 +30,13 @@ class NotificationCommandService @Autowired constructor(
     fun confirmAllNotifications(userId: Long) {
         notificationRepository.confirmAllNotifications(userId)
     }
+
+    fun deleteNotification(notificationId: Long, userId: Long) {
+        val notification = notificationRepository.getNotificationByIdAndUserId(notificationId, userId)
+        notification?.deleteNotification()
+    }
+
+    fun deleteAllNotifications(userId: Long) {
+        notificationRepository.deleteAllNotifications(userId)
+    }
 }

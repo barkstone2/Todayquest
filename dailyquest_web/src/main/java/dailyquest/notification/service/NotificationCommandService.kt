@@ -5,11 +5,9 @@ import dailyquest.notification.dto.NotificationSaveRequest
 import dailyquest.notification.repository.NotificationRepository
 import dailyquest.user.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-@Async
 @Transactional
 @Service
 class NotificationCommandService @Autowired constructor(
@@ -22,5 +20,14 @@ class NotificationCommandService @Autowired constructor(
         val userReference = userRepository.getReferenceById(userId)
         val saveEntity = saveRequest.mapToEntity(userReference, objectMapper)
         notificationRepository.save(saveEntity)
+    }
+
+    fun confirmNotification(notificationId: Long, userId: Long) {
+        val notification = notificationRepository.getNotificationByIdAndUserId(notificationId, userId)
+        notification?.confirmNotification()
+    }
+
+    fun confirmAllNotifications(userId: Long) {
+        notificationRepository.confirmAllNotifications(userId)
     }
 }

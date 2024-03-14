@@ -20,7 +20,7 @@ class AchievementAchieveLog(
     val achievement: Achievement = achievement
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", foreignKey = ForeignKey(ConstraintMode.NO_CONSTRAINT))
     val user: UserInfo = user
 
     companion object {

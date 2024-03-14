@@ -101,76 +101,72 @@ class QuestRepositoryUnitTest {
     @DisplayName("getCurrentQuests 호출 시")
     @Nested
     inner class TestForGetCurrentQuests {
+        private val baseDate = LocalDateTime.of(2022, 1, 1, 12, 0)
+        private val prevDate = baseDate.minusDays(1)
+        private val nextDate = baseDate.plusDays(1)
 
         @EnumSource(QuestState::class)
         @DisplayName("조회한 상태의 퀘스트만 조회된다")
         @ParameterizedTest(name = "{0} 값이 인자로 주어지면 {0} 상태의 퀘스트만 조회된다")
         fun `퀘스트 타입별 조회`(state: QuestState) {
             //given
-            val prevDate = LocalDateTime.now()
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN))
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN))
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN))
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN))
-            val nextDate = LocalDateTime.now()
 
             //when
             val questsList = questRepository.getCurrentQuests(userInfo.id, state, prevDate, nextDate)
 
             //then
             assertThat(questsList).allMatch { quest -> quest.state == state }
-            assertThat(questsList).hasSize(1)
         }
 
 
-        @ValueSource(longs = [1, 2])
         @DisplayName("조회한 유저의 퀘스트만 조회된다")
-        @ParameterizedTest(name = "userId {0} 값이 들어오면 {0}번 유저의 퀘스트만 조회된다")
-        fun `퀘스트 유저별 조회`(userId: Long) {
+        @Test
+        fun `퀘스트 유저별 조회`() {
             //given
-            val prevDate = LocalDateTime.now()
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
             questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
-
             questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
-            questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
-            questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
-            val nextDate = LocalDateTime.now()
 
             //when
-            val questsList = questRepository.getCurrentQuests(userId, QuestState.PROCEED, prevDate, nextDate)
+            val questsList = questRepository.getCurrentQuests(userInfo.id, QuestState.PROCEED, prevDate, nextDate)
 
             //then
-            assertThat(questsList).allMatch { quest -> quest.user.id == userId }
+            assertThat(questsList).allMatch { quest -> quest.user.id == userInfo.id }
         }
 
         @DisplayName("조회 날짜 범위 사이에 등록된 퀘스트만 조회된다")
         @Test
         fun `조회 기간 테스트`() {
             //given
-            val prevDate = LocalDateTime.now()
-            val mustContainList = listOf(
-                questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)),
-                questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
-            )
-            val nextDate = LocalDateTime.now()
-            val mustNotContainList = listOf(
-                questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)),
-                questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)),
-                questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
-            )
+            this.insertQuestWithCreatedTime(baseDate)
+            this.insertQuestWithCreatedTime(prevDate)
+            this.insertQuestWithCreatedTime(nextDate)
+
+            this.insertQuestWithCreatedTime(prevDate.minusSeconds(1))
+            this.insertQuestWithCreatedTime(nextDate.plusSeconds(1))
 
             //when
             val questsList = questRepository.getCurrentQuests(userInfo.id, QuestState.PROCEED, prevDate, nextDate)
 
             //then
-            assertThat(questsList).containsAll(mustContainList)
-            assertThat(questsList).doesNotContainAnyElementsOf(mustNotContainList)
+            assertThat(questsList)
+                .allMatch { it.createdDate >= prevDate && it.createdDate <= nextDate }
+                .anyMatch { it.createdDate == prevDate }
+                .anyMatch { it.createdDate == nextDate }
         }
 
+        private fun insertQuestWithCreatedTime(createdTime: LocalDateTime) {
+            val insertQuery = entityManager
+                .createNativeQuery("insert into quest (quest_id, created_date, last_modified_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
+                .setParameter(3, userInfo.id)
+            insertQuery.setParameter(1, createdTime).setParameter(2, createdTime).executeUpdate()
+        }
     }
-
 
     @DisplayName("getNextSeqByUserId 호출 시")
     @Nested

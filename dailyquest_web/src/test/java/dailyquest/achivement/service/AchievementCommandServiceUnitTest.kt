@@ -3,6 +3,7 @@ package dailyquest.achivement.service
 import dailyquest.achievement.dto.AchievementAchieveRequest
 import dailyquest.achievement.dto.AchievementRequest
 import dailyquest.achievement.entity.Achievement
+import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.achievement.service.AchievementCommandService
 import dailyquest.achievement.service.AchievementAchieveLogCommandService
@@ -72,6 +73,19 @@ class AchievementCommandServiceUnitTest {
             //then
             verify { achieveLogCommandService wasNot Called }
         }
+
+        @DisplayName("달성하지 않은 업적 조회 결과가 null이면 EMPTY 타입의 업적이 반환된다")
+        @Test
+        fun `달성하지 않은 업적 조회 결과가 null이면 EMPTY 타입의 업적이 반환된다`() {
+            //given
+            every { achievementRepository.findNotAchievedAchievement(any(), any()) } returns null
+
+            //when
+            achievementCommandService.checkAndAchieveAchievement(achieveRequest)
+
+            //then
+            verify { achievementCurrentValueResolver.resolveCurrentValue(any(), match { it.type == AchievementType.EMPTY }) }
+        }
     }
 
     @DisplayName("업적 신규 등록 시")
@@ -88,9 +102,9 @@ class AchievementCommandServiceUnitTest {
             every { achievementRepository.save(any()) } answers { nothing }
         }
 
-        @DisplayName("타입과 목표값이 모두 동일한 업적이 있다면 예외를 던진다")
+        @DisplayName("중복 검사 결과가 true면 예외를 던진다")
         @Test
-        fun `타입과 목표값이 모두 동일한 업적이 있다면 예외를 던진다`() {
+        fun `중복 검사 결과가 true면 예외를 던진다`() {
             //given
             every { achievementRepository.existsByTypeAndTargetValue(any(), any()) } returns true
 
@@ -99,9 +113,9 @@ class AchievementCommandServiceUnitTest {
             assertThrows<IllegalStateException> { achievementCommandService.saveAchievement(saveRequest) }
         }
 
-        @DisplayName("타입과 목표값이 모두 동일한 업적이 없다면 업적을 저장한다")
+        @DisplayName("중복 검사 결과가 false면 업적을 저장한다")
         @Test
-        fun `타입과 목표값이 모두 동일한 업적이 없다면 업적을 저장한다`() {
+        fun `중복 검사 결과가 false면 업적을 저장한다`() {
             //given
             every { achievementRepository.existsByTypeAndTargetValue(any(), any()) } returns false
 

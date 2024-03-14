@@ -3,7 +3,7 @@ package dailyquest.achivement.util
 import dailyquest.achievement.dto.AchievementAchieveRequest
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
-import dailyquest.achievement.util.AchievementCurrentValueResolver
+import dailyquest.achievement.util.AchievementCurrentValueResolverWeb
 import dailyquest.log.gold.earn.service.GoldEarnLogService
 import dailyquest.quest.service.QuestLogService
 import dailyquest.user.service.UserService
@@ -23,7 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 class AchievementCurrentValueResolverUnitTest {
 
     @InjectMockKs
-    lateinit var achievementCurrentValueResolver: AchievementCurrentValueResolver
+    lateinit var achievementCurrentValueResolver: AchievementCurrentValueResolverWeb
 
     @RelaxedMockK
     lateinit var questLogService: QuestLogService

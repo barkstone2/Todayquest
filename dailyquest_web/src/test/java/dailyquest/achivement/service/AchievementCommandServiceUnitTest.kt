@@ -7,7 +7,7 @@ import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.achievement.service.AchievementCommandService
 import dailyquest.achievement.service.AchievementAchieveLogCommandService
-import dailyquest.achievement.util.AchievementCurrentValueResolver
+import dailyquest.achievement.util.AchievementCurrentValueResolverWeb
 import dailyquest.common.MessageUtil
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
@@ -25,7 +25,7 @@ class AchievementCommandServiceUnitTest {
     @RelaxedMockK
     lateinit var achieveLogCommandService: AchievementAchieveLogCommandService
     @RelaxedMockK
-    lateinit var achievementCurrentValueResolver: AchievementCurrentValueResolver
+    lateinit var achievementCurrentValueResolver: AchievementCurrentValueResolverWeb
     @RelaxedMockK
     lateinit var achievementRepository: AchievementRepository
 

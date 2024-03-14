@@ -18,10 +18,12 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.filter.CharacterEncodingFilter
 
-open class IntegrationTestContext(
+@Transactional
+class IntegrationTestContext(
     protected val context: WebApplicationContext,
     protected val userRepository: UserRepository,
     protected val jwtTokenProvider: JwtTokenProvider,

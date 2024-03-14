@@ -21,11 +21,9 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
 @DisplayName("관리자 API 컨트롤러 통합 테스트")
-@Transactional
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdminApiControllerTest @Autowired constructor(
     context: WebApplicationContext,
@@ -72,7 +70,7 @@ class AdminApiControllerTest @Autowired constructor(
             //then
             val body = request
                 .andExpect(status().isOk)
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andReturn()
                 .response
                 .contentAsString
@@ -165,7 +163,7 @@ class AdminApiControllerTest @Autowired constructor(
             //then
             val body = request
                 .andExpect(status().isOk)
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andReturn()
                 .response
                 .contentAsString

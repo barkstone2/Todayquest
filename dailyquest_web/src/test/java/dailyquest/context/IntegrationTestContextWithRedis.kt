@@ -14,7 +14,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @Testcontainers
 @ExtendWith(MockKExtension::class)
 @Import(MockElasticsearchTestContextConfig::class)
-open class IntegrationTestContextWithRedis(
+class IntegrationTestContextWithRedis(
     context: WebApplicationContext,
     userRepository: UserRepository,
     jwtTokenProvider: JwtTokenProvider,

@@ -22,11 +22,11 @@ class AchieveNotificationSaveRequestUnitTest {
     @Test
     fun `메타데이터 요청 시 id와 타입 정보가 반환된다`() {
         //given
-        val saveRequest = AchieveNotificationSaveRequest.of(userId, achievement)
         val achievementId = 1L
-        every { achievement.id } returns achievementId
         val achievementType = AchievementType.EMPTY
+        every { achievement.id } returns achievementId
         every { achievement.type } returns achievementType
+        val saveRequest = AchieveNotificationSaveRequest.of(userId, achievement)
 
         //when
         val metadata = saveRequest.createNotificationMetadata()

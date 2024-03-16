@@ -1,14 +1,9 @@
-package dailyquest.achivement.repository
+package dailyquest.achievement.repository
 
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.entity.AchievementType.*
-import dailyquest.achievement.repository.AchievementAchieveLogRepository
-import dailyquest.achievement.repository.AchievementRepository
-import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.UserInfo
-import dailyquest.user.repository.UserRepository
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -29,9 +24,6 @@ class AchievementRepositoryUnitTest {
 
     @Autowired
     private lateinit var achieveLogRepository: AchievementAchieveLogRepository
-
-    @Autowired
-    private lateinit var userRepository: UserRepository
 
     @DisplayName("findNotAchievedAchievement 호출 시")
     @Nested
@@ -86,8 +78,7 @@ class AchievementRepositoryUnitTest {
             val notAchievedAchievement = Achievement("", "", type, 1)
             achievementRepository.save(achievedAchievement)
             achievementRepository.save(notAchievedAchievement)
-            val userReference = userRepository.getReferenceById(userId)
-            achieveLogRepository.save(AchievementAchieveLog.of(achievedAchievement, userReference))
+            achieveLogRepository.save(AchievementAchieveLog.of(achievedAchievement, userId))
 
             //when
             val result = achievementRepository.findNotAchievedAchievement(type, userId)
@@ -104,8 +95,7 @@ class AchievementRepositoryUnitTest {
             val userId = 1L
             val achievedAchievementByOther = Achievement("", "", type, 1)
             achievementRepository.save(achievedAchievementByOther)
-            val userReference = userRepository.getReferenceById(2L)
-            achieveLogRepository.save(AchievementAchieveLog.of(achievedAchievementByOther, userReference))
+            achieveLogRepository.save(AchievementAchieveLog.of(achievedAchievementByOther, userId + 1))
 
             //when
             val result = achievementRepository.findNotAchievedAchievement(type, userId)
@@ -124,8 +114,7 @@ class AchievementRepositoryUnitTest {
             val notAchievedAchievement = Achievement("", "", type, 10)
             achievementRepository.save(achievedAchievement)
             achievementRepository.save(notAchievedAchievement)
-            val userReference = userRepository.getReferenceById(userId)
-            achieveLogRepository.save(AchievementAchieveLog.of(achievedAchievement, userReference))
+            achieveLogRepository.save(AchievementAchieveLog.of(achievedAchievement, userId))
 
             //when
             val result = achievementRepository.findNotAchievedAchievement(type, userId)
@@ -144,8 +133,7 @@ class AchievementRepositoryUnitTest {
             val notAchievedAchievement = Achievement("", "", type, 1)
             achievementRepository.save(achievedAchievement)
             achievementRepository.save(notAchievedAchievement)
-            val userReference = userRepository.getReferenceById(userId)
-            achieveLogRepository.save(AchievementAchieveLog.of(achievedAchievement, userReference))
+            achieveLogRepository.save(AchievementAchieveLog.of(achievedAchievement, userId))
 
             //when
             val result = achievementRepository.findNotAchievedAchievement(type, userId)
@@ -162,8 +150,7 @@ class AchievementRepositoryUnitTest {
             val userId = 1L
             val achievedAchievement = Achievement("", "", type, 1)
             achievementRepository.save(achievedAchievement)
-            val userReference = userRepository.getReferenceById(userId)
-            achieveLogRepository.save(AchievementAchieveLog.of(achievedAchievement, userReference))
+            achieveLogRepository.save(AchievementAchieveLog.of(achievedAchievement, userId))
 
             //when
             val result = achievementRepository.findNotAchievedAchievement(type, userId)
@@ -194,7 +181,6 @@ class AchievementRepositoryUnitTest {
     @DisplayName("getAchievementsWithAchieveInfo 호출 시")
     @Nested
     inner class TestGetAchievementsWithAchieveInfo {
-        private lateinit var user: UserInfo
         private lateinit var achievementMapByType: MutableMap<AchievementType, Achievement>
 
         @BeforeEach
@@ -205,7 +191,6 @@ class AchievementRepositoryUnitTest {
                 achievementRepository.save(achievement)
                 achievementMapByType[it] = achievement
             }
-            user = userRepository.save(UserInfo("user", "nick", ProviderType.GOOGLE))
         }
 
         @DisplayName("요청 타입에 해당하는 업적만 조회된다")
@@ -215,7 +200,7 @@ class AchievementRepositoryUnitTest {
             val achievementType = QUEST_REGISTRATION
 
             //when
-            val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, user.id)
+            val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, 1L)
 
             //then
             assertThat(achievements).isNotEmpty.allMatch { it.type == achievementType }
@@ -226,10 +211,10 @@ class AchievementRepositoryUnitTest {
         fun `완료한 업적은 완료 상태로 표시되고 달성 날짜가 포함된다`() {
             //given
             val achievementType = QUEST_REGISTRATION
-            achieveLogRepository.save(AchievementAchieveLog(achievementMapByType[achievementType]!!, user))
+            achieveLogRepository.save(AchievementAchieveLog(achievementMapByType[achievementType]!!, 1L))
 
             //when
-            val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, user.id)
+            val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, 1L)
 
             //then
             assertThat(achievements).isNotEmpty.allMatch { it.isAchieved && it.achievedDate != null }
@@ -240,7 +225,7 @@ class AchievementRepositoryUnitTest {
         fun `달성하지 않은 업적은 달성 여부가 false이고 달성 날짜가 null이다`() {
             //given
             //when
-            val achievements = achievementRepository.getAchievementsWithAchieveInfo(QUEST_REGISTRATION, user.id)
+            val achievements = achievementRepository.getAchievementsWithAchieveInfo(QUEST_REGISTRATION, 1L)
 
             //then
             assertThat(achievements).isNotEmpty.allMatch { !it.isAchieved && it.achievedDate == null }
@@ -251,10 +236,11 @@ class AchievementRepositoryUnitTest {
         fun `다른 유저가 달성한 업적이라도 현재 유저가 달성하지 않았다면 미달성으로 표시된다`() {
             //given
             val achievementType = QUEST_REGISTRATION
-            achieveLogRepository.save(AchievementAchieveLog(achievementMapByType[achievementType]!!, user))
+            val userId = 1L
+            achieveLogRepository.save(AchievementAchieveLog(achievementMapByType[achievementType]!!, userId))
 
             //when
-            val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, user.id+1)
+            val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, userId +1)
 
             //then
             assertThat(achievements).isNotEmpty.allMatch { !it.isAchieved && it.achievedDate == null }

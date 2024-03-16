@@ -12,6 +12,7 @@ plugins {
 
 // application dependency
 dependencies {
+	implementation(project(":achievement"))
 	// 개발 환경 런타임
 	runtimeOnly('mysql:mysql-connector-java')
 	// 운영 환경 런타임
@@ -64,6 +65,10 @@ dependencies {
 
 	// 코틀린 멀티 스레드 테스트를 위한 코루틴
 	testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+}
+
+test {
+	dependsOn(":achievement:test")
 }
 
 // plain jar disabled

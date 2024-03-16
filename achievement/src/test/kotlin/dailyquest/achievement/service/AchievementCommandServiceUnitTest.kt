@@ -1,20 +1,18 @@
-package dailyquest.achivement.service
+package dailyquest.achievement.service
 
 import dailyquest.achievement.dto.AchievementAchieveRequest
 import dailyquest.achievement.dto.AchievementRequest
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
-import dailyquest.achievement.service.AchievementCommandService
-import dailyquest.achievement.service.AchievementAchieveLogCommandService
-import dailyquest.achievement.util.AchievementCurrentValueResolverWeb
-import dailyquest.common.MessageUtil
+import dailyquest.achievement.util.AchievementCurrentValueResolver
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.context.MessageSource
 
 @ExtendWith(MockKExtension::class)
 @DisplayName("업적 커맨드 서비스 단위 테스트")
@@ -25,9 +23,11 @@ class AchievementCommandServiceUnitTest {
     @RelaxedMockK
     lateinit var achieveLogCommandService: AchievementAchieveLogCommandService
     @RelaxedMockK
-    lateinit var achievementCurrentValueResolver: AchievementCurrentValueResolverWeb
+    lateinit var achievementCurrentValueResolver: AchievementCurrentValueResolver
     @RelaxedMockK
     lateinit var achievementRepository: AchievementRepository
+    @RelaxedMockK
+    lateinit var messageSource: MessageSource
 
     @DisplayName("업적 확인 후 달성 요청 시")
     @Nested
@@ -97,8 +97,6 @@ class AchievementCommandServiceUnitTest {
 
         @BeforeEach
         fun init() {
-            mockkStatic(MessageUtil::class)
-            every { MessageUtil.getMessage(any()) } returns ""
             every { achievementRepository.save(any()) } answers { nothing }
         }
 

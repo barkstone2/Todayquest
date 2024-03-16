@@ -11,7 +11,7 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
     @Query("select a " +
             "from Achievement a " +
             "left join AchievementAchieveLog al " +
-            "on al.user.id = :userId and al.achievement.id = a.id " +
+            "on al.userId = :userId and al.achievement.id = a.id " +
             "where a.type = :type and al.achievement.id is null " +
             "order by a.targetValue " +
             "limit 1")
@@ -21,7 +21,7 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
     @Query("select new dailyquest.achievement.dto.AchievementResponse(a.title, a.description, a.type, a.targetValue, (al.id is not null), al.createdDate) " +
             "from Achievement a " +
             "left join AchievementAchieveLog al " +
-            "on al.user.id = :userId and al.achievement.id = a.id " +
+            "on al.userId = :userId and al.achievement.id = a.id " +
             "where a.type = :type")
     fun getAchievementsWithAchieveInfo(@Param("type") type: AchievementType, @Param("userId") userId: Long): List<AchievementResponse>
     fun existsByTypeAndTargetValue(type: AchievementType, targetValue: Int): Boolean

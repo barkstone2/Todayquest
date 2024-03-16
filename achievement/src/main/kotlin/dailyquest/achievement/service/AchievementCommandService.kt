@@ -5,8 +5,9 @@ import dailyquest.achievement.dto.AchievementRequest
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.achievement.util.AchievementCurrentValueResolver
-import dailyquest.common.MessageUtil
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.MessageSource
+import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -17,7 +18,9 @@ class AchievementCommandService @Autowired constructor(
     private val achieveLogCommandService: AchievementAchieveLogCommandService,
     private val achievementCurrentValueResolver: AchievementCurrentValueResolver,
     private val achievementRepository: AchievementRepository,
+    messageSource: MessageSource
 ) {
+    private val messageSourceAccessor: MessageSourceAccessor = MessageSourceAccessor(messageSource)
 
     @Async
     fun checkAndAchieveAchievement(achieveRequest: AchievementAchieveRequest) {
@@ -44,5 +47,7 @@ class AchievementCommandService @Autowired constructor(
         return saveEntity.id
     }
 
-    private fun getDuplicateErrorMessage(): String = MessageUtil.getMessage("achievement.duplicated")
+    private fun getDuplicateErrorMessage(): String {
+        return messageSourceAccessor.getMessage("achievement.duplicated")
+    }
 }

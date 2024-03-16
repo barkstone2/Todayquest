@@ -1,4 +1,4 @@
-package dailyquest.achivement.service
+package dailyquest.achievement.service
 
 import dailyquest.achievement.dto.AchievementResponse
 import dailyquest.achievement.entity.AchievementType

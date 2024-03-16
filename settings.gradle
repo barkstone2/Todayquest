@@ -5,3 +5,4 @@ include 'dailyquest_batch'
 include 'dailyquest_domain'
 include 'dailyquest_elastic'
 include ("achievement")
+include 'jpa-common'

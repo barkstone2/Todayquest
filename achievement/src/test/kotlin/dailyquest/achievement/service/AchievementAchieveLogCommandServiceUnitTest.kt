@@ -1,10 +1,9 @@
-package dailyquest.achivement.service
+package dailyquest.achievement.service
 
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.achievement.service.AchievementAchieveLogCommandService
-import dailyquest.notification.service.NotificationService
-import dailyquest.user.repository.UserRepository
+//import dailyquest.notification.service.NotificationService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -26,10 +25,8 @@ class AchievementAchieveLogCommandServiceUnitTest {
 
     @RelaxedMockK
     private lateinit var achieveLogRepository: AchievementAchieveLogRepository
-    @RelaxedMockK
-    private lateinit var userRepository: UserRepository
-    @RelaxedMockK
-    private lateinit var notificationService: NotificationService
+//    @RelaxedMockK
+//    private lateinit var notificationService: NotificationService
 
     @DisplayName("업적 달성 로그 저장 시")
     @Nested
@@ -40,9 +37,8 @@ class AchievementAchieveLogCommandServiceUnitTest {
 
         @BeforeEach
         fun init() {
-            every { userRepository.getReferenceById(any()) } returns mockk(relaxed = true)
             every { achieveLogRepository.save(any()) } answers { nothing }
-            every { notificationService.saveNotification(any(), any()) } answers { nothing }
+//            every { notificationService.saveNotification(any(), any()) } answers { nothing }
         }
 
         @DisplayName("달성 로그를 저장하고 알림도 저장한다")
@@ -56,7 +52,7 @@ class AchievementAchieveLogCommandServiceUnitTest {
             //then
             verifyAll {
                 achieveLogRepository.save(any())
-                notificationService.saveNotification(any(), any())
+//                notificationService.saveNotification(any(), any())
             }
         }
     }

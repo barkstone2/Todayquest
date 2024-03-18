@@ -1,6 +1,5 @@
 package dailyquest.achievement.service
 
-import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.achievement.repository.AchievementRepository
@@ -16,8 +15,8 @@ class AchievementAchieveLogCommandService(
     private val achievementRepository: AchievementRepository,
     private val notificationService: NotificationService
 ) {
-
-    fun achieve(achievedAchievement: Achievement, userId: Long) {
+    fun saveAchieveLog(achievementId: Long, userId: Long) {
+        val achievedAchievement = achievementRepository.getReferenceById(achievementId)
         val achieveLog = AchievementAchieveLog.of(achievedAchievement, userId)
         achieveLogRepository.save(achieveLog)
 

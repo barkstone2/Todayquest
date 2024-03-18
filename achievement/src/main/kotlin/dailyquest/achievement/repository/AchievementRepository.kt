@@ -18,11 +18,12 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
     fun findNotAchievedAchievement(@Param("type") type: AchievementType, @Param("userId") userId: Long): Achievement?
 
 
-    @Query("select new dailyquest.achievement.dto.AchievementResponse(a.title, a.description, a.type, a.targetValue, (al.id is not null), al.createdDate) " +
+    @Query("select new dailyquest.achievement.dto.AchievementResponse(a.id, a.title, a.description, a.type, a.targetValue, (al.id is not null), al.createdDate) " +
             "from Achievement a " +
             "left join AchievementAchieveLog al " +
             "on al.userId = :userId and al.achievement.id = a.id " +
             "where a.type = :type")
     fun getAchievementsWithAchieveInfo(@Param("type") type: AchievementType, @Param("userId") userId: Long): List<AchievementResponse>
     fun existsByTypeAndTargetValue(type: AchievementType, targetValue: Int): Boolean
+    fun getAllByType(type: AchievementType): List<Achievement>
 }

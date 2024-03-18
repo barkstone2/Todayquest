@@ -19,4 +19,10 @@ class AchievementQueryService(
         return achievementRepository.getAchievementsWithAchieveInfo(type, userId)
             .sortedWith(achievedDateNullLastAscThenTargetValueAsc)
     }
+
+    fun getAllAchievementsOfType(type: AchievementType): List<AchievementResponse> {
+        val achievements = achievementRepository.getAllByType(type)
+        val sortedAchievements = achievements.sortedBy { it.targetValue }
+        return sortedAchievements.map { AchievementResponse.from(it) }
+    }
 }

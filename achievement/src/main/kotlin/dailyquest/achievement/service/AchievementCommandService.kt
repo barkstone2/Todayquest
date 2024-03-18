@@ -27,7 +27,7 @@ class AchievementCommandService @Autowired constructor(
         val targetAchievement = this.getNotAchievedAchievement(achieveRequest)
         val currentValue = achievementCurrentValueResolver.resolveCurrentValue(achieveRequest, targetAchievement)
         if (targetAchievement.canAchieve(currentValue)) {
-            achieveLogCommandService.achieve(targetAchievement, achieveRequest.userId)
+            achieveLogCommandService.saveAchieveLog(targetAchievement.id, achieveRequest.userId)
         }
     }
 

@@ -58,7 +58,7 @@ class AchievementCommandServiceUnitTest {
             achievementCommandService.checkAndAchieveAchievement(achieveRequest)
 
             //then
-            verify { achieveLogCommandService.achieve(eq(targetAchievement), any()) }
+            verify { achieveLogCommandService.saveAchieveLog(any(), any()) }
         }
 
         @DisplayName("업적 달성 가능 여부가 false면 achieve가 호출되지 않는다")

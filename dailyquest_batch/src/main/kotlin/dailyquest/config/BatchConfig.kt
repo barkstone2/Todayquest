@@ -6,7 +6,6 @@ import dailyquest.quest.entity.Quest
 import dailyquest.quest.repository.QuestRepository
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.batch.core.configuration.annotation.JobScope
 import org.springframework.batch.core.configuration.annotation.StepScope
 import org.springframework.batch.core.job.builder.JobBuilder
@@ -25,7 +24,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
-@EnableBatchProcessing
 @Configuration
 class BatchConfig(
     private val jobRepository: JobRepository,

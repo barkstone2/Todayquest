@@ -6,3 +6,4 @@ include 'dailyquest_domain'
 include 'dailyquest_elastic'
 include ("achievement")
 include 'jpa-common'
+include 'reflection-common'

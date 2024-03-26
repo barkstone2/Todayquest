@@ -11,9 +11,13 @@ plugins {
 
 dependencies {
     implementation(project(":jpa-common"))
-    implementation(project(":reflection-common"))
-    api(project(":notification"))
     testRuntimeOnly("com.h2database:h2")
+
+    // 코틀린 Jackson Module
+    implementation('com.fasterxml.jackson.module:jackson-module-kotlin')
+    // queryDSL 의존성
+    implementation("com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta")
+    kapt ("com.querydsl:querydsl-apt:${queryDslVersion}:jakarta")
 }
 
 allOpen {

@@ -1,5 +1,8 @@
 package dailyquest.notification.dto
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.common.ReflectionUtil
@@ -28,7 +31,15 @@ class AchieveNotificationSaveRequest private constructor(
         return metadataMap
     }
 
+    override fun createNotificationMetadataJson(): String {
+        val metadataMap = createNotificationMetadata()
+        return objectMapper.writeValueAsString(metadataMap)
+    }
+
     companion object {
+        @JvmStatic
+        private val objectMapper: ObjectMapper = jacksonObjectMapper().registerKotlinModule()
+
         @JvmStatic
         fun of(userId: Long, achievement: Achievement): AchieveNotificationSaveRequest {
             return AchieveNotificationSaveRequest(

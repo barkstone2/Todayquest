@@ -4,6 +4,8 @@ import dailyquest.user.dto.UserPrincipal
 import org.springframework.http.MediaType
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
@@ -21,5 +23,14 @@ class SseController(
         val emitter = sseService.findOrCreateEmitter(principal.id)
         emitter.send(SseEmitter.event().name("connect").data(""))
         return emitter
+    }
+
+    @PostMapping("/notify")
+    fun sendNotificationEvent(
+        @RequestBody userIds: List<Long>,
+    ) {
+        userIds.forEach {
+            sseService.sendNotificationEvent(it)
+        }
     }
 }

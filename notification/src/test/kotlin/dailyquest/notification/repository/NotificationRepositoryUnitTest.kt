@@ -5,9 +5,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.entity.NotificationType
-import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.UserInfo
-import dailyquest.user.repository.UserRepository
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -25,25 +22,19 @@ class NotificationRepositoryUnitTest {
     private lateinit var notificationRepository: NotificationRepository
 
     @Autowired
-    private lateinit var userRepository: UserRepository
-
-    @Autowired
     private lateinit var entityManager: EntityManager
 
-    private lateinit var savedUser: UserInfo
     private val om = ObjectMapper().registerKotlinModule()
 
     @BeforeEach
     fun init() {
-        val user = UserInfo("user", "user", ProviderType.GOOGLE)
-        savedUser = userRepository.save(user)
     }
 
     @DisplayName("엔티티 저장 시 오류가 발생하지 않는다")
     @Test
     fun `엔티티 저장 시 오류가 발생하지 않는다`() {
         //given
-        val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, savedUser, "notification title")
+        val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "notification title")
 
         //when
         //then
@@ -57,7 +48,7 @@ class NotificationRepositoryUnitTest {
         val metadata = mapOf("meta1" to "1", "meta2" to 3, "meta4" to mapOf("a" to "b"))
         val notification = Notification.of(
             NotificationType.ACHIEVEMENT_ACHIEVE,
-            savedUser,
+            1L,
             "notification title",
             "",
             om.writeValueAsString(metadata)
@@ -76,7 +67,7 @@ class NotificationRepositoryUnitTest {
         val pairs = listOf("key1" to "1", "key2" to 2)
         pairs.forEach { metadata[it.first] = it.second.toString() }
 
-        val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, savedUser, "notification title", "", om.writeValueAsString(metadata))
+        val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "notification title", "", om.writeValueAsString(metadata))
         val savedNotification = notificationRepository.saveAndFlush(notification)
         entityManager.clear()
         val foundNotification = notificationRepository.findById(savedNotification.id).get()
@@ -92,7 +83,7 @@ class NotificationRepositoryUnitTest {
     @Test
     fun `알림 업데이트 시 오류가 발생하지 않는다`() {
         //given
-        val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, savedUser, "notification title")
+        val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "notification title")
         val savedNotification = notificationRepository.saveAndFlush(notification)
         entityManager.clear()
         val foundNotification = notificationRepository.findById(savedNotification.id).get()

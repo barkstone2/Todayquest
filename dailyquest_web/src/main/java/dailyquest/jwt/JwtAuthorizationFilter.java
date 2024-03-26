@@ -36,34 +36,22 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected boolean shouldNotFilter(HttpServletRequest request) {
         String requestUri = request.getRequestURI();
+        String[] allowedUrl = securityUrlProperties.getAllowedUrl();
+        String[] internalUrl = securityUrlProperties.getInternalUrl();
+        return Arrays.stream(allowedUrl).anyMatch(url -> antPathMatcher.match(url, requestUri))
+                || Arrays.stream(internalUrl).anyMatch(url -> antPathMatcher.match(url, requestUri));
+    }
 
-        if (Arrays.stream(securityUrlProperties.getAllowedUrl()).anyMatch(url -> antPathMatcher.match(url, requestUri))) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-
             String accessToken = jwtTokenProvider.getJwtFromCookies(request.getCookies(), jwtTokenProperties.getAccessTokenName());
             if(!jwtTokenProvider.isValidToken(accessToken, jwtTokenProperties.getAccessTokenName())) {
-                String refreshToken = jwtTokenProvider.getJwtFromCookies(request.getCookies(), jwtTokenProperties.getRefreshTokenName());
-
-                accessToken = jwtTokenProvider.silentRefresh(refreshToken);
-                response.addCookie(jwtTokenProvider.createAccessTokenCookie(accessToken));
-
-                String newRefreshToken = jwtTokenProvider.createRefreshToken(jwtTokenProvider.getUserIdFromToken(refreshToken));
-                response.addCookie(jwtTokenProvider.createRefreshTokenCookie(newRefreshToken));
+                accessToken = this.doSilentRefresh(request, response);
             }
-
-            Long userId = jwtTokenProvider.getUserIdFromToken(accessToken);
-
-            UserPrincipal userDetails = userService.getUserPrincipal(userId);
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
+            this.parseAndSetAuthentication(accessToken);
         } catch (JwtException ex) {
             response.sendError(HttpStatus.SC_UNAUTHORIZED, "로그인 정보가 만료되었어요. 다시 로그인 해주세요.");
             return;
@@ -72,4 +60,20 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    protected String doSilentRefresh(HttpServletRequest request, HttpServletResponse response) {
+        String result;
+        String refreshToken = jwtTokenProvider.getJwtFromCookies(request.getCookies(), jwtTokenProperties.getRefreshTokenName());
+        result = jwtTokenProvider.silentRefresh(refreshToken);
+        response.addCookie(jwtTokenProvider.createAccessTokenCookie(result));
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(jwtTokenProvider.getUserIdFromToken(refreshToken));
+        response.addCookie(jwtTokenProvider.createRefreshTokenCookie(newRefreshToken));
+        return result;
+    }
+
+    protected void parseAndSetAuthentication(String accessToken) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(accessToken);
+        UserPrincipal userDetails = userService.getUserPrincipal(userId);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
 }

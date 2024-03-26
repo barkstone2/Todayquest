@@ -1,6 +1,10 @@
 package dailyquest.config;
 
+import dailyquest.jwt.JwtAuthorizationFilter;
 import dailyquest.properties.JwtTokenProperties;
+import dailyquest.properties.SecurityOriginProperties;
+import dailyquest.properties.SecurityUrlProperties;
+import dailyquest.user.entity.RoleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,10 +17,6 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import dailyquest.jwt.JwtAuthorizationFilter;
-import dailyquest.properties.SecurityOriginProperties;
-import dailyquest.properties.SecurityUrlProperties;
-import dailyquest.user.entity.RoleType;
 
 import java.util.List;
 
@@ -41,6 +41,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests()
                 .requestMatchers(securityUrlProperties.getAllowedUrl()).permitAll()
+                .requestMatchers(securityUrlProperties.getInternalUrl()).permitAll()
                 .requestMatchers(securityUrlProperties.getAdminUrl()).hasAuthority(RoleType.ADMIN.getCode())
                 .anyRequest().authenticated();
 
@@ -66,5 +67,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 }

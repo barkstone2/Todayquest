@@ -7,6 +7,7 @@ enum class AchievementType(val representationFormat: String) {
     QUEST_CONTINUOUS_COMPLETION("퀘스트 %d일 연속 완료"),
     USER_LEVEL("레벨 %d 달성"),
     GOLD_EARN("총 골드 %,d 획득"),
+    PERFECT_DAY("완벽한 하루 %d회 달성"),
     EMPTY("");
 
     override fun toString(): String {

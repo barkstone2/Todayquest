@@ -11,8 +11,11 @@ security:
     allowed_url: ["/", "/css/**", "/js/**", "/image/**", "/error", "/api/v1/auth/**"]
     admin_url: ["/admin/**"]
     logout_url: "/api/v1/auth/logout"
+    internal_url: ["/api/v1/sse/notify"]
   origin:
     allowed_origin: ["http://localhost:9090", "https://dailyquest.mooo.com"]
+  key:
+    internal_api_key: ${INTERNAL_API_KEY:local-api-key}
 
 spring:
   jwt:

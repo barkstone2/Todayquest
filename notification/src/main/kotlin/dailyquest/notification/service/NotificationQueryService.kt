@@ -1,7 +1,6 @@
 package dailyquest.notification.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import dailyquest.common.RestPage
 import dailyquest.notification.dto.NotificationCondition
 import dailyquest.notification.dto.NotificationResponse
 import dailyquest.notification.entity.Notification
@@ -22,18 +21,18 @@ class NotificationQueryService @Autowired constructor(
     private val pageSizeProperties: NotificationPageSizeProperties
 ) {
 
-    fun getNotConfirmedNotificationsOfUser(userId: Long, condition: NotificationCondition): RestPage<NotificationResponse> {
+    fun getNotConfirmedNotificationsOfUser(userId: Long, condition: NotificationCondition): Page<NotificationResponse> {
         val pageRequest = this.createPageRequest(condition)
         val notConfirmedNotifications = notificationRepository.getNotConfirmedNotifications(userId, condition, pageRequest)
         val notificationResponses = this.mapToResponses(notConfirmedNotifications)
-        return RestPage(notificationResponses)
+        return notificationResponses
     }
 
-    fun getActiveNotificationsOfUser(userId: Long, condition: NotificationCondition): RestPage<NotificationResponse> {
+    fun getActiveNotificationsOfUser(userId: Long, condition: NotificationCondition): Page<NotificationResponse> {
         val pageRequest = this.createPageRequest(condition)
         val activeNotifications = notificationRepository.getActiveNotifications(userId, condition, pageRequest)
         val notificationResponses = this.mapToResponses(activeNotifications)
-        return RestPage(notificationResponses)
+        return notificationResponses
     }
 
     private fun createPageRequest(condition: NotificationCondition): Pageable {

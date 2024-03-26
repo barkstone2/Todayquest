@@ -13,6 +13,7 @@ plugins {
 // application dependency
 dependencies {
 	implementation(project(":achievement"))
+	implementation(project(":notification"))
 	// 개발 환경 런타임
 	runtimeOnly('mysql:mysql-connector-java')
 	// 운영 환경 런타임

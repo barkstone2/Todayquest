@@ -1,14 +1,13 @@
 package dailyquest.notification.entity
 
 import dailyquest.common.CreatedTimeEntity
-import dailyquest.user.entity.UserInfo
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
 class Notification(
     type: NotificationType,
-    user: UserInfo,
+    userId: Long,
     title: String,
     content: String = "",
     metadata: String = "",
@@ -18,9 +17,8 @@ class Notification(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0
 
-    @JoinColumn(name = "user_id", nullable = false, updatable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    val user: UserInfo = user
+    @Column(name = "user_id", nullable = false, updatable = false)
+    val userId: Long = userId
 
     @Column(length = 300, nullable = false, updatable = false)
     val title: String = title
@@ -53,12 +51,12 @@ class Notification(
         @JvmStatic
         fun of(
             type: NotificationType,
-            user: UserInfo,
+            userId: Long,
             title: String,
             content: String = "",
             metadata: String = "",
         ): Notification {
-            return Notification(type, user, title, content, metadata)
+            return Notification(type, userId, title, content, metadata)
         }
     }
 

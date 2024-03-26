@@ -1,9 +1,10 @@
 package dailyquest.notification.dto
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.entity.NotificationType
-import dailyquest.user.entity.UserInfo
 
 interface NotificationSaveRequest {
     val notificationType: NotificationType
@@ -14,9 +15,10 @@ interface NotificationSaveRequest {
     }
     fun createNotificationContent(): String
     fun createNotificationMetadata(): Map<String, String>
+    fun createNotificationMetadataJson(): String
 
-    fun mapToEntity(userInfo: UserInfo, objectMapper: ObjectMapper): Notification {
-        val metadataJson = objectMapper.writeValueAsString(createNotificationMetadata())
-        return Notification(notificationType, userInfo, getNotificationTitle(), createNotificationContent(), metadataJson)
+    fun mapToEntity(): Notification {
+        val metadataJson = createNotificationMetadataJson()
+        return Notification(notificationType, userId, getNotificationTitle(), createNotificationContent(), metadataJson)
     }
 }

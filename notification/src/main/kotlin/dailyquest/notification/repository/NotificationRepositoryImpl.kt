@@ -46,7 +46,7 @@ class NotificationRepositoryImpl @Autowired constructor(
     }
 
     private fun createBaseWhereExpression(userId: Long, condition: NotificationCondition): BooleanExpression {
-        val hasSameUserId = notification.user.id.eq(userId)
+        val hasSameUserId = notification.userId.eq(userId)
         val notDeleted = notification.deletedDate.isNull
         val hasSameType = if (condition.type != null) notification.type.eq(condition.type) else null
         val whereExpression = hasSameUserId.and(notDeleted).and(hasSameType)

@@ -13,9 +13,11 @@ class PerfectDayBatchConfig {
     fun perfectDayBatchJob(
         jobRepository: JobRepository,
         perfectDayLogStep: Step,
+        perfectDayAchievementStep: Step
     ): Job {
         return JobBuilder("perfectDayJob", jobRepository)
             .start(perfectDayLogStep)
+            .next(perfectDayAchievementStep)
             .build()
     }
 }

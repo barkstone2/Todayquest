@@ -1,6 +1,5 @@
 package dailyquest.notification.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import dailyquest.notification.dto.NotificationCondition
 import dailyquest.notification.dto.NotificationResponse
 import dailyquest.notification.entity.Notification
@@ -17,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class NotificationQueryService @Autowired constructor(
     private val notificationRepository: NotificationRepository,
-    private val objectMapper: ObjectMapper,
     private val pageSizeProperties: NotificationPageSizeProperties
 ) {
 
@@ -40,6 +38,6 @@ class NotificationQueryService @Autowired constructor(
     }
 
     private fun mapToResponses(notifications: Page<Notification>): Page<NotificationResponse> {
-        return notifications.map { NotificationResponse.from(it, objectMapper) }
+        return notifications.map { NotificationResponse.from(it) }
     }
 }

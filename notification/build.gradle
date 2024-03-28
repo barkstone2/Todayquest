@@ -13,7 +13,7 @@ dependencies {
     implementation(project(":jpa-common"))
     testRuntimeOnly("com.h2database:h2")
 
-    // 코틀린 Jackson Module
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation('com.fasterxml.jackson.module:jackson-module-kotlin')
     // queryDSL 의존성
     implementation("com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta")

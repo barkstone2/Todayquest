@@ -1,6 +1,7 @@
 package dailyquest.notification.dto
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dailyquest.achievement.entity.Achievement
@@ -38,7 +39,7 @@ class AchieveNotificationSaveRequest private constructor(
 
     companion object {
         @JvmStatic
-        private val objectMapper: ObjectMapper = jacksonObjectMapper().registerKotlinModule()
+        private val objectMapper: ObjectMapper = jacksonObjectMapper().registerKotlinModule().registerModule(JavaTimeModule())
 
         @JvmStatic
         fun of(userId: Long, achievement: Achievement): AchieveNotificationSaveRequest {

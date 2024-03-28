@@ -25,7 +25,7 @@ class AchievementCurrentValueResolverWeb(
             AchievementType.QUEST_CONTINUOUS_COMPLETION -> questLogService.getCompletionDaysSince(achieveRequest.userId, targetAchievement.targetValue)
             AchievementType.USER_LEVEL -> userService.getUserPrincipal(achieveRequest.userId).level
             AchievementType.GOLD_EARN -> goldEarnLogService.getTotalGoldEarnOfUser(achieveRequest.userId)
-            AchievementType.EMPTY -> 0
+            AchievementType.PERFECT_DAY, AchievementType.EMPTY -> 0
         }
     }
 }

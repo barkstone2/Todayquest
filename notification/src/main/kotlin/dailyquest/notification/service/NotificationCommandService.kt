@@ -1,6 +1,5 @@
 package dailyquest.notification.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import dailyquest.notification.dto.NotificationSaveRequest
 import dailyquest.notification.repository.NotificationRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class NotificationCommandService @Autowired constructor(
     val notificationRepository: NotificationRepository,
-    val objectMapper: ObjectMapper
 ) {
 
     fun saveNotification(saveRequest: NotificationSaveRequest, userId: Long) {

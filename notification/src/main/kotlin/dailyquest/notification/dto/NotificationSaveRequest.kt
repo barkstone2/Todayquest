@@ -1,8 +1,5 @@
 package dailyquest.notification.dto
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.entity.NotificationType
 

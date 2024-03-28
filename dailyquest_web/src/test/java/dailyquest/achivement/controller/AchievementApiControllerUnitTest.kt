@@ -6,6 +6,7 @@ import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementQueryService
 import dailyquest.annotation.WithCustomMockUser
 import dailyquest.config.SecurityConfig
+import dailyquest.filter.InternalApiKeyValidationFilter
 import dailyquest.jwt.JwtAuthorizationFilter
 import io.mockk.verify
 import org.junit.jupiter.api.DisplayName
@@ -23,7 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
     excludeFilters = [
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [SecurityConfig::class, JwtAuthorizationFilter::class]
+            classes = [SecurityConfig::class, JwtAuthorizationFilter::class, InternalApiKeyValidationFilter::class]
         )
     ]
 )

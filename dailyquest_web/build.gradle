@@ -70,6 +70,7 @@ dependencies {
 
 test {
 	dependsOn(":achievement:test")
+	dependsOn(":notification:test")
 }
 
 // plain jar disabled

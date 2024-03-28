@@ -1,11 +1,15 @@
 package dailyquest.batch.listener.step
 
-import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.common.util.ExecutionContextUtil
+import dailyquest.log.perfectday.entity.PerfectDayLog
+import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
+import org.springframework.batch.core.annotation.AfterChunk
+import org.springframework.batch.core.annotation.AfterStep
 import org.springframework.batch.core.annotation.AfterWrite
 import org.springframework.batch.core.annotation.BeforeStep
 import org.springframework.batch.core.configuration.annotation.StepScope
+import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.item.Chunk
 import org.springframework.stereotype.Component
 
@@ -20,15 +24,23 @@ class PerfectDayLogStepListener {
         executionContextUtil = ExecutionContextUtil.from(stepExecution)
     }
 
-    @AfterWrite
-    fun afterWrite(chunk: Chunk<AchievementAchieveLog>) {
-        val newUserIds = chunk.map { it.userId }.toList()
-        val userIds = this.getUserIdsFromJobContext()
-        userIds.addAll(newUserIds)
-        executionContextUtil.putToJobContext(userIdsKey, userIds)
+    @AfterStep
+    fun afterStep(stepExecution: StepExecution): ExitStatus {
+        executionContextUtil.removeFromStepContext(userIdsKey)
+        return stepExecution.exitStatus
     }
 
-    private fun getUserIdsFromJobContext(): MutableList<Long> {
-        return executionContextUtil.getFromJobContext(userIdsKey) ?: mutableListOf()
+    @AfterWrite
+    fun afterWrite(chunk: Chunk<PerfectDayLog>) {
+        val userIdsToCommit = chunk.map { it.userId }.toList()
+        executionContextUtil.putToStepContext(userIdsKey, userIdsToCommit)
+    }
+
+    @AfterChunk
+    fun afterChunk(context: ChunkContext) {
+        if (context.isComplete) {
+            executionContextUtil.mergeListFromStepContextToJobContext<Long>(userIdsKey)
+        }
+        executionContextUtil.removeFromStepContext(userIdsKey)
     }
 }

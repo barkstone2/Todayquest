@@ -3,7 +3,6 @@ server:
     encoding:
       charset: UTF-8
       force: true
-
 spring:
   profiles:
     include: value
@@ -19,11 +18,13 @@ spring:
       password: sa
       driver-class-name: com.mysql.cj.jdbc.Driver
   messages:
-    basename: message.messages
+    basename: message.web, message.achievement
   data:
     redis:
       database: 1
       port: 6378
+  web:
+    locale: ko
 logging:
   level:
     root: info

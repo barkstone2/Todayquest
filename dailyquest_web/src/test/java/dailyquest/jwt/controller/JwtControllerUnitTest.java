@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dailyquest.annotation.WithCustomMockUser;
 import dailyquest.config.SecurityConfig;
+import dailyquest.filter.InternalApiKeyValidationFilter;
 import dailyquest.jwt.JwtAuthorizationFilter;
 import dailyquest.jwt.dto.TokenRequest;
 import dailyquest.jwt.service.JwtService;
@@ -31,7 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @SuppressWarnings("ALL")
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(controllers = JwtController.class,
-        excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {SecurityConfig.class, JwtAuthorizationFilter.class})})
+        excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {SecurityConfig.class, JwtAuthorizationFilter.class, InternalApiKeyValidationFilter.class})})
 @WithCustomMockUser
 @DisplayName("JWT 컨트롤러 유닛 테스트")
 public class JwtControllerUnitTest {

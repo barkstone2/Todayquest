@@ -8,6 +8,7 @@ import dailyquest.common.MessageUtil
 import dailyquest.common.RestPage
 import dailyquest.common.UserLevelLock
 import dailyquest.config.SecurityConfig
+import dailyquest.filter.InternalApiKeyValidationFilter
 import dailyquest.jwt.JwtAuthorizationFilter
 import dailyquest.quest.dto.*
 import dailyquest.quest.entity.DetailQuestType
@@ -46,7 +47,7 @@ import java.util.stream.Stream
     excludeFilters = [
         Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [SecurityConfig::class, JwtAuthorizationFilter::class]
+            classes = [SecurityConfig::class, JwtAuthorizationFilter::class, InternalApiKeyValidationFilter::class]
         )
     ]
 )

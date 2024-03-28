@@ -7,6 +7,7 @@ import dailyquest.annotation.WithCustomMockUser
 import dailyquest.common.MessageUtil
 import dailyquest.common.UserLevelLock
 import dailyquest.config.SecurityConfig
+import dailyquest.filter.InternalApiKeyValidationFilter
 import dailyquest.jwt.JwtAuthorizationFilter
 import dailyquest.preferencequest.dto.PreferenceDetailRequest
 import dailyquest.preferencequest.dto.PreferenceQuestRequest
@@ -43,7 +44,7 @@ import java.util.stream.Stream
     excludeFilters = [
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [SecurityConfig::class, JwtAuthorizationFilter::class]
+            classes = [SecurityConfig::class, JwtAuthorizationFilter::class, InternalApiKeyValidationFilter::class]
         )
     ]
 )

@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import dailyquest.annotation.WithCustomMockUser
 import dailyquest.common.MessageUtil
 import dailyquest.config.SecurityConfig
+import dailyquest.filter.InternalApiKeyValidationFilter
 import dailyquest.jwt.JwtAuthorizationFilter
 import dailyquest.user.dto.UserUpdateRequest
 import dailyquest.user.service.UserService
@@ -39,7 +40,7 @@ import java.util.stream.Stream
     excludeFilters = [
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [SecurityConfig::class, JwtAuthorizationFilter::class]
+            classes = [SecurityConfig::class, JwtAuthorizationFilter::class, InternalApiKeyValidationFilter::class]
         )
     ]
 )

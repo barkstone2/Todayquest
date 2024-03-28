@@ -27,7 +27,7 @@ class NotificationApiController @Autowired constructor(
     ): ResponseEntity<ResponseData<RestPage<NotificationResponse>>> {
         val notConfirmedNotificationsOfUser =
             notificationService.getNotConfirmedNotificationsOfUser(principal.id, notificationCondition)
-        return ResponseEntity.ok(ResponseData.of(notConfirmedNotificationsOfUser))
+        return ResponseEntity.ok(ResponseData.of(RestPage(notConfirmedNotificationsOfUser)))
     }
 
     @GetMapping("")
@@ -37,7 +37,7 @@ class NotificationApiController @Autowired constructor(
     ): ResponseEntity<ResponseData<RestPage<NotificationResponse>>> {
         val activeNotificationsOfUser =
             notificationService.getActiveNotificationsOfUser(principal.id, notificationCondition)
-        return ResponseEntity.ok(ResponseData.of(activeNotificationsOfUser))
+        return ResponseEntity.ok(ResponseData.of(RestPage(activeNotificationsOfUser)))
     }
 
     @PatchMapping("/{notificationId}/confirm")

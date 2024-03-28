@@ -24,6 +24,21 @@ class ExecutionContextUtil private constructor(
         jobExecutionContextUtil.putToJobContext(key, value)
     }
 
+    fun <E> mergeListFromStepContextToJobContext(key: String) {
+        val fromJobContext = this.getFromJobContext<MutableList<E>?>(key) ?: mutableListOf()
+        val fromStepContext = this.getFromStepContext<List<E>>(key)
+        fromJobContext.addAll(fromStepContext)
+        this.putToJobContext(key, fromJobContext)
+    }
+
+    fun removeFromStepContext(key: String) {
+        stepExecution.executionContext.remove(key)
+    }
+
+    fun containsKeyOnStepContext(key: String): Boolean {
+        return stepExecution.executionContext.containsKey(key)
+    }
+
     companion object {
         @JvmStatic
         fun from(stepExecution: StepExecution): ExecutionContextUtil {

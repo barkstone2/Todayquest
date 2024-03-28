@@ -2,6 +2,7 @@ package dailyquest.status.controller;
 
 import dailyquest.annotation.WithCustomMockUser;
 import dailyquest.config.SecurityConfig;
+import dailyquest.filter.InternalApiKeyValidationFilter;
 import dailyquest.jwt.JwtAuthorizationFilter;
 import dailyquest.quest.dto.QuestLogSearchCondition;
 import dailyquest.quest.dto.QuestLogSearchType;
@@ -29,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(controllers = StatusApiController.class,
-        excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {SecurityConfig.class, JwtAuthorizationFilter.class})})
+        excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {SecurityConfig.class, JwtAuthorizationFilter.class, InternalApiKeyValidationFilter.class})})
 @WithCustomMockUser
 @DisplayName("상태창 API 컨트롤러 유닛 테스트")
 public class StatusApiControllerUnitTest {

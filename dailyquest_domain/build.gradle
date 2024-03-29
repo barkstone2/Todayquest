@@ -12,10 +12,7 @@ plugins {
 
 dependencies {
     // Spring Data JPA dependency
-    api('org.springframework.boot:spring-boot-starter-data-jpa') {
-        exclude group: 'org.hibernate.orm', module: 'hibernate-core'
-    }
-    api('org.hibernate.orm:hibernate-core:6.1.7.Final')
+    api('org.springframework.boot:spring-boot-starter-data-jpa')
 
     // QueryDSL apt 동작을 위한 compile dependency + apt
     compileOnly("com.querydsl:querydsl-core:${queryDslVersion}") {

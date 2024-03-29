@@ -10,10 +10,7 @@ plugins {
 }
 
 dependencies {
-    api('org.springframework.boot:spring-boot-starter-data-jpa') {
-        exclude group: 'org.hibernate.orm', module: 'hibernate-core'
-    }
-    api('org.hibernate.orm:hibernate-core:6.1.7.Final')
+    api('org.springframework.boot:spring-boot-starter-data-jpa')
     compileOnly("com.querydsl:querydsl-core:${queryDslVersion}") {
         transitive = false
     }

@@ -56,6 +56,7 @@ class PerfectDayLogStepConfig {
             .arguments(loggedDate)
             .pageSize(10)
             .name("perfectDayUserReader")
+            .sorts(sortedMapOf())
             .build()
     }
 

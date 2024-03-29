@@ -1,6 +1,8 @@
 package dailyquest.quest.repository
 
 import dailyquest.quest.entity.QuestLog
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -19,5 +21,5 @@ interface QuestLogRepository : JpaRepository<QuestLog, Long> {
             "and qlp.state = 'PROCEED' " +
             "group by qlp.userId " +
             "having count(qlp.questId) = count(qlc.questId)")
-    fun getAllUserIdsWhoAchievedPerfectDay(@Param("loggedDate") loggedDate: LocalDate): List<Long>
+    fun getAllUserIdsWhoAchievedPerfectDay(@Param("loggedDate") loggedDate: LocalDate, pageable: Pageable): Page<Long>
 }

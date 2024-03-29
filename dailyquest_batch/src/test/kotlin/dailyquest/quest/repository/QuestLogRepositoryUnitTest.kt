@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.data.domain.Pageable
 import java.time.LocalDate
 
 @ExtendWith(MockKExtension::class)
@@ -36,7 +37,7 @@ class QuestLogRepositoryUnitTest @Autowired constructor(
             saveQuestLog(2L, 2L, PROCEED, loggedDate)
 
             //when
-            val result = questLogRepository.getAllUserIdsWhoAchievedPerfectDay(loggedDate)
+            val result = questLogRepository.getAllUserIdsWhoAchievedPerfectDay(loggedDate, Pageable.unpaged())
 
             //then
             assertThat(result).containsExactly(shouldBeContainedUserId)
@@ -54,7 +55,7 @@ class QuestLogRepositoryUnitTest @Autowired constructor(
             saveQuestLog(shouldNotBeContainedUserId, 2L, COMPLETE, loggedDate)
 
             //when
-            val result = questLogRepository.getAllUserIdsWhoAchievedPerfectDay(loggedDate)
+            val result = questLogRepository.getAllUserIdsWhoAchievedPerfectDay(loggedDate, Pageable.unpaged())
 
             //then
             assertThat(result).doesNotContain(shouldNotBeContainedUserId)
@@ -72,7 +73,7 @@ class QuestLogRepositoryUnitTest @Autowired constructor(
             saveQuestLog(shouldNotBeContainedUserId, 2L, COMPLETE, loggedDate)
 
             //when
-            val result = questLogRepository.getAllUserIdsWhoAchievedPerfectDay(loggedDate)
+            val result = questLogRepository.getAllUserIdsWhoAchievedPerfectDay(loggedDate, Pageable.unpaged())
 
             //then
             assertThat(result).doesNotContain(shouldNotBeContainedUserId)
@@ -90,7 +91,7 @@ class QuestLogRepositoryUnitTest @Autowired constructor(
             saveQuestLog(shouldNotBeContainedUserId, 2L, COMPLETE, loggedDate)
 
             //when
-            val result = questLogRepository.getAllUserIdsWhoAchievedPerfectDay(loggedDate)
+            val result = questLogRepository.getAllUserIdsWhoAchievedPerfectDay(loggedDate, Pageable.unpaged())
 
             //then
             assertThat(result).doesNotContain(shouldNotBeContainedUserId)

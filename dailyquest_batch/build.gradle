@@ -12,7 +12,7 @@ plugins {
 dependencies {
     implementation(project(":achievement"))
     // 개발 환경 런타임
-    runtimeOnly('mysql:mysql-connector-java')
+    runtimeOnly('com.mysql:mysql-connector-j')
     // 운영 환경 런타임
     runtimeOnly('org.mariadb.jdbc:mariadb-java-client')
 

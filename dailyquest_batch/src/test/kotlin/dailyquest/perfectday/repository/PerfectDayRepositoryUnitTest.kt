@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.data.domain.Pageable
 import java.time.LocalDate
 
 @DataJpaTest
@@ -23,7 +24,7 @@ class PerfectDayRepositoryUnitTest {
         perfectDayLogRepository.save(PerfectDayLog(1L, LocalDate.now()))
 
         //when
-        val results = perfectDayLogRepository.countByUserIds(userIds)
+        val results = perfectDayLogRepository.countByUserIds(userIds, Pageable.unpaged())
 
         //then
         assertThat(results).hasOnlyElementsOfTypes(PerfectDayCount::class.java)
@@ -38,7 +39,7 @@ class PerfectDayRepositoryUnitTest {
         perfectDayLogRepository.save(PerfectDayLog(3L, LocalDate.now()))
 
         //when
-        val results = perfectDayLogRepository.countByUserIds(userIds)
+        val results = perfectDayLogRepository.countByUserIds(userIds, Pageable.unpaged())
 
         //then
         assertThat(results).allMatch { userIds.contains(it.userId) }
@@ -51,7 +52,7 @@ class PerfectDayRepositoryUnitTest {
         val userIds = listOf(1L)
 
         //when
-        val results = perfectDayLogRepository.countByUserIds(userIds)
+        val results = perfectDayLogRepository.countByUserIds(userIds, Pageable.unpaged())
 
         //then
         assertThat(results).isEmpty()

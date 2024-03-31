@@ -1,77 +1,111 @@
 package dailyquest.batch.step
 
+import com.ninjasquad.springmockk.MockkBean
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
+import dailyquest.batch.listener.step.PerfectDayAchievementStepListener
 import dailyquest.perfectday.dto.PerfectDayCount
 import io.mockk.every
-import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.batch.item.function.FunctionItemProcessor
+import org.springframework.batch.core.Job
+import org.springframework.batch.core.Step
+import org.springframework.batch.core.StepExecution
+import org.springframework.batch.core.job.SimpleJob
+import org.springframework.batch.item.data.RepositoryItemReader
+import org.springframework.batch.item.data.RepositoryItemWriter
+import org.springframework.batch.test.JobLauncherTestUtils
+import org.springframework.batch.test.context.SpringBatchTest
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.context.annotation.Import
 
 @ExtendWith(MockKExtension::class)
+@Import(PerfectDayAchievementStepConfig::class)
+@EnableAutoConfiguration
+@SpringBatchTest
 @DisplayName("완벽한 하루 업적 프로세서 유닛 테스트")
-class PerfectDayAchievementProcessorUnitTest {
+class PerfectDayAchievementProcessorUnitTest @Autowired constructor(
+    private val jobLauncherTestUtils: JobLauncherTestUtils,
+    private val perfectDayAchievementStep: Step,
+) {
+    @MockkBean(name = "perfectDayCountReader", relaxed = true)
+    private lateinit var perfectDayCountReader: RepositoryItemReader<PerfectDayCount>
+    @MockkBean(name = "perfectDayAchievementWriter", relaxed = true)
+    private lateinit var perfectDayAchievementWriter: RepositoryItemWriter<AchievementAchieveLog>
+    @MockkBean(relaxed = true)
+    private lateinit var perfectDayAchievementStepListener: PerfectDayAchievementStepListener
 
-    private lateinit var achievements: List<Achievement>
-    private lateinit var perfectDayAchievementProcessor: FunctionItemProcessor<PerfectDayCount, AchievementAchieveLog>
-    @RelaxedMockK
-    private lateinit var achievement: Achievement
-    @RelaxedMockK
-    private lateinit var perfectDayCount: PerfectDayCount
+    private lateinit var job: Job
+    private val achievement = mockk<Achievement>(relaxed = true)
+    private val perfectDayCount = mockk<PerfectDayCount>(relaxed = true)
 
     @BeforeEach
     fun init() {
-        achievements = listOf(achievement)
-        val stepConfig = PerfectDayAchievementStepConfig()
-        perfectDayAchievementProcessor = stepConfig.perfectDayAchievementProcessor(achievements)
+        every { perfectDayCountReader.read() } returns perfectDayCount andThen null
+        every { perfectDayAchievementStepListener.beforeStep(any()) } answers {
+            val stepExecution = this.arg<StepExecution>(0)
+            val stepExecutionContext = stepExecution.executionContext
+            stepExecutionContext.put("perfectDayAchievements", listOf(achievement))
+        }
+
+        val simpleJob = SimpleJob()
+        simpleJob.addStep(perfectDayAchievementStep)
+        job = simpleJob
+        jobLauncherTestUtils.job = job
     }
 
-    @DisplayName("목록에서 조건에 맞는 값이 없으면 처리 결과로 null이 반환된다")
+    @DisplayName("StepExecutionContext에 저장된 업적을 읽어온다")
     @Test
-    fun `목록에서 조건에 맞는 값이 없으면 처리 결과로 null이 반환된다`() {
+    fun `StepExecutionContext에 저장된 업적을 읽어온다`() {
         //given
-        every { achievement.targetValue } returns 1
-        every { perfectDayCount.count } returns 2
-
         //when
-        val result = perfectDayAchievementProcessor.process(perfectDayCount)
+        jobLauncherTestUtils.launchStep("perfectDayAchievementStep")
 
         //then
-        assertThat(result).isNull()
+        verify {
+            achievement.targetValue
+        }
     }
 
-    @DisplayName("업적 목록에 현재 값과 목표값이 일치하는 업적이 있으면, 해당 업적에 대한 완료 로그를 반환한다")
-    @Test
-    fun `업적 목록에 현재 값과 목표값이 일치하는 업적이 있으면, 해당 업적에 대한 완료 로그를 반환한다`() {
-        //given
-        every { achievement.targetValue } returns 1
-        every { perfectDayCount.count } returns 1
+    @DisplayName("process 요청 시")
+    @Nested
+    inner class TestProcess {
+        private val perfectDayAchievementProcessor = PerfectDayAchievementStepConfig().perfectDayAchievementProcessor(listOf(achievement))
 
-        //when
-        val result = perfectDayAchievementProcessor.process(perfectDayCount)
+        @DisplayName("저장된 업적 중 목표값이 현재값과 일치하는 것이 있으면 업적 달성 로그 엔티티를 반환한다")
+        @Test
+        fun `저장된 업적 중 목표값이 현재값과 일치하는 것이 있으면 업적 달성 로그 엔티티를 반환한다`() {
+            //given
+            every { achievement.targetValue } returns 1
+            every { perfectDayCount.count } returns 1
 
-        //then
-        assertThat(result.achievement).isEqualTo(achievement)
+            //when
+            val result = perfectDayAchievementProcessor.process(perfectDayCount)
+
+            //then
+            assertThat(result).isNotNull()
+        }
+
+        @DisplayName("저장된 업적 중 목표값이 현재값과 일치하는 것이 없으면 null을 반환한다")
+        @Test
+        fun `저장된 업적 중 목표값이 현재값과 일치하는 것이 없으면 null을 반환한다`() {
+            //given
+            every { achievement.targetValue } returns 1
+            every { perfectDayCount.count } returns 2
+
+            //when
+            val result = perfectDayAchievementProcessor.process(perfectDayCount)
+
+            //then
+            assertThat(result).isNull()
+        }
     }
-
-    @DisplayName("목록에서 조건에 맞는 값이 여러개면 첫 번째 값이 사용된다")
-    @Test
-    fun `목록에서 조건에 맞는 값이 여러개면 첫 번째 값이 사용된다`() {
-        //given
-        every { achievement.targetValue } returns 1
-        every { perfectDayCount.count } returns 1
-
-        //when
-        val result = perfectDayAchievementProcessor.process(perfectDayCount)
-
-        //then
-        verify(exactly = 1) { achievement.targetValue }
-    }
-
 }

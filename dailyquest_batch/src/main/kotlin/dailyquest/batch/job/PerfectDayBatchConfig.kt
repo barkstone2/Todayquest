@@ -13,7 +13,6 @@ class PerfectDayBatchConfig {
     fun perfectDayBatchJob(
         jobRepository: JobRepository,
         perfectDayLogStep: Step,
-        perfectDayAchievementStep: Step
         perfectDayAchievementStep: Step,
         achieveNotificationStep: Step,
     ): Job {

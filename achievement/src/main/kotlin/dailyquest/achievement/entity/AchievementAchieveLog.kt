@@ -2,13 +2,14 @@ package dailyquest.achievement.entity
 
 import dailyquest.common.CreatedTimeEntity
 import jakarta.persistence.*
+import java.io.Serializable
 
 @Table(name = "achievement_achieve_log")
 @Entity
 class AchievementAchieveLog(
     achievement: Achievement,
     userId: Long,
-): CreatedTimeEntity() {
+): CreatedTimeEntity(), Serializable {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "achievement_achieve_log_id")

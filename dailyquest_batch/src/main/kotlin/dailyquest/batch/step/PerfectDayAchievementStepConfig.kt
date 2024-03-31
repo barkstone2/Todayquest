@@ -51,13 +51,15 @@ class PerfectDayAchievementStepConfig {
     @StepScope
     fun perfectDayCountReader(
         perfectDayLogRepository: PerfectDayLogRepository,
-        @Value("#{jobExecutionContext['userIds']}") userIds: List<Long>
+        @Value("#{jobExecutionContext['perfectDayLogUserIds']}") userIds: List<Long>
     ): RepositoryItemReader<PerfectDayCount> {
         return RepositoryItemReaderBuilder<PerfectDayCount>()
             .repository(perfectDayLogRepository)
-            .methodName("countsByUserIds")
-            .arguments(userIds)
+            .methodName("countByUserIds")
+            .arguments(listOf(userIds))
             .pageSize(10)
+            .sorts(sortedMapOf())
+            .name("perfectDayCountReader")
             .build()
     }
 

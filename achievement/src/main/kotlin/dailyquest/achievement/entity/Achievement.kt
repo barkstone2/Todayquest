@@ -2,6 +2,7 @@ package dailyquest.achievement.entity
 
 import dailyquest.common.BaseTimeEntity
 import jakarta.persistence.*
+import java.io.Serializable
 
 @Entity
 class Achievement(
@@ -9,7 +10,7 @@ class Achievement(
     description: String = "",
     type: AchievementType,
     targetValue: Int,
-): BaseTimeEntity() {
+): BaseTimeEntity(), Serializable {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "achievement_id")

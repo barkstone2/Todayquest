@@ -1,108 +1,166 @@
 package dailyquest.batch.listener.step
 
-import dailyquest.achievement.entity.Achievement
+import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
+import dailyquest.common.util.ExecutionContextUtil
 import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
-import org.springframework.batch.item.ExecutionContext
+import org.springframework.batch.core.scope.context.ChunkContext
+import org.springframework.batch.item.Chunk
 
 @ExtendWith(MockKExtension::class)
 @DisplayName("완벽한 하루 업적 스텝 리스너 유닛 테스트")
 class PerfectDayAchievementStepListenerUnitTest {
+
     @RelaxedMockK
     private lateinit var stepExecution: StepExecution
     @RelaxedMockK
-    private lateinit var jobExecution: JobExecution
-    @RelaxedMockK
-    private lateinit var stepExecutionContext: ExecutionContext
-    @RelaxedMockK
-    private lateinit var jobExecutionContext: ExecutionContext
+    private lateinit var executionContextUtil: ExecutionContextUtil
     @RelaxedMockK
     private lateinit var achievementRepository: AchievementRepository
-    private lateinit var perfectDayAchievementStepListener: PerfectDayAchievementStepListener
+    @InjectMockKs
+    private lateinit var perfectDayLogStepListener: PerfectDayAchievementStepListener
     private val perfectDayAchievementsKey = "perfectDayAchievements"
-    private val achievedUserIdsKey = "achievedUserIds"
+    private val achievedLogsKey = "achievedLogs"
 
     @BeforeEach
     fun init() {
-        perfectDayAchievementStepListener = PerfectDayAchievementStepListener(achievementRepository)
-        perfectDayAchievementStepListener.beforeStep(stepExecution)
-
-        every { stepExecution.executionContext } returns stepExecutionContext
-        every { stepExecution.jobExecution } returns jobExecution
-        every { jobExecution.executionContext } returns jobExecutionContext
+        mockkObject(ExecutionContextUtil)
+        every { ExecutionContextUtil.from(any()) } returns executionContextUtil
     }
 
-    @DisplayName("beforeStep 호출 시 PERFECT_DAY 타입의 업적을 조회해 StepExecutionContext에 담는다")
-    @Test
-    fun `beforeStep 호출 시 PERFECT_DAY 타입의 업적을 조회해 StepExecutionContext에 담는다`() {
-        //given
-        val achievements = listOf<Achievement>()
-        every { achievementRepository.getAllByType(eq(AchievementType.PERFECT_DAY)) } returns achievements
+    @DisplayName("beforeStep 호출 시")
+    @Nested
+    inner class TestBeforeStep {
+        @DisplayName("StepExecutionContext에 업적 목록을 조회해서 담는다")
+        @Test
+        fun `StepExecutionContext에 업적 목록을 조회해서 담는다`() {
+            //given
+            //when
+            perfectDayLogStepListener.beforeStep(stepExecution)
 
-        //when
-        perfectDayAchievementStepListener.beforeStep(stepExecution)
-
-        //then
-        verify { stepExecutionContext.put(eq(perfectDayAchievementsKey), eq(achievements)) }
+            //then
+            verify {
+                achievementRepository.getAllByType(eq(AchievementType.PERFECT_DAY))
+                executionContextUtil.putToStepContext(perfectDayAchievementsKey, any())
+            }
+        }
     }
 
+    @DisplayName("afterStep 호출 시")
+    @Nested
+    inner class TestAfterStep {
+        @BeforeEach
+        fun init() {
+            perfectDayLogStepListener.beforeStep(stepExecution)
+        }
+
+        @DisplayName("stepExecutionContext에 담긴 달성한 업적 로그 제거를 요청한다")
+        @Test
+        fun `stepExecutionContext에 담긴 달성한 업적 로그 제거를 요청한다`() {
+            //given
+            //when
+            perfectDayLogStepListener.afterStep(stepExecution)
+
+            //then
+            verify { executionContextUtil.removeFromStepContext(achievedLogsKey) }
+        }
+
+        @DisplayName("stepExecutionContext에 담긴 업적 목록 제거를 요청한다")
+        @Test
+        fun `stepExecutionContext에 담긴 업적 목록 제거를 요청한다`() {
+            //given
+            //when
+            perfectDayLogStepListener.afterStep(stepExecution)
+
+            //then
+            verify { executionContextUtil.removeFromStepContext(perfectDayAchievementsKey) }
+        }
+    }
 
     @DisplayName("afterWrite 호출 시")
     @Nested
     inner class TestAfterWrite {
-
-        @DisplayName("jobExecutionContext로 부터 기존 유저 아이디 목록을 조회한다")
-        @Test
-        fun `jobExecutionContext로 부터 기존 유저 아이디 목록을 조회한다`() {
-            //given
-            every { jobExecutionContext.get(eq(achievedUserIdsKey)) } returns mutableListOf<Long>()
-
-            //when
-            perfectDayAchievementStepListener.afterWrite(mockk(relaxed = true))
-
-            //then
-            verify { jobExecutionContext.get(eq(achievedUserIdsKey)) }
+        @BeforeEach
+        fun init() {
+            perfectDayLogStepListener.beforeStep(stepExecution)
         }
 
-        @DisplayName("jobExecutionContext에 기존 목록이 없으면 빈 목록을 반환한다")
+        @DisplayName("처리한 청크를 StepExecutionContex에 저장 요청한다")
         @Test
-        fun `jobExecutionContext에 기존 목록이 없으면 빈 목록을 반환한다`() {
+        fun `처리한 청크를 StepExecutionContext에 저장 요청한다`() {
             //given
-            every { jobExecutionContext.get(eq(achievedUserIdsKey)) } returns null
+            val achievementAchieveLog = mockk<AchievementAchieveLog>()
+            val chunk = Chunk(listOf(achievementAchieveLog))
 
             //when
-            perfectDayAchievementStepListener.afterWrite(mockk(relaxed = true))
+            perfectDayLogStepListener.afterWrite(chunk)
 
             //then
-            verify { jobExecutionContext.get(eq(achievedUserIdsKey)) }
-        }
-
-        @DisplayName("jobExecutionContext에 유저 아이디 목록이 저장된다")
-        @Test
-        fun `jobExecutionContext에 유저 아이디 목록이 저장된다`() {
-            //given
-            val userIds = mutableListOf<Long>()
-            every { jobExecutionContext.get(eq(achievedUserIdsKey)) } returns userIds
-
-            //when
-            perfectDayAchievementStepListener.afterWrite(mockk(relaxed = true))
-
-            //then
-            verify { jobExecutionContext.put(eq(achievedUserIdsKey), eq(userIds)) }
+            verify {
+                executionContextUtil.putToStepContext(
+                    achievedLogsKey,
+                    match<List<AchievementAchieveLog>> { list -> list.all { it == achievementAchieveLog } })
+            }
         }
     }
 
+    @DisplayName("afterChunk 호출 시")
+    @Nested
+    inner class TestAfterChunk {
+        @DisplayName("ChunkContext가 완료 상태면 mergeList 메서드가 호출된다")
+        @Test
+        fun `ChunkContext가 완료 상태면 mergeList 메서드가 호출된다`() {
+            //given
+            val chunkContext = mockk<ChunkContext>()
+            every { chunkContext.isComplete } returns true
 
+            //when
+            perfectDayLogStepListener.afterChunk(chunkContext)
+
+            //then
+            verify { executionContextUtil.mergeListFromStepContextToJobContext<AchievementAchieveLog>(achievedLogsKey) }
+        }
+
+        @DisplayName("ChunkContext가 완료 상태가 아니면 mergeList 메서드가 호출되지 않는다")
+        @Test
+        fun `ChunkContext가 완료 상태가 아니면 mergeList 메서드가 호출되지 않는다`() {
+            //given
+            val chunkContext = mockk<ChunkContext>()
+            every { chunkContext.isComplete } returns false
+
+            //when
+            perfectDayLogStepListener.afterChunk(chunkContext)
+
+            //then
+            verify(inverse = true) { executionContextUtil.mergeListFromStepContextToJobContext<AchievementAchieveLog>(achievedLogsKey) }
+        }
+
+        @DisplayName("ChunkContext의 완료 여부와 관계 없이 removeFromStep이 호출된다")
+        @Test
+        fun `ChunkContext의 완료 여부와 관계 없이 removeFromStep이 호출된다`() {
+            //given
+            val chunkContext = mockk<ChunkContext>()
+            every { chunkContext.isComplete } returns true andThen false
+
+            //when
+            perfectDayLogStepListener.afterChunk(chunkContext)
+            perfectDayLogStepListener.afterChunk(chunkContext)
+
+            //then
+            verify(exactly = 2) { executionContextUtil.removeFromStepContext(achievedLogsKey) }
+        }
+    }
 }

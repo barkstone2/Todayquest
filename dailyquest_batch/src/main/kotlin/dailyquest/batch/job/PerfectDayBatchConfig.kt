@@ -14,12 +14,12 @@ class PerfectDayBatchConfig {
         jobRepository: JobRepository,
         perfectDayLogStep: Step,
         perfectDayAchievementStep: Step,
-        achieveNotificationStep: Step,
+        achievementAchieveNotificationStep: Step,
     ): Job {
         return JobBuilder("perfectDayJob", jobRepository)
             .start(perfectDayLogStep)
             .next(perfectDayAchievementStep)
-            .next(achieveNotificationStep)
+            .next(achievementAchieveNotificationStep)
             .build()
     }
 }

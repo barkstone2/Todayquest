@@ -1,7 +1,7 @@
 package dailyquest.batch.step
 
 import dailyquest.achievement.entity.AchievementAchieveLog
-import dailyquest.batch.listener.step.AchievementNotificationStepListener
+import dailyquest.batch.listener.step.AchievementAchieveNotificationStepListener
 import dailyquest.notification.dto.AchieveNotificationSaveRequest
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.repository.NotificationRepository
@@ -15,28 +15,29 @@ import org.springframework.batch.item.ItemWriter
 import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder
 import org.springframework.batch.item.function.FunctionItemProcessor
 import org.springframework.batch.item.support.IteratorItemReader
+import org.springframework.batch.repeat.policy.DefaultResultCompletionPolicy
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.transaction.PlatformTransactionManager
 
 @Configuration(proxyBeanMethods = false)
-class AchievementNotificationStepConfig {
+class AchievementAchieveNotificationStepConfig {
     @Bean
     @JobScope
-    fun achieveNotificationStep(
+    fun achievementAchieveNotificationStep(
         jobRepository: JobRepository,
         transactionManager: PlatformTransactionManager,
-        achievedLogsReader: ItemReader<AchievementAchieveLog>,
-        achievementNotificationProcessor: FunctionItemProcessor<AchievementAchieveLog, Notification>,
-        achievementNotificationWriter: ItemWriter<Notification>,
-        achievementNotificationStepListener: AchievementNotificationStepListener
+        achievementAchieveLogReader: ItemReader<AchievementAchieveLog>,
+        achievementAchieveNotificationProcessor: FunctionItemProcessor<AchievementAchieveLog, Notification>,
+        achievementAchieveNotificationWriter: ItemWriter<Notification>,
+        achievementNotificationStepListener: AchievementAchieveNotificationStepListener
     ): Step {
-        return StepBuilder("achieveNotificationStep", jobRepository)
-            .chunk<AchievementAchieveLog, Notification>(10, transactionManager)
-            .reader(achievedLogsReader)
-            .processor(achievementNotificationProcessor)
-            .writer(achievementNotificationWriter)
+        return StepBuilder("achievementAchieveNotificationStep", jobRepository)
+            .chunk<AchievementAchieveLog, Notification>(DefaultResultCompletionPolicy(), transactionManager)
+            .reader(achievementAchieveLogReader)
+            .processor(achievementAchieveNotificationProcessor)
+            .writer(achievementAchieveNotificationWriter)
             .listener(achievementNotificationStepListener)
             .faultTolerant()
             .retryLimit(3)
@@ -46,7 +47,7 @@ class AchievementNotificationStepConfig {
 
     @Bean
     @StepScope
-    fun achievedLogsReader(
+    fun achievementAchieveLogReader(
         @Value("#{jobExecutionContext['achievedLogs']}") achievedLogs: List<AchievementAchieveLog>,
     ): ItemReader<AchievementAchieveLog> {
         return IteratorItemReader(achievedLogs)
@@ -54,7 +55,7 @@ class AchievementNotificationStepConfig {
 
     @Bean
     @StepScope
-    fun achievementNotificationProcessor(): FunctionItemProcessor<AchievementAchieveLog, Notification> {
+    fun achievementAchieveNotificationProcessor(): FunctionItemProcessor<AchievementAchieveLog, Notification> {
         return FunctionItemProcessor {
             AchieveNotificationSaveRequest.of(it.userId, it.achievement).mapToEntity()
         }
@@ -62,7 +63,7 @@ class AchievementNotificationStepConfig {
 
     @Bean
     @StepScope
-    fun achievementNotificationWriter(
+    fun achievementAchieveNotificationWriter(
         notificationRepository: NotificationRepository
     ): ItemWriter<Notification> {
         return RepositoryItemWriterBuilder<Notification>()

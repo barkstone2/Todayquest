@@ -10,6 +10,7 @@ import org.springframework.batch.core.configuration.annotation.JobScope
 import org.springframework.batch.core.configuration.annotation.StepScope
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.core.step.builder.StepBuilder
+import org.springframework.batch.item.ItemProcessor
 import org.springframework.batch.item.ItemReader
 import org.springframework.batch.item.ItemWriter
 import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder
@@ -29,12 +30,12 @@ class AchievementAchieveNotificationStepConfig {
         jobRepository: JobRepository,
         transactionManager: PlatformTransactionManager,
         achievementAchieveLogReader: ItemReader<AchievementAchieveLog>,
-        achievementAchieveNotificationProcessor: FunctionItemProcessor<AchievementAchieveLog, Notification>,
+        achievementAchieveNotificationProcessor: ItemProcessor<AchievementAchieveLog, Notification>,
         achievementAchieveNotificationWriter: ItemWriter<Notification>,
         achievementNotificationStepListener: AchievementAchieveNotificationStepListener
     ): Step {
         return StepBuilder("achievementAchieveNotificationStep", jobRepository)
-            .chunk<AchievementAchieveLog, Notification>(DefaultResultCompletionPolicy(), transactionManager)
+            .chunk<AchievementAchieveLog, Notification>(10, transactionManager)
             .reader(achievementAchieveLogReader)
             .processor(achievementAchieveNotificationProcessor)
             .writer(achievementAchieveNotificationWriter)

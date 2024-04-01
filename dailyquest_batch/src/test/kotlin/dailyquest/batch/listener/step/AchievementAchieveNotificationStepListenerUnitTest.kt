@@ -1,7 +1,7 @@
 package dailyquest.batch.listener.step
 
-import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.common.util.ExecutionContextUtil
+import dailyquest.notification.entity.Notification
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -60,7 +60,7 @@ class AchievementAchieveNotificationStepListenerUnitTest {
         @Test
         fun `chunk에서 userId를 추출해 StepExecutionContext에 저장 요청한다`() {
             //given
-            val achievementAchieveLog = mockk<AchievementAchieveLog>()
+            val achievementAchieveLog = mockk<Notification>()
             val userId = 1L
             every { achievementAchieveLog.userId } returns userId
             val chunk = Chunk(listOf(achievementAchieveLog))

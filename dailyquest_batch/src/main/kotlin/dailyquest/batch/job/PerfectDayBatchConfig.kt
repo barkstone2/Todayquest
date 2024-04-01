@@ -1,5 +1,6 @@
 package dailyquest.batch.job
 
+import dailyquest.batch.listener.job.PerfectDayJobListener
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
@@ -15,11 +16,13 @@ class PerfectDayBatchConfig {
         perfectDayLogStep: Step,
         perfectDayAchievementStep: Step,
         achievementAchieveNotificationStep: Step,
+        perfectDayJobListener: PerfectDayJobListener
     ): Job {
         return JobBuilder("perfectDayJob", jobRepository)
             .start(perfectDayLogStep)
             .next(perfectDayAchievementStep)
             .next(achievementAchieveNotificationStep)
+            .listener(perfectDayJobListener)
             .build()
     }
 }

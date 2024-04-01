@@ -1,8 +1,7 @@
 package dailyquest.batch.listener.step
 
-import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.common.util.ExecutionContextUtil
-import dailyquest.log.perfectday.entity.PerfectDayLog
+import dailyquest.notification.entity.Notification
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.annotation.AfterChunk
@@ -30,7 +29,7 @@ class AchievementAchieveNotificationStepListener {
     }
 
     @AfterWrite
-    fun afterWrite(chunk: Chunk<AchievementAchieveLog>) {
+    fun afterWrite(chunk: Chunk<Notification>) {
         val newNotifiedUserIds = chunk.map { it.userId }.toList()
         executionContextUtil.putToStepContext(notifiedUserIdsKey, newNotifiedUserIds)
     }

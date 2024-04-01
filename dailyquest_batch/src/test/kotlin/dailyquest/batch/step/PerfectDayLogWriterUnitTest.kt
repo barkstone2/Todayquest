@@ -31,7 +31,7 @@ import java.time.LocalDate
 @EnableAutoConfiguration
 @SpringBatchTest
 @DisplayName("완벽한 하루 로그 스텝 라이터 유닛 테스트")
-class PerfectDayLogStepWriterUnitTest @Autowired constructor(
+class PerfectDayLogWriterUnitTest @Autowired constructor(
     private val jobLauncherTestUtils: JobLauncherTestUtils,
     private val perfectDayLogStep: Step,
 ) {

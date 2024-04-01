@@ -16,7 +16,6 @@ import org.springframework.batch.item.ItemWriter
 import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder
 import org.springframework.batch.item.function.FunctionItemProcessor
 import org.springframework.batch.item.support.IteratorItemReader
-import org.springframework.batch.repeat.policy.DefaultResultCompletionPolicy
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

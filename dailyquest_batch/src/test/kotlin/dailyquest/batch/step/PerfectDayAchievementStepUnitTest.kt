@@ -210,10 +210,4 @@ class PerfectDayAchievementStepUnitTest @Autowired constructor(
             assertThat(jobExecution.stepExecutions.first().writeCount).isEqualTo(0)
         }
     }
-
-
-    // TODO ItemReader 동작 시 jobExecutionContext에 담긴 userId를 인자로 사용한다
-    // TODO ItemProcessor 동작 시 stepExecutionContext에 담긴 업적 목록을 사용한다
-
-    // TODO 트랜잭션이 정상 커밋됐다면 JobExecutionContext에 처리한 로그 정보가 담겨 있어야 한다
 }

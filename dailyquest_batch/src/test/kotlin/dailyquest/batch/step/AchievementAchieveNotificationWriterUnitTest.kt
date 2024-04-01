@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Import
 @EnableAutoConfiguration
 @SpringBatchTest
 @DisplayName("업적 달성 알림 스텝 라이터 유닛 테스트")
-class AchievementAchieveNotificationStepWriterUnitTest @Autowired constructor(
+class AchievementAchieveNotificationWriterUnitTest @Autowired constructor(
     private val jobLauncherTestUtils: JobLauncherTestUtils,
     private val achievementAchieveNotificationStep: Step,
 ) {

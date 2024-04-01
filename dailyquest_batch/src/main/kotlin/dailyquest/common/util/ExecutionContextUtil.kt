@@ -8,15 +8,17 @@ class ExecutionContextUtil private constructor(
 ) {
     private lateinit var jobExecutionContextUtil: JobExecutionContextUtil
 
-    fun <T> getFromStepContext(key: String): T {
-        return stepExecution.executionContext.get(key) as T
+    @Throws(ClassCastException::class)
+    fun <T> getFromStepContext(key: String): T? {
+        return stepExecution.executionContext.get(key) as? T
     }
 
     fun putToStepContext(key: String, value: Any) {
         stepExecution.executionContext.put(key, value)
     }
 
-    fun <T> getFromJobContext(key: String): T {
+    @Throws(ClassCastException::class)
+    fun <T> getFromJobContext(key: String): T? {
         return jobExecutionContextUtil.getFromJobContext(key)
     }
 
@@ -25,9 +27,9 @@ class ExecutionContextUtil private constructor(
     }
 
     fun <E> mergeListFromStepContextToJobContext(key: String) {
-        val fromJobContext = this.getFromJobContext<MutableList<E>?>(key) ?: mutableListOf()
+        val fromJobContext = this.getFromJobContext<List<E>?>(key)?.toMutableList() ?: mutableListOf()
         val fromStepContext = this.getFromStepContext<List<E>>(key)
-        fromJobContext.addAll(fromStepContext)
+        fromStepContext?.let { fromJobContext.addAll(it) }
         this.putToJobContext(key, fromJobContext)
     }
 
@@ -43,7 +45,7 @@ class ExecutionContextUtil private constructor(
         @JvmStatic
         fun from(stepExecution: StepExecution): ExecutionContextUtil {
             val executionContextUtil = ExecutionContextUtil(stepExecution)
-            executionContextUtil.jobExecutionContextUtil = JobExecutionContextUtil(stepExecution.jobExecution)
+            executionContextUtil.jobExecutionContextUtil = JobExecutionContextUtil.from(stepExecution.jobExecution)
             return executionContextUtil
         }
     }

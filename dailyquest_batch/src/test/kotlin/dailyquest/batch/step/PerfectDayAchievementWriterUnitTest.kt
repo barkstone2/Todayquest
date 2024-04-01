@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Import
 @EnableAutoConfiguration
 @SpringBatchTest
 @DisplayName("완벽한 하루 업적 스텝 라이터 유닛 테스트")
-class PerfectDayAchievementStepWriterUnitTest @Autowired constructor(
+class PerfectDayAchievementWriterUnitTest @Autowired constructor(
     private val jobLauncherTestUtils: JobLauncherTestUtils,
     private val perfectDayAchievementStep: Step,
 ) {

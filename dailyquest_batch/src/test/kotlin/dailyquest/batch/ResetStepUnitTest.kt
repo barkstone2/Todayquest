@@ -22,12 +22,14 @@ import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
+@TestPropertySource(properties = ["spring.batch.job.enabled=false"])
 @DisplayName("퀘스트 리셋 스텝 단위 테스트")
 @EnableAutoConfiguration
 @SpringJUnitConfig(BatchConfig::class)

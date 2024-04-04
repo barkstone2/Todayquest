@@ -1,0 +1,4 @@
+spring:
+  messages:
+    use-code-as-default-message: true
+    basename: message.user

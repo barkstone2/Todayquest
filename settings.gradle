@@ -8,3 +8,4 @@ include ("achievement")
 include 'jpa-common'
 include 'reflection-common'
 include 'notification'
+include 'user'

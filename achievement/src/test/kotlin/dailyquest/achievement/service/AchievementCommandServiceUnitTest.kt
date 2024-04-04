@@ -5,7 +5,6 @@ import dailyquest.achievement.dto.AchievementRequest
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
-import dailyquest.achievement.util.AchievementCurrentValueResolver
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -20,12 +19,16 @@ class AchievementCommandServiceUnitTest {
 
     @InjectMockKs
     lateinit var achievementCommandService: AchievementCommandService
+
     @RelaxedMockK
     lateinit var achieveLogCommandService: AchievementAchieveLogCommandService
+
     @RelaxedMockK
-    lateinit var achievementCurrentValueResolver: AchievementCurrentValueResolver
+    lateinit var achievementCurrentValueQueryService: AchievementCurrentValueQueryService
+
     @RelaxedMockK
     lateinit var achievementRepository: AchievementRepository
+
     @RelaxedMockK
     lateinit var messageSource: MessageSource
 
@@ -79,12 +82,17 @@ class AchievementCommandServiceUnitTest {
         fun `달성하지 않은 업적 조회 결과가 null이면 EMPTY 타입의 업적이 반환된다`() {
             //given
             every { achievementRepository.findNotAchievedAchievement(any(), any()) } returns null
+            mockkObject(Achievement)
+            val emptyAchievement = mockk<Achievement>(relaxed = true)
+            every { Achievement.empty() } returns emptyAchievement
 
             //when
             achievementCommandService.checkAndAchieveAchievement(achieveRequest)
 
             //then
-            verify { achievementCurrentValueResolver.resolveCurrentValue(any(), match { it.type == AchievementType.EMPTY }) }
+            verify {
+                emptyAchievement.canAchieve(any())
+            }
         }
     }
 

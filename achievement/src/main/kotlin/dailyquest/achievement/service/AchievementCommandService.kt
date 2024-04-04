@@ -4,7 +4,6 @@ import dailyquest.achievement.dto.AchievementAchieveRequest
 import dailyquest.achievement.dto.AchievementRequest
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.repository.AchievementRepository
-import dailyquest.achievement.util.AchievementCurrentValueResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.support.MessageSourceAccessor
@@ -16,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class AchievementCommandService @Autowired constructor(
     private val achieveLogCommandService: AchievementAchieveLogCommandService,
-    private val achievementCurrentValueResolver: AchievementCurrentValueResolver,
+    private val achievementCurrentValueQueryService: AchievementCurrentValueQueryService,
     private val achievementRepository: AchievementRepository,
     messageSource: MessageSource
 ) {
@@ -25,7 +24,7 @@ class AchievementCommandService @Autowired constructor(
     @Async
     fun checkAndAchieveAchievement(achieveRequest: AchievementAchieveRequest) {
         val targetAchievement = this.getNotAchievedAchievement(achieveRequest)
-        val currentValue = achievementCurrentValueResolver.resolveCurrentValue(achieveRequest, targetAchievement)
+        val currentValue = achievementCurrentValueQueryService.getCurrentValueOfUser(achieveRequest.userId, achieveRequest.type)
         if (targetAchievement.canAchieve(currentValue)) {
             achieveLogCommandService.saveAchieveLog(targetAchievement.id, achieveRequest.userId)
         }

@@ -1,7 +1,6 @@
 package dailyquest.quest.controller;
 
 import dailyquest.achievement.dto.AchievementAchieveRequest;
-import dailyquest.achievement.entity.AchievementType;
 import dailyquest.achievement.service.AchievementCommandService;
 import dailyquest.common.ResponseData;
 import dailyquest.common.RestPage;
@@ -9,6 +8,7 @@ import dailyquest.common.UserLevelLock;
 import dailyquest.quest.dto.*;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.service.QuestService;
+import dailyquest.redis.service.RedisService;
 import dailyquest.search.service.QuestIndexService;
 import dailyquest.user.dto.UserPrincipal;
 import jakarta.validation.Valid;
@@ -38,6 +38,7 @@ public class QuestApiController {
     private final UserLevelLock userLevelLock;
     private final QuestIndexService questIndexService;
     private final AchievementCommandService achievementCommandService;
+    private final RedisService redisService;
 
     @Value("${quest.page.size}")
     private int pageSize;
@@ -120,7 +121,10 @@ public class QuestApiController {
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) throws IOException {
-        QuestResponse completedQuest = questService.completeQuest(questId, principal.getId());
+        long questClearExp = redisService.getQuestClearExp();
+        long questClearGold = redisService.getQuestClearGold();
+        QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(questClearExp, questClearGold, questId);
+        QuestResponse completedQuest = questService.completeQuest(principal.getId(), questCompletionRequest);
         questIndexService.updateQuestStateOfDocument(completedQuest, principal.getId());
         achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_COMPLETION, principal.getId()));
         achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(USER_LEVEL, principal.getId()));

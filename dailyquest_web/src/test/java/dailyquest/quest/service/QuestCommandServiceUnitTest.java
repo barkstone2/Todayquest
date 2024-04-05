@@ -3,23 +3,25 @@ package dailyquest.quest.service;
 import dailyquest.common.MessageUtil;
 import dailyquest.quest.dto.DetailInteractRequest;
 import dailyquest.quest.dto.DetailResponse;
+import dailyquest.quest.dto.QuestCompletionRequest;
 import dailyquest.quest.dto.QuestRequest;
 import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.entity.QuestType;
 import dailyquest.quest.repository.QuestRepository;
-import dailyquest.user.entity.UserInfo;
+import dailyquest.user.entity.User;
 import dailyquest.user.repository.UserRepository;
 import dailyquest.user.service.UserService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.junit.jupiter.api.function.Executable;
+import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +44,7 @@ public class QuestCommandServiceUnitTest {
     @Nested
     class QuestSaveTest {
 
-        @Mock private UserInfo foundUser;
+        @Mock private User foundUser;
         @Mock private QuestRequest saveRequest;
         @Mock(answer = Answers.RETURNS_SMART_NULLS) private Quest saveEntity;
 
@@ -228,8 +230,10 @@ public class QuestCommandServiceUnitTest {
             doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
             doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
 
+            QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(1L, 1L, questId, QuestType.SUB);
+
             //when
-            questCommandService.completeQuest(questId, userId);
+            questCommandService.completeQuest(userId, questCompletionRequest);
 
             //then
             verify(questQueryService).getEntityOfUser(eq(questId), eq(userId));
@@ -242,9 +246,10 @@ public class QuestCommandServiceUnitTest {
             Quest completeTarget = mock(Quest.class);
             doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
             doReturn(QuestState.DELETE).when(completeTarget).completeQuest();
+            QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(1L, 1L, 1L, QuestType.SUB);
 
             //when
-            Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
+            Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
 
             //then
             assertThrows(IllegalStateException.class, testMethod, deleteMessage);
@@ -257,9 +262,10 @@ public class QuestCommandServiceUnitTest {
             Quest completeTarget = mock(Quest.class);
             doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
             doReturn(QuestState.PROCEED).when(completeTarget).completeQuest();
+            QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(1L, 1L, 1L, QuestType.SUB);
 
             //when
-            Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
+            Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
 
             //then
             assertThrows(IllegalStateException.class, testMethod, proceedMessage);
@@ -272,9 +278,10 @@ public class QuestCommandServiceUnitTest {
             Quest completeTarget = mock(Quest.class);
             doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
             doReturn(QuestState.FAIL).when(completeTarget).completeQuest();
+            QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(1L, 1L, 1L, QuestType.SUB);
 
             //when
-            Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
+            Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
 
             //then
             assertThrows(IllegalStateException.class, testMethod, notProceedMessage);
@@ -287,19 +294,33 @@ public class QuestCommandServiceUnitTest {
             Quest completeTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
             doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
             doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
-
-            QuestType targetType = QuestType.MAIN;
-            doReturn(targetType).when(completeTarget).getType();
-
-            UserInfo targetOwner = mock(UserInfo.class);
-            doReturn(targetOwner).when(completeTarget).getUser();
+            doReturn(false).when(completeTarget).isMainQuest();
+            QuestCompletionRequest questCompletionRequest = mock(QuestCompletionRequest.class, Answers.RETURNS_SMART_NULLS);
+            long userId = 1L;
 
             //when
-            questCommandService.completeQuest(1L, 1L);
+            questCommandService.completeQuest(userId, questCompletionRequest);
 
             //then
-            verify(userService, times(1)).giveExpAndGoldToUser(eq(targetType), eq(targetOwner));
+            verify(userService, times(1)).addUserExpAndGold(eq(userId), eq(questCompletionRequest));
             verify(questLogService, times(1)).saveQuestLog(eq(completeTarget));
+        }
+
+        @DisplayName("결과 상태가 COMPLETE고 완료한 퀘스트가 MAIN 퀘스트면 완료 요청 DTO의 타입의 메인으로 변경한다")
+        @Test
+        public void ifResultIsCompletedAndIsMainQuestThenChangeToMain() throws Exception {
+            //given
+            Quest completeTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
+            doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
+            doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
+            doReturn(true).when(completeTarget).isMainQuest();
+            QuestCompletionRequest questCompletionRequest = mock(QuestCompletionRequest.class, Answers.RETURNS_SMART_NULLS);
+
+            //when
+            questCommandService.completeQuest(1L, questCompletionRequest);
+
+            //then
+            verify(questCompletionRequest, times(1)).toMainQuest();
         }
     }
 

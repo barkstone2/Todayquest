@@ -7,6 +7,8 @@ import dailyquest.common.GoogleIdTokenVerifierFactory
 import dailyquest.common.MessageUtil
 import dailyquest.jwt.JwtTokenProvider
 import dailyquest.jwt.dto.TokenRequest
+import dailyquest.redis.service.RedisService
+import dailyquest.user.dto.UserSaveRequest
 import dailyquest.user.service.UserService
 import jakarta.servlet.http.Cookie
 import org.springframework.beans.factory.annotation.Value
@@ -22,6 +24,7 @@ class JwtService(
     private val jwtTokenProvider: JwtTokenProvider,
     private val userService: UserService,
     private val googleIdTokenVerifierFactory: GoogleIdTokenVerifierFactory,
+    private val redisService: RedisService
 ) {
 
     fun issueTokenCookie(tokenRequest: TokenRequest): Pair<Cookie, Cookie> {
@@ -36,9 +39,19 @@ class JwtService(
         val oauth2Id = idToken.payload.subject
         val providerType = tokenRequest.providerType
 
-        val retrievedUser = userService.getOrSaveUser(oauth2Id, providerType)
-        val accessToken = jwtTokenProvider.createAccessToken(retrievedUser.id)
-        val refreshToken = jwtTokenProvider.createRefreshToken(retrievedUser.id)
+        var foundUser = userService.findUserByOauthId(oauth2Id)
+        if (foundUser == null) {
+            var randomNickname = redisService.createRandomNickname()
+            while (userService.isDuplicatedNickname(randomNickname)) {
+                randomNickname = redisService.createRandomNickname()
+            }
+            val userSaveRequest = UserSaveRequest(oauth2Id, randomNickname, providerType)
+            val savedUserId = userService.saveUser(userSaveRequest)
+            foundUser = userService.getUserById(savedUserId)
+        }
+
+        val accessToken = jwtTokenProvider.createAccessToken(foundUser.id)
+        val refreshToken = jwtTokenProvider.createRefreshToken(foundUser.id)
 
         return jwtTokenProvider.createAccessTokenCookie(accessToken) to jwtTokenProvider.createRefreshTokenCookie(refreshToken)
     }

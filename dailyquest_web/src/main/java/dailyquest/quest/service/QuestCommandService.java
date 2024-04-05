@@ -41,6 +41,7 @@ public class QuestCommandService {
         questRepository.save(quest);
         QuestLogRequest questLogRequest = QuestLogRequest.from(quest);
         questLogService.saveQuestLog(questLogRequest);
+        userService.recordQuestRegistration(userId, questLogRequest.getLoggedDate());
         return QuestResponse.createDto(quest);
     }
 
@@ -72,6 +73,7 @@ public class QuestCommandService {
                 userService.addUserExpAndGold(userId, questCompletionRequest);
                 QuestLogRequest questLogRequest = QuestLogRequest.from(quest);
                 questLogService.saveQuestLog(questLogRequest);
+                userService.recordQuestCompletion(userId, questLogRequest.getLoggedDate());
             }
             case DELETE -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.deleted"));
             case PROCEED -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.complete.detail"));

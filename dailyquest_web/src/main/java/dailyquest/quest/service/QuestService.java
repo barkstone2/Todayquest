@@ -46,8 +46,8 @@ public class QuestService {
         return questCommandService.deleteQuest(questId, userId);
     }
 
-    public QuestResponse completeQuest(Long questId, Long userId) {
-        return questCommandService.completeQuest(questId, userId);
+    public QuestResponse completeQuest(Long userId, QuestCompletionRequest questCompletionRequest) {
+        return questCommandService.completeQuest(userId, questCompletionRequest);
     }
 
     public QuestResponse discardQuest(Long questId, Long userId) {

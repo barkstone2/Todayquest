@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -39,28 +38,12 @@ public class QuestLog extends BaseTimeEntity {
     private LocalDate loggedDate;
 
     @Builder
-    public QuestLog(Long userId, Long questId, QuestState state, QuestType type) {
+    public QuestLog(Long userId, Long questId, QuestState state, QuestType type, LocalDate loggedDate) {
         this.userId = userId;
         this.questId = questId;
         this.state = state;
         this.type = type;
-
-        LocalDate nowDate = LocalDate.now();
-        LocalTime nowTime = LocalTime.now();
-        LocalTime resetTime = LocalTime.of(6, 0);
-        this.loggedDate = nowTime.isBefore(resetTime) ? nowDate.minusDays(1L) : nowDate;
-    }
-
-    public QuestLog(Quest quest) {
-        this.userId = quest.getUser().getId();
-        this.questId = quest.getId();
-        this.state = quest.getState();
-        this.type = quest.getType();
-
-        LocalDate nowDate = LocalDate.now();
-        LocalTime nowTime = LocalTime.now();
-        LocalTime resetTime = LocalTime.of(6, 0);
-        this.loggedDate = nowTime.isBefore(resetTime) ? nowDate.minusDays(1L) : nowDate;
+        this.loggedDate = loggedDate;
     }
 
     public QuestLog(Quest quest, LocalDate loggedDate) {

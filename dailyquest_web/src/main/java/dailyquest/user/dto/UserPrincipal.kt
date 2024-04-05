@@ -34,8 +34,8 @@ class UserPrincipal(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val lastQuestCompletionDate: LocalDate? = null,
     val perfectDayCount: Int = 0,
-    val goldEarnAmount: Int = 0,
-    val goldUseAmount: Int = 0,
+    val goldEarnAmount: Long = 0,
+    val goldUseAmount: Long = 0,
 ) : UserDetails {
 
     @JsonIgnore

@@ -10,7 +10,7 @@ import dailyquest.common.MessageUtil
 import dailyquest.common.ResponseData
 import dailyquest.exception.DuplicateNicknameException
 import dailyquest.user.dto.UserPrincipal
-import dailyquest.user.dto.UserUpdateRequest
+import dailyquest.user.dto.WebUserUpdateRequest
 import dailyquest.user.service.UserService
 
 @Validated
@@ -27,14 +27,13 @@ class UserApiController(
 
     @PatchMapping
     fun updateUser(
-        @Valid @RequestBody dto: UserUpdateRequest,
+        @Valid @RequestBody updateRequest: WebUserUpdateRequest,
         @AuthenticationPrincipal principal: UserPrincipal
     ) {
         try {
-            userService.updateUser(principal, dto)
+            userService.updateUser(principal.id, updateRequest)
         } catch (e: DataIntegrityViolationException) {
             throw DuplicateNicknameException(MessageUtil.getMessage("nickname.duplicate"))
         }
     }
-
 }

@@ -11,6 +11,7 @@ import org.springframework.context.MessageSource
 import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.jvm.optionals.getOrNull
 
@@ -64,5 +65,23 @@ class UserService(
     fun addUserExpAndGold(userId: Long, updateRequest: UserUpdateRequest) {
         val updateTarget = this.findUser(userId)
         updateTarget.addExpAndGold(updateRequest.earnedExp, updateRequest.earnedGold)
+    }
+
+    @Transactional
+    fun recordQuestRegistration(userId: Long, registrationDate: LocalDate) {
+        val targetUser = this.findUser(userId)
+        targetUser.increaseQuestRegistrationCount(registrationDate)
+    }
+
+    @Transactional
+    fun recordQuestCompletion(userId: Long, completionDate: LocalDate) {
+        val targetUser = this.findUser(userId)
+        targetUser.increaseQuestCompletionCount(completionDate)
+    }
+
+    @Transactional
+    fun recordPerfectDay(userId: Long) {
+        val targetUser = this.findUser(userId)
+        targetUser.increasePerfectDayCount()
     }
 }

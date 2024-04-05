@@ -25,8 +25,8 @@ class UserResponse @JvmOverloads constructor(
     val lastQuestRegistrationDate: LocalDate? = null,
     val lastQuestCompletionDate: LocalDate? = null,
     val perfectDayCount: Int = 0,
-    val goldEarnAmount: Int = 0,
-    val goldUseAmount: Int = 0,
+    val goldEarnAmount: Long = 0,
+    val goldUseAmount: Long = 0,
 ) {
     fun calculateLevel(expTable: Map<Int, Long>): Triple<Int, Long, Long> {
         var level = 1

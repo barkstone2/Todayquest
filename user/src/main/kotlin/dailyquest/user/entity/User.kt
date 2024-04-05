@@ -25,8 +25,8 @@ class User @JvmOverloads constructor(
     lastQuestRegistrationDate: LocalDate? = null,
     lastQuestCompletionDate: LocalDate? = null,
     perfectDayCount: Int = 0,
-    goldEarnAmount: Int = 0,
-    goldUseAmount: Int = 0,
+    goldEarnAmount: Long = 0,
+    goldUseAmount: Long = 0,
 ) : BaseTimeEntity() {
 
     @Id
@@ -102,11 +102,11 @@ class User @JvmOverloads constructor(
         protected set
 
     @Column(name = "gold_earn_amount", nullable = false)
-    var goldEarnAmount: Int = goldEarnAmount
+    var goldEarnAmount: Long = goldEarnAmount
         protected set
 
     @Column(name = "gold_use_amount", nullable = false)
-    var goldUseAmount: Int = goldUseAmount
+    var goldUseAmount: Long = goldUseAmount
         protected set
 
     fun updateUser(updateRequest: UserUpdateRequest): Boolean {
@@ -149,6 +149,7 @@ class User @JvmOverloads constructor(
     fun addExpAndGold(earnedExp: Long, earnedGold: Long) {
         this.exp += earnedExp
         this.gold += earnedGold
+        this.goldEarnAmount += earnedGold
     }
 
     fun isNowCoreTime() : Boolean {
@@ -167,37 +168,45 @@ class User @JvmOverloads constructor(
         if (this.isContinuousRegistration(registrationDate)) {
             this.increaseCurrentQuestContinuousRegistrationDays()
         }
+        if (this.isLatestRegistration(registrationDate)) {
+            this.lastQuestRegistrationDate = registrationDate
+        }
     }
 
     private fun isContinuousRegistration(registrationDate: LocalDate) =
         lastQuestRegistrationDate == null || lastQuestRegistrationDate!!.isEqual(registrationDate.minusDays(1))
+
+    private fun increaseCurrentQuestContinuousRegistrationDays() {
+        this.currentQuestContinuousRegistrationDays++
+        this.maxQuestContinuousRegistrationDays = max(maxQuestContinuousRegistrationDays, currentQuestContinuousRegistrationDays)
+    }
+
+    private fun isLatestRegistration(registrationDate: LocalDate): Boolean =
+        this.lastQuestRegistrationDate?.isBefore(registrationDate) != false
 
     fun increaseQuestCompletionCount(completionDate: LocalDate) {
         this.questCompletionCount++
         if (this.isContinuousCompletion(completionDate)) {
             this.increaseCurrentQuestContinuousCompletionDays()
         }
+        if (this.isLatestCompletion(completionDate)) {
+            this.lastQuestCompletionDate = completionDate
+        }
     }
 
     private fun isContinuousCompletion(completionDate: LocalDate) =
         lastQuestCompletionDate == null || lastQuestCompletionDate!!.isEqual(completionDate.minusDays(1))
 
-    fun increaseCurrentQuestContinuousRegistrationDays() {
-        this.currentQuestContinuousRegistrationDays++
-        this.maxQuestContinuousRegistrationDays = max(maxQuestContinuousRegistrationDays, currentQuestContinuousRegistrationDays)
-    }
-
-    fun increaseCurrentQuestContinuousCompletionDays() {
+    private fun increaseCurrentQuestContinuousCompletionDays() {
         this.currentQuestContinuousCompletionDays++
         this.maxQuestContinuousCompletionDays = max(maxQuestContinuousCompletionDays, currentQuestContinuousCompletionDays)
     }
 
+    private fun isLatestCompletion(completionDate: LocalDate): Boolean =
+        this.lastQuestCompletionDate?.isBefore(completionDate) != false
+
     fun increasePerfectDayCount() {
         this.perfectDayCount++
-    }
-
-    fun addGoldEarnAmount(goldEarnAmount: Int) {
-        this.goldEarnAmount += goldEarnAmount
     }
 
     fun addGoldUseAmount(goldUseAmount: Int) {

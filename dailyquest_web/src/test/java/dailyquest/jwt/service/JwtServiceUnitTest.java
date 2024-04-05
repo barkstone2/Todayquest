@@ -6,13 +6,15 @@ import dailyquest.common.GoogleIdTokenVerifierFactory;
 import dailyquest.common.MessageUtil;
 import dailyquest.jwt.JwtTokenProvider;
 import dailyquest.jwt.dto.TokenRequest;
-import dailyquest.user.dto.UserPrincipal;
-import dailyquest.user.entity.UserInfo;
+import dailyquest.redis.service.RedisService;
+import dailyquest.user.dto.UserResponse;
+import dailyquest.user.entity.ProviderType;
 import dailyquest.user.service.UserService;
 import jakarta.servlet.http.Cookie;
 import kotlin.Pair;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,13 +32,14 @@ public class JwtServiceUnitTest {
     @Mock JwtTokenProvider jwtTokenProvider;
     @Mock UserService userService;
     @Mock GoogleIdTokenVerifierFactory verifierFactory;
+    @Mock RedisService redisService;
 
     MockedStatic<MessageUtil> messageUtil;
     String clientId = "test-client-id";
 
     @BeforeEach
     void before() {
-        jwtService = new JwtService(clientId, jwtTokenProvider, userService, verifierFactory);
+        jwtService = new JwtService(clientId, jwtTokenProvider, userService, verifierFactory, redisService);
         messageUtil = mockStatic(MessageUtil.class);
         when(MessageUtil.getMessage(any())).thenReturn("");
         when(MessageUtil.getMessage(any(), any())).thenReturn("");
@@ -82,46 +85,85 @@ public class JwtServiceUnitTest {
             assertThatThrownBy(run::run).isInstanceOf(AccessDeniedException.class);
         }
 
-        @DisplayName("idToken이 유효하다면 유저 정보 등록 or 조회 후 토큰을 생성해 반환한다")
-        @Test
-        public void doRegisterOrGetUserAndReturn() throws Exception {
-            //given
-            TokenRequest mockRequest = mock(TokenRequest.class);
+        @DisplayName("idToken이 유효하고")
+        @Nested
+        class WhenIdTokenValid {
+            @DisplayName("가입된 유저 정보가 있으면 유저 아이디로 토큰을 생성해 반환한다")
+            @Test
+            public void whenUserExistThenCreateTokenByUserId() throws Exception {
+                //given
+                TokenRequest mockRequest = mock(TokenRequest.class);
 
-            String rawIdToken = "id-token";
-            doReturn(rawIdToken).when(mockRequest).getIdToken();
+                String rawIdToken = "id-token";
+                doReturn(rawIdToken).when(mockRequest).getIdToken();
 
-            GoogleIdTokenVerifier mockVerifier = mock(GoogleIdTokenVerifier.class);
-            doReturn(mockVerifier).when(verifierFactory).create(any(), any(), any());
+                GoogleIdTokenVerifier mockVerifier = mock(GoogleIdTokenVerifier.class);
+                doReturn(mockVerifier).when(verifierFactory).create(any(), any(), any());
 
-            GoogleIdToken mockIdToken = mock(GoogleIdToken.class);
-            doReturn(mockIdToken).when(mockVerifier).verify(eq(rawIdToken));
+                GoogleIdToken mockIdToken = mock(GoogleIdToken.class);
+                doReturn(mockIdToken).when(mockVerifier).verify(eq(rawIdToken));
 
-            GoogleIdToken.Payload mockPayload = mock(GoogleIdToken.Payload.class);
-            doReturn(mockPayload).when(mockIdToken).getPayload();
+                GoogleIdToken.Payload mockPayload = mock(GoogleIdToken.Payload.class, Answers.RETURNS_SMART_NULLS);
+                doReturn(mockPayload).when(mockIdToken).getPayload();
 
-            UserInfo mockUser = mock(UserInfo.class);
-            doReturn(mockUser).when(userService).getOrSaveUser(any(), any());
+                UserResponse mockUser = mock(UserResponse.class);
+                doReturn(mockUser).when(userService).findUserByOauthId(any());
 
-            String accessToken = "access";
-            String refreshToken = "refresh";
+                String accessToken = "access";
+                String refreshToken = "refresh";
 
-            doReturn(accessToken).when(jwtTokenProvider).createAccessToken(any());
-            doReturn(refreshToken).when(jwtTokenProvider).createRefreshToken(any());
+                doReturn(accessToken).when(jwtTokenProvider).createAccessToken(any());
+                doReturn(refreshToken).when(jwtTokenProvider).createRefreshToken(any());
 
-            //when
-            jwtService.issueTokenCookie(mockRequest);
+                //when
+                jwtService.issueTokenCookie(mockRequest);
 
-            //then
-            verify(userService).getOrSaveUser(any(), any());
+                //then
+                verify(jwtTokenProvider).createAccessToken(any());
+                verify(jwtTokenProvider).createRefreshToken(any());
 
-            verify(jwtTokenProvider).createAccessToken(any());
-            verify(jwtTokenProvider).createRefreshToken(any());
+                verify(jwtTokenProvider).createAccessTokenCookie(eq(accessToken));
+                verify(jwtTokenProvider).createRefreshTokenCookie(eq(refreshToken));
+            }
 
-            verify(jwtTokenProvider).createAccessTokenCookie(eq(accessToken));
-            verify(jwtTokenProvider).createRefreshTokenCookie(eq(refreshToken));
+            @DisplayName("가입된 유저 정보가 없으면 유저 정보를 새로 등록한다")
+            @Test
+            public void whenUserDoesNotExistThenSaveUser() throws Exception {
+                //given
+                TokenRequest mockRequest = mock(TokenRequest.class);
+                doReturn(ProviderType.GOOGLE).when(mockRequest).getProviderType();
+
+                String rawIdToken = "id-token";
+                doReturn(rawIdToken).when(mockRequest).getIdToken();
+
+                GoogleIdTokenVerifier mockVerifier = mock(GoogleIdTokenVerifier.class);
+                doReturn(mockVerifier).when(verifierFactory).create(any(), any(), any());
+
+                GoogleIdToken mockIdToken = mock(GoogleIdToken.class);
+                doReturn(mockIdToken).when(mockVerifier).verify(eq(rawIdToken));
+
+                GoogleIdToken.Payload mockPayload = mock(GoogleIdToken.Payload.class, Answers.RETURNS_SMART_NULLS);
+                doReturn(mockPayload).when(mockIdToken).getPayload();
+
+                doReturn(null).when(userService).findUserByOauthId(any());
+
+                String accessToken = "access";
+                String refreshToken = "refresh";
+
+                doReturn(accessToken).when(jwtTokenProvider).createAccessToken(any());
+                doReturn(refreshToken).when(jwtTokenProvider).createRefreshToken(any());
+
+                doReturn("").when(redisService).createRandomNickname();
+                UserResponse mockUser = mock(UserResponse.class);
+                doReturn(mockUser).when(userService).getUserById(anyLong());
+
+                //when
+                jwtService.issueTokenCookie(mockRequest);
+
+                //then
+                verify(userService).saveUser(any());
+            }
         }
-
     }
 
     @DisplayName("invalidateToken 요청 시")

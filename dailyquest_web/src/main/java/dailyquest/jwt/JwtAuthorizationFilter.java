@@ -2,7 +2,9 @@ package dailyquest.jwt;
 
 import dailyquest.properties.JwtTokenProperties;
 import dailyquest.properties.SecurityUrlProperties;
+import dailyquest.redis.service.RedisService;
 import dailyquest.user.dto.UserPrincipal;
+import dailyquest.user.dto.UserResponse;
 import dailyquest.user.service.UserService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -19,6 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
@@ -29,6 +32,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final UserService userService;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
     private final SecurityUrlProperties securityUrlProperties;
+    private final RedisService redisService;
 
     @Override
     protected boolean shouldNotFilterAsyncDispatch() {
@@ -72,7 +76,9 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     protected void parseAndSetAuthentication(String accessToken) {
         Long userId = jwtTokenProvider.getUserIdFromToken(accessToken);
-        UserPrincipal userDetails = userService.getUserPrincipal(userId);
+        UserResponse userResponse = userService.getUserById(userId);
+        Map<Integer, Long> expTable = redisService.getExpTable();
+        UserPrincipal userDetails = UserPrincipal.from(userResponse, expTable);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }

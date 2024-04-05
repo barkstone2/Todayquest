@@ -2,15 +2,15 @@ package dailyquest.jwt
 
 import dailyquest.properties.JwtTokenProperties
 import dailyquest.properties.SecurityUrlProperties
+import dailyquest.redis.service.RedisService
 import dailyquest.user.dto.UserPrincipal
+import dailyquest.user.dto.UserResponse
+import dailyquest.user.entity.RoleType
 import dailyquest.user.service.UserService
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
-import io.mockk.spyk
-import io.mockk.verify
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -42,6 +42,8 @@ class JwtAuthorizationFilterUnitTest {
     lateinit var filterChain: FilterChain
     @RelaxedMockK
     lateinit var jwtTokenProperties: JwtTokenProperties
+    @RelaxedMockK
+    lateinit var redisService: RedisService
     private val accessTokenName: String = "access"
     private val refreshTokenName: String = "refresh"
 
@@ -145,20 +147,26 @@ class JwtAuthorizationFilterUnitTest {
             //given
             val userId = 1L
             every { jwtTokenProvider.getUserIdFromToken(any()) } returns userId
+            val userResponse = mockk<UserResponse>(relaxed = true)
+            every { userService.getUserById(any()) } returns userResponse
+            every { userResponse.role } returns RoleType.USER
 
             //when
             jwtAuthorizationFilter.doFilterInternal(request, response, filterChain)
 
             //then
-            verify { userService.getUserPrincipal(eq(userId)) }
+            verify { userService.getUserById(eq(userId)) }
         }
 
         @DisplayName("조회한 유저 정보로 SecurityContext에 인증 정보를 담는다")
         @Test
         fun `조회한 유저 정보로 SecurityContext에 인증 정보를 담는다`() {
             //given
+            val userResponse: UserResponse = mockk(relaxed = true)
+            every { userService.getUserById(any()) } returns userResponse
+            mockkObject(UserPrincipal)
             val userPrincipal: UserPrincipal = mockk(relaxed = true)
-            every { userService.getUserPrincipal(any()) } returns userPrincipal
+            every { UserPrincipal.from(any(), any()) } returns userPrincipal
 
             //when
             jwtAuthorizationFilter.doFilterInternal(request, response, filterChain)

@@ -1,15 +1,12 @@
 package dailyquest.quest.service;
 
 import dailyquest.common.MessageUtil;
-import dailyquest.quest.dto.DetailInteractRequest;
-import dailyquest.quest.dto.DetailResponse;
-import dailyquest.quest.dto.QuestRequest;
-import dailyquest.quest.dto.QuestResponse;
+import dailyquest.quest.dto.*;
 import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestRepository;
-import dailyquest.user.entity.UserInfo;
+import dailyquest.user.entity.User;
 import dailyquest.user.repository.UserRepository;
 import dailyquest.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +28,7 @@ public class QuestCommandService {
     private final QuestLogService questLogService;
 
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {
-        UserInfo findUser = userRepository.getReferenceById(userId);
+        User findUser = userRepository.getReferenceById(userId);
         dto.checkRangeOfDeadLine();
 
         if (findUser.isNowCoreTime()) {
@@ -64,13 +61,15 @@ public class QuestCommandService {
         return QuestResponse.createDto(quest);
     }
 
-    public QuestResponse completeQuest(Long questId, Long userId) {
-        Quest quest = questQueryService.getEntityOfUser(questId, userId);
+    public QuestResponse completeQuest(Long userId, QuestCompletionRequest questCompletionRequest) {
+        Quest quest = questQueryService.getEntityOfUser(questCompletionRequest.getQuestId(), userId);
         QuestState resultState = quest.completeQuest();
-
         switch (resultState) {
             case COMPLETE -> {
-                userService.giveExpAndGoldToUser(quest.getType(), quest.getUser());
+                if (quest.isMainQuest()) {
+                    questCompletionRequest.toMainQuest();
+                }
+                userService.addUserExpAndGold(userId, questCompletionRequest);
                 questLogService.saveQuestLog(quest);
             }
             case DELETE -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.deleted"));

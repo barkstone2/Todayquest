@@ -5,7 +5,7 @@ import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
-import dailyquest.user.entity.UserInfo
+import dailyquest.user.entity.User
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -42,11 +42,11 @@ data class QuestRequest(
         this.type = QuestType.MAIN
     }
 
-    fun mapToEntity(nextSeq: Long, userInfo: UserInfo): Quest {
+    fun mapToEntity(nextSeq: Long, user: User): Quest {
         val quest = Quest(
             title = title,
             description = description,
-            user = userInfo,
+            user = user,
             seq = nextSeq,
             state = QuestState.PROCEED,
             type = type,

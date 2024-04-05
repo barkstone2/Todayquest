@@ -6,7 +6,7 @@ import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
 import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.UserInfo
+import dailyquest.user.entity.User
 import dailyquest.user.repository.UserRepository
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
@@ -40,14 +39,14 @@ class QuestRepositoryUnitTest {
     @PersistenceContext
     lateinit var entityManager: EntityManager
 
-    var userInfo: UserInfo = UserInfo("", "", ProviderType.GOOGLE)
-    var anotherUser: UserInfo = UserInfo("", "", ProviderType.GOOGLE)
+    var user: User = User("", "", ProviderType.GOOGLE)
+    var anotherUser: User = User("", "", ProviderType.GOOGLE)
     lateinit var quest: Quest
 
     @BeforeEach
     fun init() {
-        userInfo = if(userInfo.id == 0L) userRepository.save(UserInfo("", "user1", ProviderType.GOOGLE)) else userInfo
-        anotherUser = if(anotherUser.id == 0L) userRepository.save(UserInfo("", "user2", ProviderType.GOOGLE)) else anotherUser
+        user = if(user.id == 0L) userRepository.save(User("", "user1", ProviderType.GOOGLE)) else user
+        anotherUser = if(anotherUser.id == 0L) userRepository.save(User("", "user2", ProviderType.GOOGLE)) else anotherUser
         anotherUser.updateCoreTime(0)
         userRepository.saveAndFlush(anotherUser)
     }
@@ -60,11 +59,11 @@ class QuestRepositoryUnitTest {
         @Test
         fun getQuestsByIds() {
             //given
-            val savedQuest1 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
-            val savedQuest2 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN))
-            val savedQuest3 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN))
-            val savedQuest4 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN))
-            val savedQuest5 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN))
+            val savedQuest1 = questRepository.save(Quest("", "", user, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val savedQuest2 = questRepository.save(Quest("", "", user, 1L, QuestState.FAIL, QuestType.MAIN))
+            val savedQuest3 = questRepository.save(Quest("", "", user, 1L, QuestState.DISCARD, QuestType.MAIN))
+            val savedQuest4 = questRepository.save(Quest("", "", user, 1L, QuestState.DELETE, QuestType.MAIN))
+            val savedQuest5 = questRepository.save(Quest("", "", user, 1L, QuestState.COMPLETE, QuestType.MAIN))
 
             val listOfQuestIds = listOf(savedQuest1.id, savedQuest2.id, savedQuest3.id)
 
@@ -81,11 +80,11 @@ class QuestRepositoryUnitTest {
         @Test
         fun getQuestsOrderByIdDesc() {
             //given
-            val savedQuest1 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
-            val savedQuest2 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN))
-            val savedQuest3 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN))
-            val savedQuest4 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN))
-            val savedQuest5 = questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN))
+            val savedQuest1 = questRepository.save(Quest("", "", user, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val savedQuest2 = questRepository.save(Quest("", "", user, 1L, QuestState.FAIL, QuestType.MAIN))
+            val savedQuest3 = questRepository.save(Quest("", "", user, 1L, QuestState.DISCARD, QuestType.MAIN))
+            val savedQuest4 = questRepository.save(Quest("", "", user, 1L, QuestState.DELETE, QuestType.MAIN))
+            val savedQuest5 = questRepository.save(Quest("", "", user, 1L, QuestState.COMPLETE, QuestType.MAIN))
 
             val listOfQuestIds = listOf(savedQuest5.id, savedQuest1.id, savedQuest4.id, savedQuest2.id, savedQuest3.id)
 
@@ -110,14 +109,14 @@ class QuestRepositoryUnitTest {
         @ParameterizedTest(name = "{0} 값이 인자로 주어지면 {0} 상태의 퀘스트만 조회된다")
         fun `퀘스트 타입별 조회`(state: QuestState) {
             //given
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN))
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN))
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN))
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.PROCEED, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.FAIL, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.DISCARD, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.DELETE, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.COMPLETE, QuestType.MAIN))
 
             //when
-            val questsList = questRepository.getCurrentQuests(userInfo.id, state, prevDate, nextDate)
+            val questsList = questRepository.getCurrentQuests(user.id, state, prevDate, nextDate)
 
             //then
             assertThat(questsList).allMatch { quest -> quest.state == state }
@@ -128,15 +127,15 @@ class QuestRepositoryUnitTest {
         @Test
         fun `퀘스트 유저별 조회`() {
             //given
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.PROCEED, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.PROCEED, QuestType.MAIN))
             questRepository.save(Quest("", "", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
 
             //when
-            val questsList = questRepository.getCurrentQuests(userInfo.id, QuestState.PROCEED, prevDate, nextDate)
+            val questsList = questRepository.getCurrentQuests(user.id, QuestState.PROCEED, prevDate, nextDate)
 
             //then
-            assertThat(questsList).allMatch { quest -> quest.user.id == userInfo.id }
+            assertThat(questsList).allMatch { quest -> quest.user.id == user.id }
         }
 
         @DisplayName("조회 날짜 범위 사이에 등록된 퀘스트만 조회된다")
@@ -151,7 +150,7 @@ class QuestRepositoryUnitTest {
             this.insertQuestWithCreatedTime(nextDate.plusSeconds(1))
 
             //when
-            val questsList = questRepository.getCurrentQuests(userInfo.id, QuestState.PROCEED, prevDate, nextDate)
+            val questsList = questRepository.getCurrentQuests(user.id, QuestState.PROCEED, prevDate, nextDate)
 
             //then
             assertThat(questsList)
@@ -163,7 +162,7 @@ class QuestRepositoryUnitTest {
         private fun insertQuestWithCreatedTime(createdTime: LocalDateTime) {
             val insertQuery = entityManager
                 .createNativeQuery("insert into quest (quest_id, created_date, last_modified_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
-                .setParameter(3, userInfo.id)
+                .setParameter(3, user.id)
             insertQuery.setParameter(1, createdTime).setParameter(2, createdTime).executeUpdate()
         }
     }
@@ -177,7 +176,7 @@ class QuestRepositoryUnitTest {
         fun `새로운 퀘스트가 등록되지 않으면 항상 같은 값을 반환한다`() {
 
             //given
-            val userId = userInfo.id
+            val userId = user.id
             val initSeq = questRepository.getNextSeqByUserId(userId)
 
             //when
@@ -192,9 +191,9 @@ class QuestRepositoryUnitTest {
         fun `현재 퀘스트의 MAX_SEQ+1 값을 반환한다`() {
 
             //given
-            val userId = userInfo.id
+            val userId = user.id
             val maxSeq = 5351L
-            val saveQuest = Quest("", "", userInfo, maxSeq, QuestState.PROCEED, QuestType.MAIN)
+            val saveQuest = Quest("", "", user, maxSeq, QuestState.PROCEED, QuestType.MAIN)
             questRepository.save(saveQuest)
 
             //when
@@ -209,7 +208,7 @@ class QuestRepositoryUnitTest {
         fun `현재 등록된 퀘스트가 없으면 1을 반환한다`() {
 
             //given
-            val userId = userInfo.id
+            val userId = user.id
             questRepository.deleteAll()
             questRepository.flush()
 
@@ -226,13 +225,13 @@ class QuestRepositoryUnitTest {
         fun `유저 별로 SEQ 채번이 나눠진다`() {
 
             //given
-            val userId1 = userInfo.id
+            val userId1 = user.id
             val userId2 = anotherUser.id
             val user1Seq = 533L
             questRepository.deleteAll()
             questRepository.flush()
 
-            val saveQuest = Quest("", "", userInfo, user1Seq, QuestState.PROCEED, QuestType.MAIN)
+            val saveQuest = Quest("", "", user, user1Seq, QuestState.PROCEED, QuestType.MAIN)
             questRepository.save(saveQuest)
 
             //when
@@ -255,17 +254,17 @@ class QuestRepositoryUnitTest {
             //given
             val savedQuest = mutableListOf<Quest>();
 
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)).let { savedQuest.add(it) }
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN)).let { savedQuest.add(it) }
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN)).let { savedQuest.add(it) }
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN)).let { savedQuest.add(it) }
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", user, 1L, QuestState.PROCEED, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", user, 1L, QuestState.FAIL, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", user, 1L, QuestState.DISCARD, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", user, 1L, QuestState.DELETE, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", user, 1L, QuestState.COMPLETE, QuestType.MAIN)).let { savedQuest.add(it) }
 
             val searchCondition = QuestSearchCondition(null, null, null, null, null, null)
 
             //when
             val findQuests =
-                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(1000))
+                questRepository.findQuestsByCondition(user.id, searchCondition, Pageable.ofSize(1000))
 
             //then
             assertThat(findQuests).containsExactlyInAnyOrderElementsOf(savedQuest)
@@ -277,17 +276,17 @@ class QuestRepositoryUnitTest {
         @ParameterizedTest(name = "{0} 값이 인자로 주어지면 {0} 상태의 퀘스트만 조회된다")
         fun `상태 검색 조건이 null이 아니면 해당 상태의 퀘스트만 조회된다`(searchState: QuestState) {
             //given
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN))
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN))
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN))
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN))
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.PROCEED, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.FAIL, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.DISCARD, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.DELETE, QuestType.MAIN))
+            questRepository.save(Quest("", "", user, 1L, QuestState.COMPLETE, QuestType.MAIN))
 
             val searchCondition = QuestSearchCondition(null, searchState, null, null, null, null)
 
             //when
             val findQuests =
-                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(1000))
+                questRepository.findQuestsByCondition(user.id, searchCondition, Pageable.ofSize(1000))
 
             //then
             assertThat(findQuests).allMatch { quest -> quest.state == searchState }
@@ -299,7 +298,7 @@ class QuestRepositoryUnitTest {
             //given
             val query = entityManager
                 .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
-                .setParameter(2, userInfo.id)
+                .setParameter(2, user.id)
 
             val time = LocalTime.of(12, 0, 0)
             val date1 = LocalDateTime.of(LocalDate.of(2020, 12, 1), time)
@@ -316,7 +315,7 @@ class QuestRepositoryUnitTest {
 
             //when
             val result =
-                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(100))
+                questRepository.findQuestsByCondition(user.id, searchCondition, Pageable.ofSize(100))
 
             //then
             assertThat(result.content).hasSize(4);
@@ -329,7 +328,7 @@ class QuestRepositoryUnitTest {
             //given
             val query = entityManager
                 .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
-                .setParameter(2, userInfo.id)
+                .setParameter(2, user.id)
 
             val startDate = LocalDate.of(2022, 12, 1)
             val startDateTime = LocalDateTime.of(startDate, LocalTime.of(6, 0))
@@ -346,7 +345,7 @@ class QuestRepositoryUnitTest {
 
             //when
             val result =
-                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(100))
+                questRepository.findQuestsByCondition(user.id, searchCondition, Pageable.ofSize(100))
 
             //then
             assertThat(result.content).noneMatch { it.createdDate?.isBefore(startDateTime) == true }
@@ -358,7 +357,7 @@ class QuestRepositoryUnitTest {
             //given
             val query = entityManager
                 .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
-                .setParameter(2, userInfo.id)
+                .setParameter(2, user.id)
 
             val endDate = LocalDate.of(2022, 12, 1)
             val endDateTime = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0))
@@ -375,7 +374,7 @@ class QuestRepositoryUnitTest {
 
             //when
             val result =
-                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(100))
+                questRepository.findQuestsByCondition(user.id, searchCondition, Pageable.ofSize(100))
 
             //then
             assertThat(result.content).noneMatch { it.createdDate?.isAfter(endDateTime) == true }
@@ -387,7 +386,7 @@ class QuestRepositoryUnitTest {
             //given
             val query = entityManager
                 .createNativeQuery("insert into quest (quest_id, created_date, description, user_quest_seq, state, title, type, user_id) values (default, ?, '', 1, 'PROCEED', '', 'MAIN', ?)")
-                .setParameter(2, userInfo.id)
+                .setParameter(2, user.id)
 
             val startDate = LocalDate.of(2022, 12, 1)
             val startDateTime = LocalDateTime.of(startDate, LocalTime.of(6, 0))
@@ -409,7 +408,7 @@ class QuestRepositoryUnitTest {
 
             //when
             val result =
-                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(100))
+                questRepository.findQuestsByCondition(user.id, searchCondition, Pageable.ofSize(100))
 
             //then
             assertThat(result.content).noneMatch {
@@ -423,17 +422,17 @@ class QuestRepositoryUnitTest {
             //given
             val savedQuest = mutableListOf<Quest>();
 
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)).let { savedQuest.add(it) }
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.FAIL, QuestType.MAIN)).let { savedQuest.add(it) }
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.MAIN)).let { savedQuest.add(it) }
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.DELETE, QuestType.MAIN)).let { savedQuest.add(it) }
-            questRepository.save(Quest("", "", userInfo, 1L, QuestState.COMPLETE, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", user, 1L, QuestState.PROCEED, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", user, 1L, QuestState.FAIL, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", user, 1L, QuestState.DISCARD, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", user, 1L, QuestState.DELETE, QuestType.MAIN)).let { savedQuest.add(it) }
+            questRepository.save(Quest("", "", user, 1L, QuestState.COMPLETE, QuestType.MAIN)).let { savedQuest.add(it) }
 
             val searchCondition = QuestSearchCondition(null, null, null, null, null, null)
 
             //when
             val findQuests =
-                questRepository.findQuestsByCondition(userInfo.id, searchCondition, Pageable.ofSize(1000))
+                questRepository.findQuestsByCondition(user.id, searchCondition, Pageable.ofSize(1000))
 
             //then
             assertThat(findQuests).containsExactlyElementsOf(savedQuest.reversed())

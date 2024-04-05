@@ -11,6 +11,7 @@ plugins {
 
 dependencies {
     implementation(project(":achievement"))
+    implementation(project(":user"))
     // 개발 환경 런타임
     runtimeOnly('com.mysql:mysql-connector-j')
     // 운영 환경 런타임

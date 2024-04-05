@@ -6,7 +6,7 @@ import dailyquest.quest.entity.QuestType
 import dailyquest.quest.repository.QuestRepository
 import dailyquest.search.repository.QuestIndexRepository
 import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.UserInfo
+import dailyquest.user.entity.User
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -50,20 +50,20 @@ class QuestBatchComponentTest @Autowired constructor(
     lateinit var questIndexRepository: QuestIndexRepository
     lateinit var jobRepositoryTestUtils: JobRepositoryTestUtils
 
-    lateinit var testUser: UserInfo
-    lateinit var anotherUser: UserInfo
+    lateinit var testUser: User
+    lateinit var anotherUser: User
 
     @BeforeEach
     fun init() {
         transactionTemplate.executeWithoutResult {
             entityManager.createQuery("delete from Quest").executeUpdate()
-            entityManager.createQuery("delete from UserInfo").executeUpdate()
+            entityManager.createQuery("delete from User").executeUpdate()
         }
         jobRepositoryTestUtils = JobRepositoryTestUtils(jobRepository)
         jobRepositoryTestUtils.removeJobExecutions()
 
-        testUser = UserInfo("testUser", "testUser", ProviderType.GOOGLE)
-        anotherUser = UserInfo("anotherUser", "anotherUser", ProviderType.GOOGLE)
+        testUser = User("testUser", "testUser", ProviderType.GOOGLE)
+        anotherUser = User("anotherUser", "anotherUser", ProviderType.GOOGLE)
 
         transactionTemplate.executeWithoutResult {
             entityManager.persist(testUser)

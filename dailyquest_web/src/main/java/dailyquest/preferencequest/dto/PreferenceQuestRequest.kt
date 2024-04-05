@@ -2,8 +2,8 @@ package dailyquest.preferencequest.dto
 
 import dailyquest.common.MessageUtil
 import dailyquest.preferencequest.entity.PreferenceQuest
-import dailyquest.user.entity.UserInfo
 import dailyquest.common.DeadLineBoundaryResolver
+import dailyquest.user.entity.User
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -29,9 +29,9 @@ data class PreferenceQuestRequest(
         }
     }
 
-    fun mapToEntity(userInfo: UserInfo): PreferenceQuest {
+    fun mapToEntity(user: User): PreferenceQuest {
         if (isValidDeadLine())
-            return PreferenceQuest.of(this.title, this.description, this.deadLine, this.details.map { it.mapToEntity() }, userInfo)
+            return PreferenceQuest.of(this.title, this.description, this.deadLine, this.details.map { it.mapToEntity() }, user)
         throw IllegalArgumentException(MessageUtil.getMessage("Range.quest.deadLine"))
     }
 

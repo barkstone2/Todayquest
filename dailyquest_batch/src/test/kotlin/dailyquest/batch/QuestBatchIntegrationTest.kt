@@ -8,7 +8,7 @@ import dailyquest.quest.repository.QuestLogRepository
 import dailyquest.quest.repository.QuestRepository
 import dailyquest.search.repository.QuestIndexRepository
 import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.UserInfo
+import dailyquest.user.entity.User
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -48,8 +48,8 @@ class QuestBatchIntegrationTest @Autowired constructor(
 ) {
     private lateinit var jobRepositoryTestUtils: JobRepositoryTestUtils
     private lateinit var jobLauncherTestUtils: JobLauncherTestUtils
-    private lateinit var testUser: UserInfo
-    private lateinit var anotherUser: UserInfo
+    private lateinit var testUser: User
+    private lateinit var anotherUser: User
 
     companion object {
         @JvmStatic
@@ -61,13 +61,13 @@ class QuestBatchIntegrationTest @Autowired constructor(
     fun init() {
         transactionTemplate.executeWithoutResult {
             entityManager.createQuery("delete from Quest").executeUpdate()
-            entityManager.createQuery("delete from UserInfo").executeUpdate()
+            entityManager.createQuery("delete from User").executeUpdate()
         }
         jobRepositoryTestUtils = JobRepositoryTestUtils(jobRepository)
         jobRepositoryTestUtils.removeJobExecutions()
 
-        testUser = UserInfo("testUser", "testUser", ProviderType.GOOGLE)
-        anotherUser = UserInfo("anotherUser", "anotherUser", ProviderType.GOOGLE)
+        testUser = User("testUser", "testUser", ProviderType.GOOGLE)
+        anotherUser = User("anotherUser", "anotherUser", ProviderType.GOOGLE)
 
         transactionTemplate.executeWithoutResult {
             entityManager.persist(testUser)

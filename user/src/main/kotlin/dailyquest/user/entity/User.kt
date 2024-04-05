@@ -10,7 +10,7 @@ import kotlin.math.max
 
 @Entity
 @Table(name = "users", uniqueConstraints = [UniqueConstraint(name = "unique_nickname", columnNames = ["nickname"])])
-class User(
+class User @JvmOverloads constructor(
     oauth2Id: String,
     nickname: String,
     providerType: ProviderType,
@@ -156,27 +156,6 @@ class User(
         val coreTimeOfToday = LocalDateTime.of(LocalDate.now(), coreTime)
         if (coreTimeOfToday.isAfter(now) || now.isAfter(coreTimeOfToday.plusHours(1))) return false;
         return true
-    }
-
-    fun calculateLevel(expTable: Map<Int, Long>): Triple<Int, Long, Long> {
-        var level = 1
-        var remainingExp = exp
-        var requiredExp = 0L
-
-        expTable.keys.sorted().forEach { key ->
-            requiredExp = expTable[key] ?: return@forEach
-
-            if (requiredExp == 0L) return@forEach
-
-            if (remainingExp >= requiredExp) {
-                remainingExp -= requiredExp
-                level++
-            } else {
-                return Triple(level, remainingExp, requiredExp)
-            }
-        }
-
-        return Triple(level, remainingExp, requiredExp)
     }
 
     fun getCoreHour(): Int {

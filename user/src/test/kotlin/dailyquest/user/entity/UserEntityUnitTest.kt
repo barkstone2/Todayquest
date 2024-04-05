@@ -168,29 +168,6 @@ class UserEntityUnitTest {
         }
     }
 
-    @DisplayName("레벨 계산 로직 호출시")
-    @Nested
-    inner class CalculateLevelTest {
-
-        @DisplayName("경험치 테이블 기반으로 계산된 결과가 반환된다")
-        @Test
-        fun `경험치 테이블 기반으로 계산된 결과가 반환된다`() {
-            //given
-            val expTable = mapOf(1 to 10L, 2 to 20L, 3 to 30L, 4 to 40L)
-            val user = User("", "", ProviderType.GOOGLE)
-            val remain = 10L
-            user.addExpAndGold((expTable[1]?.plus(expTable[2]!!)!! + remain), 0)
-
-            //when
-            val (level, remainExp, requireExp) = user.calculateLevel(expTable)
-
-            //then
-            assertThat(level).isEqualTo(3)
-            assertThat(remainExp).isEqualTo(remain)
-            assertThat(requireExp).isEqualTo(expTable[3])
-        }
-    }
-
     @DisplayName("유저 업데이트 시")
     @Nested
     inner class TestUserUpdate {

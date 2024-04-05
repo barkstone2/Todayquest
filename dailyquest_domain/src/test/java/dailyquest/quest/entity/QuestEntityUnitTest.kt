@@ -2,7 +2,7 @@
 package dailyquest.quest.entity
 
 import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.UserInfo
+import dailyquest.user.entity.User
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -18,13 +18,13 @@ import java.time.LocalDateTime
 @DisplayName("퀘스트 엔티티 유닛 테스트")
 class QuestEntityUnitTest {
 
-    private lateinit var userInfo: UserInfo
+    private lateinit var user: User
     private lateinit var quest: Quest
 
     @BeforeEach
     fun beforeEach() {
-        userInfo = UserInfo("", "", ProviderType.GOOGLE)
-        quest = Quest("t1", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+        user = User("", "", ProviderType.GOOGLE)
+        quest = Quest("t1", "", user, 1L, QuestState.PROCEED, QuestType.MAIN)
     }
 
     @DisplayName("엔티티 수정 메서드 호출 시")
@@ -34,7 +34,7 @@ class QuestEntityUnitTest {
         @Test
         fun `details 인자가 없으면 emptyList를 replaceDetailQuests 메서드에 전달한다`() {
             //given
-            val quest = Quest("init", "init", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+            val quest = Quest("init", "init", user, 1L, QuestState.PROCEED, QuestType.MAIN)
             val title = "update"
             val description = "update"
             val details = listOf(mock<DetailQuest>())
@@ -51,7 +51,7 @@ class QuestEntityUnitTest {
         @Test
         fun `details 인자가 null이 아니면 입력 인자를 replaceDetailQuests 메서드에 전달한다`() {
             //given
-            val quest = Quest("init", "init", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+            val quest = Quest("init", "init", user, 1L, QuestState.PROCEED, QuestType.MAIN)
             val title = "update"
             val description = "update"
             val details = listOf(mock<DetailQuest>())
@@ -68,7 +68,7 @@ class QuestEntityUnitTest {
         @Test
         fun `넘겨 받은 인자로 엔티티를 업데이트 한다`() {
             //given
-            val quest = Quest("init", "init", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+            val quest = Quest("init", "init", user, 1L, QuestState.PROCEED, QuestType.MAIN)
             val title = "update"
             val description = "update"
             val deadLine = LocalDateTime.of(2022, 12, 12, 12, 0, 0)
@@ -91,7 +91,7 @@ class QuestEntityUnitTest {
         @Test
         fun `퀘스트가 진행 상태가 아니면 상태 변경 없이 현재 상태를 반환한다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.DISCARD, QuestType.SUB)
 
             //when
             val resultState = quest.completeQuest()
@@ -104,7 +104,7 @@ class QuestEntityUnitTest {
         @Test
         fun `세부 퀘스트가 모두 완료되지 않았다면, 상태 변경 없이 현재 상태가 반환된다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.SUB)
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
@@ -125,7 +125,7 @@ class QuestEntityUnitTest {
         @Test
         fun `현재 상태가 진행 상태이면서 모든 세부 퀘스트가 완료 상태라면, 퀘스트를 완료 상태로 변경 후 변경된 상태를 반환한다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.SUB)
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
 
@@ -146,7 +146,7 @@ class QuestEntityUnitTest {
         @Test
         fun `퀘스트 완료가 가능한 상태면 완료 상태로 변경된다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.SUB)
 
             //when
             quest.completeQuest()
@@ -161,7 +161,7 @@ class QuestEntityUnitTest {
     @Test
     fun `퀘스트 삭제 시 삭제 상태로 변경된다`() {
         //given
-        val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+        val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.SUB)
 
         //when
         quest.deleteQuest()
@@ -178,7 +178,7 @@ class QuestEntityUnitTest {
         @Test
         fun `퀘스트가 진행 상태가 아니면 상태 변경 없이 현재 상태가 반환된다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.DISCARD, QuestType.SUB)
 
             //when
             val resultState = quest.discardQuest()
@@ -191,7 +191,7 @@ class QuestEntityUnitTest {
         @Test
         fun `퀘스트가 진행 상태라면 상태 변경 후 현재 상태가 반환된다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.SUB)
 
             //when
             val resultState = quest.discardQuest()
@@ -206,7 +206,7 @@ class QuestEntityUnitTest {
     @Test
     fun `퀘스트 실패 메서드 호출 시 실패 상태로 변경된다`() {
         //given
-        val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+        val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.SUB)
 
         //when
         quest.failQuest()
@@ -223,7 +223,7 @@ class QuestEntityUnitTest {
         @Test
         fun `퀘스트가 진행 상태가 아니면 false 를 반환한다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.DISCARD, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.DISCARD, QuestType.SUB)
 
             //when
             val isProceed = quest.isProceed()
@@ -236,7 +236,7 @@ class QuestEntityUnitTest {
         @Test
         fun `퀘스트가 진행 상태면 true를 반환한다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.SUB)
 
             //when
             val isProceed = quest.isProceed()
@@ -254,7 +254,7 @@ class QuestEntityUnitTest {
         @Test
         fun `등록된 세부 퀘스트가 없다면 true를 반환한다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.SUB)
 
             //when
             val canComplete = quest.canComplete()
@@ -268,7 +268,7 @@ class QuestEntityUnitTest {
         @Test
         fun `세부 퀘스트가 모두 완료 상태면 true를 반환한다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.SUB)
 
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
@@ -290,7 +290,7 @@ class QuestEntityUnitTest {
         @Test
         fun `세부 퀘스트가 모두 완료 상태가 아니면 false를 반환한다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.SUB)
 
             val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
             detailQuests.isAccessible = true
@@ -317,7 +317,7 @@ class QuestEntityUnitTest {
         @Test
         fun `MAIN 타입이면 true를 반환한다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.MAIN)
 
             //when
             val isMainQuest = quest.isMainQuest()
@@ -330,7 +330,7 @@ class QuestEntityUnitTest {
         @Test
         fun `SUB 타입이면 false를 반환한다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.SUB)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.SUB)
 
             //when
             val isMainQuest = quest.isMainQuest()
@@ -349,7 +349,7 @@ class QuestEntityUnitTest {
         @Test
         fun `ID가 일치하는 세부 퀘스트가 없다면 null이 반환된다`() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.MAIN)
 
             //when
             val interactResult = quest.updateDetailQuestCount(1, 1)
@@ -362,7 +362,7 @@ class QuestEntityUnitTest {
         @Test
         fun ifDetailFoundThenCallUpdateMethod() {
             //given
-            val quest = Quest("", "", userInfo, 1L, QuestState.PROCEED, QuestType.MAIN)
+            val quest = Quest("", "", user, 1L, QuestState.PROCEED, QuestType.MAIN)
             val mockDetail = Mockito.mock(DetailQuest::class.java)
             quest.replaceDetailQuests(listOf(mockDetail))
 

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dailyquest.jwt.JwtTokenProvider
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.RoleType
-import dailyquest.user.entity.UserInfo
+import dailyquest.user.entity.User
 import dailyquest.user.repository.UserRepository
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.BeforeEach
@@ -40,9 +40,9 @@ class IntegrationTestContext(
     protected lateinit var userToken: Cookie
     protected lateinit var anotherUserToken: Cookie
     protected lateinit var adminToken: Cookie
-    protected lateinit var user: UserInfo
-    protected lateinit var anotherUser: UserInfo
-    protected lateinit var admin: UserInfo
+    protected lateinit var user: User
+    protected lateinit var anotherUser: User
+    protected lateinit var admin: User
 
     @BeforeEach
     fun baseSetup() {
@@ -52,9 +52,9 @@ class IntegrationTestContext(
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
 
-        user = UserInfo("user", "user", ProviderType.GOOGLE)
-        anotherUser = UserInfo("anotherUser", "anotherUser", ProviderType.GOOGLE)
-        admin = UserInfo("admin", "admin", ProviderType.GOOGLE)
+        user = User("user", "user", ProviderType.GOOGLE)
+        anotherUser = User("anotherUser", "anotherUser", ProviderType.GOOGLE)
+        admin = User("admin", "admin", ProviderType.GOOGLE)
         admin.role = RoleType.ADMIN
 
         user = userRepository.save(user)

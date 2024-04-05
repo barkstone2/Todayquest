@@ -8,7 +8,7 @@ import dailyquest.quest.entity.QuestLog;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.entity.QuestType;
 import dailyquest.user.entity.ProviderType;
-import dailyquest.user.entity.UserInfo;
+import dailyquest.user.entity.User;
 import dailyquest.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,8 +44,8 @@ public class QuestLogRepositoryUnitTest {
     @Test
     public void testGetQuestLog() throws Exception {
         //given
-        UserInfo user = new UserInfo("", "user", ProviderType.GOOGLE);
-        UserInfo savedUser = userRepository.save(user);
+        User user = new User("", "user", ProviderType.GOOGLE);
+        User savedUser = userRepository.save(user);
 
         int completeCount = 3;
         int failCount = 2;
@@ -98,8 +98,8 @@ public class QuestLogRepositoryUnitTest {
     @Test
     public void testEmptyQuestLog() throws Exception {
         //given
-        UserInfo user = new UserInfo("", "user", ProviderType.GOOGLE);
-        UserInfo savedUser = userRepository.save(user);
+        User user = new User("", "user", ProviderType.GOOGLE);
+        User savedUser = userRepository.save(user);
 
         //when
         List<QuestStatisticsResponse> groupedQuestLogs = questLogRepository.getGroupedQuestLogs(savedUser.getId(), new QuestLogSearchCondition());

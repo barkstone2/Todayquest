@@ -74,21 +74,11 @@ class UserControllerUnitTest {
 
     class InValidUserSettingRequest: ArgumentsProvider {
         override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
-            val invalidPattern = UserUpdateRequest()
-            invalidPattern.nickname = "ㄱㅂㄷㄴinvalidpattern"
-
-            val invalidLength = UserUpdateRequest()
-            invalidLength.nickname = "overnicknamelengthlimit123456789012345678901"
-
-            val startWithWhiteSpace = UserUpdateRequest()
-            startWithWhiteSpace.nickname = " startWhiteSpace"
-
-            val endWithWhiteSpace = UserUpdateRequest()
-            endWithWhiteSpace.nickname = "endWhiteSpace "
-
-            val specialCharacter = UserUpdateRequest()
-            specialCharacter.nickname = "contain_special_chracter"
-
+            val invalidPattern = "ㄱㅂㄷㄴinvalidpattern"
+            val invalidLength = "overnicknamelengthlimit123456789012345678901"
+            val startWithWhiteSpace = " startWhiteSpace"
+            val endWithWhiteSpace = "endWhiteSpace "
+            val specialCharacter = "contain_special_chracter"
             return Stream.of(
                 Arguments.of(invalidPattern),
                 Arguments.of(invalidLength),
@@ -106,13 +96,14 @@ class UserControllerUnitTest {
         @ArgumentsSource(InValidUserSettingRequest::class)
         @DisplayName("올바른 닉네임 패턴 요청이 아닌 경우 400이 반환된다")
         @ParameterizedTest(name = "{0} 값이 들어오면 400이 반환된다")
-        fun `올바른 닉네임 패턴 요청이 아닌 경우 400이 반환된다`(dto: UserUpdateRequest) {
+        fun `올바른 닉네임 패턴 요청이 아닌 경우 400이 반환된다`(nickname: String) {
             //given
+            val userUpdateRequest = UserUpdateRequest(nickname)
 
             //when
             val result = mvc.perform(
                 patch(URI_PREFIX)
-                    .content(om.writeValueAsBytes(dto))
+                    .content(om.writeValueAsBytes(userUpdateRequest))
                     .contentType(MediaType.APPLICATION_JSON_UTF8)
                     .with(csrf())
             )
@@ -126,8 +117,7 @@ class UserControllerUnitTest {
         @Test
         fun `올바른 닉네임 패턴 요청일 경우 200이 반환된다`() {
             //given
-            val dto = UserUpdateRequest()
-            dto.nickname = "newNickname"
+            val dto = UserUpdateRequest("newNickname")
 
             //when
             val result = mvc.perform(
@@ -181,6 +171,4 @@ class UserControllerUnitTest {
                 .andExpect(status().isConflict)
         }
     }
-
-
 }

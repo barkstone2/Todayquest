@@ -61,7 +61,7 @@ class UserService(
     }
 
     @Transactional
-    fun updateUserExpAndGold(userId: Long, updateRequest: UserUpdateRequest) {
+    fun addUserExpAndGold(userId: Long, updateRequest: UserUpdateRequest) {
         val updateTarget = this.findUser(userId)
         updateTarget.addExpAndGold(updateRequest.earnedExp, updateRequest.earnedGold)
     }

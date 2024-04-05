@@ -7,7 +7,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-class UserResponse(
+class UserResponse @JvmOverloads constructor(
     val id: Long,
     val nickname: String,
     val providerType: ProviderType = ProviderType.GOOGLE,
@@ -28,6 +28,27 @@ class UserResponse(
     val goldEarnAmount: Int = 0,
     val goldUseAmount: Int = 0,
 ) {
+    fun calculateLevel(expTable: Map<Int, Long>): Triple<Int, Long, Long> {
+        var level = 1
+        var remainingExp = exp
+        var requiredExp = 0L
+
+        expTable.keys.sorted().forEach { key ->
+            requiredExp = expTable[key] ?: return@forEach
+
+            if (requiredExp == 0L) return@forEach
+
+            if (remainingExp >= requiredExp) {
+                remainingExp -= requiredExp
+                level++
+            } else {
+                return Triple(level, remainingExp, requiredExp)
+            }
+        }
+
+        return Triple(level, remainingExp, requiredExp)
+    }
+
     companion object {
         @JvmStatic
         fun from(user: User): UserResponse {

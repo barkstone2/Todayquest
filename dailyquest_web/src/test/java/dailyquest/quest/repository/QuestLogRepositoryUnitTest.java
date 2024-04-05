@@ -2,6 +2,7 @@ package dailyquest.quest.repository;
 
 import dailyquest.config.JpaAuditingConfiguration;
 import dailyquest.quest.dto.QuestLogSearchCondition;
+import dailyquest.quest.dto.QuestLogSearchType;
 import dailyquest.quest.dto.QuestStatisticsResponse;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestLog;
@@ -52,8 +53,8 @@ public class QuestLogRepositoryUnitTest {
         int discardCount = 5;
 
         int mainCount = completeCount + failCount;
-
-        LocalDate today = LocalDate.now();
+        LocalDate selectedDate = LocalDate.now();
+        QuestLogSearchCondition condition = new QuestLogSearchCondition(QuestLogSearchType.DAILY, selectedDate);
         LocalTime mockTime = LocalTime.of(8, 0);
 
         try(MockedStatic<LocalTime> ignored = mockStatic(LocalTime.class, Answers.CALLS_REAL_METHODS)) {
@@ -62,30 +63,30 @@ public class QuestLogRepositoryUnitTest {
             for (int i = 0; i < completeCount; i++) {
                 Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.COMPLETE, QuestType.MAIN, null, null);
                 Quest savedQuest = questRepository.save(quest);
-                questLogRepository.save(new QuestLog(savedQuest));
+                questLogRepository.save(new QuestLog(savedQuest, selectedDate));
             }
 
             for (int i = 0; i < failCount; i++) {
                 Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.FAIL, QuestType.MAIN, null, null);
                 Quest savedQuest = questRepository.save(quest);
-                questLogRepository.save(new QuestLog(savedQuest));
+                questLogRepository.save(new QuestLog(savedQuest, selectedDate));
             }
 
             for (int i = 0; i < discardCount; i++) {
                 Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.DISCARD, QuestType.SUB, null, null);
                 Quest savedQuest = questRepository.save(quest);
-                questLogRepository.save(new QuestLog(savedQuest));
+                questLogRepository.save(new QuestLog(savedQuest, selectedDate));
             }
 
             Quest quest = new Quest("quest", "desc", savedUser, 1, QuestState.PROCEED, QuestType.SUB, null, null);
             Quest savedQuest = questRepository.save(quest);
-            questLogRepository.save(new QuestLog(savedQuest));
+            questLogRepository.save(new QuestLog(savedQuest, selectedDate));
 
             //when
-            List<QuestStatisticsResponse> groupedQuestLogs = questLogRepository.getGroupedQuestLogs(savedUser.getId(), new QuestLogSearchCondition());
+            List<QuestStatisticsResponse> groupedQuestLogs = questLogRepository.getGroupedQuestLogs(savedUser.getId(), condition);
 
             //then
-            assertThat(groupedQuestLogs).allMatch(log -> log.getLoggedDate().equals(today));
+            assertThat(groupedQuestLogs).allMatch(log -> log.getLoggedDate().equals(selectedDate));
             assertThat(groupedQuestLogs).anyMatch(log -> log.getCompleteCount() == completeCount);
             assertThat(groupedQuestLogs).anyMatch(log -> log.getFailCount() == failCount);
             assertThat(groupedQuestLogs).anyMatch(log -> log.getDiscardCount() == discardCount);

@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class AchievementCommandService @Autowired constructor(
     private val achieveLogCommandService: AchievementAchieveLogCommandService,
-    private val achievementCurrentValueQueryService: AchievementCurrentValueQueryService,
     private val achievementRepository: AchievementRepository,
     messageSource: MessageSource
 ) {
@@ -24,8 +23,7 @@ class AchievementCommandService @Autowired constructor(
     @Async
     fun checkAndAchieveAchievement(achieveRequest: AchievementAchieveRequest) {
         val targetAchievement = this.getNotAchievedAchievement(achieveRequest)
-        val currentValue = achievementCurrentValueQueryService.getCurrentValueOfUser(achieveRequest.userId, achieveRequest.type)
-        if (targetAchievement.canAchieve(currentValue)) {
+        if (targetAchievement.canAchieve(achieveRequest.currentValue)) {
             achieveLogCommandService.saveAchieveLog(targetAchievement.id, achieveRequest.userId)
         }
     }

@@ -24,9 +24,6 @@ class AchievementCommandServiceUnitTest {
     lateinit var achieveLogCommandService: AchievementAchieveLogCommandService
 
     @RelaxedMockK
-    lateinit var achievementCurrentValueQueryService: AchievementCurrentValueQueryService
-
-    @RelaxedMockK
     lateinit var achievementRepository: AchievementRepository
 
     @RelaxedMockK

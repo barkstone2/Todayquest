@@ -29,7 +29,7 @@ class Achievement(
     @Column(nullable = false)
     val targetValue: Int = targetValue
 
-    fun canAchieve(currentValue: Int): Boolean {
+    fun canAchieve(currentValue: Long): Boolean {
         return this.type != AchievementType.EMPTY && targetValue <= currentValue
     }
 

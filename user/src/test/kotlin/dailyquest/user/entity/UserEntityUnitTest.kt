@@ -3,7 +3,6 @@ package dailyquest.user.entity
 import dailyquest.user.dto.UserUpdateRequest
 import io.mockk.every
 import io.mockk.spyk
-import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -266,6 +265,104 @@ class UserEntityUnitTest {
             assertThat(achievementCurrentValue.currentQuestContinuousRegistrationDays)
                 .isEqualTo(beforeContinuousRegistrationDays.plus(1))
         }
+
+        @DisplayName("연속 등록일 증가 시 최대 연속 등록일이 현재값보다 작으면 최대값을 현재값으로 갱신한다")
+        @Test
+        fun `연속 등록일 증가 시 최대 연속 등록일이 현재값보다 작으면 최대값을 현재값으로 갱신한다`() {
+            //given
+            val registrationDate = LocalDate.of(2000, 12, 12)
+            val beforeMaxQuestContinuousRegistrationDays = 0
+            val beforeContinuousRegistrationDays = 1
+            val achievementCurrentValue = User(
+                "id", "nickname", ProviderType.GOOGLE,
+                currentQuestContinuousRegistrationDays = beforeContinuousRegistrationDays,
+                maxQuestContinuousRegistrationDays = beforeMaxQuestContinuousRegistrationDays,
+                lastQuestRegistrationDate = null
+            )
+
+            //when
+            achievementCurrentValue.increaseQuestRegistrationCount(registrationDate)
+
+            //then
+            assertThat(achievementCurrentValue.maxQuestContinuousRegistrationDays)
+                .isEqualTo(achievementCurrentValue.currentQuestContinuousRegistrationDays)
+        }
+
+        @DisplayName("연속 등록일 증가 시 최대 연속 등록일이 현재값보다 크면 최대값을 현재값으로 갱신하지 않는다")
+        @Test
+        fun `연속 등록일 증가 시 최대 연속 등록일이 현재값보다 크면 최대값을 현재값으로 갱신하지 않는다`() {
+            //given
+            val registrationDate = LocalDate.of(2000, 12, 12)
+            val beforeMaxQuestContinuousRegistrationDays = 10
+            val beforeContinuousRegistrationDays = 1
+            val achievementCurrentValue = User(
+                "id", "nickname", ProviderType.GOOGLE,
+                currentQuestContinuousRegistrationDays = beforeContinuousRegistrationDays,
+                maxQuestContinuousRegistrationDays = beforeMaxQuestContinuousRegistrationDays,
+                lastQuestRegistrationDate = null
+            )
+
+            //when
+            achievementCurrentValue.increaseQuestRegistrationCount(registrationDate)
+
+            //then
+            assertThat(achievementCurrentValue.maxQuestContinuousRegistrationDays)
+                .isNotEqualTo(achievementCurrentValue.currentQuestContinuousRegistrationDays)
+        }
+
+        @DisplayName("마지막 퀘스트 등록일이 null이면 요청 날짜로 마지막 등록일을 갱신한다")
+        @Test
+        fun `마지막 퀘스트 등록일이 null이면 요청 날짜로 마지막 등록일을 갱신한다`() {
+            //given
+            val registrationDate = LocalDate.of(2000, 12, 12)
+            val achievementCurrentValue = User(
+                "id", "nickname", ProviderType.GOOGLE,
+                lastQuestRegistrationDate = null
+            )
+
+            //when
+            achievementCurrentValue.increaseQuestRegistrationCount(registrationDate)
+
+            //then
+            assertThat(achievementCurrentValue.lastQuestRegistrationDate)
+                .isEqualTo(registrationDate)
+        }
+
+        @DisplayName("마지막 퀘스트 등록일이 요청 날짜이전이면 요청 날짜로 마지막 등록일을 갱신한다")
+        @Test
+        fun `마지막 퀘스트 등록일이 요청 날짜이전이면 요청 날짜로 마지막 등록일을 갱신한다`() {
+            //given
+            val registrationDate = LocalDate.of(2000, 12, 12)
+            val achievementCurrentValue = User(
+                "id", "nickname", ProviderType.GOOGLE,
+                lastQuestRegistrationDate = registrationDate.minusDays(1L)
+            )
+
+            //when
+            achievementCurrentValue.increaseQuestRegistrationCount(registrationDate)
+
+            //then
+            assertThat(achievementCurrentValue.lastQuestRegistrationDate)
+                .isEqualTo(registrationDate)
+        }
+
+        @DisplayName("마지막 퀘스트 등록일이 요청 날짜 이후면 마지막 등록일을 갱신하지 않는다")
+        @Test
+        fun `마지막 퀘스트 등록일이 요청 날짜 이후면 마지막 등록일을 갱신하지 않는다`() {
+            //given
+            val registrationDate = LocalDate.of(2000, 12, 12)
+            val achievementCurrentValue = User(
+                "id", "nickname", ProviderType.GOOGLE,
+                lastQuestRegistrationDate = registrationDate.plusDays(1L)
+            )
+
+            //when
+            achievementCurrentValue.increaseQuestRegistrationCount(registrationDate)
+
+            //then
+            assertThat(achievementCurrentValue.lastQuestRegistrationDate)
+                .isNotEqualTo(registrationDate)
+        }
     }
 
     @DisplayName("퀘스트 완료수 증가 시")
@@ -329,86 +426,103 @@ class UserEntityUnitTest {
             assertThat(achievementCurrentValue.currentQuestContinuousCompletionDays)
                 .isEqualTo(beforeContinuousCompletionDays.plus(1))
         }
-    }
 
-    @DisplayName("현재 연속 등록일 증가 시")
-    @Nested
-    inner class TestIncreaseCurrentContinuousRegistrationDays {
-        @DisplayName("증가된 값이 최대 연속 등록일보다 크면 최대값을 현재값으로 변경한다")
+        @DisplayName("연속 완료일 증가 시 최대 연속 완료일이 현재값보다 작으면 최대값을 현재값으로 갱신한다")
         @Test
-        fun `증가된 값이 최대 연속 등록일보다 크면 최대값을 현재값으로 변경한다`() {
+        fun `연속 완료일 증가 시 최대 연속 완료일이 현재값보다 작으면 최대값을 현재값으로 갱신한다`() {
             //given
+            val completionDate = LocalDate.of(2000, 12, 12)
+            val beforeMaxQuestContinuousCompletionDays = 0
+            val beforeContinuousCompletionDays = 1
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
-                currentQuestContinuousRegistrationDays = 1,
-                maxQuestContinuousRegistrationDays = 0
+                currentQuestContinuousCompletionDays = beforeContinuousCompletionDays,
+                maxQuestContinuousCompletionDays = beforeMaxQuestContinuousCompletionDays,
+                lastQuestCompletionDate = null
             )
 
             //when
-            achievementCurrentValue.increaseCurrentQuestContinuousRegistrationDays()
-
-            //then
-            assertThat(achievementCurrentValue.maxQuestContinuousRegistrationDays)
-                .isEqualTo(achievementCurrentValue.currentQuestContinuousRegistrationDays)
-        }
-
-        @DisplayName("증가된 값이 최대 연속 등록일보다 작으면 최대값이 변경되지 않는다")
-        @Test
-        fun `증가된 값이 최대 연속 등록일보다 작으면 최대값이 변경되지 않는다`() {
-            //given
-            val maxQuestContinuousRegistrationDays = 10
-            val achievementCurrentValue = User(
-                "id", "nickname", ProviderType.GOOGLE,
-                currentQuestContinuousRegistrationDays = 1,
-                maxQuestContinuousRegistrationDays = maxQuestContinuousRegistrationDays
-            )
-
-            //when
-            achievementCurrentValue.increaseCurrentQuestContinuousRegistrationDays()
-
-            //then
-            assertThat(achievementCurrentValue.maxQuestContinuousRegistrationDays)
-                .isEqualTo(maxQuestContinuousRegistrationDays)
-        }
-    }
-
-    @DisplayName("현재 연속 완료일 증가 시")
-    @Nested
-    inner class TestIncreaseCurrentContinuousCompletionDays {
-        @DisplayName("증가된 값이 최대 연속 완료일보다 크면 최대값을 현재값으로 변경한다")
-        @Test
-        fun `증가된 값이 최대 연속 완료일보다 크면 최대값을 현재값으로 변경한다`() {
-            //given
-            val achievementCurrentValue = User(
-                "id", "nickname", ProviderType.GOOGLE,
-                currentQuestContinuousCompletionDays = 1,
-                maxQuestContinuousCompletionDays = 0
-            )
-
-            //when
-            achievementCurrentValue.increaseCurrentQuestContinuousCompletionDays()
+            achievementCurrentValue.increaseQuestCompletionCount(completionDate)
 
             //then
             assertThat(achievementCurrentValue.maxQuestContinuousCompletionDays)
                 .isEqualTo(achievementCurrentValue.currentQuestContinuousCompletionDays)
         }
 
-        @DisplayName("증가된 값이 최대 연속 완료일보다 작으면 최대값이 변경되지 않는다")
+        @DisplayName("연속 완료일 증가 시 최대 연속 완료일이 현재값보다 크면 최대값을 현재값으로 갱신하지 않는다")
         @Test
-        fun `증가된 값이 최대 연속 완료일보다 작으면 최대값이 변경되지 않는다`() {
+        fun `연속 완료일 증가 시 최대 연속 완료일이 현재값보다 크면 최대값을 현재값으로 갱신하지 않는다`() {
             //given
-            val maxQuestContinuousCompletionDays = 10
+            val completionDate = LocalDate.of(2000, 12, 12)
+            val beforeMaxQuestContinuousCompletionDays = 10
+            val beforeContinuousCompletionDays = 1
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
-                currentQuestContinuousCompletionDays = 1,
-                maxQuestContinuousCompletionDays = maxQuestContinuousCompletionDays
+                currentQuestContinuousCompletionDays = beforeContinuousCompletionDays,
+                maxQuestContinuousCompletionDays = beforeMaxQuestContinuousCompletionDays,
+                lastQuestCompletionDate = null
             )
 
             //when
-            achievementCurrentValue.increaseCurrentQuestContinuousCompletionDays()
+            achievementCurrentValue.increaseQuestCompletionCount(completionDate)
 
             //then
-            assertThat(achievementCurrentValue.maxQuestContinuousCompletionDays).isEqualTo(maxQuestContinuousCompletionDays)
+            assertThat(achievementCurrentValue.maxQuestContinuousCompletionDays)
+                .isNotEqualTo(achievementCurrentValue.currentQuestContinuousCompletionDays)
+        }
+
+        @DisplayName("마지막 퀘스트 완료일이 null이면 요청 날짜로 마지막 완료일을 갱신한다")
+        @Test
+        fun `마지막 퀘스트 완료일이 null이면 요청 날짜로 마지막 완료일을 갱신한다`() {
+            //given
+            val completionDate = LocalDate.of(2000, 12, 12)
+            val achievementCurrentValue = User(
+                "id", "nickname", ProviderType.GOOGLE,
+                lastQuestCompletionDate = null
+            )
+
+            //when
+            achievementCurrentValue.increaseQuestCompletionCount(completionDate)
+
+            //then
+            assertThat(achievementCurrentValue.lastQuestCompletionDate)
+                .isEqualTo(completionDate)
+        }
+
+        @DisplayName("마지막 퀘스트 완료일이 요청 날짜이전이면 요청 날짜로 마지막 완료일을 갱신한다")
+        @Test
+        fun `마지막 퀘스트 완료일이 요청 날짜이전이면 요청 날짜로 마지막 완료일을 갱신한다`() {
+            //given
+            val completionDate = LocalDate.of(2000, 12, 12)
+            val achievementCurrentValue = User(
+                "id", "nickname", ProviderType.GOOGLE,
+                lastQuestCompletionDate = completionDate.minusDays(1L)
+            )
+
+            //when
+            achievementCurrentValue.increaseQuestCompletionCount(completionDate)
+
+            //then
+            assertThat(achievementCurrentValue.lastQuestCompletionDate)
+                .isEqualTo(completionDate)
+        }
+
+        @DisplayName("마지막 퀘스트 완료일이 요청 날짜 이후면 마지막 완료일을 갱신하지 않는다")
+        @Test
+        fun `마지막 퀘스트 완료일이 요청 날짜 이후면 마지막 완료일을 갱신하지 않는다`() {
+            //given
+            val completionDate = LocalDate.of(2000, 12, 12)
+            val achievementCurrentValue = User(
+                "id", "nickname", ProviderType.GOOGLE,
+                lastQuestCompletionDate = completionDate.plusDays(1L)
+            )
+
+            //when
+            achievementCurrentValue.increaseQuestCompletionCount(completionDate)
+
+            //then
+            assertThat(achievementCurrentValue.lastQuestCompletionDate)
+                .isNotEqualTo(completionDate)
         }
     }
 }

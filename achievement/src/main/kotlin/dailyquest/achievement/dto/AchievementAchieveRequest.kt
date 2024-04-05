@@ -5,12 +5,12 @@ import dailyquest.achievement.entity.AchievementType
 data class AchievementAchieveRequest(
     val type: AchievementType,
     val userId: Long,
-    val currentValue: Int
+    val currentValue: Long
 ) {
 
     companion object {
         @JvmStatic
-        fun of(type: AchievementType, userId: Long, currentValue: Int): AchievementAchieveRequest {
+        fun of(type: AchievementType, userId: Long, currentValue: Long): AchievementAchieveRequest {
             return AchievementAchieveRequest(type, userId, currentValue)
         }
     }

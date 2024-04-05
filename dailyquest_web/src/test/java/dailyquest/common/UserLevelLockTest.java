@@ -7,6 +7,7 @@ import dailyquest.jwt.JwtTokenProvider;
 import dailyquest.quest.dto.QuestRequest;
 import dailyquest.quest.repository.QuestRepository;
 import dailyquest.quest.service.QuestService;
+import dailyquest.user.dto.UserSaveRequest;
 import dailyquest.user.entity.ProviderType;
 import dailyquest.user.repository.UserRepository;
 import dailyquest.user.service.UserService;
@@ -62,7 +63,8 @@ public class UserLevelLockTest extends IntegrationTestContext {
         CountDownLatch latch = new CountDownLatch(threadCount);
 
         Future<Long> resultUserId = executorService.submit(() -> {
-            Long userId = userService.getOrSaveUser("user1", ProviderType.GOOGLE).getId();
+            UserSaveRequest userSaveRequest = new UserSaveRequest("user1", "user1", ProviderType.GOOGLE);
+            long userId = userService.saveUser(userSaveRequest);
 
             //when
             for (int i = 0; i < threadCount; i++) {

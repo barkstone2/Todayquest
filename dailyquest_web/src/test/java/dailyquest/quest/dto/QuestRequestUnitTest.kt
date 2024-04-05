@@ -3,7 +3,7 @@ package dailyquest.quest.dto
 import dailyquest.common.MessageUtil
 import dailyquest.quest.entity.*
 import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.UserInfo
+import dailyquest.user.entity.User
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.*
 import org.mockito.Answers
@@ -77,7 +77,7 @@ class QuestRequestUnitTest {
         val questRequest = QuestRequest("title init", "description init")
 
         //when
-        val entity = questRequest.mapToEntity(1L, UserInfo("", "", ProviderType.GOOGLE))
+        val entity = questRequest.mapToEntity(1L, User("", "", ProviderType.GOOGLE))
 
         //then
         assertThat(entity.title).isEqualTo(questRequest.title)

@@ -14,6 +14,7 @@ import dailyquest.quest.dto.*
 import dailyquest.quest.entity.DetailQuestType
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.service.QuestService
+import dailyquest.redis.service.RedisService
 import dailyquest.search.service.QuestIndexService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
@@ -111,6 +112,9 @@ class QuestApiControllerUnitTest {
 
     @MockBean
     lateinit var achievementCommandService: AchievementCommandService
+
+    @MockBean
+    lateinit var redisService: RedisService
 
     private lateinit var messageUtil: MockedStatic<MessageUtil>
 

@@ -5,7 +5,7 @@ import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.quest.dto.QuestRequest
 import dailyquest.quest.dto.QuestResponse
 import dailyquest.quest.service.QuestService
-import dailyquest.user.entity.UserInfo
+import dailyquest.user.entity.User
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -145,8 +145,8 @@ class PreferenceQuestServiceUnitTest {
         //given
         val preferenceQuestId = 1L
         val userId = 1L
-        val mockUser = mock<UserInfo>()
-        val preferenceQuest = PreferenceQuest.of("pq-save-title", "pq-save-desc", userInfo = mockUser)
+        val mockUser = mock<User>()
+        val preferenceQuest = PreferenceQuest.of("pq-save-title", "pq-save-desc", user = mockUser)
         val questRequest = QuestRequest.from(preferenceQuest)
         doReturn(preferenceQuest).`when`(preferenceQuestQueryService).getPreferenceQuest(any(), any())
         doReturn(mock<QuestResponse>()).`when`(questService).saveQuest(any(), any())

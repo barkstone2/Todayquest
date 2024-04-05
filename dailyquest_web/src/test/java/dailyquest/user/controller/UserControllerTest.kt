@@ -42,7 +42,7 @@ class UserControllerTest @Autowired constructor(
             val url = "${SERVER_ADDR}$port${uriPrefix}"
 
             val firstDto = UserUpdateRequest(
-                LocalTime.of(user.getCoreHour(), 0).plusHours(1).hour
+                coreTime = LocalTime.of(user.getCoreHour(), 0).plusHours(1).hour
             )
 
             //when
@@ -56,7 +56,7 @@ class UserControllerTest @Autowired constructor(
                 )
 
             val secondDto = UserUpdateRequest(
-                LocalTime.of(user.getCoreHour(), 0).minusHours(1).hour
+                coreTime = LocalTime.of(user.getCoreHour(), 0).minusHours(1).hour
             )
 
             val secondRequest = mvc

@@ -4,7 +4,7 @@ import dailyquest.common.MessageUtil
 import dailyquest.preferencequest.dto.PreferenceQuestRequest
 import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.preferencequest.repository.PreferenceQuestRepository
-import dailyquest.user.entity.UserInfo
+import dailyquest.user.entity.User
 import dailyquest.user.repository.UserRepository
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
@@ -43,7 +43,7 @@ class PreferenceQuestCommandServiceUnitTest {
     inner class TestSavePreferenceQuest {
         private val userId = 1L
         private val saveRequest = mock<PreferenceQuestRequest>()
-        private val principalUser = mock<UserInfo>()
+        private val principalUser = mock<User>()
         private val savedEntity = mock<PreferenceQuest>(defaultAnswer = Answers.RETURNS_SMART_NULLS)
 
         @BeforeEach
@@ -82,7 +82,7 @@ class PreferenceQuestCommandServiceUnitTest {
     @Nested
     inner class TestUpdatePreferenceQuest {
         private val updateRequest = mock<PreferenceQuestRequest>()
-        private val ownerUser = mock<UserInfo>()
+        private val ownerUser = mock<User>()
         private val updateTarget = mock<PreferenceQuest>(defaultAnswer = Answers.RETURNS_SMART_NULLS)
 
         @DisplayName("updateTarget의 유저 정보를 사용해 요청 정보를 엔티티로 변환한다")

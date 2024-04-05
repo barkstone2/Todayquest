@@ -14,7 +14,7 @@ import dailyquest.quest.repository.QuestLogRepository
 import dailyquest.quest.repository.QuestRepository
 import dailyquest.search.repository.QuestIndexRepository
 import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.UserInfo
+import dailyquest.user.entity.User
 import dailyquest.user.repository.UserRepository
 import jakarta.persistence.EntityManager
 import kotlinx.coroutines.Dispatchers
@@ -865,7 +865,7 @@ class QuestApiControllerTest @Autowired constructor(
 
             //when
             runBlocking(Dispatchers.IO) {
-                val user1 = UserInfo("", "", ProviderType.GOOGLE)
+                val user1 = User("", "", ProviderType.GOOGLE)
                 user = userRepository.save(user1)
 
                 val accessToken = jwtTokenProvider.createAccessToken(user.id)

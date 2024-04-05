@@ -1,10 +1,9 @@
 package dailyquest.quest.service;
 
 import dailyquest.common.DateTimeExtensionKt;
+import dailyquest.quest.dto.QuestLogRequest;
 import dailyquest.quest.dto.QuestLogSearchCondition;
 import dailyquest.quest.dto.QuestStatisticsResponse;
-import dailyquest.quest.entity.Quest;
-import dailyquest.quest.entity.QuestLog;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestLogRepository;
 import dailyquest.status.dto.StatusResponse;
@@ -24,8 +23,8 @@ import java.util.function.Function;
 public class QuestLogService {
     private final QuestLogRepository questLogRepository;
 
-    public void saveQuestLog(Quest quest) {
-        questLogRepository.save(new QuestLog(quest));
+    public void saveQuestLog(QuestLogRequest questLogRequest) {
+        questLogRepository.save(questLogRequest.mapToEntity());
     }
 
     public Map<LocalDate, QuestStatisticsResponse> getQuestStatistic(Long userId, QuestLogSearchCondition condition) {

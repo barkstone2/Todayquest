@@ -89,8 +89,8 @@ public class QuestApiController {
                 () -> questService.saveQuest(dto, principal.getId())
         );
         questIndexService.saveDocument(savedQuest, principal.getId());
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_REGISTRATION, principal.getId()));
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION_DAYS, principal.getId()));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_REGISTRATION, principal.getId(), principal.getQuestRegistrationCount()));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION_DAYS, principal.getId(), principal.getCurrentQuestContinuousRegistrationDays()));
         return ResponseEntity.ok(new ResponseData<>(savedQuest));
     }
 
@@ -126,9 +126,9 @@ public class QuestApiController {
         QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(questClearExp, questClearGold, questId);
         QuestResponse completedQuest = questService.completeQuest(principal.getId(), questCompletionRequest);
         questIndexService.updateQuestStateOfDocument(completedQuest, principal.getId());
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_COMPLETION, principal.getId()));
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(USER_LEVEL, principal.getId()));
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(GOLD_EARN, principal.getId()));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_COMPLETION, principal.getId(), principal.getQuestCompletionCount()));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(USER_LEVEL, principal.getId(), principal.getLevel()));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(GOLD_EARN, principal.getId(), principal.getGoldEarnAmount()));
         return ResponseEntity.ok(new ResponseData<>());
     }
 

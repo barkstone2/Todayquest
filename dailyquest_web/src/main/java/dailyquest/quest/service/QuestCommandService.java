@@ -39,8 +39,8 @@ public class QuestCommandService {
 
         Quest quest = dto.mapToEntity(nextSeq, findUser);
         questRepository.save(quest);
-        questLogService.saveQuestLog(quest);
-
+        QuestLogRequest questLogRequest = QuestLogRequest.from(quest);
+        questLogService.saveQuestLog(questLogRequest);
         return QuestResponse.createDto(quest);
     }
 
@@ -70,7 +70,8 @@ public class QuestCommandService {
                     questCompletionRequest.toMainQuest();
                 }
                 userService.addUserExpAndGold(userId, questCompletionRequest);
-                questLogService.saveQuestLog(quest);
+                QuestLogRequest questLogRequest = QuestLogRequest.from(quest);
+                questLogService.saveQuestLog(questLogRequest);
             }
             case DELETE -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.deleted"));
             case PROCEED -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.complete.detail"));
@@ -84,7 +85,8 @@ public class QuestCommandService {
         QuestState resultState = quest.discardQuest();
         switch (resultState) {
             case DISCARD -> {
-                questLogService.saveQuestLog(quest);
+                QuestLogRequest questLogRequest = QuestLogRequest.from(quest);
+                questLogService.saveQuestLog(questLogRequest);
             }
             case DELETE -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.deleted"));
             default -> throw new IllegalStateException(MessageUtil.getMessage("quest.error.not-proceed"));

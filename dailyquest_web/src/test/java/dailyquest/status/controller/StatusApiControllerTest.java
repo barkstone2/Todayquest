@@ -61,16 +61,16 @@ public class StatusApiControllerTest extends IntegrationTestContext {
         @Test
         public void testGetStatusWhenExist() throws Exception {
             //given
+            LocalDate loggedDate = LocalDate.of(2012, 12, 12);
             QuestLog log = QuestLog.builder()
                     .questId(1L)
                     .state(QuestState.COMPLETE)
                     .userId(user.getId())
                     .type(QuestType.MAIN)
+                    .loggedDate(loggedDate)
                     .build();
 
-
-            LocalDate selectedDate = log.getLoggedDate();
-            String url = SERVER_ADDR + getPort() + URI_PREFIX + "/" + selectedDate;
+            String url = SERVER_ADDR + getPort() + URI_PREFIX + "/" + loggedDate;
             QuestLogSearchType searchType = QuestLogSearchType.DAILY;
 
             questLogRepository.save(log);
@@ -91,21 +91,23 @@ public class StatusApiControllerTest extends IntegrationTestContext {
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andExpect(jsonPath("$.data").exists())
                     .andExpect(jsonPath("$.data.questStatistics").exists())
-                    .andExpect(jsonPath("$.data.questStatistics." + selectedDate).exists())
-                    .andExpect(jsonPath("$.data.questStatistics." + selectedDate + ".completeCount").value(1));
+                    .andExpect(jsonPath("$.data.questStatistics." + loggedDate).exists())
+                    .andExpect(jsonPath("$.data.questStatistics." + loggedDate + ".completeCount").value(1));
         }
 
         @DisplayName("요청된 날짜에 대한 범위를 벗어난 로그는 조회되지 않는다.")
         @Test
         public void testGetStatusWhenNotExist() throws Exception {
             //given
+            LocalDate loggedDate = LocalDate.of(2012, 12, 12);
             QuestLog log = QuestLog.builder()
                     .questId(1L)
                     .state(QuestState.COMPLETE)
                     .userId(user.getId())
                     .type(QuestType.MAIN)
+                    .loggedDate(loggedDate)
                     .build();
-            LocalDate selectedDate = log.getLoggedDate().plusDays(1);
+            LocalDate selectedDate = loggedDate.plusDays(1);
             String url = SERVER_ADDR + getPort() + URI_PREFIX + "/" + selectedDate;
             QuestLogSearchType searchType = QuestLogSearchType.DAILY;
 

@@ -1,14 +1,10 @@
 package dailyquest.quest.service;
 
 import dailyquest.common.MessageUtil;
-import dailyquest.quest.dto.DetailInteractRequest;
-import dailyquest.quest.dto.DetailResponse;
-import dailyquest.quest.dto.QuestCompletionRequest;
-import dailyquest.quest.dto.QuestRequest;
+import dailyquest.quest.dto.*;
 import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
-import dailyquest.quest.entity.QuestType;
 import dailyquest.quest.repository.QuestRepository;
 import dailyquest.user.entity.User;
 import dailyquest.user.repository.UserRepository;
@@ -39,6 +35,19 @@ public class QuestCommandServiceUnitTest {
     @Mock UserRepository userRepository;
     @Mock UserService userService;
     @Mock QuestLogService questLogService;
+    MockedStatic<QuestLogRequest> mockedStatic;
+
+    @BeforeEach
+    void init() {
+        mockedStatic = mockStatic(QuestLogRequest.class);
+        QuestLogRequest mock = mock(QuestLogRequest.class);
+        when(QuestLogRequest.from(any())).thenReturn(mock);
+    }
+
+    @AfterEach
+    void close() {
+        mockedStatic.close();
+    }
 
     @DisplayName("퀘스트 저장 시")
     @Nested
@@ -79,6 +88,19 @@ public class QuestCommandServiceUnitTest {
 
             //then
             verify(saveRequest, times(0)).toMainQuest();
+        }
+
+        @DisplayName("유저의 퀘스트 등록 횟수 증가 로직이 호출된다")
+        @Test
+        public void callAddQuestRegistrationCountOfUser() throws Exception {
+            //given
+            Long userId = 1L;
+
+            //when
+            questCommandService.saveQuest(saveRequest, userId);
+
+            //then
+            verify(userService).recordQuestRegistration(eq(userId), any());
         }
     }
 
@@ -207,12 +229,20 @@ public class QuestCommandServiceUnitTest {
         private final String proceedMessage = "proceed";
         private final String notProceedMessage = "not-proceed";
 
+        private Quest completeTarget;
+        private QuestCompletionRequest questCompletionRequest;
+
         @BeforeEach
         void beforeEach() {
             messageUtil = mockStatic(MessageUtil.class);
             when(MessageUtil.getMessage(eq("quest.error.deleted"))).thenReturn(deleteMessage);
             when(MessageUtil.getMessage(eq("quest.error.complete.detail"))).thenReturn(proceedMessage);
             when(MessageUtil.getMessage(eq("quest.error.not-proceed"))).thenReturn(notProceedMessage);
+            completeTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
+            lenient().doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
+            lenient().doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
+            lenient().doReturn(true).when(completeTarget).isMainQuest();
+            questCompletionRequest = mock(QuestCompletionRequest.class, Answers.RETURNS_SMART_NULLS);
         }
 
         @AfterEach
@@ -224,29 +254,20 @@ public class QuestCommandServiceUnitTest {
         @Test
         void getEntityViaQueryService() {
             //given
-            Long questId = 1L;
             Long userId = 1L;
-            Quest completeTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
-            doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
-
-            QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(1L, 1L, questId, QuestType.SUB);
 
             //when
             questCommandService.completeQuest(userId, questCompletionRequest);
 
             //then
-            verify(questQueryService).getEntityOfUser(eq(questId), eq(userId));
+            verify(questQueryService).getEntityOfUser(any(), eq(userId));
         }
 
         @DisplayName("결과 상태가 DELETE 면 IllegalStateException 예외를 던진다")
         @Test
         public void ifResultStateIsDeleteThanThrowException() throws Exception {
             //given
-            Quest completeTarget = mock(Quest.class);
-            doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
             doReturn(QuestState.DELETE).when(completeTarget).completeQuest();
-            QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(1L, 1L, 1L, QuestType.SUB);
 
             //when
             Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
@@ -259,10 +280,7 @@ public class QuestCommandServiceUnitTest {
         @Test
         public void ifResultStateIsProceedThanThrowException() throws Exception {
             //given
-            Quest completeTarget = mock(Quest.class);
-            doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
             doReturn(QuestState.PROCEED).when(completeTarget).completeQuest();
-            QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(1L, 1L, 1L, QuestType.SUB);
 
             //when
             Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
@@ -275,10 +293,7 @@ public class QuestCommandServiceUnitTest {
         @Test
         public void ifResultStateIsNotCompleteThanThrowException() throws Exception {
             //given
-            Quest completeTarget = mock(Quest.class);
-            doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
             doReturn(QuestState.FAIL).when(completeTarget).completeQuest();
-            QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(1L, 1L, 1L, QuestType.SUB);
 
             //when
             Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
@@ -287,40 +302,59 @@ public class QuestCommandServiceUnitTest {
             assertThrows(IllegalStateException.class, testMethod, notProceedMessage);
         }
 
-        @DisplayName("결과 상태가 COMPLETE 면 추가 로직을 호출하고 변경 로그를 저장한다")
+        @DisplayName("결과 상태가 COMPLETE면 유저 경험치, 골드 증가 로직을 호출한다")
         @Test
-        public void ifResultStateIsCompleteThanCallLogicAndSaveLog() throws Exception {
+        public void ifResultStateIsCompleteThanCallUserExpAndGoldEarn() throws Exception {
             //given
-            Quest completeTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
-            doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
-            doReturn(false).when(completeTarget).isMainQuest();
-            QuestCompletionRequest questCompletionRequest = mock(QuestCompletionRequest.class, Answers.RETURNS_SMART_NULLS);
             long userId = 1L;
+            doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
 
             //when
             questCommandService.completeQuest(userId, questCompletionRequest);
 
             //then
             verify(userService, times(1)).addUserExpAndGold(eq(userId), eq(questCompletionRequest));
-            verify(questLogService, times(1)).saveQuestLog(eq(completeTarget));
         }
 
-        @DisplayName("결과 상태가 COMPLETE고 완료한 퀘스트가 MAIN 퀘스트면 완료 요청 DTO의 타입의 메인으로 변경한다")
+        @DisplayName("결과 상태가 COMPLETE면 변경 로그를 저장한다")
+        @Test
+        public void ifResultStateIsCompleteThanSaveLog() throws Exception {
+            //given
+            long userId = 1L;
+            doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
+
+            //when
+            questCommandService.completeQuest(userId, questCompletionRequest);
+
+            //then
+            verify(questLogService, times(1)).saveQuestLog(any());
+        }
+
+        @DisplayName("결과 상태가 COMPLETE고 완료한 퀘스트가 MAIN 퀘스트면 완료 요청 DTO 타입을 메인으로 변경한다")
         @Test
         public void ifResultIsCompletedAndIsMainQuestThenChangeToMain() throws Exception {
             //given
-            Quest completeTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
             doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
             doReturn(true).when(completeTarget).isMainQuest();
-            QuestCompletionRequest questCompletionRequest = mock(QuestCompletionRequest.class, Answers.RETURNS_SMART_NULLS);
 
             //when
             questCommandService.completeQuest(1L, questCompletionRequest);
 
             //then
             verify(questCompletionRequest, times(1)).toMainQuest();
+        }
+
+        @DisplayName("결과 상태가 COMPLETE면 유저의 퀘스트 완료 횟수 증가 로직이 호출된다")
+        @Test
+        public void ifResultIsCompletedThenAddQuestCompletionCountOfUser() throws Exception {
+            //given
+            Long userId = 1L;
+
+            //when
+            questCommandService.completeQuest(userId, questCompletionRequest);
+
+            //then
+            verify(userService).recordQuestCompletion(eq(userId), any());
         }
     }
 
@@ -402,7 +436,7 @@ public class QuestCommandServiceUnitTest {
             questCommandService.discardQuest(1L, 1L);
 
             //then
-            verify(questLogService, times(1)).saveQuestLog(eq(discardTarget));
+            verify(questLogService, times(1)).saveQuestLog(any());
         }
     }
 

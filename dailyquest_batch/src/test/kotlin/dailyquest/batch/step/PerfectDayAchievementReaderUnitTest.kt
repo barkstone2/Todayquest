@@ -3,9 +3,10 @@ package dailyquest.batch.step
 import com.ninjasquad.springmockk.MockkBean
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.batch.listener.step.PerfectDayAchievementStepListener
-import dailyquest.perfectday.dto.PerfectDayCount
-import dailyquest.perfectday.repository.PerfectDayLogRepository
+import dailyquest.user.dto.UserPerfectDayCount
+import dailyquest.user.repository.UserRepository
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -14,7 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.SimpleJob
-import org.springframework.batch.item.data.RepositoryItemReader
+import org.springframework.batch.item.ItemReader
 import org.springframework.batch.item.data.RepositoryItemWriter
 import org.springframework.batch.item.function.FunctionItemProcessor
 import org.springframework.batch.test.JobLauncherTestUtils
@@ -32,17 +33,16 @@ import org.springframework.context.annotation.Import
 class PerfectDayAchievementReaderUnitTest @Autowired constructor(
     private val jobLauncherTestUtils: JobLauncherTestUtils,
     private val perfectDayAchievementStep: Step,
-    private val perfectDayCountReader: RepositoryItemReader<PerfectDayCount>,
+    private val perfectDayCountReader: ItemReader<UserPerfectDayCount>,
 ) {
     @MockkBean(name = "perfectDayAchievementProcessor", relaxed = true)
-    private lateinit var perfectDayAchievementProcessor: FunctionItemProcessor<PerfectDayCount, AchievementAchieveLog>
+    private lateinit var perfectDayAchievementProcessor: FunctionItemProcessor<UserPerfectDayCount, AchievementAchieveLog>
     @MockkBean(name = "perfectDayAchievementWriter", relaxed = true)
     private lateinit var perfectDayAchievementWriter: RepositoryItemWriter<AchievementAchieveLog>
     @MockkBean(relaxed = true)
     private lateinit var perfectDayAchievementStepListener: PerfectDayAchievementStepListener
-
     @MockkBean(relaxed = true)
-    private lateinit var perfectDayLogRepository: PerfectDayLogRepository
+    private lateinit var userRepository: UserRepository
     private lateinit var job: Job
 
     @BeforeEach
@@ -59,15 +59,20 @@ class PerfectDayAchievementReaderUnitTest @Autowired constructor(
         jobLauncherTestUtils.job = job
         val jobExecution = MetaDataInstanceFactory.createJobExecution()
         val jobExecutionContext = jobExecution.executionContext
-        val userIds = listOf(1L, 2L, 3L)
-        jobExecutionContext.put("perfectDayLogUserIds", userIds)
+        val userPerfectDayCount = mockk<UserPerfectDayCount>(relaxed = true)
+        val userPerfectDayCounts = mutableListOf<UserPerfectDayCount>()
+        val listSize = 30
+        for (i in 1..listSize) {
+            userPerfectDayCounts.add(userPerfectDayCount)
+        }
+        jobExecutionContext.put("userPerfectDayCounts", userPerfectDayCounts)
 
         //when
         jobLauncherTestUtils.launchStep("perfectDayAchievementStep", jobExecutionContext)
 
         //then
-        verify {
-            perfectDayLogRepository.countByUserIds(eq(userIds), any())
+        verify(exactly = listSize) {
+            perfectDayAchievementProcessor.process(eq(userPerfectDayCount))
         }
     }
 }

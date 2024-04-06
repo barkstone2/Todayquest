@@ -25,7 +25,7 @@ class PerfectDayAchievementStepListener(
     @BeforeStep
     fun beforeStep(stepExecution: StepExecution) {
         executionContextUtil = ExecutionContextUtil.from(stepExecution)
-        val perfectDayAchievements = achievementRepository.getAllByType(AchievementType.PERFECT_DAY)
+        val perfectDayAchievements = achievementRepository.getAllByTypeOrderByTargetValue(AchievementType.PERFECT_DAY)
         executionContextUtil.putToStepContext(perfectDayAchievementsKey, perfectDayAchievements)
     }
 

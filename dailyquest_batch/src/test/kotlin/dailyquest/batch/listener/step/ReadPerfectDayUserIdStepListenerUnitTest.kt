@@ -1,7 +1,6 @@
 package dailyquest.batch.listener.step
 
 import dailyquest.common.util.ExecutionContextUtil
-import dailyquest.log.perfectday.entity.PerfectDayLog
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -19,14 +18,14 @@ import org.springframework.batch.item.Chunk
 
 @ExtendWith(MockKExtension::class)
 @DisplayName("완벽한 하루 로그 스텝 리스너 유닛 테스트")
-class PerfectDayLogStepListenerUnitTest {
+class ReadPerfectDayUserIdStepListenerUnitTest {
 
     @RelaxedMockK
     private lateinit var stepExecution: StepExecution
     @RelaxedMockK
     private lateinit var executionContextUtil: ExecutionContextUtil
 
-    private lateinit var perfectDayLogStepListener: PerfectDayLogStepListener
+    private lateinit var perfectDayLogStepListener: ReadPerfectDayUserIdStepListener
     private val userIdsKey = "perfectDayLogUserIds"
 
     @BeforeEach
@@ -34,7 +33,7 @@ class PerfectDayLogStepListenerUnitTest {
         mockkObject(ExecutionContextUtil)
         every { ExecutionContextUtil.from(any()) } returns executionContextUtil
 
-        perfectDayLogStepListener = PerfectDayLogStepListener()
+        perfectDayLogStepListener = ReadPerfectDayUserIdStepListener()
         perfectDayLogStepListener.beforeStep(stepExecution)
     }
 
@@ -61,10 +60,8 @@ class PerfectDayLogStepListenerUnitTest {
         @Test
         fun `chunk에서 userId를 추출해 StepExecutionContext에 저장 요청한다`() {
             //given
-            val perfectDayLog = mockk<PerfectDayLog>()
             val userId = 1L
-            every { perfectDayLog.userId } returns userId
-            val chunk = Chunk(listOf(perfectDayLog))
+            val chunk = Chunk(listOf(userId))
 
             //when
             perfectDayLogStepListener.afterWrite(chunk)

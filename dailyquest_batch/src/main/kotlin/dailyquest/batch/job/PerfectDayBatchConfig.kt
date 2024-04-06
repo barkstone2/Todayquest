@@ -13,13 +13,15 @@ class PerfectDayBatchConfig {
     @Bean
     fun perfectDayBatchJob(
         jobRepository: JobRepository,
-        perfectDayLogStep: Step,
+        readPerfectDayUserIdStep: Step,
+        increasePerfectDayCountStep: Step,
         perfectDayAchievementStep: Step,
         achievementAchieveNotificationStep: Step,
         perfectDayJobListener: PerfectDayJobListener
     ): Job {
         return JobBuilder("perfectDayJob", jobRepository)
-            .start(perfectDayLogStep)
+            .start(readPerfectDayUserIdStep)
+            .next(increasePerfectDayCountStep)
             .next(perfectDayAchievementStep)
             .next(achievementAchieveNotificationStep)
             .listener(perfectDayJobListener)

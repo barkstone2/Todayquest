@@ -53,7 +53,7 @@ class PerfectDayAchievementStepListenerUnitTest {
 
             //then
             verify {
-                achievementRepository.getAllByType(eq(AchievementType.PERFECT_DAY))
+                achievementRepository.getAllByTypeOrderByTargetValue(eq(AchievementType.PERFECT_DAY))
                 executionContextUtil.putToStepContext(perfectDayAchievementsKey, any())
             }
         }

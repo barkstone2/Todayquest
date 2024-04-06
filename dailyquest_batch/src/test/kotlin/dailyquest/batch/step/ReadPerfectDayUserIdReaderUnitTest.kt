@@ -1,8 +1,7 @@
 package dailyquest.batch.step
 
 import com.ninjasquad.springmockk.MockkBean
-import dailyquest.batch.listener.step.PerfectDayLogStepListener
-import dailyquest.log.perfectday.entity.PerfectDayLog
+import dailyquest.batch.listener.step.ReadPerfectDayUserIdStepListener
 import dailyquest.quest.repository.QuestLogRepository
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
@@ -15,8 +14,6 @@ import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.SimpleJob
 import org.springframework.batch.item.data.RepositoryItemReader
-import org.springframework.batch.item.data.RepositoryItemWriter
-import org.springframework.batch.item.function.FunctionItemProcessor
 import org.springframework.batch.test.JobLauncherTestUtils
 import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,25 +22,22 @@ import org.springframework.context.annotation.Import
 import java.time.LocalDate
 
 @ExtendWith(MockKExtension::class)
-@Import(PerfectDayLogStepConfig::class)
+@Import(ReadPerfectDayUserIdStepConfig::class)
 @EnableAutoConfiguration
 @SpringBatchTest
 @DisplayName("완벽한 하루 로그 스텝 리더 유닛 테스트")
-class PerfectDayLogReaderUnitTest @Autowired constructor(
+class ReadPerfectDayUserIdReaderUnitTest @Autowired constructor(
     private val jobLauncherTestUtils: JobLauncherTestUtils,
     private val perfectDayLogStep: Step,
-    private val perfectDayUserReader: RepositoryItemReader<Long>,
+    private val perfectDayUserIdReader: RepositoryItemReader<Long>,
 ) {
     @MockkBean(relaxed = true)
-    private lateinit var perfectDayLogStepListener: PerfectDayLogStepListener
-    @MockkBean(name = "perfectDayLogProcessor", relaxed = true)
-    private lateinit var perfectDayLogProcessor: FunctionItemProcessor<Long, PerfectDayLog>
-    @MockkBean(name = "perfectDayLogWriter", relaxed = true)
-    private lateinit var perfectDayLogWriter: RepositoryItemWriter<PerfectDayLog>
+    private lateinit var perfectDayLogStepListener: ReadPerfectDayUserIdStepListener
 
     @MockkBean(relaxed = true)
     private lateinit var questLogRepository: QuestLogRepository
     private lateinit var job: Job
+    private val stepName = "readPerfectDayUserIdStep"
 
     @BeforeEach
     fun init() {
@@ -61,7 +55,7 @@ class PerfectDayLogReaderUnitTest @Autowired constructor(
         val jobParameters = JobParametersBuilder().addLocalDate("loggedDate", loggedDate).toJobParameters()
 
         //when
-        jobLauncherTestUtils.launchStep("perfectDayLogStep", jobParameters)
+        jobLauncherTestUtils.launchStep(stepName, jobParameters)
 
         //then
         verify {

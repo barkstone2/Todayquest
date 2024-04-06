@@ -25,5 +25,5 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
             "where a.type = :type")
     fun getAchievementsWithAchieveInfo(@Param("type") type: AchievementType, @Param("userId") userId: Long): List<AchievementResponse>
     fun existsByTypeAndTargetValue(type: AchievementType, targetValue: Int): Boolean
-    fun getAllByType(type: AchievementType): List<Achievement>
+    fun getAllByTypeOrderByTargetValue(type: AchievementType): List<Achievement>
 }

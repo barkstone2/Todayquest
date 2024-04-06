@@ -6,7 +6,7 @@ import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.batch.listener.step.PerfectDayAchievementStepListener
-import dailyquest.perfectday.dto.PerfectDayCount
+import dailyquest.user.dto.UserPerfectDayCount
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
@@ -23,8 +23,8 @@ import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.SimpleJob
 import org.springframework.batch.item.ItemProcessor
+import org.springframework.batch.item.ItemReader
 import org.springframework.batch.item.ItemWriter
-import org.springframework.batch.item.data.RepositoryItemReader
 import org.springframework.batch.test.JobLauncherTestUtils
 import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,9 +44,9 @@ class PerfectDayAchievementStepUnitTest @Autowired constructor(
     private val perfectDayAchievementStep: Step
 ) {
     @MockkBean(name = "perfectDayCountReader", relaxed = true)
-    private lateinit var perfectDayCountReader: RepositoryItemReader<PerfectDayCount>
+    private lateinit var perfectDayCountReader: ItemReader<UserPerfectDayCount>
     @MockkBean(name = "perfectDayAchievementProcessor", relaxed = true)
-    private lateinit var perfectDayAchievementProcessor: ItemProcessor<PerfectDayCount, AchievementAchieveLog>
+    private lateinit var perfectDayAchievementProcessor: ItemProcessor<UserPerfectDayCount, AchievementAchieveLog>
     @MockkBean(name = "perfectDayAchievementWriter", relaxed = true)
     private lateinit var perfectDayAchievementWriter: ItemWriter<AchievementAchieveLog>
     @MockkBean(relaxed = true)
@@ -54,7 +54,7 @@ class PerfectDayAchievementStepUnitTest @Autowired constructor(
 
     @SpykBean
     private lateinit var transactionManager: PlatformTransactionManager
-    private val perfectDayCounts = listOf(PerfectDayCount(1L, 1L), PerfectDayCount(2L, 1L), PerfectDayCount(3L, 1L))
+    private val perfectDayCounts = listOf(UserPerfectDayCount(1L, 1), UserPerfectDayCount(2L, 1), UserPerfectDayCount(3L, 1))
     private val achievement = mockk<Achievement>(relaxed = true)
     private val achievedLogsKey = "achievedLogs"
     private val stepName = "perfectDayAchievementStep"

@@ -4,7 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.batch.listener.step.PerfectDayAchievementStepListener
-import dailyquest.perfectday.dto.PerfectDayCount
+import dailyquest.user.dto.UserPerfectDayCount
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
@@ -16,7 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.SimpleJob
-import org.springframework.batch.item.data.RepositoryItemReader
+import org.springframework.batch.item.ItemReader
 import org.springframework.batch.item.function.FunctionItemProcessor
 import org.springframework.batch.test.JobLauncherTestUtils
 import org.springframework.batch.test.context.SpringBatchTest
@@ -34,9 +34,9 @@ class PerfectDayAchievementWriterUnitTest @Autowired constructor(
     private val perfectDayAchievementStep: Step,
 ) {
     @MockkBean(name = "perfectDayCountReader", relaxed = true)
-    private lateinit var perfectDayCountReader: RepositoryItemReader<PerfectDayCount>
+    private lateinit var perfectDayCountReader: ItemReader<UserPerfectDayCount>
     @MockkBean(name = "perfectDayAchievementProcessor", relaxed = true)
-    private lateinit var perfectDayAchievementProcessor: FunctionItemProcessor<PerfectDayCount, AchievementAchieveLog>
+    private lateinit var perfectDayAchievementProcessor: FunctionItemProcessor<UserPerfectDayCount, AchievementAchieveLog>
     @MockkBean(relaxed = true)
     private lateinit var perfectDayAchievementStepListener: PerfectDayAchievementStepListener
 
@@ -49,7 +49,7 @@ class PerfectDayAchievementWriterUnitTest @Autowired constructor(
         val simpleJob = SimpleJob()
         simpleJob.addStep(perfectDayAchievementStep)
         job = simpleJob
-        every { perfectDayCountReader.read() } returns PerfectDayCount(1L, 1L) andThen null
+        every { perfectDayCountReader.read() } returns UserPerfectDayCount(1L, 1) andThen null
     }
 
     @DisplayName("writer 동작 시 repository의 save가 호출된다")

@@ -4,7 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.batch.listener.step.PerfectDayAchievementStepListener
-import dailyquest.perfectday.dto.PerfectDayCount
+import dailyquest.user.dto.UserPerfectDayCount
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
@@ -19,7 +19,7 @@ import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.job.SimpleJob
-import org.springframework.batch.item.data.RepositoryItemReader
+import org.springframework.batch.item.ItemReader
 import org.springframework.batch.item.data.RepositoryItemWriter
 import org.springframework.batch.test.JobLauncherTestUtils
 import org.springframework.batch.test.context.SpringBatchTest
@@ -37,7 +37,7 @@ class PerfectDayAchievementProcessorUnitTest @Autowired constructor(
     private val perfectDayAchievementStep: Step,
 ) {
     @MockkBean(name = "perfectDayCountReader", relaxed = true)
-    private lateinit var perfectDayCountReader: RepositoryItemReader<PerfectDayCount>
+    private lateinit var perfectDayCountReader: ItemReader<UserPerfectDayCount>
     @MockkBean(name = "perfectDayAchievementWriter", relaxed = true)
     private lateinit var perfectDayAchievementWriter: RepositoryItemWriter<AchievementAchieveLog>
     @MockkBean(relaxed = true)
@@ -45,11 +45,11 @@ class PerfectDayAchievementProcessorUnitTest @Autowired constructor(
 
     private lateinit var job: Job
     private val achievement = mockk<Achievement>(relaxed = true)
-    private val perfectDayCount = mockk<PerfectDayCount>(relaxed = true)
+    private val userPerfectDayCount = mockk<UserPerfectDayCount>(relaxed = true)
 
     @BeforeEach
     fun init() {
-        every { perfectDayCountReader.read() } returns perfectDayCount andThen null
+        every { perfectDayCountReader.read() } returns userPerfectDayCount andThen null
         every { perfectDayAchievementStepListener.beforeStep(any()) } answers {
             val stepExecution = this.arg<StepExecution>(0)
             val stepExecutionContext = stepExecution.executionContext
@@ -71,7 +71,7 @@ class PerfectDayAchievementProcessorUnitTest @Autowired constructor(
 
         //then
         verify {
-            achievement.targetValue
+            achievement.canAchieve(any())
         }
     }
 
@@ -84,11 +84,10 @@ class PerfectDayAchievementProcessorUnitTest @Autowired constructor(
         @Test
         fun `저장된 업적 중 목표값이 현재값과 일치하는 것이 있으면 업적 달성 로그 엔티티를 반환한다`() {
             //given
-            every { achievement.targetValue } returns 1
-            every { perfectDayCount.count } returns 1
+            every { achievement.canAchieve(any()) } returns true
 
             //when
-            val result = perfectDayAchievementProcessor.process(perfectDayCount)
+            val result = perfectDayAchievementProcessor.process(userPerfectDayCount)
 
             //then
             assertThat(result).isNotNull()
@@ -98,11 +97,10 @@ class PerfectDayAchievementProcessorUnitTest @Autowired constructor(
         @Test
         fun `저장된 업적 중 목표값이 현재값과 일치하는 것이 없으면 null을 반환한다`() {
             //given
-            every { achievement.targetValue } returns 1
-            every { perfectDayCount.count } returns 2
+            every { achievement.canAchieve(any()) } returns false
 
             //when
-            val result = perfectDayAchievementProcessor.process(perfectDayCount)
+            val result = perfectDayAchievementProcessor.process(userPerfectDayCount)
 
             //then
             assertThat(result).isNull()

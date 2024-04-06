@@ -4,20 +4,20 @@ import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.batch.listener.step.PerfectDayAchievementStepListener
-import dailyquest.perfectday.dto.PerfectDayCount
-import dailyquest.perfectday.repository.PerfectDayLogRepository
+import dailyquest.user.dto.UserPerfectDayCount
+import dailyquest.user.repository.UserRepository
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.JobScope
 import org.springframework.batch.core.configuration.annotation.StepScope
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.core.step.builder.StepBuilder
 import org.springframework.batch.item.ItemProcessor
+import org.springframework.batch.item.ItemReader
 import org.springframework.batch.item.ItemWriter
-import org.springframework.batch.item.data.RepositoryItemReader
 import org.springframework.batch.item.data.RepositoryItemWriter
-import org.springframework.batch.item.data.builder.RepositoryItemReaderBuilder
 import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder
 import org.springframework.batch.item.function.FunctionItemProcessor
+import org.springframework.batch.item.support.IteratorItemReader
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -30,13 +30,13 @@ class PerfectDayAchievementStepConfig {
     fun perfectDayAchievementStep(
         jobRepository: JobRepository,
         transactionManager: PlatformTransactionManager,
-        perfectDayCountReader: RepositoryItemReader<PerfectDayCount>,
-        perfectDayAchievementProcessor: ItemProcessor<PerfectDayCount, AchievementAchieveLog>,
+        perfectDayCountReader: ItemReader<UserPerfectDayCount>,
+        perfectDayAchievementProcessor: ItemProcessor<UserPerfectDayCount, AchievementAchieveLog>,
         perfectDayAchievementWriter: ItemWriter<AchievementAchieveLog>,
         perfectDayAchievementStepListener: PerfectDayAchievementStepListener
     ): Step {
         return StepBuilder("perfectDayAchievementStep", jobRepository)
-            .chunk<PerfectDayCount, AchievementAchieveLog>(10, transactionManager)
+            .chunk<UserPerfectDayCount, AchievementAchieveLog>(10, transactionManager)
             .reader(perfectDayCountReader)
             .processor(perfectDayAchievementProcessor)
             .writer(perfectDayAchievementWriter)
@@ -50,26 +50,19 @@ class PerfectDayAchievementStepConfig {
     @Bean
     @StepScope
     fun perfectDayCountReader(
-        perfectDayLogRepository: PerfectDayLogRepository,
-        @Value("#{jobExecutionContext['perfectDayLogUserIds']}") userIds: List<Long>
-    ): RepositoryItemReader<PerfectDayCount> {
-        return RepositoryItemReaderBuilder<PerfectDayCount>()
-            .repository(perfectDayLogRepository)
-            .methodName("countByUserIds")
-            .arguments(listOf(userIds))
-            .pageSize(10)
-            .sorts(sortedMapOf())
-            .name("perfectDayCountReader")
-            .build()
+        userRepository: UserRepository,
+        @Value("#{jobExecutionContext['userPerfectDayCounts']}") userPerfectDayCounts: List<UserPerfectDayCount>
+    ): IteratorItemReader<UserPerfectDayCount> {
+        return IteratorItemReader(userPerfectDayCounts)
     }
 
     @StepScope
     @Bean
     fun perfectDayAchievementProcessor(
         @Value("#{stepExecutionContext['perfectDayAchievements']}") perfectDayAchievements: List<Achievement>
-    ): FunctionItemProcessor<PerfectDayCount, AchievementAchieveLog> {
+    ): FunctionItemProcessor<UserPerfectDayCount, AchievementAchieveLog> {
         return FunctionItemProcessor {
-            val targetAchievement = perfectDayAchievements.firstOrNull { achievement -> it.count.toInt() == achievement.targetValue }
+            val targetAchievement = perfectDayAchievements.firstOrNull { achievement -> achievement.canAchieve(it.perfectDayCount.toLong()) }
             targetAchievement?.let { target -> AchievementAchieveLog(target, it.userId) }
         }
     }

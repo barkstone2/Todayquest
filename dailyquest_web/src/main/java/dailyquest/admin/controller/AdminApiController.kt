@@ -5,6 +5,7 @@ import dailyquest.achievement.service.AchievementCommandService
 import dailyquest.admin.dto.SystemSettingsRequest
 import dailyquest.admin.dto.SystemSettingsResponse
 import dailyquest.admin.service.AdminService
+import dailyquest.common.BatchApiUtil
 import dailyquest.common.ResponseData
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*
 class AdminApiController (
     private val adminService: AdminService,
     private val achievementCommandService: AchievementCommandService,
+    private val batchApiUtil: BatchApiUtil
 ) {
 
     @GetMapping("/reward")
@@ -49,6 +51,7 @@ class AdminApiController (
     fun saveAchievement(
         @Valid @RequestBody saveRequest: AchievementRequest
     ) {
-        achievementCommandService.saveAchievement(saveRequest)
+        val savedAchievementId = achievementCommandService.saveAchievement(saveRequest)
+        batchApiUtil.checkAndAchieve(savedAchievementId)
     }
 }

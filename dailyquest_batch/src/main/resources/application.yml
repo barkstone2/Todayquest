@@ -17,6 +17,8 @@ spring:
       enabled: false
     jdbc:
       initialize-schema: always
+  profiles:
+    include: value
 
 elastic:
   username: ${ELASTIC_USERNAME}

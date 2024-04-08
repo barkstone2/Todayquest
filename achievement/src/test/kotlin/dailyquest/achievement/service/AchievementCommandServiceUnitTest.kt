@@ -1,9 +1,8 @@
 package dailyquest.achievement.service
 
 import dailyquest.achievement.dto.AchievementAchieveRequest
-import dailyquest.achievement.dto.AchievementRequest
+import dailyquest.achievement.dto.AchievementSaveRequest
 import dailyquest.achievement.entity.Achievement
-import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
@@ -98,7 +97,7 @@ class AchievementCommandServiceUnitTest {
     inner class TestSaveAchievement {
 
         @RelaxedMockK
-        private lateinit var saveRequest: AchievementRequest
+        private lateinit var saveRequest: AchievementSaveRequest
 
         @BeforeEach
         fun init() {

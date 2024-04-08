@@ -1,5 +1,7 @@
 package dailyquest.batch
 
+import dailyquest.properties.BatchContextProperties
+import dailyquest.properties.BatchParameterProperties
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
@@ -46,6 +48,10 @@ class QuestBatchComponentTest @Autowired constructor(
     private val jobRepository: JobRepository,
 ) {
 
+    @MockBean
+    private lateinit var batchParameterProperties: BatchParameterProperties
+    @MockBean
+    private lateinit var batchContextProperties: BatchContextProperties
     @MockBean
     lateinit var questIndexRepository: QuestIndexRepository
     lateinit var jobRepositoryTestUtils: JobRepositoryTestUtils

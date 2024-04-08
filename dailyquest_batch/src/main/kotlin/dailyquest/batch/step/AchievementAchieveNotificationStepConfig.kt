@@ -13,6 +13,7 @@ import org.springframework.batch.core.step.builder.StepBuilder
 import org.springframework.batch.item.ItemProcessor
 import org.springframework.batch.item.ItemReader
 import org.springframework.batch.item.ItemWriter
+import org.springframework.batch.item.data.RepositoryItemWriter
 import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder
 import org.springframework.batch.item.function.FunctionItemProcessor
 import org.springframework.batch.item.support.IteratorItemReader
@@ -49,7 +50,7 @@ class AchievementAchieveNotificationStepConfig {
     @StepScope
     fun achievementAchieveLogReader(
         @Value("#{jobExecutionContext['achievedLogs']}") achievedLogs: List<AchievementAchieveLog>,
-    ): ItemReader<AchievementAchieveLog> {
+    ): IteratorItemReader<AchievementAchieveLog> {
         return IteratorItemReader(achievedLogs)
     }
 
@@ -65,7 +66,7 @@ class AchievementAchieveNotificationStepConfig {
     @StepScope
     fun achievementAchieveNotificationWriter(
         notificationRepository: NotificationRepository
-    ): ItemWriter<Notification> {
+    ): RepositoryItemWriter<Notification> {
         return RepositoryItemWriterBuilder<Notification>()
             .repository(notificationRepository)
             .build()

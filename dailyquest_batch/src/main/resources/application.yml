@@ -28,3 +28,5 @@ elastic:
   truststore:
     location: ${ELASTIC_TRUSTSTORE_LOCATION}
     password: ${ELASTIC_TRUSTSTORE_PASSWORD:}
+server:
+  port: 9080

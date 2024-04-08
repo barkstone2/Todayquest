@@ -9,7 +9,7 @@ class Achievement(
     title: String = "",
     description: String = "",
     type: AchievementType,
-    targetValue: Int,
+    targetValue: Long,
 ): BaseTimeEntity(), Serializable {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +27,7 @@ class Achievement(
     val type: AchievementType = type
 
     @Column(nullable = false)
-    val targetValue: Int = targetValue
+    val targetValue: Long = targetValue
 
     fun canAchieve(currentValue: Long): Boolean {
         return this.type != AchievementType.EMPTY && targetValue <= currentValue

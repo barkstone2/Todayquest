@@ -97,7 +97,7 @@ class PerfectDayJobUnitTest @Autowired constructor(
         every {
             questLogRepository.getAllUserIdsWhoAchievedPerfectDay(any(), any())
         } returns PageImpl(perfectDayUserIds) andThen Page.empty()
-        every { achievementRepository.getAllByTypeOrderByTargetValue(any()) } returns listOf(achievement, achievement, achievement)
+        every { achievementRepository.getAllActivedOfType(any()) } returns listOf(achievement, achievement, achievement)
         every {
             userRepository.findAllByIdIn(any(), any())
         } returns PageImpl(perfectDayUserIds.map { user }) andThen Page.empty()

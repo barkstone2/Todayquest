@@ -3,9 +3,10 @@ package dailyquest.achievement.repository
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.entity.AchievementType
-import dailyquest.achievement.entity.AchievementType.*
+import dailyquest.achievement.entity.AchievementType.QUEST_COMPLETION
+import dailyquest.achievement.entity.AchievementType.QUEST_REGISTRATION
 import io.mockk.junit5.MockKExtension
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -176,6 +177,25 @@ class AchievementRepositoryUnitTest {
             //then
             assertThat(result).isEqualTo(smallestTargetAchievement)
         }
+
+        @DisplayName("비활성화 상태의 업적은 조회되지 않는다")
+        @Test
+        fun `비활성화 상태의 업적은 조회되지 않는다`() {
+            //given
+            val type = QUEST_REGISTRATION
+            val userId = 1L
+            val inactiveAchievement = Achievement("", "", type, 1)
+            inactiveAchievement.inactivateAchievement()
+            val activeAchievement = Achievement("", "", type, 2)
+            achievementRepository.save(inactiveAchievement)
+            achievementRepository.save(activeAchievement)
+
+            //when
+            val result = achievementRepository.findNotAchievedAchievement(type, userId)
+
+            //then
+            assertThat(result).isEqualTo(activeAchievement)
+        }
     }
 
     @DisplayName("getAchievementsWithAchieveInfo 호출 시")
@@ -244,6 +264,66 @@ class AchievementRepositoryUnitTest {
 
             //then
             assertThat(achievements).isNotEmpty.allMatch { !it.isAchieved && it.achievedDate == null }
+        }
+
+        @DisplayName("비활성화 상태의 업적은 조회되지 않는다")
+        @Test
+        fun `비활성화 상태의 업적은 조회되지 않는다`() {
+            //given
+            val achievementType = QUEST_REGISTRATION
+            val userId = 1L
+            val inactiveAchievement = Achievement("", "", achievementType, 1)
+            inactiveAchievement.inactivateAchievement()
+            val activeAchievement = Achievement("", "", achievementType, 2)
+            achievementRepository.save(inactiveAchievement)
+            achievementRepository.save(activeAchievement)
+            achieveLogRepository.save(AchievementAchieveLog(inactiveAchievement, userId))
+
+            //when
+            val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, userId)
+
+            //then
+            assertThat(achievements).noneMatch { it.id == inactiveAchievement.id }
+        }
+    }
+
+
+    @DisplayName("getAllActivatedOfType 호출 시")
+    @Nested
+    inner class TestGetAllActivatedOfType {
+        @DisplayName("조회한 타입의 업적만 조회된다")
+        @Test
+        fun `조회한 타입의 업적만 조회된다`() {
+            //given
+            val achievementType = QUEST_REGISTRATION
+            val sameTypeAchievement = Achievement("", "", achievementType, 1)
+            val otherTypeAchievement = Achievement("", "", QUEST_COMPLETION, 2)
+            achievementRepository.save(sameTypeAchievement)
+            achievementRepository.save(otherTypeAchievement)
+
+            //when
+            val result = achievementRepository.getAllActivedOfType(achievementType)
+
+            //then
+            assertThat(result).doesNotContain(otherTypeAchievement)
+        }
+
+        @DisplayName("활성 상태의 업적만 조회된다")
+        @Test
+        fun `활성 상태의 업적만 조회된다`() {
+            //given
+            val achievementType = QUEST_REGISTRATION
+            val inactiveAchievement = Achievement("", "", achievementType, 1)
+            inactiveAchievement.inactivateAchievement()
+            val activeAchievement = Achievement("", "", QUEST_COMPLETION, 2)
+            achievementRepository.save(inactiveAchievement)
+            achievementRepository.save(activeAchievement)
+
+            //when
+            val result = achievementRepository.getAllActivedOfType(achievementType)
+
+            //then
+            assertThat(result).doesNotContain(inactiveAchievement)
         }
     }
 }

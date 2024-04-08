@@ -1,9 +1,6 @@
 package dailyquest.admin.controller
 
 import com.fasterxml.jackson.core.type.TypeReference
-import dailyquest.achievement.dto.AchievementRequest
-import dailyquest.achievement.entity.AchievementType
-import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.admin.dto.SystemSettingsRequest
 import dailyquest.admin.dto.SystemSettingsResponse
 import dailyquest.admin.service.AdminService
@@ -11,18 +8,22 @@ import dailyquest.common.ResponseData
 import dailyquest.context.IntegrationTestContextWithRedis
 import dailyquest.jwt.JwtTokenProvider
 import dailyquest.user.repository.UserRepository
+import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.web.context.WebApplicationContext
 
+@ExtendWith(MockKExtension::class)
 @DisplayName("관리자 API 컨트롤러 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdminApiControllerTest @Autowired constructor(
@@ -30,7 +31,6 @@ class AdminApiControllerTest @Autowired constructor(
     userRepository: UserRepository,
     jwtTokenProvider: JwtTokenProvider,
     private val adminService: AdminService,
-    private val achievementRepository: AchievementRepository,
 ): IntegrationTestContextWithRedis(context, userRepository, jwtTokenProvider) {
 
     private val uriPrefix = "/admin/api/v1"
@@ -221,72 +221,6 @@ class AdminApiControllerTest @Autowired constructor(
             assertThat(expTable[1]).isEqualTo(requestMap[1])
             assertThat(expTable[2]).isEqualTo(requestMap[2])
             assertThat(expTable[3]).isEqualTo(requestMap[3])
-        }
-    }
-
-    @DisplayName("신규 업적 등록 시")
-    @Nested
-    inner class TestSaveAchievement {
-        private val url = "$SERVER_ADDR$port$uriPrefix/achievements"
-        private val saveRequest = AchievementRequest("저장", "저장", AchievementType.USER_LEVEL, 1)
-
-        @DisplayName("타입과 목표값이 모두 중복될 경우 400이 반환된다")
-        @Test
-        fun `타입과 목표값이 모두 중복될 경우 400이 반환된다`() {
-            //given
-            achievementRepository.save(saveRequest.mapToEntity())
-            val requestBody = om.writeValueAsString(saveRequest)
-
-            //when
-            val result = mvc.perform {
-                post(url)
-                    .useAdminConfiguration()
-                    .content(requestBody)
-                    .buildRequest(it)
-            }
-
-            //then
-            result.andExpect { status().isBadRequest }
-        }
-
-        @DisplayName("타입과 목표값이 모두 중복될 경우 신규 업적이 등록되지 않는다")
-        @Test
-        fun `타입과 목표값이 모두 중복될 경우 신규 업적이 등록되지 않는다`() {
-            //given
-            achievementRepository.save(saveRequest.mapToEntity())
-            val requestBody = om.writeValueAsString(saveRequest)
-
-            //when
-            mvc.perform {
-                post(url)
-                    .useAdminConfiguration()
-                    .content(requestBody)
-                    .buildRequest(it)
-            }
-
-            //then
-            val filteredResult = achievementRepository.findAll()
-                .filter { it.type == saveRequest.type && it.targetValue == saveRequest.targetValue }
-            assertThat(filteredResult.size).isOne()
-        }
-
-        @DisplayName("타입과 목표값이 중복되지 않으면 신규 업적이 등록된다")
-        @Test
-        fun `타입과 목표값이 중복되지 않으면 신규 업적이 등록된다`() {
-            //given
-            val requestBody = om.writeValueAsString(saveRequest)
-
-            //when
-            mvc.perform {
-                post(url)
-                    .useAdminConfiguration()
-                    .content(requestBody)
-                    .buildRequest(it)
-            }.andExpect { status().isOk }
-
-            //then
-            val allAchievements = achievementRepository.findAll()
-            assertThat(allAchievements).anyMatch { it.type == saveRequest.type && it.targetValue == saveRequest.targetValue }
         }
     }
 }

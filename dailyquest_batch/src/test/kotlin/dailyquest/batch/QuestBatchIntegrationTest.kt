@@ -1,6 +1,8 @@
 package dailyquest.batch
 
 import dailyquest.common.CustomElasticsearchContainer
+import dailyquest.properties.BatchContextProperties
+import dailyquest.properties.BatchParameterProperties
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
@@ -24,6 +26,7 @@ import org.springframework.batch.test.JobLauncherTestUtils
 import org.springframework.batch.test.JobRepositoryTestUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.transaction.support.TransactionTemplate
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -46,6 +49,10 @@ class QuestBatchIntegrationTest @Autowired constructor(
     private val entityManager: EntityManager,
     private val transactionTemplate: TransactionTemplate,
 ) {
+    @MockBean
+    private lateinit var batchParameterProperties: BatchParameterProperties
+    @MockBean
+    private lateinit var batchContextProperties: BatchContextProperties
     private lateinit var jobRepositoryTestUtils: JobRepositoryTestUtils
     private lateinit var jobLauncherTestUtils: JobLauncherTestUtils
     private lateinit var testUser: User

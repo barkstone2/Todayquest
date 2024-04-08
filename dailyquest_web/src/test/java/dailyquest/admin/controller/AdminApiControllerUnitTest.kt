@@ -2,7 +2,7 @@ package dailyquest.admin.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
-import dailyquest.achievement.dto.AchievementRequest
+import dailyquest.achievement.dto.AchievementSaveRequest
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementCommandService
 import dailyquest.admin.service.AdminService
@@ -64,7 +64,7 @@ class AdminApiControllerUnitTest {
         fun `업적 등록 후 배치 애플리케이션에 처리 요청을 보낸다`() {
             //given
             val url = "$urlPrefix/achievements"
-            val saveRequest = AchievementRequest("", "", AchievementType.QUEST_REGISTRATION, 1)
+            val saveRequest = AchievementSaveRequest("", "", AchievementType.QUEST_REGISTRATION, 1)
             val achievementId = 1L
             every { achievementCommandService.saveAchievement(any()) } returns achievementId
 

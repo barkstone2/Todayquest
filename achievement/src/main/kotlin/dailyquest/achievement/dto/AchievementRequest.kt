@@ -7,7 +7,7 @@ data class AchievementRequest(
     val title: String,
     val description: String,
     val type: AchievementType,
-    val targetValue: Int,
+    val targetValue: Long,
 ) {
     fun mapToEntity(): Achievement {
         return Achievement(title, description, type, targetValue)

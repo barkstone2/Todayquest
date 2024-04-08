@@ -18,7 +18,7 @@ class AchieveNotificationSaveRequest private constructor(
     val achievementTitle: String,
     @NotificationMetadata
     val achievementType: AchievementType,
-    val targetValue: Int,
+    val targetValue: Long,
 ): NotificationSaveRequest {
 
     override fun createNotificationContent(): String {

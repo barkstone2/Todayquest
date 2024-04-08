@@ -9,7 +9,7 @@ data class AchievementResponse(
     val title: String = "",
     val description: String = "",
     val type: AchievementType,
-    val targetValue: Int,
+    val targetValue: Long,
     val isAchieved: Boolean = false,
     val achievedDate: LocalDateTime? = null,
 ) {

@@ -23,6 +23,7 @@ class AchievementAchieveLog(
     val userId: Long = userId
 
     companion object {
+        @JvmStatic
         fun of(achievement: Achievement, userId: Long): AchievementAchieveLog {
             return AchievementAchieveLog(achievement, userId)
         }

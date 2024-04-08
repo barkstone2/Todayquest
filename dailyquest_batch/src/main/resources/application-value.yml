@@ -7,3 +7,11 @@ internal:
     key_header_name: ${INTERNAL_API_HEADER_NAME:Internal-API-Key}
     url:
       sse_notify: ${INTERNAL_API_URL_SSE_NOTIFY:/ap1/v1/sse/notify}
+
+batch:
+  context:
+    target-achievement-key: "targetAchievement"
+    achieved-logs-key: "achievedLogs"
+    notified-user-ids-key: "notifiedUserIds"
+  param:
+    target-achievement-id-key: "targetAchievementId"

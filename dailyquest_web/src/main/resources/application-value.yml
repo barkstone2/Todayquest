@@ -60,4 +60,4 @@ api:
     key: ${BATCH_API_KEY:local-api-key}
     key-header-name: ${BATCH_API_HEADER_NAME:Batch-API-Key}
     url:
-      check-and-achieve: ${BATCH_API_URL_CHECK_AND_ACHIEVE:/}
+      check-and-achieve: ${BATCH_API_URL_CHECK_AND_ACHIEVE:/api/v1/check-and-achieve}

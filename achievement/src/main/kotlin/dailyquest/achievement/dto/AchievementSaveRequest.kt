@@ -3,11 +3,11 @@ package dailyquest.achievement.dto
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 
-data class AchievementRequest(
-    val title: String,
-    val description: String,
+open class AchievementSaveRequest(
+    open val title: String,
+    open val description: String,
     val type: AchievementType,
-    val targetValue: Long,
+    open val targetValue: Long,
 ) {
     fun mapToEntity(): Achievement {
         return Achievement(title, description, type, targetValue)

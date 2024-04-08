@@ -1,5 +1,7 @@
 #!/bin/bash
 
+redis-cli -n 1 FLUSHDB
+
 redis-cli -n 1 SADD npr pre1
 redis-cli -n 1 SADD npr pre2
 redis-cli -n 1 SADD npr pre3

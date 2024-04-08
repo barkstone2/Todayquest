@@ -6,6 +6,7 @@ import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.entity.AchievementType.*
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
+import dailyquest.batch.listener.step.CheckAndAchieveStepListener
 import dailyquest.user.entity.User
 import dailyquest.user.repository.BatchUserRepository
 import io.mockk.every
@@ -54,6 +55,8 @@ class CheckAndAchieveStepComponentUnitTest @Autowired constructor(
 
     @MockkBean(relaxed = true)
     private lateinit var achievementAchieveLogRepository: AchievementAchieveLogRepository
+    @MockkBean(relaxed = true)
+    private lateinit var checkAndAchieveStepListener: CheckAndAchieveStepListener
 
     @RelaxedMockK
     private lateinit var targetAchievement: Achievement

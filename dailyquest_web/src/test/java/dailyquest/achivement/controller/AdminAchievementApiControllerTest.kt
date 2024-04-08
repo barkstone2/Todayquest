@@ -5,7 +5,9 @@ import dailyquest.achievement.dto.AchievementSaveRequest
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.common.BatchApiUtil
-import dailyquest.context.IntegrationTestContextWithRedis
+import dailyquest.context.IntegrationTestContext
+import dailyquest.context.MockElasticsearchTestContextConfig
+import dailyquest.context.MockRedisTestContextConfig
 import dailyquest.jwt.JwtTokenProvider
 import dailyquest.user.repository.UserRepository
 import io.mockk.junit5.MockKExtension
@@ -16,10 +18,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.web.context.WebApplicationContext
 
+@Import(MockElasticsearchTestContextConfig::class, MockRedisTestContextConfig::class)
 @ExtendWith(MockKExtension::class)
 @DisplayName("관리자 업적 API 컨트롤러 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -28,7 +32,7 @@ class AdminAchievementApiControllerTest @Autowired constructor(
     userRepository: UserRepository,
     jwtTokenProvider: JwtTokenProvider,
     private val achievementRepository: AchievementRepository,
-): IntegrationTestContextWithRedis(context, userRepository, jwtTokenProvider) {
+): IntegrationTestContext(context, userRepository, jwtTokenProvider) {
 
     @MockkBean(relaxed = true)
     private lateinit var batchApiUtil: BatchApiUtil

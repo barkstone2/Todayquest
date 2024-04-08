@@ -6,7 +6,7 @@ internal:
     key: ${INTERNAL_API_KEY:local-api-key}
     key_header_name: ${INTERNAL_API_HEADER_NAME:Internal-API-Key}
     url:
-      sse_notify: ${INTERNAL_API_URL_SSE_NOTIFY:/ap1/v1/sse/notify}
+      sse_notify: ${INTERNAL_API_URL_SSE_NOTIFY:/api/v1/sse/notify}
 
 batch:
   context:

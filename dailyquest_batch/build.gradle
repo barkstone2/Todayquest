@@ -12,6 +12,10 @@ plugins {
 dependencies {
     implementation(project(":achievement"))
     implementation(project(":user"))
+    implementation(project(':dailyquest_domain'))
+    implementation(project(':dailyquest_elastic'))
+    implementation(project(':jpa-common'))
+
     // 개발 환경 런타임
     runtimeOnly('com.mysql:mysql-connector-j')
     // 운영 환경 런타임
@@ -34,6 +38,14 @@ dependencies {
     // 엘라스틱서치 테스트 컨테이너
     testImplementation("org.testcontainers:elasticsearch:${testContainersVersion}")
 
+}
+
+test {
+    dependsOn(":achievement:test")
+    dependsOn(":user:test")
+    dependsOn(':dailyquest_domain:test')
+    dependsOn(':dailyquest_elastic:test')
+    dependsOn(":jpa-common:test")
 }
 
 jar {

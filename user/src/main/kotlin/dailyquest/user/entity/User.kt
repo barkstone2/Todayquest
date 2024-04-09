@@ -16,15 +16,15 @@ class User @JvmOverloads constructor(
     providerType: ProviderType,
     coreTime: LocalTime = LocalTime.of(8, 0, 0),
     coreTimeLastModifiedDate: LocalDateTime? = null,
-    questRegistrationCount: Int = 0,
-    questCompletionCount: Int = 0,
-    currentQuestContinuousRegistrationDays: Int = 0,
-    currentQuestContinuousCompletionDays: Int = 0,
-    maxQuestContinuousRegistrationDays: Int = 0,
-    maxQuestContinuousCompletionDays: Int = 0,
+    questRegistrationCount: Long = 0,
+    questCompletionCount: Long = 0,
+    currentQuestContinuousRegistrationDays: Long = 0,
+    currentQuestContinuousCompletionDays: Long = 0,
+    maxQuestContinuousRegistrationDays: Long = 0,
+    maxQuestContinuousCompletionDays: Long = 0,
     lastQuestRegistrationDate: LocalDate? = null,
     lastQuestCompletionDate: LocalDate? = null,
-    perfectDayCount: Int = 0,
+    perfectDayCount: Long = 0,
     goldEarnAmount: Long = 0,
     goldUseAmount: Long = 0,
 ) : BaseTimeEntity() {
@@ -66,27 +66,27 @@ class User @JvmOverloads constructor(
     var role: RoleType = RoleType.USER
 
     @Column(name = "quest_registration_count", nullable = false)
-    var questRegistrationCount: Int = questRegistrationCount
+    var questRegistrationCount: Long = questRegistrationCount
         protected set
 
     @Column(name = "quest_completion_count", nullable = false)
-    var questCompletionCount: Int = questCompletionCount
+    var questCompletionCount: Long = questCompletionCount
         protected set
 
     @Column(name = "current_quest_continuous_registration_days", nullable = false)
-    var currentQuestContinuousRegistrationDays: Int = currentQuestContinuousRegistrationDays
+    var currentQuestContinuousRegistrationDays: Long = currentQuestContinuousRegistrationDays
         protected set
 
     @Column(name = "current_quest_continuous_completion_days", nullable = false)
-    var currentQuestContinuousCompletionDays: Int = currentQuestContinuousCompletionDays
+    var currentQuestContinuousCompletionDays: Long = currentQuestContinuousCompletionDays
         protected set
 
     @Column(name = "max_quest_continuous_registration_days", nullable = false)
-    var maxQuestContinuousRegistrationDays: Int = maxQuestContinuousRegistrationDays
+    var maxQuestContinuousRegistrationDays: Long = maxQuestContinuousRegistrationDays
         protected set
 
     @Column(name = "max_quest_continuous_completion_days", nullable = false)
-    var maxQuestContinuousCompletionDays: Int = maxQuestContinuousCompletionDays
+    var maxQuestContinuousCompletionDays: Long = maxQuestContinuousCompletionDays
         protected set
 
     @Column(name = "last_quest_registration_date")
@@ -98,7 +98,7 @@ class User @JvmOverloads constructor(
         protected set
 
     @Column(name = "perfect_day_count", nullable = false)
-    var perfectDayCount: Int = perfectDayCount
+    var perfectDayCount: Long = perfectDayCount
         protected set
 
     @Column(name = "gold_earn_amount", nullable = false)

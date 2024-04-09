@@ -5,7 +5,7 @@ import java.io.Serializable
 
 class UserPerfectDayCount(
     val userId: Long,
-    val perfectDayCount: Int
+    val perfectDayCount: Long
 ) : Serializable {
     companion object {
         @JvmStatic

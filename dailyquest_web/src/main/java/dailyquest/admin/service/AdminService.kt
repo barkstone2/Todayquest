@@ -14,7 +14,7 @@ class AdminService(
 ) {
 
     fun getSystemSettings(): SystemSettingsResponse {
-        val ops = redisTemplate.boundHashOps<String, Int>(redisKeyProperties.settings)
+        val ops = redisTemplate.boundHashOps<String, Long>(redisKeyProperties.settings)
 
         return SystemSettingsResponse(
             questClearExp = ops[redisKeyProperties.questClearExp]!!,
@@ -24,7 +24,7 @@ class AdminService(
     }
 
     fun updateSystemSettings(settingsRequest: SystemSettingsRequest) {
-        val ops = redisTemplate.boundHashOps<String, Int>(redisKeyProperties.settings)
+        val ops = redisTemplate.boundHashOps<String, Long>(redisKeyProperties.settings)
 
         ops.put(redisKeyProperties.questClearGold, settingsRequest.questClearGold)
         ops.put(redisKeyProperties.questClearExp, settingsRequest.questClearExp)

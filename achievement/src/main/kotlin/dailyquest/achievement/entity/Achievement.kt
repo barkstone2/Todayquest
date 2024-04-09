@@ -32,8 +32,8 @@ class Achievement(
     @Column(nullable = false, updatable = false)
     val targetValue: Long = targetValue
 
-    @Column(name = "is_active", nullable = false)
-    var isActive: Boolean = true
+    @Column(nullable = false)
+    var inactivated: Boolean = false
 
     fun canAchieve(currentValue: Long): Boolean {
         return this.type != AchievementType.EMPTY && targetValue <= currentValue
@@ -45,11 +45,11 @@ class Achievement(
     }
 
     fun activateAchievement() {
-        this.isActive = true
+        this.inactivated = false
     }
 
     fun inactivateAchievement() {
-        this.isActive = false
+        this.inactivated = true
     }
 
     companion object {

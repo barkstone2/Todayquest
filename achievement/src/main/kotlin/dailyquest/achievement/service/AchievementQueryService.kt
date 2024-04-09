@@ -21,7 +21,7 @@ class AchievementQueryService(
     }
 
     fun getAllAchievementsOfType(type: AchievementType): List<AchievementResponse> {
-        val achievements = achievementRepository.getAllActivedOfType(type)
+        val achievements = achievementRepository.getAllActivatedOfType(type)
         val sortedAchievements = achievements.sortedBy { it.targetValue }
         return sortedAchievements.map { AchievementResponse.from(it) }
     }

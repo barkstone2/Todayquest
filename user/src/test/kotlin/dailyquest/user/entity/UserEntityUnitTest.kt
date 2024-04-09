@@ -212,7 +212,7 @@ class UserEntityUnitTest {
         fun `퀘스트 등록일이 마지막 등록일 하루 전이면 연속 등록일을 증가시킨다`() {
             //given
             val registrationDate = LocalDate.of(2000, 12, 12)
-            val beforeContinuousRegistrationDays = 0
+            val beforeContinuousRegistrationDays = 0L
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
                 currentQuestContinuousRegistrationDays = beforeContinuousRegistrationDays,
@@ -232,7 +232,7 @@ class UserEntityUnitTest {
         fun `퀘스트 등록일이 마지막 등록일과 같으면 연속 등록일을 증가시키지 않는다`() {
             //given
             val registrationDate = LocalDate.of(2000, 12, 12)
-            val beforeContinuousRegistrationDays = 0
+            val beforeContinuousRegistrationDays = 0L
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
                 currentQuestContinuousRegistrationDays = beforeContinuousRegistrationDays,
@@ -251,7 +251,7 @@ class UserEntityUnitTest {
         @Test
         fun `마지막 등록일이 null이면 연속 등록일을 증가시킨다`() {
             //given
-            val beforeContinuousRegistrationDays = 0
+            val beforeContinuousRegistrationDays = 0L
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
                 currentQuestContinuousRegistrationDays = beforeContinuousRegistrationDays,
@@ -271,8 +271,8 @@ class UserEntityUnitTest {
         fun `연속 등록일 증가 시 최대 연속 등록일이 현재값보다 작으면 최대값을 현재값으로 갱신한다`() {
             //given
             val registrationDate = LocalDate.of(2000, 12, 12)
-            val beforeMaxQuestContinuousRegistrationDays = 0
-            val beforeContinuousRegistrationDays = 1
+            val beforeMaxQuestContinuousRegistrationDays = 0L
+            val beforeContinuousRegistrationDays = 1L
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
                 currentQuestContinuousRegistrationDays = beforeContinuousRegistrationDays,
@@ -293,8 +293,8 @@ class UserEntityUnitTest {
         fun `연속 등록일 증가 시 최대 연속 등록일이 현재값보다 크면 최대값을 현재값으로 갱신하지 않는다`() {
             //given
             val registrationDate = LocalDate.of(2000, 12, 12)
-            val beforeMaxQuestContinuousRegistrationDays = 10
-            val beforeContinuousRegistrationDays = 1
+            val beforeMaxQuestContinuousRegistrationDays = 10L
+            val beforeContinuousRegistrationDays = 1L
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
                 currentQuestContinuousRegistrationDays = beforeContinuousRegistrationDays,
@@ -373,7 +373,7 @@ class UserEntityUnitTest {
         fun `퀘스트 완료일이 마지막 완료일 하루 전이면 연속 완료일을 증가시킨다`() {
             //given
             val completionDate = LocalDate.of(2000, 12, 12)
-            val beforeContinuousCompletionDays = 0
+            val beforeContinuousCompletionDays = 0L
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
                 currentQuestContinuousCompletionDays = beforeContinuousCompletionDays,
@@ -393,7 +393,7 @@ class UserEntityUnitTest {
         fun `퀘스트 완료일이 마지막 완료일과 같으면 연속 완료일을 증가시키지 않는다`() {
             //given
             val completionDate = LocalDate.of(2000, 12, 12)
-            val beforeContinuousCompletionDays = 0
+            val beforeContinuousCompletionDays = 0L
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
                 currentQuestContinuousCompletionDays = beforeContinuousCompletionDays,
@@ -412,7 +412,7 @@ class UserEntityUnitTest {
         @Test
         fun `마지막 완료일이 null이면 연속 완료일을 증가시킨다`() {
             //given
-            val beforeContinuousCompletionDays = 0
+            val beforeContinuousCompletionDays = 0L
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
                 currentQuestContinuousCompletionDays = beforeContinuousCompletionDays,
@@ -432,8 +432,8 @@ class UserEntityUnitTest {
         fun `연속 완료일 증가 시 최대 연속 완료일이 현재값보다 작으면 최대값을 현재값으로 갱신한다`() {
             //given
             val completionDate = LocalDate.of(2000, 12, 12)
-            val beforeMaxQuestContinuousCompletionDays = 0
-            val beforeContinuousCompletionDays = 1
+            val beforeMaxQuestContinuousCompletionDays = 0L
+            val beforeContinuousCompletionDays = 1L
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
                 currentQuestContinuousCompletionDays = beforeContinuousCompletionDays,
@@ -454,8 +454,8 @@ class UserEntityUnitTest {
         fun `연속 완료일 증가 시 최대 연속 완료일이 현재값보다 크면 최대값을 현재값으로 갱신하지 않는다`() {
             //given
             val completionDate = LocalDate.of(2000, 12, 12)
-            val beforeMaxQuestContinuousCompletionDays = 10
-            val beforeContinuousCompletionDays = 1
+            val beforeMaxQuestContinuousCompletionDays = 10L
+            val beforeContinuousCompletionDays = 1L
             val achievementCurrentValue = User(
                 "id", "nickname", ProviderType.GOOGLE,
                 currentQuestContinuousCompletionDays = beforeContinuousCompletionDays,

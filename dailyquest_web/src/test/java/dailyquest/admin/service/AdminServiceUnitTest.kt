@@ -55,8 +55,8 @@ class AdminServiceUnitTest {
             val settingsKey = "settingsKey"
             doReturn(settingsKey).`when`(redisKeyProperties).settings
 
-            val mockOps = mock<BoundHashOperations<String, String, Int>>()
-            doReturn(mockOps).`when`(redisTemplate).boundHashOps<String, Int>(settingsKey)
+            val mockOps = mock<BoundHashOperations<String, String, Long>>()
+            doReturn(mockOps).`when`(redisTemplate).boundHashOps<String, Long>(settingsKey)
 
             val clearExpKey = "1"
             val clearGoldKey = "2"
@@ -66,9 +66,9 @@ class AdminServiceUnitTest {
             doReturn(clearGoldKey).`when`(redisKeyProperties).questClearGold
             doReturn(maxRewardCountKey).`when`(redisKeyProperties).maxRewardCount
 
-            val clearExp = 1
-            val clearGold = 2
-            val maxRewardCount = 3
+            val clearExp = 1L
+            val clearGold = 2L
+            val maxRewardCount = 3L
 
             doReturn(clearExp).`when`(mockOps)[clearExpKey]
             doReturn(clearGold).`when`(mockOps)[clearGoldKey]
@@ -93,8 +93,8 @@ class AdminServiceUnitTest {
         @Test
         fun `각 설정값 업데이트 로직이 호출된다`() {
             //given
-            val mockOps = mock<BoundHashOperations<String, String, Int>>()
-            doReturn(mockOps).`when`(redisTemplate).boundHashOps<String, Int>(anyOrNull())
+            val mockOps = mock<BoundHashOperations<String, String, Long>>()
+            doReturn(mockOps).`when`(redisTemplate).boundHashOps<String, Long>(anyOrNull())
 
             val mockRequest = mock<SystemSettingsRequest>()
 
@@ -106,9 +106,9 @@ class AdminServiceUnitTest {
             doReturn(clearGoldKey).`when`(redisKeyProperties).questClearGold
             doReturn(maxRewardCountKey).`when`(redisKeyProperties).maxRewardCount
 
-            val clearExp = 1
-            val clearGold = 2
-            val maxRewardCount = 3
+            val clearExp = 1L
+            val clearGold = 2L
+            val maxRewardCount = 3L
 
             doReturn(clearExp).`when`(mockRequest).questClearExp
             doReturn(clearGold).`when`(mockRequest).questClearGold

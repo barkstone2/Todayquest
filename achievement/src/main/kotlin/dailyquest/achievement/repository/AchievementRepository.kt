@@ -12,7 +12,7 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
             "from Achievement a " +
             "left join AchievementAchieveLog al " +
             "on al.userId = :userId and al.achievement.id = a.id " +
-            "where a.type = :type and al.achievement.id is null and a.isActive = true " +
+            "where a.type = :type and al.achievement.id is null and a.inactivated = false " +
             "order by a.targetValue " +
             "limit 1")
     fun findNotAchievedAchievement(@Param("type") type: AchievementType, @Param("userId") userId: Long): Achievement?
@@ -21,11 +21,11 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
             "from Achievement a " +
             "left join AchievementAchieveLog al " +
             "on al.userId = :userId and al.achievement.id = a.id " +
-            "where a.type = :type and a.isActive = true"
+            "where a.type = :type and a.inactivated = false"
     )
     fun getAchievementsWithAchieveInfo(@Param("type") type: AchievementType, @Param("userId") userId: Long): List<AchievementResponse>
     fun existsByTypeAndTargetValue(type: AchievementType, targetValue: Long): Boolean
 
-    @Query("select a from Achievement a where a.type = :type and a.isActive = true order by a.targetValue")
-    fun getAllActivedOfType(@Param("type") type: AchievementType): List<Achievement>
+    @Query("select a from Achievement a where a.type = :type and a.inactivated = false order by a.targetValue")
+    fun getAllActivatedOfType(@Param("type") type: AchievementType): List<Achievement>
 }

@@ -2,18 +2,17 @@ package dailyquest.achievement.repository
 
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
-import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.entity.AchievementType.QUEST_COMPLETION
 import dailyquest.achievement.entity.AchievementType.QUEST_REGISTRATION
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.data.domain.Pageable
 
 @ExtendWith(MockKExtension::class)
 @DisplayName("업적 리포지토리 유닛 테스트")
@@ -198,96 +197,6 @@ class AchievementRepositoryUnitTest {
         }
     }
 
-    @DisplayName("getAchievementsWithAchieveInfo 호출 시")
-    @Nested
-    inner class TestGetAchievementsWithAchieveInfo {
-        private lateinit var achievementMapByType: MutableMap<AchievementType, Achievement>
-
-        @BeforeEach
-        fun init() {
-            achievementMapByType = mutableMapOf()
-            AchievementType.values().forEach {
-                val achievement = Achievement(it.name, "${it.name} type achievement", it, 1)
-                achievementRepository.save(achievement)
-                achievementMapByType[it] = achievement
-            }
-        }
-
-        @DisplayName("요청 타입에 해당하는 업적만 조회된다")
-        @Test
-        fun `요청 타입에 해당하는 업적만 조회된다`() {
-            //given
-            val achievementType = QUEST_REGISTRATION
-
-            //when
-            val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, 1L)
-
-            //then
-            assertThat(achievements).isNotEmpty.allMatch { it.type == achievementType }
-        }
-
-        @DisplayName("완료한 업적은 완료 상태로 표시되고 달성 날짜가 포함된다")
-        @Test
-        fun `완료한 업적은 완료 상태로 표시되고 달성 날짜가 포함된다`() {
-            //given
-            val achievementType = QUEST_REGISTRATION
-            achieveLogRepository.save(AchievementAchieveLog(achievementMapByType[achievementType]!!, 1L))
-
-            //when
-            val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, 1L)
-
-            //then
-            assertThat(achievements).isNotEmpty.allMatch { it.isAchieved && it.achievedDate != null }
-        }
-
-        @DisplayName("달성하지 않은 업적은 달성 여부가 false이고 달성 날짜가 null이다")
-        @Test
-        fun `달성하지 않은 업적은 달성 여부가 false이고 달성 날짜가 null이다`() {
-            //given
-            //when
-            val achievements = achievementRepository.getAchievementsWithAchieveInfo(QUEST_REGISTRATION, 1L)
-
-            //then
-            assertThat(achievements).isNotEmpty.allMatch { !it.isAchieved && it.achievedDate == null }
-        }
-
-        @DisplayName("다른 유저가 달성한 업적이라도 현재 유저가 달성하지 않았다면 미달성으로 표시된다")
-        @Test
-        fun `다른 유저가 달성한 업적이라도 현재 유저가 달성하지 않았다면 미달성으로 표시된다`() {
-            //given
-            val achievementType = QUEST_REGISTRATION
-            val userId = 1L
-            achieveLogRepository.save(AchievementAchieveLog(achievementMapByType[achievementType]!!, userId))
-
-            //when
-            val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, userId +1)
-
-            //then
-            assertThat(achievements).isNotEmpty.allMatch { !it.isAchieved && it.achievedDate == null }
-        }
-
-        @DisplayName("비활성화 상태의 업적은 조회되지 않는다")
-        @Test
-        fun `비활성화 상태의 업적은 조회되지 않는다`() {
-            //given
-            val achievementType = QUEST_REGISTRATION
-            val userId = 1L
-            val inactiveAchievement = Achievement("", "", achievementType, 1)
-            inactiveAchievement.inactivateAchievement()
-            val activeAchievement = Achievement("", "", achievementType, 2)
-            achievementRepository.save(inactiveAchievement)
-            achievementRepository.save(activeAchievement)
-            achieveLogRepository.save(AchievementAchieveLog(inactiveAchievement, userId))
-
-            //when
-            val achievements = achievementRepository.getAchievementsWithAchieveInfo(achievementType, userId)
-
-            //then
-            assertThat(achievements).noneMatch { it.id == inactiveAchievement.id }
-        }
-    }
-
-
     @DisplayName("getAllActivatedOfType 호출 시")
     @Nested
     inner class TestGetAllActivatedOfType {
@@ -324,6 +233,92 @@ class AchievementRepositoryUnitTest {
 
             //then
             assertThat(result).doesNotContain(inactiveAchievement)
+        }
+    }
+
+    @DisplayName("getAchievedAchievements 호출 시")
+    @Nested
+    inner class TestGetAchievedAchievements {
+        @DisplayName("해당 유저가 달성한 업적만 조회된다")
+        @Test
+        fun `해당 유저가 달성한 업적만 조회된다`() {
+            //given
+            val userId = 1L
+            val achievementType = QUEST_REGISTRATION
+            val achievedAchievement = Achievement("", "", achievementType, 1)
+            achievementRepository.save(achievedAchievement)
+            achieveLogRepository.save(AchievementAchieveLog(achievedAchievement, userId))
+            val notAchievedAchievement = Achievement("", "", QUEST_COMPLETION, 2)
+            achievementRepository.save(notAchievedAchievement)
+
+            //when
+            val result = achievementRepository.getAchievedAchievements(userId, Pageable.unpaged()).content
+
+            //then
+            assertThat(result).allMatch { it.id == achievedAchievement.id }
+        }
+
+        @DisplayName("활성 상태의 업적만 조회된다")
+        @Test
+        fun `활성 상태의 업적만 조회된다`() {
+            //given
+            val userId = 1L
+            val achievementType = QUEST_REGISTRATION
+            val activatedAchievement = Achievement("", "", achievementType, 1)
+            achievementRepository.save(activatedAchievement)
+            achieveLogRepository.save(AchievementAchieveLog(activatedAchievement, userId))
+            val inactivatedAchievement = Achievement("", "", QUEST_COMPLETION, 2)
+            inactivatedAchievement.inactivateAchievement()
+            achievementRepository.save(inactivatedAchievement)
+            achieveLogRepository.save(AchievementAchieveLog(inactivatedAchievement, userId))
+
+            //when
+            val result = achievementRepository.getAchievedAchievements(userId, Pageable.unpaged()).content
+
+            //then
+            assertThat(result).allMatch { it.id == activatedAchievement.id }
+        }
+    }
+
+    @DisplayName("getNotAchievedAchievements 호출 시")
+    @Nested
+    inner class TestGetNotAchievedAchievements {
+        @DisplayName("해당 유저가 달성하지 않은 업적만 조회된다")
+        @Test
+        fun `해당 유저가 달성하지 않은 업적만 조회된다`() {
+            //given
+            val userId = 1L
+            val achievementType = QUEST_REGISTRATION
+            val achievedAchievement = Achievement("", "", achievementType, 1)
+            achievementRepository.save(achievedAchievement)
+            achieveLogRepository.save(AchievementAchieveLog(achievedAchievement, userId))
+            val notAchievedAchievement = Achievement("", "", QUEST_COMPLETION, 2)
+            achievementRepository.save(notAchievedAchievement)
+
+            //when
+            val result = achievementRepository.getNotAchievedAchievements(userId, Pageable.unpaged()).content
+
+            //then
+            assertThat(result).allMatch { it.id == notAchievedAchievement.id }
+        }
+
+        @DisplayName("활성 상태의 업적만 조회된다")
+        @Test
+        fun `활성 상태의 업적만 조회된다`() {
+            //given
+            val userId = 1L
+            val achievementType = QUEST_REGISTRATION
+            val activatedAchievement = Achievement("", "", achievementType, 1)
+            achievementRepository.save(activatedAchievement)
+            val inactivatedAchievement = Achievement("", "", QUEST_COMPLETION, 2)
+            inactivatedAchievement.inactivateAchievement()
+            achievementRepository.save(inactivatedAchievement)
+
+            //when
+            val result = achievementRepository.getNotAchievedAchievements(userId, Pageable.unpaged()).content
+
+            //then
+            assertThat(result).allMatch { it.id == activatedAchievement.id }
         }
     }
 }

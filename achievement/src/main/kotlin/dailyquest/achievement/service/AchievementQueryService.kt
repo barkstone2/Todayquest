@@ -1,28 +1,26 @@
 package dailyquest.achievement.service
 
 import dailyquest.achievement.dto.AchievementResponse
-import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
+import dailyquest.properties.AchievementPageSizeProperties
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Transactional(readOnly = true)
 @Service
 class AchievementQueryService(
-    private val achievementRepository: AchievementRepository
+    private val achievementRepository: AchievementRepository,
+    private val achievementPageSizeProperties: AchievementPageSizeProperties
 ) {
-    fun getAchievementsWithAchieveInfo(type: AchievementType, userId: Long): List<AchievementResponse> {
-        val achievedDateNullLastAsc = compareBy<AchievementResponse, LocalDateTime?>(nullsLast()) { it.achievedDate }
-        val targetValueAsc = compareBy<AchievementResponse> { it.targetValue }
-        val achievedDateNullLastAscThenTargetValueAsc = achievedDateNullLastAsc.then(targetValueAsc)
-        return achievementRepository.getAchievementsWithAchieveInfo(type, userId)
-            .sortedWith(achievedDateNullLastAscThenTargetValueAsc)
+    fun getAchievedAchievements(userId: Long, page: Int): Page<AchievementResponse> {
+        val pageRequest = PageRequest.of(page, achievementPageSizeProperties.size)
+        return achievementRepository.getAchievedAchievements(userId, pageRequest)
     }
 
-    fun getAllAchievementsOfType(type: AchievementType): List<AchievementResponse> {
-        val achievements = achievementRepository.getAllActivatedOfType(type)
-        val sortedAchievements = achievements.sortedBy { it.targetValue }
-        return sortedAchievements.map { AchievementResponse.from(it) }
+    fun getNotAchievedAchievements(userId: Long, page: Int): Page<AchievementResponse> {
+        val pageRequest = PageRequest.of(page, achievementPageSizeProperties.size)
+        return achievementRepository.getNotAchievedAchievements(userId, pageRequest)
     }
 }

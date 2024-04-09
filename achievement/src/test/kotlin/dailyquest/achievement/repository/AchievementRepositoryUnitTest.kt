@@ -302,7 +302,7 @@ class AchievementRepositoryUnitTest {
             achievementRepository.save(otherTypeAchievement)
 
             //when
-            val result = achievementRepository.getAllActivedOfType(achievementType)
+            val result = achievementRepository.getAllActivatedOfType(achievementType)
 
             //then
             assertThat(result).doesNotContain(otherTypeAchievement)
@@ -320,7 +320,7 @@ class AchievementRepositoryUnitTest {
             achievementRepository.save(activeAchievement)
 
             //when
-            val result = achievementRepository.getAllActivedOfType(achievementType)
+            val result = achievementRepository.getAllActivatedOfType(achievementType)
 
             //then
             assertThat(result).doesNotContain(inactiveAchievement)

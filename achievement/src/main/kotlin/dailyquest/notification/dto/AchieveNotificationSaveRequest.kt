@@ -22,7 +22,7 @@ class AchieveNotificationSaveRequest private constructor(
 ): NotificationSaveRequest {
 
     override fun createNotificationContent(): String {
-        return "${achievementType.representationFormat.format(targetValue)}(으)로 $achievementTitle 업적을 달성했습니다."
+        return "${achievementType.representationFormat.format(targetValue)}(으)로 [$achievementTitle] 업적을 달성했습니다."
     }
 
     override fun createNotificationMetadata(): Map<String, String> {

@@ -13,8 +13,10 @@ plugins {
 // application dependency
 dependencies {
 	implementation(project(":achievement"))
-	implementation(project(":notification"))
 	implementation(project(":user"))
+	implementation(project(':dailyquest_domain'))
+	implementation(project(':jpa-common'))
+	implementation(project(':dailyquest_elastic'))
 
 	// 개발 환경 런타임
 	runtimeOnly('com.mysql:mysql-connector-j')
@@ -72,8 +74,10 @@ dependencies {
 
 test {
 	dependsOn(":achievement:test")
-	dependsOn(":notification:test")
 	dependsOn(":user:test")
+	dependsOn(':dailyquest_domain:test')
+	dependsOn(":jpa-common:test")
+	dependsOn(':dailyquest_elastic:test')
 }
 
 // plain jar disabled

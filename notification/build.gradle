@@ -26,6 +26,10 @@ allOpen {
     annotation("jakarta.persistence.MappedSuperclass")
 }
 
+test {
+    dependsOn(":jpa-common:test")
+}
+
 bootJar {
     enabled = false
 }

@@ -16,8 +16,8 @@ class QuestCompletionRequest @JvmOverloads constructor(
 
     private fun getMultiplierDependOnType(): Long {
         return when (type) {
-            QuestType.MAIN -> 2L
-            QuestType.SUB -> 1L
+            QuestType.MAIN -> 2
+            QuestType.SUB -> 1
         }
     }
 

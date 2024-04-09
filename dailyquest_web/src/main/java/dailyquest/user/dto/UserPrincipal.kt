@@ -23,17 +23,17 @@ class UserPrincipal(
     val coreTime: Int = 8,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     val coreTimeLastModifiedDate: LocalDateTime? = null,
-    val questRegistrationCount: Int = 0,
-    val questCompletionCount: Int = 0,
-    val currentQuestContinuousRegistrationDays: Int = 0,
-    val currentQuestContinuousCompletionDays: Int = 0,
-    val maxQuestContinuousRegistrationDays: Int = 0,
-    val maxQuestContinuousCompletionDays: Int = 0,
+    val questRegistrationCount: Long = 0,
+    val questCompletionCount: Long = 0,
+    val currentQuestContinuousRegistrationDays: Long = 0,
+    val currentQuestContinuousCompletionDays: Long = 0,
+    val maxQuestContinuousRegistrationDays: Long = 0,
+    val maxQuestContinuousCompletionDays: Long = 0,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val lastQuestRegistrationDate: LocalDate? = null,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val lastQuestCompletionDate: LocalDate? = null,
-    val perfectDayCount: Int = 0,
+    val perfectDayCount: Long = 0,
     val goldEarnAmount: Long = 0,
     val goldUseAmount: Long = 0,
 ) : UserDetails {

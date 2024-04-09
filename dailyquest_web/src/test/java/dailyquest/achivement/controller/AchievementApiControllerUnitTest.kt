@@ -2,32 +2,19 @@ package dailyquest.achivement.controller
 
 import com.ninjasquad.springmockk.MockkBean
 import dailyquest.achievement.controller.AchievementApiController
-import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementQueryService
-import dailyquest.annotation.WithCustomMockUser
-import dailyquest.config.SecurityConfig
-import dailyquest.filter.InternalApiKeyValidationFilter
-import dailyquest.jwt.JwtAuthorizationFilter
+import dailyquest.annotation.WebMvcUnitTest
+import io.mockk.every
 import io.mockk.verify
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.FilterType
+import org.springframework.data.domain.Page
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
 @DisplayName("업적 API 컨트롤러 유닛 테스트")
-@WithCustomMockUser
-@WebMvcTest(controllers = [AchievementApiController::class],
-    excludeFilters = [
-        ComponentScan.Filter(
-            type = FilterType.ASSIGNABLE_TYPE,
-            classes = [SecurityConfig::class, JwtAuthorizationFilter::class, InternalApiKeyValidationFilter::class]
-        )
-    ]
-)
+@WebMvcUnitTest([AchievementApiController::class])
 class AchievementApiControllerUnitTest {
     companion object {
         const val URI_PREFIX = "/api/v1/achievements"
@@ -39,20 +26,40 @@ class AchievementApiControllerUnitTest {
     @MockkBean(relaxed = true)
     lateinit var achievementQueryService: AchievementQueryService
 
-    @DisplayName("type 쿼리 파라미터가 제대로 처리된다")
+    @DisplayName("달성한 업적 목록 조회 시 page 번호가 제대로 처리된다")
     @Test
-    fun `type 쿼리 파라미터가 제대로 처리된다`() {
+    fun `달성한 업적 목록 조회 시 page 번호가 제대로 처리된다`() {
         //given
-        val type = AchievementType.QUEST_REGISTRATION
+        val url = "$URI_PREFIX/achieved"
+        val page = 1
+        every { achievementQueryService.getAchievedAchievements(any(), any()) } returns Page.empty()
 
         //when
         mvc.perform(
-            get(URI_PREFIX)
-                .queryParam("achievementType", type.name)
+            get(url)
+                .queryParam("page", page.toString())
         )
 
         //then
-        verify { achievementQueryService.getAchievementsWithAchieveInfo(eq(type), any()) }
+        verify { achievementQueryService.getAchievedAchievements(any(), eq(page)) }
+    }
+
+    @DisplayName("달성하지 못한 업적 목록 조회 시 page 번호가 제대로 처리된다")
+    @Test
+    fun `달성하지 못한 업적 목록 조회 시 page 번호가 제대로 처리된다`() {
+        //given
+        val url = "$URI_PREFIX/not-achieved"
+        val page = 1
+        every { achievementQueryService.getNotAchievedAchievements(any(), any()) } returns Page.empty()
+
+        //when
+        mvc.perform(
+            get(url)
+                .queryParam("page", page.toString())
+        )
+
+        //then
+        verify { achievementQueryService.getNotAchievedAchievements(any(), eq(page)) }
     }
 
 }

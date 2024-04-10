@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service
 class NotificationService @Autowired constructor(
     private val notificationCommandService: NotificationCommandService,
     private val notificationQueryService: NotificationQueryService,
-//    private val sseService: SseService
 ) {
     fun getNotConfirmedNotificationsOfUser(userId: Long, condition: NotificationCondition): Page<NotificationResponse> {
         return notificationQueryService.getNotConfirmedNotificationsOfUser(userId, condition)
@@ -25,30 +24,25 @@ class NotificationService @Autowired constructor(
     @Async
     fun saveNotification(saveRequest: NotificationSaveRequest, userId: Long) {
         notificationCommandService.saveNotification(saveRequest, userId)
-//        sseService.sendNotificationEvent(userId)
     }
 
     @Async
     fun confirmNotification(notificationId: Long, userId: Long) {
         notificationCommandService.confirmNotification(notificationId, userId)
-//        sseService.sendNotificationEvent(userId)
     }
 
     @Async
     fun confirmAllNotifications(userId: Long) {
         notificationCommandService.confirmAllNotifications(userId)
-//        sseService.sendNotificationEvent(userId)
     }
 
     @Async
     fun deleteNotification(notificationId: Long, userId: Long) {
         notificationCommandService.deleteNotification(notificationId, userId)
-//        sseService.sendNotificationEvent(userId)
     }
 
     @Async
     fun deleteAllNotifications(userId: Long) {
         notificationCommandService.deleteAllNotifications(userId)
-//        sseService.sendNotificationEvent(userId)
     }
 }

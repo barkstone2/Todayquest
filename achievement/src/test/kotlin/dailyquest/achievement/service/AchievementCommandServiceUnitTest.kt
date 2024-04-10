@@ -73,21 +73,18 @@ class AchievementCommandServiceUnitTest {
             verify { achieveLogCommandService wasNot Called }
         }
 
-        @DisplayName("달성하지 않은 업적 조회 결과가 null이면 EMPTY 타입의 업적이 반환된다")
+        @DisplayName("달성하지 않은 업적 조회 결과가 없으면 업적 달성 요청이 발생하지 않는다")
         @Test
-        fun `달성하지 않은 업적 조회 결과가 null이면 EMPTY 타입의 업적이 반환된다`() {
+        fun `달성하지 않은 업적 조회 결과가 없으면 업적 달성 요청이 발생하지 않는다`() {
             //given
             every { achievementRepository.findNotAchievedAchievement(any(), any()) } returns null
-            mockkObject(Achievement)
-            val emptyAchievement = mockk<Achievement>(relaxed = true)
-            every { Achievement.empty() } returns emptyAchievement
 
             //when
             achievementCommandService.checkAndAchieveAchievement(achieveRequest)
 
             //then
             verify {
-                emptyAchievement.canAchieve(any())
+                achieveLogCommandService wasNot Called
             }
         }
     }

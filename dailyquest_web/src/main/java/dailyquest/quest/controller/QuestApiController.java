@@ -90,7 +90,7 @@ public class QuestApiController {
         );
         questIndexService.saveDocument(savedQuest, principal.getId());
         achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_REGISTRATION, principal.getId(), principal.getQuestRegistrationCount()));
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION_DAYS, principal.getId(), principal.getCurrentQuestContinuousRegistrationDays()));
+        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION, principal.getId(), principal.getCurrentQuestContinuousRegistrationDays()));
         return ResponseEntity.ok(new ResponseData<>(savedQuest));
     }
 
@@ -127,7 +127,6 @@ public class QuestApiController {
         QuestResponse completedQuest = questService.completeQuest(principal.getId(), questCompletionRequest);
         questIndexService.updateQuestStateOfDocument(completedQuest, principal.getId());
         achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_COMPLETION, principal.getId(), principal.getQuestCompletionCount()));
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(USER_LEVEL, principal.getId(), principal.getLevel()));
         achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(GOLD_EARN, principal.getId(), principal.getGoldEarnAmount()));
         return ResponseEntity.ok(new ResponseData<>());
     }

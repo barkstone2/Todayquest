@@ -36,7 +36,7 @@ class Achievement(
     var inactivated: Boolean = false
 
     fun canAchieve(currentValue: Long): Boolean {
-        return this.type != AchievementType.EMPTY && targetValue <= currentValue
+        return targetValue <= currentValue
     }
 
     fun updateAchievement(achievementUpdateRequest: AchievementUpdateRequest) {
@@ -50,12 +50,5 @@ class Achievement(
 
     fun inactivateAchievement() {
         this.inactivated = true
-    }
-
-    companion object {
-        @JvmStatic
-        fun empty(): Achievement {
-            return Achievement(type = AchievementType.EMPTY, targetValue = 0)
-        }
     }
 }

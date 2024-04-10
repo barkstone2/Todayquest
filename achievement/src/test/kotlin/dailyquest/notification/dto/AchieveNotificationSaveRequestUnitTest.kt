@@ -23,7 +23,7 @@ class AchieveNotificationSaveRequestUnitTest {
     fun `메타데이터 요청 시 id와 타입 정보가 반환된다`() {
         //given
         val achievementId = 1L
-        val achievementType = AchievementType.EMPTY
+        val achievementType = AchievementType.QUEST_REGISTRATION
         every { achievement.id } returns achievementId
         every { achievement.type } returns achievementType
         val saveRequest = AchieveNotificationSaveRequest.of(userId, achievement)

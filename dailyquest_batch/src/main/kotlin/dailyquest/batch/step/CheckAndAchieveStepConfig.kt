@@ -62,11 +62,10 @@ class CheckAndAchieveStepConfig {
         builder = when (targetAchievement.type) {
             QUEST_REGISTRATION -> builder.methodName("findAllByQuestRegistrationCountGreaterThanEqual")
             QUEST_COMPLETION -> builder.methodName("findAllByQuestCompletionCountGreaterThanEqual")
-            QUEST_CONTINUOUS_REGISTRATION_DAYS -> builder.methodName("findAllByMaxQuestContinuousRegistrationDaysGreaterThanEqual")
+            QUEST_CONTINUOUS_REGISTRATION -> builder.methodName("findAllByMaxQuestContinuousRegistrationDaysGreaterThanEqual")
             QUEST_CONTINUOUS_COMPLETION -> builder.methodName("findAllByMaxQuestContinuousCompletionDaysGreaterThanEqual")
             GOLD_EARN -> builder.methodName("findAllByGoldEarnAmountGreaterThanEqual")
             PERFECT_DAY -> builder.methodName("findAllByPerfectDayCountGreaterThanEqual")
-            USER_LEVEL, EMPTY -> throw IllegalArgumentException("지원하지 않는 타입의 업적입니다.")
         }
         return builder.arguments(targetAchievement.targetValue).build()
     }

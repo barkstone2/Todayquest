@@ -42,7 +42,7 @@ class AdminAchievementApiControllerTest @Autowired constructor(
     @Nested
     inner class TestSaveAchievement {
         private val url = "$SERVER_ADDR$port$uriPrefix"
-        private val saveRequest = AchievementSaveRequest("저장", "저장", AchievementType.USER_LEVEL, 1)
+        private val saveRequest = AchievementSaveRequest("저장", "저장", AchievementType.QUEST_REGISTRATION, 1)
 
         @DisplayName("타입과 목표값이 모두 중복될 경우 400이 반환된다")
         @Test

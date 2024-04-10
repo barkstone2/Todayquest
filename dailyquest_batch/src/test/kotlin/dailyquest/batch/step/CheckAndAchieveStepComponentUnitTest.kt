@@ -15,7 +15,6 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.verify
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -23,7 +22,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.SimpleJob
 import org.springframework.batch.item.ExecutionContext
@@ -103,11 +101,10 @@ class CheckAndAchieveStepComponentUnitTest @Autowired constructor(
             when (achievementType) {
                 QUEST_REGISTRATION -> verify { batchUserRepository.findAllByQuestRegistrationCountGreaterThanEqual(any(), any()) }
                 QUEST_COMPLETION -> verify { batchUserRepository.findAllByQuestCompletionCountGreaterThanEqual(any(), any()) }
-                QUEST_CONTINUOUS_REGISTRATION_DAYS -> verify { batchUserRepository.findAllByMaxQuestContinuousRegistrationDaysGreaterThanEqual(any(), any()) }
+                QUEST_CONTINUOUS_REGISTRATION -> verify { batchUserRepository.findAllByMaxQuestContinuousRegistrationDaysGreaterThanEqual(any(), any()) }
                 QUEST_CONTINUOUS_COMPLETION -> verify { batchUserRepository.findAllByMaxQuestContinuousCompletionDaysGreaterThanEqual(any(), any()) }
                 GOLD_EARN -> verify { batchUserRepository.findAllByGoldEarnAmountGreaterThanEqual(any(), any()) }
                 PERFECT_DAY -> verify { batchUserRepository.findAllByPerfectDayCountGreaterThanEqual(any(), any()) }
-                USER_LEVEL, EMPTY -> assertThat(jobExecution.status).isEqualTo(BatchStatus.FAILED)
             }
         }
     }

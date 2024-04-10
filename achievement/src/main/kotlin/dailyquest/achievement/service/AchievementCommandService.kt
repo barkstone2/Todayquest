@@ -25,13 +25,13 @@ class AchievementCommandService @Autowired constructor(
     @Async
     fun checkAndAchieveAchievement(achieveRequest: AchievementAchieveRequest) {
         val targetAchievement = this.getNotAchievedAchievement(achieveRequest)
-        if (targetAchievement.canAchieve(achieveRequest.currentValue)) {
+        if (targetAchievement?.canAchieve(achieveRequest.currentValue) == true) {
             achieveLogCommandService.saveAchieveLog(targetAchievement.id, achieveRequest.userId)
         }
     }
 
-    private fun getNotAchievedAchievement(achieveRequest: AchievementAchieveRequest): Achievement {
-        return achievementRepository.findNotAchievedAchievement(achieveRequest.type, achieveRequest.userId) ?: Achievement.empty()
+    private fun getNotAchievedAchievement(achieveRequest: AchievementAchieveRequest): Achievement? {
+        return achievementRepository.findNotAchievedAchievement(achieveRequest.type, achieveRequest.userId)
     }
 
     @Throws(IllegalStateException::class)

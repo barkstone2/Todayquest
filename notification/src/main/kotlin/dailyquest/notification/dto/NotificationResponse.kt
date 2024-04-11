@@ -1,6 +1,5 @@
 package dailyquest.notification.dto
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -26,12 +25,6 @@ class NotificationResponse private constructor(
         fun from(notification: Notification): NotificationResponse {
             val metadataMap: Map<String, String> = objectMapper.readValue(notification.metadata)
             return NotificationResponse(notification.id, notification.title, notification.content, notification.type, notification.createdDate, metadataMap, notification.confirmedDate)
-        }
-
-        @JvmStatic
-        fun of(id: Long, title: String, content: String, type: NotificationType, createdDate: LocalDateTime, metadata: String, objectMapper: ObjectMapper, confirmedDate: LocalDateTime? = null): NotificationResponse {
-            val metadataMap: Map<String, String> = objectMapper.readValue(metadata)
-            return NotificationResponse(id, title, content, type, createdDate, metadataMap, confirmedDate)
         }
     }
 }

@@ -2,7 +2,7 @@ package dailyquest.achivement.controller
 
 import com.ninjasquad.springmockk.MockkBean
 import dailyquest.achievement.controller.AchievementApiController
-import dailyquest.achievement.service.AchievementQueryService
+import dailyquest.achievement.service.AchievementService
 import dailyquest.annotation.WebMvcUnitTest
 import io.mockk.every
 import io.mockk.verify
@@ -24,7 +24,7 @@ class AchievementApiControllerUnitTest {
     lateinit var mvc: MockMvc
 
     @MockkBean(relaxed = true)
-    lateinit var achievementQueryService: AchievementQueryService
+    lateinit var achievementService: AchievementService
 
     @DisplayName("달성한 업적 목록 조회 시 page 번호가 제대로 처리된다")
     @Test
@@ -32,7 +32,7 @@ class AchievementApiControllerUnitTest {
         //given
         val url = "$URI_PREFIX/achieved"
         val page = 1
-        every { achievementQueryService.getAchievedAchievements(any(), any()) } returns Page.empty()
+        every { achievementService.getAchievedAchievements(any(), any()) } returns Page.empty()
 
         //when
         mvc.perform(
@@ -41,7 +41,7 @@ class AchievementApiControllerUnitTest {
         )
 
         //then
-        verify { achievementQueryService.getAchievedAchievements(any(), eq(page)) }
+        verify { achievementService.getAchievedAchievements(any(), eq(page)) }
     }
 
     @DisplayName("달성하지 못한 업적 목록 조회 시 page 번호가 제대로 처리된다")
@@ -50,7 +50,7 @@ class AchievementApiControllerUnitTest {
         //given
         val url = "$URI_PREFIX/not-achieved"
         val page = 1
-        every { achievementQueryService.getNotAchievedAchievements(any(), any()) } returns Page.empty()
+        every { achievementService.getNotAchievedAchievements(any(), any()) } returns Page.empty()
 
         //when
         mvc.perform(
@@ -59,7 +59,7 @@ class AchievementApiControllerUnitTest {
         )
 
         //then
-        verify { achievementQueryService.getNotAchievedAchievements(any(), eq(page)) }
+        verify { achievementService.getNotAchievedAchievements(any(), eq(page)) }
     }
 
 }

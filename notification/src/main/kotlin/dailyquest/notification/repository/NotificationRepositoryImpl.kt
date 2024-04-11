@@ -1,7 +1,6 @@
 package dailyquest.notification.repository
 
 import com.querydsl.core.types.dsl.BooleanExpression
-import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dailyquest.notification.dto.NotificationCondition
 import dailyquest.notification.entity.Notification
@@ -29,9 +28,9 @@ class NotificationRepositoryImpl @Autowired constructor(
         pageable: Pageable
     ): Page<Notification> {
         val notConfirmed = notification.confirmedDate.isNull
-        val whereExpression = createBaseWhereExpression(userId, condition)
+        val whereExpression = this.hasSameUserIdAndNotDeletedAndHasSameType(userId, condition)
             .and(notConfirmed)
-        val notifications = getPagedNotificationsBasedOnCondition(pageable, whereExpression)
+        val notifications = this.getPagedNotificationsBasedOnCondition(pageable, whereExpression)
         return notifications
     }
 
@@ -40,12 +39,12 @@ class NotificationRepositoryImpl @Autowired constructor(
         condition: NotificationCondition,
         pageable: Pageable
     ): Page<Notification> {
-        val whereExpression = createBaseWhereExpression(userId, condition)
-        val notifications = getPagedNotificationsBasedOnCondition(pageable, whereExpression)
+        val whereExpression = this.hasSameUserIdAndNotDeletedAndHasSameType(userId, condition)
+        val notifications = this.getPagedNotificationsBasedOnCondition(pageable, whereExpression)
         return notifications
     }
 
-    private fun createBaseWhereExpression(userId: Long, condition: NotificationCondition): BooleanExpression {
+    private fun hasSameUserIdAndNotDeletedAndHasSameType(userId: Long, condition: NotificationCondition): BooleanExpression {
         val hasSameUserId = notification.userId.eq(userId)
         val notDeleted = notification.deletedDate.isNull
         val hasSameType = if (condition.type != null) notification.type.eq(condition.type) else null
@@ -54,8 +53,8 @@ class NotificationRepositoryImpl @Autowired constructor(
     }
 
     private fun getPagedNotificationsBasedOnCondition(pageable: Pageable, whereExpression: BooleanExpression): Page<Notification> {
-        val notifications = getNotificationsBasedOnCondition(pageable, whereExpression)
-        val totalCount = getTotalCountBasedOnCondition(whereExpression)
+        val notifications = this.getNotificationsBasedOnCondition(pageable, whereExpression)
+        val totalCount = this.getTotalCountBasedOnCondition(whereExpression)
         return PageImpl(notifications, pageable, totalCount)
     }
 

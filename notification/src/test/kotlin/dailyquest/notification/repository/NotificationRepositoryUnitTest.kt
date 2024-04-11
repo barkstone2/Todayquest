@@ -46,7 +46,7 @@ class NotificationRepositoryUnitTest {
             1L,
             "notification title",
             "",
-            om.writeValueAsString(metadata)
+            metadata
         )
 
         //when
@@ -62,7 +62,7 @@ class NotificationRepositoryUnitTest {
         val pairs = listOf("key1" to "1", "key2" to 2)
         pairs.forEach { metadata[it.first] = it.second.toString() }
 
-        val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "notification title", "", om.writeValueAsString(metadata))
+        val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "notification title", "", metadata)
         val savedNotification = notificationRepository.saveAndFlush(notification)
         entityManager.clear()
         val foundNotification = notificationRepository.findById(savedNotification.id).get()

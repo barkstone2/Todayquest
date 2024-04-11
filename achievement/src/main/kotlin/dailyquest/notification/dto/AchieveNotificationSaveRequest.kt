@@ -22,9 +22,7 @@ class AchieveNotificationSaveRequest private constructor(
     }
 
     override fun createNotificationMetadata(): Map<String, Any> {
-        val metadataMap = mutableMapOf<String, Any>()
-        val annotatedProperties = ReflectionUtil.getAnnotatedProperties(AchieveNotificationSaveRequest::class, NotificationMetadata::class)
-        annotatedProperties.forEach { metadataMap[it.name] = it.get(this).toString() }
+        val metadataMap = ReflectionUtil.getAnnotatedPropertiesMap(this, NotificationMetadata::class)
         return metadataMap
     }
 

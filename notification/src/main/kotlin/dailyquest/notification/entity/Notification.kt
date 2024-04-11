@@ -1,5 +1,8 @@
 package dailyquest.notification.entity
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dailyquest.common.CreatedTimeEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -35,16 +38,22 @@ class Notification(
 
     @Column(name = "confirmed_date", insertable = false)
     var confirmedDate: LocalDateTime? = null
+        protected set
 
     @Column(name = "deleted_date", insertable = false)
     var deletedDate: LocalDateTime? = null
+        protected set
 
     fun confirmNotification() {
-        this.confirmedDate = LocalDateTime.now()
+        if (this.confirmedDate == null) {
+            this.confirmedDate = LocalDateTime.now()
+        }
     }
 
     fun deleteNotification() {
-        this.deletedDate = LocalDateTime.now()
+        if (this.deletedDate == null) {
+            this.deletedDate = LocalDateTime.now()
+        }
     }
 
     companion object {
@@ -59,5 +68,4 @@ class Notification(
             return Notification(type, userId, title, content, metadata)
         }
     }
-
 }

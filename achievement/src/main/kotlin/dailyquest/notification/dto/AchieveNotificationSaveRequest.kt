@@ -1,9 +1,5 @@
 package dailyquest.notification.dto
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.common.ReflectionUtil
@@ -25,22 +21,14 @@ class AchieveNotificationSaveRequest private constructor(
         return "${achievementType.representationFormat.format(targetValue)}(으)로 [$achievementTitle] 업적을 달성했습니다."
     }
 
-    override fun createNotificationMetadata(): Map<String, String> {
-        val metadataMap = mutableMapOf<String, String>()
+    override fun createNotificationMetadata(): Map<String, Any> {
+        val metadataMap = mutableMapOf<String, Any>()
         val annotatedProperties = ReflectionUtil.getAnnotatedProperties(AchieveNotificationSaveRequest::class, NotificationMetadata::class)
         annotatedProperties.forEach { metadataMap[it.name] = it.get(this).toString() }
         return metadataMap
     }
 
-    override fun createNotificationMetadataJson(): String {
-        val metadataMap = createNotificationMetadata()
-        return objectMapper.writeValueAsString(metadataMap)
-    }
-
     companion object {
-        @JvmStatic
-        private val objectMapper: ObjectMapper = jacksonObjectMapper().registerKotlinModule().registerModule(JavaTimeModule())
-
         @JvmStatic
         fun of(userId: Long, achievement: Achievement): AchieveNotificationSaveRequest {
             return AchieveNotificationSaveRequest(

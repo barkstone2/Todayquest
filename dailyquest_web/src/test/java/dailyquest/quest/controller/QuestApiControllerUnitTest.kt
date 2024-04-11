@@ -2,7 +2,7 @@ package dailyquest.quest.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import dailyquest.achievement.service.AchievementCommandService
+import dailyquest.achievement.service.AchievementService
 import dailyquest.annotation.WithCustomMockUser
 import dailyquest.common.MessageUtil
 import dailyquest.common.RestPage
@@ -111,7 +111,7 @@ class QuestApiControllerUnitTest {
     lateinit var questIndexService: QuestIndexService
 
     @MockBean
-    lateinit var achievementCommandService: AchievementCommandService
+    lateinit var achievementService: AchievementService
 
     @MockBean
     lateinit var redisService: RedisService

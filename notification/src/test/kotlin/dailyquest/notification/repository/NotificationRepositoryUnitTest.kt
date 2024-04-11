@@ -7,12 +7,11 @@ import dailyquest.notification.entity.Notification
 import dailyquest.notification.entity.NotificationType
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.data.repository.findByIdOrNull
+import java.time.LocalDateTime
 
 @DisplayName("알림 리포지토리 유닛 테스트")
 @DataJpaTest
@@ -25,10 +24,6 @@ class NotificationRepositoryUnitTest {
     private lateinit var entityManager: EntityManager
 
     private val om = ObjectMapper().registerKotlinModule()
-
-    @BeforeEach
-    fun init() {
-    }
 
     @DisplayName("엔티티 저장 시 오류가 발생하지 않는다")
     @Test
@@ -94,5 +89,143 @@ class NotificationRepositoryUnitTest {
 
         //then
         assertDoesNotThrow { notificationRepository.saveAndFlush(foundNotification) }
+    }
+
+    @DisplayName("getNotificationByIdAndUserId 호출 시")
+    @Nested
+    inner class TestGetNotificationByIdAndUserId {
+        private val userId = 1L
+        private val otherUserId = 2L
+
+        @DisplayName("해당 ID의 알림이 존재하고 해당 유저 ID 참조를 가진 경우 알림 엔티티가 반환된다")
+        @Test
+        fun `해당 ID의 알림이 존재하고 해당 유저 ID 참조를 가진 경우 알림 엔티티가 반환된다`() {
+            //given
+            val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, userId, "")
+            notificationRepository.save(notification)
+
+            //when
+            val result = notificationRepository.getNotificationByIdAndUserId(notification.id, userId)
+
+            //then
+            assertThat(result).isEqualTo(notification)
+        }
+
+        @DisplayName("해당 ID의 알림이 존재하고 해당 유저 ID 참조를 가지지 않은 경우 null이 반환된다")
+        @Test
+        fun `해당 ID의 알림이 존재하고 해당 유저 ID 참조를 가지지 않은 경우 null이 반환된다`() {
+            //given
+            val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, otherUserId, "")
+            notificationRepository.save(notification)
+
+            //when
+            val result = notificationRepository.getNotificationByIdAndUserId(notification.id, userId)
+
+            //then
+            assertThat(result).isNull()
+        }
+
+        @DisplayName("해당 ID의 알림이 없으면 null이 반환된다")
+        @Test
+        fun `해당 ID의 알림이 없으면 null이 반환된다`() {
+            //given
+            val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, userId, "")
+            notificationRepository.save(notification)
+
+            //when
+            val result = notificationRepository.getNotificationByIdAndUserId(notification.id+1, userId)
+
+            //then
+            assertThat(result).isNull()
+        }
+    }
+
+    @DisplayName("confirmAllNotification 호출 시")
+    @Nested
+    inner class TestConfirmAllNotification {
+        private val userId = 1L
+        private val otherUserId = 2L
+
+        @DisplayName("등록된 알림의 userId가 일치하고")
+        @Nested
+        inner class WhenUserIdMatched {
+            @DisplayName("confirmedDate와 deledteDate가 null인 모든 알림의 confiremdDate가 변경된다")
+            @Test
+            fun `confirmedDate와 deledteDate가 null인 모든 알림의 confiremdDate가 변경된다`() {
+                //given
+                val savedNotifications = listOf(
+                    Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, userId, ""),
+                    Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, userId, "")
+                )
+                notificationRepository.saveAll(savedNotifications)
+
+                //when
+                notificationRepository.confirmAllNotifications(userId)
+
+                //then
+                val result = notificationRepository.findAllById(savedNotifications.map { it.id })
+                assertThat(result).allMatch { it.confirmedDate != null }
+            }
+
+            @DisplayName("confirmedDate가 null이고 deleteDate가 null이 아니면 confirmedDate가 변경되지 않는다")
+            @Test
+            fun `confirmedDate가 null이고 deleteDate가 null이 아니면 confirmedDate가 변경되지 않는다`() {
+                //given
+                val savedNotifications = listOf(
+                    Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, userId, ""),
+                    Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, userId, "")
+                )
+                notificationRepository.saveAll(savedNotifications)
+                savedNotifications.forEach {
+                    it.deleteNotification()
+                    notificationRepository.save(it)
+                }
+
+                //when
+                notificationRepository.confirmAllNotifications(userId)
+
+                //then
+                val result = notificationRepository.findAllById(savedNotifications.map { it.id })
+                assertThat(result).allMatch { it.confirmedDate == null }
+            }
+
+            @DisplayName("confirmedDate가 null이 아니고 deleteDate가 null이면 confirmedDate가 변경되지 않는다")
+            @Test
+            fun `confirmedDate가 null이 아니고 deleteDate가 null이면 confirmedDate가 변경되지 않는다`() {
+                //given
+                val confirmedDate = LocalDateTime.of(2000, 12, 12, 12, 0)
+                val notificationIds = listOf(1L, 2L)
+                val query =
+                    entityManager.createNativeQuery("insert into notification (notification_id, user_id, title, content, type, metadata, created_date, confirmed_date, deleted_date) VALUES (?, ?, 't', 'c', 'ACHIEVEMENT_ACHIEVE', '', now(), ?, null)")
+                query.setParameter(2, userId)
+                query.setParameter(3, confirmedDate)
+                notificationIds.forEach {
+                    query.setParameter(1, it)
+                    query.executeUpdate()
+                }
+
+                //when
+                notificationRepository.confirmAllNotifications(userId)
+
+                //then
+                val result = notificationRepository.findAllById(notificationIds)
+                assertThat(result).allMatch { it.confirmedDate == confirmedDate }
+            }
+        }
+
+        @DisplayName("등록된 알림의 userId가 일치하지 않으면 confirmedDate가 변경되지 않는다")
+        @Test
+        fun `등록된 알림의 userId가 일치하지 않으면 confirmedDate가 변경되지 않는다`() {
+            //given
+            val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, otherUserId, "")
+            notificationRepository.save(notification)
+
+            //when
+            notificationRepository.confirmAllNotifications(userId)
+
+            //then
+            val result = notificationRepository.findByIdOrNull(notification.id) ?: fail("result should not be null")
+            assertThat(result.confirmedDate).isNull()
+        }
     }
 }

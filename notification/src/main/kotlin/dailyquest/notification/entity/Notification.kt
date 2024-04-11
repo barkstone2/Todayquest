@@ -8,12 +8,12 @@ import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
-class Notification(
+class Notification private constructor(
     type: NotificationType,
     userId: Long,
     title: String,
-    content: String = "",
-    metadata: String = "",
+    content: String,
+    metadata: String,
 ): CreatedTimeEntity() {
 
     @Column(name = "notification_id")
@@ -57,15 +57,17 @@ class Notification(
     }
 
     companion object {
+        private val om = jacksonObjectMapper().registerModules(JavaTimeModule()).registerKotlinModule()
+
         @JvmStatic
         fun of(
             type: NotificationType,
             userId: Long,
             title: String,
             content: String = "",
-            metadata: String = "",
+            metadata: Map<String, Any> = mapOf(),
         ): Notification {
-            return Notification(type, userId, title, content, metadata)
+            return Notification(type, userId, title, content, om.writeValueAsString(metadata))
         }
     }
 }

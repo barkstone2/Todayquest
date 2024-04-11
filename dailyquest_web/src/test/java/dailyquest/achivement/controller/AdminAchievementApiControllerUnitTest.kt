@@ -245,4 +245,48 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
             }
         }
     }
+
+    @DisplayName("업적 비활성화 요청 시")
+    @Nested
+    inner class TestInactivateAchievement {
+        @DisplayName("요청 URL의 ID에 대해 비활성화 요청한다")
+        @Test
+        fun `요청 URL의 ID에 대해 비활성화 요청한다`() {
+            // given
+            val achievementId = 1L
+            val url = "$urlPrefix/$achievementId/inactivate"
+
+            //when
+            mvc.patch(url) {
+                this.with(csrf())
+            }
+
+            //then
+            verify {
+                achievementService.inactivateAchievement(eq(achievementId))
+            }
+        }
+    }
+
+    @DisplayName("업적 활성화 요청 시")
+    @Nested
+    inner class TestActivateAchievement {
+        @DisplayName("요청 URL의 ID에 대해 활성화 요청한다")
+        @Test
+        fun `요청 URL의 ID에 대해 활성화 요청한다`() {
+            // given
+            val achievementId = 1L
+            val url = "$urlPrefix/$achievementId/activate"
+
+            //when
+            mvc.patch(url) {
+                this.with(csrf())
+            }
+
+            //then
+            verify {
+                achievementService.activateAchievement(eq(achievementId))
+            }
+        }
+    }
 }

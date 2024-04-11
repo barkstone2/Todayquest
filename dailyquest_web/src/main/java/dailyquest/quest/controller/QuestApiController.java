@@ -1,7 +1,7 @@
 package dailyquest.quest.controller;
 
 import dailyquest.achievement.dto.AchievementAchieveRequest;
-import dailyquest.achievement.service.AchievementCommandService;
+import dailyquest.achievement.service.AchievementService;
 import dailyquest.common.ResponseData;
 import dailyquest.common.RestPage;
 import dailyquest.common.UserLevelLock;
@@ -37,7 +37,7 @@ public class QuestApiController {
     private final QuestService questService;
     private final UserLevelLock userLevelLock;
     private final QuestIndexService questIndexService;
-    private final AchievementCommandService achievementCommandService;
+    private final AchievementService achievementService;
     private final RedisService redisService;
 
     @Value("${quest.page.size}")
@@ -89,8 +89,8 @@ public class QuestApiController {
                 () -> questService.saveQuest(dto, principal.getId())
         );
         questIndexService.saveDocument(savedQuest, principal.getId());
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_REGISTRATION, principal.getId(), principal.getQuestRegistrationCount()));
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION, principal.getId(), principal.getCurrentQuestContinuousRegistrationDays()));
+        achievementService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_REGISTRATION, principal.getId(), principal.getQuestRegistrationCount()));
+        achievementService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION, principal.getId(), principal.getCurrentQuestContinuousRegistrationDays()));
         return ResponseEntity.ok(new ResponseData<>(savedQuest));
     }
 
@@ -126,8 +126,8 @@ public class QuestApiController {
         QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(questClearExp, questClearGold, questId);
         QuestResponse completedQuest = questService.completeQuest(principal.getId(), questCompletionRequest);
         questIndexService.updateQuestStateOfDocument(completedQuest, principal.getId());
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_COMPLETION, principal.getId(), principal.getQuestCompletionCount()));
-        achievementCommandService.checkAndAchieveAchievement(AchievementAchieveRequest.of(GOLD_EARN, principal.getId(), principal.getGoldEarnAmount()));
+        achievementService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_COMPLETION, principal.getId(), principal.getQuestCompletionCount()));
+        achievementService.checkAndAchieveAchievement(AchievementAchieveRequest.of(GOLD_EARN, principal.getId(), principal.getGoldEarnAmount()));
         return ResponseEntity.ok(new ResponseData<>());
     }
 

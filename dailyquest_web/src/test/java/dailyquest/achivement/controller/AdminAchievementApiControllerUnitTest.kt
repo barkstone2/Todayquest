@@ -6,7 +6,7 @@ import dailyquest.achievement.controller.AdminAchievementApiController
 import dailyquest.achievement.dto.AchievementSaveRequest
 import dailyquest.achievement.dto.AchievementUpdateRequest
 import dailyquest.achievement.entity.AchievementType
-import dailyquest.achievement.service.AchievementCommandService
+import dailyquest.achievement.service.AchievementService
 import dailyquest.annotation.WebMvcUnitTest
 import dailyquest.common.BatchApiUtil
 import io.mockk.junit5.MockKExtension
@@ -31,7 +31,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
     private val om: ObjectMapper
 ) {
     @MockkBean(relaxed = true)
-    private lateinit var achievementCommandService: AchievementCommandService
+    private lateinit var achievementService: AchievementService
     @MockkBean(relaxed = true)
     private lateinit var batchApiUtil: BatchApiUtil
     private val urlPrefix = "/admin/api/v1/achievements"
@@ -144,7 +144,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
 
             //then
             verify {
-                achievementCommandService.saveAchievement(any())
+                achievementService.saveAchievement(any())
                 batchApiUtil.checkAndAchieve(any())
             }
         }
@@ -241,7 +241,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
 
             //then
             verify {
-                achievementCommandService.updateAchievement(any(), any())
+                achievementService.updateAchievement(any(), any())
             }
         }
     }

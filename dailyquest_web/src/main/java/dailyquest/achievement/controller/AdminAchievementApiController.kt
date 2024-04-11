@@ -2,7 +2,7 @@ package dailyquest.achievement.controller
 
 import dailyquest.achievement.dto.WebAchievementSaveRequest
 import dailyquest.achievement.dto.WebAchievementUpdateRequest
-import dailyquest.achievement.service.AchievementCommandService
+import dailyquest.achievement.service.AchievementService
 import dailyquest.common.BatchApiUtil
 import jakarta.validation.Valid
 import org.springframework.validation.annotation.Validated
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/admin/api/v1/achievements")
 @RestController
 class AdminAchievementApiController(
-    private val achievementCommandService: AchievementCommandService,
+    private val achievementService: AchievementService,
     private val batchApiUtil: BatchApiUtil
 ) {
 
@@ -20,7 +20,7 @@ class AdminAchievementApiController(
     fun saveAchievement(
         @Valid @RequestBody saveRequest: WebAchievementSaveRequest
     ) {
-        val savedAchievementId = achievementCommandService.saveAchievement(saveRequest)
+        val savedAchievementId = achievementService.saveAchievement(saveRequest)
         batchApiUtil.checkAndAchieve(savedAchievementId)
     }
 
@@ -29,20 +29,20 @@ class AdminAchievementApiController(
         @Valid @RequestBody updateRequest: WebAchievementUpdateRequest,
         @PathVariable("achievementId") achievementId: Long
     ) {
-        achievementCommandService.updateAchievement(achievementId, updateRequest)
+        achievementService.updateAchievement(achievementId, updateRequest)
     }
 
     @PatchMapping("/{achievementId}/inactivate")
     fun inactivateAchievement(
         @PathVariable achievementId: Long
     ) {
-        achievementCommandService.inactivateAchievement(achievementId)
+        achievementService.inactivateAchievement(achievementId)
     }
 
     @PatchMapping("/{achievementId}/activate")
     fun activateAchievement(
         @PathVariable achievementId: Long
     ) {
-        achievementCommandService.activateAchievement(achievementId)
+        achievementService.activateAchievement(achievementId)
     }
 }

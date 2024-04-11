@@ -11,11 +11,9 @@ interface NotificationSaveRequest {
         return notificationType.title
     }
     fun createNotificationContent(): String
-    fun createNotificationMetadata(): Map<String, String>
-    fun createNotificationMetadataJson(): String
+    fun createNotificationMetadata(): Map<String, Any>
 
     fun mapToEntity(): Notification {
-        val metadataJson = createNotificationMetadataJson()
-        return Notification(notificationType, userId, getNotificationTitle(), createNotificationContent(), metadataJson)
+        return Notification.of(notificationType, userId, this.getNotificationTitle(), this.createNotificationContent(), this.createNotificationMetadata())
     }
 }

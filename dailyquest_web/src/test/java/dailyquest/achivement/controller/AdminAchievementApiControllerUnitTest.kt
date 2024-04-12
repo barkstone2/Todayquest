@@ -11,6 +11,7 @@ import dailyquest.annotation.WebMvcUnitTest
 import dailyquest.common.BatchApiUtil
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
+import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.post
 
@@ -286,6 +288,40 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
             //then
             verify {
                 achievementService.activateAchievement(eq(achievementId))
+            }
+        }
+    }
+
+    @DisplayName("모든 업적과 업적 타입 조회 시")
+    @Nested
+    inner class TestGetAllAchievementsAndType {
+        private val url = urlPrefix
+
+        @DisplayName("타입으로 그룹핑된 업적 정보를 조회를 요청한다")
+        @Test
+        fun `타입으로 그룹핑된 업적 정보를 조회를 요청한다`() {
+            //given
+            //when
+            mvc.get(url)
+
+            //then
+            verify { achievementService.getAllAchievementsGroupByType() }
+        }
+
+        @DisplayName("반환된 응답에 모든 타입 정보가 포함되어 있다")
+        @Test
+        fun `반환된 응답에 모든 타입 정보가 포함되어 있다`() {
+            //given
+            val achievementTypes = AchievementType.values().map { it.name }
+
+            //when
+            val result = mvc.get(url)
+
+            //then
+            result.andExpect {
+                jsonPath("$.data.achievementTypes") {
+                    value(equalTo(achievementTypes))
+                }
             }
         }
     }

@@ -1,10 +1,14 @@
 package dailyquest.achievement.controller
 
+import dailyquest.achievement.dto.AdminAchievementResponse
 import dailyquest.achievement.dto.WebAchievementSaveRequest
 import dailyquest.achievement.dto.WebAchievementUpdateRequest
+import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementService
 import dailyquest.common.BatchApiUtil
+import dailyquest.common.ResponseData
 import jakarta.validation.Valid
+import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
@@ -44,5 +48,13 @@ class AdminAchievementApiController(
         @PathVariable achievementId: Long
     ) {
         achievementService.activateAchievement(achievementId)
+    }
+
+    @GetMapping("")
+    fun getAllAchievementsAndType(): ResponseEntity<ResponseData<AdminAchievementResponse>> {
+        val allAchievementsGroupByType = achievementService.getAllAchievementsGroupByType()
+        val achievementTypes = AchievementType.values().toList()
+        val adminAchievementResponse = AdminAchievementResponse(achievementTypes, allAchievementsGroupByType)
+        return ResponseEntity.ok(ResponseData.of(adminAchievementResponse))
     }
 }

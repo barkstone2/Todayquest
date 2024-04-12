@@ -73,25 +73,9 @@ class NotificationEntityUnitTest {
             unmockkStatic(LocalDateTime::class)
         }
 
-        @DisplayName("confirmedDate가 null이면 현재 시간으로 변경된다")
+        @DisplayName("confirmedDate가 null이 아니면 confirmedDate가 변경되지 않는다")
         @Test
-        fun `confirmedDate가 null이면 현재 시간으로 변경된다`() {
-            //given
-            val now = LocalDateTime.of(2020, 12, 12, 12, 0)
-            mockkStatic(LocalDateTime::class)
-            every { LocalDateTime.now() } returns now
-            val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
-
-            //when
-            notification.confirmNotification()
-
-            //then
-            assertThat(notification.confirmedDate).isEqualTo(now)
-        }
-
-        @DisplayName("confirmedDate가 null이 아니면 변경되지 않는다")
-        @Test
-        fun `confirmedDate가 null이 아니면 변경되지 않는다`() {
+        fun `confirmedDate가 null이 아니면 confirmedDate가 변경되지 않는다`() {
             //given
             val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
             notification.confirmNotification()
@@ -105,6 +89,41 @@ class NotificationEntityUnitTest {
             //then
             assertThat(notification.confirmedDate).isNotEqualTo(now)
         }
+
+        @DisplayName("deletedDate가 null이 아니면 confirmedDate가 변경되지 않는다")
+        @Test
+        fun `deletedDate가 null이 아니면 confirmedDate가 변경되지 않는다`() {
+            //given
+            val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
+            notification.deleteNotification()
+            val now = LocalDateTime.of(2020, 12, 12, 12, 0)
+            mockkStatic(LocalDateTime::class)
+            every { LocalDateTime.now() } returns now
+
+            //when
+            notification.confirmNotification()
+
+            //then
+            assertThat(notification.confirmedDate).isNotEqualTo(now)
+        }
+
+        @DisplayName("confirmedDate가 null이면 confirmedDate가 현재 시간으로 변경된다")
+        @Test
+        fun `confirmedDate가 null이면 confirmedDate가 현재 시간으로 변경된다`() {
+            //given
+            val now = LocalDateTime.of(2020, 12, 12, 12, 0)
+            mockkStatic(LocalDateTime::class)
+            every { LocalDateTime.now() } returns now
+            val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
+
+            //when
+            notification.confirmNotification()
+
+            //then
+            assertThat(notification.confirmedDate).isEqualTo(now)
+        }
+
+
     }
 
     @DisplayName("deleteNotification 호출 시")

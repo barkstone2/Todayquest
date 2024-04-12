@@ -5,6 +5,7 @@ import dailyquest.achievement.dto.AchievementResponse
 import dailyquest.achievement.dto.AchievementSaveRequest
 import dailyquest.achievement.dto.AchievementUpdateRequest
 import dailyquest.achievement.entity.Achievement
+import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.properties.AchievementPageSizeProperties
 import org.springframework.context.MessageSource
@@ -82,5 +83,15 @@ class AchievementService(
     fun activateAchievement(achievementId: Long) {
         val updateTarget = achievementRepository.findByIdOrNull(achievementId)
         updateTarget?.activateAchievement()
+    }
+
+    fun getAllAchievementsGroupByType(): Map<AchievementType, List<AchievementResponse>> {
+        val result = mutableMapOf<AchievementType, MutableList<AchievementResponse>>()
+        val achievements = achievementRepository.getAllByOrderByTypeAscTargetValueAsc()
+        achievements.groupByTo(result, Achievement::type) { AchievementResponse.from(it) }
+        AchievementType.values().forEach {
+            result.putIfAbsent(it, mutableListOf())
+        }
+        return result
     }
 }

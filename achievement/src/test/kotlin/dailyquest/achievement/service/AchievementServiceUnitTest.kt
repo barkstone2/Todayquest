@@ -1,9 +1,12 @@
 package dailyquest.achievement.service
 
 import dailyquest.achievement.dto.AchievementAchieveRequest
+import dailyquest.achievement.dto.AchievementResponse
 import dailyquest.achievement.dto.AchievementSaveRequest
 import dailyquest.achievement.dto.AchievementUpdateRequest
 import dailyquest.achievement.entity.Achievement
+import dailyquest.achievement.entity.AchievementType
+import dailyquest.achievement.entity.AchievementType.*
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.notification.service.NotificationService
 import dailyquest.properties.AchievementPageSizeProperties
@@ -12,7 +15,9 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.verify
+import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.MessageSource
@@ -227,6 +232,67 @@ class AchievementServiceUnitTest {
 
             //then
             verify { achievement.activateAchievement() }
+        }
+    }
+
+    @DisplayName("getAllAchievementsGroupByType 호출 시")
+    @Nested
+    inner class TestGetAllAchievementsGroupByType {
+        @BeforeEach
+        fun init() {
+            val achievementResponse = mockk<AchievementResponse>()
+            mockkObject(AchievementResponse)
+            every { AchievementResponse.from(any()) } returns achievementResponse
+        }
+
+        @DisplayName("리포지토리 반환 결과가 없으면 각 타입에 대해 빈 리스트가 담겨 반환된다")
+        @Test
+        fun `리포지토리 반환 결과가 없으면 각 타입에 대해 빈 리스트가 담겨 반환된다`() {
+            //given
+            every { achievementRepository.getAllByOrderByTypeAscTargetValueAsc() } returns emptyList()
+
+            //when
+            val result = achievementService.getAllAchievementsGroupByType()
+
+            //then
+            AchievementType.values().forEach {
+                assertThat(result[it]).isNotNull.isEmpty()
+            }
+        }
+        
+        @DisplayName("리포지토리 반환 결과가 있으면 타입 별로 맵에 담겨 반환된다")
+        @Test
+        fun `리포지토리 반환 결과가 있으면 타입 별로 맵에 담겨 반환된다`() {
+            //given
+            val returnedTypes = listOf(QUEST_REGISTRATION, QUEST_COMPLETION, QUEST_CONTINUOUS_COMPLETION)
+            val achievement = mockk<Achievement>()
+            every { achievement.type } returnsMany returnedTypes
+            every { achievementRepository.getAllByOrderByTypeAscTargetValueAsc() } returns returnedTypes.map { achievement }
+
+            //when
+            val result = achievementService.getAllAchievementsGroupByType()
+
+            //then
+            returnedTypes.forEach {
+                assertThat(result[it]).isNotEmpty
+            }
+        }
+        
+        @DisplayName("동일한 타입에 대한 반환 결과가 여러개라면 해당 타입 리스트에 모두 담겨 반환된다")
+        @Test
+        fun `동일한 타입에 대한 반환 결과가 여러개라면 해당 타입 리스트에 모두 담겨 반환된다`() {
+            //given
+            val achievement = mockk<Achievement>()
+            val hasMultiValueType = QUEST_REGISTRATION
+            every { achievement.type } returns hasMultiValueType
+            val size = 3
+            every { achievementRepository.getAllByOrderByTypeAscTargetValueAsc() } returns List(size) { achievement }
+
+            //when
+            val result = achievementService.getAllAchievementsGroupByType()
+
+            //then
+            assertThat(result[hasMultiValueType]).hasSize(size)
         }
     }
 }

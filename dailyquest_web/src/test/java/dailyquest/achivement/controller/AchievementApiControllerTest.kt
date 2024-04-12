@@ -199,7 +199,7 @@ class AchievementApiControllerTest @Autowired constructor(
             result.andExpect {
                 status { isOk() }
                 jsonPath("$.data.content.*.id") {
-                    value(containsInRelativeOrder(achievements.reversed().map { it.id.toInt() }.reduce { _, i -> i }))
+                    value(equalTo(achievements.reversed().map { it.id }.toTypedArray()))
                 }
             }
         }
@@ -348,7 +348,7 @@ class AchievementApiControllerTest @Autowired constructor(
             result.andExpect {
                 status { isOk() }
                 jsonPath("$.data.content.*.id") {
-                    value(containsInRelativeOrder(achievements.map { it.id.toInt() }.reduce { _, i -> i }))
+                    value(equalTo(achievements.map { it.id }.toTypedArray()))
                 }
             }
         }

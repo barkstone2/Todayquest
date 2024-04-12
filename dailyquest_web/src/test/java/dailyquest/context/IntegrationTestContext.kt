@@ -14,6 +14,7 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
+import org.springframework.test.web.servlet.MockHttpServletRequestDsl
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
@@ -89,5 +90,25 @@ class IntegrationTestContext(
     private fun MockHttpServletRequestBuilder.useBaseConfiguration(): MockHttpServletRequestBuilder {
         return this.contentType(MediaType.APPLICATION_JSON)
             .with(SecurityMockMvcRequestPostProcessors.csrf())
+    }
+
+    fun MockHttpServletRequestDsl.useAdminConfiguration() {
+        this.useBaseConfiguration()
+        this.cookie(adminToken)
+    }
+
+    fun MockHttpServletRequestDsl.useUserConfiguration() {
+        this.useBaseConfiguration()
+        this.cookie(userToken)
+    }
+
+    fun MockHttpServletRequestDsl.useAnotherUserConfiguration() {
+        this.useBaseConfiguration()
+        this.cookie(anotherUserToken)
+    }
+
+    private fun MockHttpServletRequestDsl.useBaseConfiguration() {
+        this.contentType = MediaType.APPLICATION_JSON
+        this.with(SecurityMockMvcRequestPostProcessors.csrf())
     }
 }

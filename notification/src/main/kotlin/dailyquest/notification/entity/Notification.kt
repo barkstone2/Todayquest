@@ -45,7 +45,7 @@ class Notification private constructor(
         protected set
 
     fun confirmNotification() {
-        if (this.confirmedDate == null) {
+        if (this.confirmedDate == null && this.deletedDate == null) {
             this.confirmedDate = LocalDateTime.now()
         }
     }

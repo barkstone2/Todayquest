@@ -40,4 +40,5 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
                 "where a.inactivated = false and al.id is null order by a.type, a.targetValue"
     )
     fun getNotAchievedAchievements(@Param("userId") userId: Long, pageable: Pageable): Page<AchievementResponse>
+    fun getAllByOrderByTypeAscTargetValueAsc(): List<Achievement>
 }

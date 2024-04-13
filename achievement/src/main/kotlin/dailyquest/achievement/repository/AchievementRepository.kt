@@ -24,7 +24,7 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
     fun getAllActivatedOfType(@Param("type") type: AchievementType): List<Achievement>
 
     @Query(
-        "select new dailyquest.achievement.dto.AchievementResponse(a.id, a.title, a.description, a.type, a.targetValue, true, al.createdDate) " +
+        "select new dailyquest.achievement.dto.AchievementResponse(a.id, a.title, a.description, a.type, a.targetValue, a.inactivated, true, al.createdDate) " +
                 "from Achievement a " +
                 "inner join AchievementAchieveLog al " +
                 "on al.userId = :userId and al.achievement.id = a.id " +
@@ -33,7 +33,7 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
     fun getAchievedAchievements(@Param("userId") userId: Long, pageable: Pageable): Page<AchievementResponse>
 
     @Query(
-        "select new dailyquest.achievement.dto.AchievementResponse(a.id, a.title, a.description, a.type, a.targetValue) " +
+        "select new dailyquest.achievement.dto.AchievementResponse(a.id, a.title, a.description, a.type, a.targetValue, a.inactivated) " +
                 "from Achievement a " +
                 "left join AchievementAchieveLog al " +
                 "on al.userId = :userId and al.achievement.id = a.id " +

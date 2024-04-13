@@ -12,6 +12,7 @@ data class AchievementResponse @JvmOverloads constructor(
     val description: String = "",
     val type: AchievementType,
     val targetValue: Long,
+    val inactivated: Boolean,
     val isAchieved: Boolean = false,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val achievedDate: LocalDateTime? = null,
@@ -21,7 +22,7 @@ data class AchievementResponse @JvmOverloads constructor(
     companion object {
         @JvmStatic
         fun from(achievement: Achievement): AchievementResponse {
-            return AchievementResponse(achievement.id, achievement.title, achievement.description, achievement.type, achievement.targetValue)
+            return AchievementResponse(achievement.id, achievement.title, achievement.description, achievement.type, achievement.targetValue, achievement.inactivated)
         }
     }
 }

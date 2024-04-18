@@ -319,7 +319,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
 
             //then
             result.andExpect {
-                jsonPath("$.data.achievementTypes") {
+                jsonPath("$.data.achievementTypes.*.key") {
                     value(equalTo(achievementTypes))
                 }
             }

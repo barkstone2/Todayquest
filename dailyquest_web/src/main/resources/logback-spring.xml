@@ -16,9 +16,23 @@
         </rollingPolicy>
         <charset>${FILE_LOG_CHARSET}</charset>
     </appender>
+    <appender name="BATCH_ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/batch/batch-request-failed.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %level --- %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/batch-request-failed-%d{yyyy-MM-dd}.log</fileNamePattern>
+        </rollingPolicy>
+        <charset>${FILE_LOG_CHARSET}</charset>
+    </appender>
 
     <logger name="asyncErrorLogger" level="ERROR">
         <appender-ref ref="ASYNC_ERROR_FILE" />
+    </logger>
+
+    <logger name="batchErrorLogger" level="ERROR">
+        <appender-ref ref="BATCH_ERROR_FILE" />
     </logger>
 
     <root level="INFO">

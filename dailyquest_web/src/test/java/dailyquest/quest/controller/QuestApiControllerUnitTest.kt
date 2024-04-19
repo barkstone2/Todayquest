@@ -111,9 +111,6 @@ class QuestApiControllerUnitTest {
     lateinit var questIndexService: QuestIndexService
 
     @MockBean
-    lateinit var achievementService: AchievementService
-
-    @MockBean
     lateinit var redisService: RedisService
 
     private lateinit var messageUtil: MockedStatic<MessageUtil>

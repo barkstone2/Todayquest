@@ -11,6 +11,7 @@ plugins {
 
 dependencies {
     implementation(project(":jpa-common"))
+    implementation(project(":achievement"))
     testRuntimeOnly("com.h2database:h2")
 
     implementation("com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta")
@@ -21,6 +22,11 @@ allOpen {
     annotation("jakarta.persistence.Entity")
     annotation("jakarta.persistence.Embeddable")
     annotation("jakarta.persistence.MappedSuperclass")
+}
+
+test {
+    dependsOn(":achievement:test")
+    dependsOn(":jpa-common:test")
 }
 
 bootJar {

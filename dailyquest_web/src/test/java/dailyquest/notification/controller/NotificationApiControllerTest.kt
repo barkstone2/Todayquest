@@ -12,6 +12,7 @@ import dailyquest.properties.NotificationPageSizeProperties
 import dailyquest.user.repository.UserRepository
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.hamcrest.Matchers
@@ -28,6 +29,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.patch
 import org.springframework.web.context.WebApplicationContext
+import java.time.LocalDateTime
 
 @Import(MockElasticsearchTestContextConfig::class, MockRedisTestContextConfig::class)
 @ExtendWith(MockKExtension::class)
@@ -38,6 +40,7 @@ class NotificationApiControllerTest @Autowired constructor(
     userRepository: UserRepository,
     jwtTokenProvider: JwtTokenProvider,
     private val notificationRepository: NotificationRepository,
+    private val entityManager: EntityManager,
     @SpykBean
     private val notificationPageSizeProperties: NotificationPageSizeProperties
 ) : IntegrationTestContext(context, userRepository, jwtTokenProvider) {
@@ -495,11 +498,14 @@ class NotificationApiControllerTest @Autowired constructor(
         @Test
         fun `이미 확인된 알림은 확인되지 않는다`() {
             //given
-            val confirmedNotification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, user.id, "")
-            notificationRepository.save(confirmedNotification)
-            confirmedNotification.confirmNotification()
-            notificationRepository.save(confirmedNotification)
-            val beforeConfirmedDate = confirmedNotification.confirmedDate
+            val notificationId = 1L
+            val beforeConfirmedDate = LocalDateTime.of(2020, 12, 12, 12, 0)
+            val query =
+                entityManager.createNativeQuery("insert into notification (notification_id, user_id, title, content, type, metadata, created_date, confirmed_date, deleted_date) values (?, ?, '', '', 'ACHIEVEMENT_ACHIEVE', '{}', now(), ?, null)")
+            query.setParameter(1, notificationId)
+            query.setParameter(2, user.id)
+            query.setParameter(3, beforeConfirmedDate)
+            query.executeUpdate()
 
             //when
             mvc.patch(url) {
@@ -507,7 +513,7 @@ class NotificationApiControllerTest @Autowired constructor(
             }.andExpect { status { isOk() } }
 
             //then
-            val result = notificationRepository.findByIdOrNull(confirmedNotification.id) ?: fail("")
+            val result = notificationRepository.findByIdOrNull(notificationId) ?: fail("")
             assertThat(result.confirmedDate).isEqualTo(beforeConfirmedDate)
         }
 
@@ -637,11 +643,14 @@ class NotificationApiControllerTest @Autowired constructor(
         @Test
         fun `이미 삭제된 알림은 삭제되지 않는다`() {
             //given
-            val deletedNotification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, user.id, "")
-            notificationRepository.save(deletedNotification)
-            deletedNotification.deleteNotification()
-            notificationRepository.save(deletedNotification)
-            val beforeDeletedDate = deletedNotification.deletedDate
+            val notificationId = 1L
+            val beforeDeletedDate = LocalDateTime.of(2020, 12, 12, 12, 0)
+            val query =
+                entityManager.createNativeQuery("insert into notification (notification_id, user_id, title, content, type, metadata, created_date, confirmed_date, deleted_date) values (?, ?, '', '', 'ACHIEVEMENT_ACHIEVE', '{}', now(), null, ?)")
+            query.setParameter(1, notificationId)
+            query.setParameter(2, user.id)
+            query.setParameter(3, beforeDeletedDate)
+            query.executeUpdate()
 
             //when
             mvc.patch(url) {
@@ -649,7 +658,7 @@ class NotificationApiControllerTest @Autowired constructor(
             }.andExpect { status { isOk() } }
 
             //then
-            val result = notificationRepository.findByIdOrNull(deletedNotification.id) ?: fail("")
+            val result = notificationRepository.findByIdOrNull(notificationId) ?: fail("")
             assertThat(result.deletedDate).isEqualTo(beforeDeletedDate)
         }
 

@@ -2,6 +2,10 @@ package dailyquest.quest.controller
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.readValue
+import dailyquest.achievement.entity.Achievement
+import dailyquest.achievement.entity.AchievementType
+import dailyquest.achievement.repository.AchievementAchieveLogRepository
+import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.common.MessageUtil
 import dailyquest.common.ResponseData
 import dailyquest.common.RestPage
@@ -37,6 +41,8 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.test.web.servlet.patch
+import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.web.context.WebApplicationContext
@@ -57,6 +63,8 @@ class QuestApiControllerTest @Autowired constructor(
     var redisKeyProperties: RedisKeyProperties,
     var entityManager: EntityManager,
     var questIndexRepository: QuestIndexRepository,
+    private val achievementRepository: AchievementRepository,
+    private val achievementAchieveLogRepository: AchievementAchieveLogRepository,
 ): IntegrationTestContextWithRedisAndElasticsearch(context, userRepository, jwtTokenProvider) {
 
     private val uriPrefix = "/api/v1/quests"
@@ -1024,6 +1032,46 @@ class QuestApiControllerTest @Autowired constructor(
             assertThat(data?.detailQuests?.get(0)?.title).isEqualTo(questRequest.details[0].title)
             assertThat(error).isNull()
         }
+
+        @DisplayName("현재 등록 횟수가 0이고, 목표 횟수가 1인 등록 업적이 있을 때, 해당 업적이 달성된다")
+        @Test
+        fun `현재 등록 횟수가 0이고, 목표 횟수가 1인 등록 업적이 있을 때, 해당 업적이 달성된다`() {
+            //given
+            val targetAchievement = Achievement("t", "d", AchievementType.QUEST_REGISTRATION, 1)
+            achievementRepository.save(targetAchievement)
+            val questRequest = QuestRequest("t", "d", mutableListOf(DetailRequest("dt", DetailQuestType.COUNT, 1)))
+            val requestBody = om.writeValueAsString(questRequest)
+
+            //when
+            mvc.post(url) {
+                useUserConfiguration()
+                content = requestBody
+            }.andExpect { status { isOk() } }
+
+            //then
+            val achieveLogs = achievementAchieveLogRepository.findAll()
+            assertThat(achieveLogs).anyMatch { it.achievement == targetAchievement }
+        }
+
+        @DisplayName("현재 연속 등록일이 0이고, 목표 값이 1인 연속 등록 업적이 있으면, 해당 업적이 달성된다")
+        @Test
+        fun `현재 연속 등록일이 0이고, 목표 값이 1인 연속 등록 업적이 있으면, 해당 업적이 달성된다`() {
+            //given
+            val targetAchievement = Achievement("t", "d", AchievementType.QUEST_CONTINUOUS_REGISTRATION, 1)
+            achievementRepository.save(targetAchievement)
+            val questRequest = QuestRequest("t", "d", mutableListOf(DetailRequest("dt", DetailQuestType.COUNT, 1)))
+            val requestBody = om.writeValueAsString(questRequest)
+
+            //when
+            mvc.post(url) {
+                useUserConfiguration()
+                content = requestBody
+            }.andExpect { status { isOk() } }
+
+            //then
+            val achieveLogs = achievementAchieveLogRepository.findAll()
+            assertThat(achieveLogs).anyMatch { it.achievement == targetAchievement }
+        }
     }
 
     @Nested
@@ -1471,12 +1519,13 @@ class QuestApiControllerTest @Autowired constructor(
     @DisplayName("퀘스트 완료 시")
     @Nested
     inner class QuestCompleteTest {
+        private val urlFormat = "${SERVER_ADDR}$port${uriPrefix}/%s/complete"
 
         @DisplayName("Path Variable이 유효한 Long 타입이 아니면 BAD_REQUEST가 반환된다")
         @ArgumentsSource(QuestApiControllerUnitTest.InvalidLongSources::class)
         @ParameterizedTest(name = "{0} 값이 들어오면 BAD_REQUEST가 반환한다")
         fun `Path Variable이 유효한 Long 타입이 아니면 BAD_REQUEST가 반환된다`(questId: Any) {
-            val url = "${SERVER_ADDR}$port${uriPrefix}/$questId/complete"
+            val url = urlFormat.format(questId)
             val errorMessage = MessageUtil.getMessage("exception.badRequest")
 
             //when
@@ -1509,7 +1558,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `삭제된 퀘스트라면 BAD_REQUEST가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.DELETE, QuestType.SUB))
-            val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/complete"
+            val url = urlFormat.format(savedQuest.id)
             val errorMessage = MessageUtil.getMessage("quest.error.deleted")
 
             //when
@@ -1542,7 +1591,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `진행중인 퀘스트가 아니라면 BAD_REQUEST가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.FAIL, QuestType.SUB))
-            val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/complete"
+            val url = urlFormat.format(savedQuest.id)
             val errorMessage = MessageUtil.getMessage("quest.error.not-proceed")
 
             //when
@@ -1578,7 +1627,7 @@ class QuestApiControllerTest @Autowired constructor(
             val detailRequest = DetailQuest.of("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
             savedQuest.replaceDetailQuests(listOf(detailRequest))
 
-            val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/complete"
+            val url = urlFormat.format(savedQuest.id)
             val errorMessage = MessageUtil.getMessage("quest.error.complete.detail")
 
             //when
@@ -1611,7 +1660,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `요청 완료 후 퀘스트가 완료 상태가 된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
-            val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/complete"
+            val url = urlFormat.format(savedQuest.id)
 
             //when
             val request = mvc
@@ -1642,7 +1691,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `메인 퀘스트 완료 시 경험치와 골드를 두배로 획득한다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.MAIN))
-            val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/complete"
+            val url = urlFormat.format(savedQuest.id)
 
             val ops = redisTemplate.boundHashOps<String, Long>(redisKeyProperties.settings)
 
@@ -1674,7 +1723,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `서브 퀘스트 완료 시 1배의 경험치와 골드를 획득한다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
-            val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/complete"
+            val url = urlFormat.format(savedQuest.id)
 
             val ops = redisTemplate.boundHashOps<String, Long>(redisKeyProperties.settings)
 
@@ -1706,7 +1755,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `로그 테이블에 데이터가 등록된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
-            val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/complete"
+            val url = urlFormat.format(savedQuest.id)
 
             //when
             val request = mvc
@@ -1724,6 +1773,63 @@ class QuestApiControllerTest @Autowired constructor(
 
             val allQuestLog = questLogRepository.findAll()
             assertThat(allQuestLog).anyMatch { log -> log.questId == savedQuest.id && log.state == QuestState.COMPLETE }
+        }
+
+        @DisplayName("현재 총 골드 획득이 0이고, 목표값이 1인 골드 획득 업적이 있을 때, 해당 업적이 달성된다")
+        @Test
+        fun `현재 총 골드 획득이 0이고, 목표값이 1인 골드 획득 업적이 있을 때, 해당 업적이 달성된다`() {
+            //given
+            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val url = urlFormat.format(savedQuest.id)
+            val targetAchievement = Achievement("t", "d", AchievementType.GOLD_EARN, 1)
+            achievementRepository.save(targetAchievement)
+
+            //when
+            mvc.patch(url) {
+                useUserConfiguration()
+            }.andExpect { status { isOk() } }
+
+            //then
+            val achieveLogs = achievementAchieveLogRepository.findAll()
+            assertThat(achieveLogs).anyMatch { it.achievement == targetAchievement }
+        }
+
+        @DisplayName("현재 완료 횟수가 0이고, 목표값이 1인 완료 업적이 있을 때, 해당 업적이 달성된다")
+        @Test
+        fun `현재 완료 횟수가 0이고, 목표값이 1인 완료 업적이 있을 때, 해당 업적이 달성된다`() {
+            //given
+            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val url = urlFormat.format(savedQuest.id)
+            val targetAchievement = Achievement("t", "d", AchievementType.QUEST_COMPLETION, 1)
+            achievementRepository.save(targetAchievement)
+
+            //when
+            mvc.patch(url) {
+                useUserConfiguration()
+            }.andExpect { status { isOk() } }
+
+            //then
+            val achieveLogs = achievementAchieveLogRepository.findAll()
+            assertThat(achieveLogs).anyMatch { it.achievement == targetAchievement }
+        }
+
+        @DisplayName("현재 연속 완료일이 0이고, 목표 값이 1인 연속 완료 업적이 있으면, 해당 업적이 달성된다")
+        @Test
+        fun `현재 연속 완료일이 0이고, 목표 값이 1인 연속 완료 업적이 있으면, 해당 업적이 달성된다`() {
+            //given
+            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val url = urlFormat.format(savedQuest.id)
+            val targetAchievement = Achievement("t", "d", AchievementType.QUEST_CONTINUOUS_COMPLETION, 1)
+            achievementRepository.save(targetAchievement)
+
+            //when
+            mvc.patch(url) {
+                useUserConfiguration()
+            }.andExpect { status { isOk() } }
+
+            //then
+            val achieveLogs = achievementAchieveLogRepository.findAll()
+            assertThat(achieveLogs).anyMatch { it.achievement == targetAchievement }
         }
     }
 

@@ -1,7 +1,5 @@
 package dailyquest.quest.controller;
 
-import dailyquest.achievement.dto.AchievementAchieveRequest;
-import dailyquest.achievement.service.AchievementService;
 import dailyquest.common.ResponseData;
 import dailyquest.common.RestPage;
 import dailyquest.common.UserLevelLock;
@@ -26,8 +24,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 
-import static dailyquest.achievement.entity.AchievementType.*;
-
 @Validated
 @Slf4j
 @RequiredArgsConstructor
@@ -37,7 +33,6 @@ public class QuestApiController {
     private final QuestService questService;
     private final UserLevelLock userLevelLock;
     private final QuestIndexService questIndexService;
-    private final AchievementService achievementService;
     private final RedisService redisService;
 
     @Value("${quest.page.size}")
@@ -89,8 +84,6 @@ public class QuestApiController {
                 () -> questService.saveQuest(dto, principal.getId())
         );
         questIndexService.saveDocument(savedQuest, principal.getId());
-        achievementService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_REGISTRATION, principal.getId(), principal.getQuestRegistrationCount()));
-        achievementService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION, principal.getId(), principal.getCurrentQuestContinuousRegistrationDays()));
         return ResponseEntity.ok(new ResponseData<>(savedQuest));
     }
 
@@ -100,7 +93,6 @@ public class QuestApiController {
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-
         QuestResponse updatedQuest = questService.updateQuest(dto, questId, principal.getId());
         questIndexService.saveDocument(updatedQuest, principal.getId());
         return new ResponseEntity<>(new ResponseData<>(updatedQuest), HttpStatus.OK);
@@ -126,8 +118,6 @@ public class QuestApiController {
         QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(questClearExp, questClearGold, questId);
         QuestResponse completedQuest = questService.completeQuest(principal.getId(), questCompletionRequest);
         questIndexService.updateQuestStateOfDocument(completedQuest, principal.getId());
-        achievementService.checkAndAchieveAchievement(AchievementAchieveRequest.of(QUEST_COMPLETION, principal.getId(), principal.getQuestCompletionCount()));
-        achievementService.checkAndAchieveAchievement(AchievementAchieveRequest.of(GOLD_EARN, principal.getId(), principal.getGoldEarnAmount()));
         return ResponseEntity.ok(new ResponseData<>());
     }
 

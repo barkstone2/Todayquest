@@ -208,8 +208,4 @@ class User @JvmOverloads constructor(
     fun increasePerfectDayCount() {
         this.perfectDayCount++
     }
-
-    fun addGoldUseAmount(goldUseAmount: Int) {
-        this.goldUseAmount += goldUseAmount
-    }
 }

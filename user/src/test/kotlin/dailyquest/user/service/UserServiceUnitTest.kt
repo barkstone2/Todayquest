@@ -1,5 +1,8 @@
 package dailyquest.user.service
 
+import dailyquest.achievement.dto.AchievementAchieveRequest
+import dailyquest.achievement.entity.AchievementType.*
+import dailyquest.achievement.service.AchievementService
 import dailyquest.user.dto.UserResponse
 import dailyquest.user.dto.UserUpdateRequest
 import dailyquest.user.entity.User
@@ -8,12 +11,14 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.MessageSource
 import org.springframework.data.repository.findByIdOrNull
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
@@ -25,9 +30,16 @@ class UserServiceUnitTest {
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
     @RelaxedMockK
+    private lateinit var achievementService: AchievementService
+    @RelaxedMockK
     private lateinit var messageSource: MessageSource
     @RelaxedMockK
     private lateinit var user: User
+
+    @BeforeEach
+    fun init() {
+        every { userRepository.findByIdOrNull(any()) } returns user
+    }
 
     @DisplayName("findUserByOauthId 호출 시")
     @Nested
@@ -98,7 +110,6 @@ class UserServiceUnitTest {
 
         @BeforeEach
         fun init() {
-            every { userRepository.findByIdOrNull(any()) } returns user
             every { user.getUpdateAvailableDateTimeOfCoreTime() } returns LocalDateTime.now()
         }
 
@@ -126,6 +137,143 @@ class UserServiceUnitTest {
 
             //then
             assertThrows<IllegalStateException> { function.invoke() }
+        }
+    }
+
+    
+    @DisplayName("유저 경험치 골드 추가 로직 호출 시")
+    @Nested
+    inner class TestAddUserExpAndGold {
+        @RelaxedMockK
+        private lateinit var updateRequest: UserUpdateRequest
+
+        @DisplayName("조회한 유저의 경험치 골드 추가 로직이 호출된다")
+        @Test
+        fun `조회한 유저의 경험치 골드 추가 로직이 호출된다`() {
+            //given
+            val userId = 1L
+            val earnedGold = 1L
+            every { updateRequest.earnedGold } returns earnedGold
+
+            //when
+            userService.addUserExpAndGold(userId, updateRequest)
+            
+            //then
+            verify { user.addExpAndGold(any(), eq(earnedGold)) }
+        }
+
+        @DisplayName("총 골드 획득 업적 달성 확인 로직이 호출된다")
+        @Test
+        fun `총 골드 획득 업적 달성 확인 로직이 호출된다`() {
+            //given
+            val userId = 1L
+            val totalEarnGold = 1L
+            every { user.goldEarnAmount } returns totalEarnGold
+            val achieveRequest = AchievementAchieveRequest.of(GOLD_EARN, userId, totalEarnGold)
+
+            //when
+            userService.addUserExpAndGold(userId, updateRequest)
+
+            //then
+            verify { achievementService.checkAndAchieveAchievement(eq(achieveRequest)) }
+        }
+    }
+
+    @DisplayName("퀘스트 등록 기록 메서드 호출 시")
+    @Nested
+    inner class TestRecordQuestRegistration {
+        @DisplayName("조회한 유저의 퀘스트 등록 횟수 증가 로직이 호출된다")
+        @Test
+        fun `조회한 유저의 퀘스트 등록 횟수 증가 로직이 호출된다`() {
+            //given
+            val userId = 1L
+
+            //when
+            userService.recordQuestRegistration(userId, LocalDate.now())
+
+            //then
+            verify { user.increaseQuestRegistrationCount(any()) }
+        }
+
+        @DisplayName("퀘스트 등록 횟수 업적 달성 확인 로직이 호출된다")
+        @Test
+        fun `퀘스트 등록 횟수 업적 달성 확인 로직이 호출된다`() {
+            //given
+            val userId = 1L
+            val questRegistrationCount = 1L
+            every { user.questRegistrationCount } returns questRegistrationCount
+            val achieveRequest = AchievementAchieveRequest.of(QUEST_REGISTRATION, userId, questRegistrationCount)
+
+            //when
+            userService.recordQuestRegistration(userId, LocalDate.now())
+
+            //then
+            verify { achievementService.checkAndAchieveAchievement(eq(achieveRequest)) }
+        }
+
+        @DisplayName("퀘스트 연속 등록 횟수 업적 달성 확인 로직이 호출된다")
+        @Test
+        fun `퀘스트 연속 등록 횟수 업적 달성 확인 로직이 호출된다`() {
+            //given
+            val userId = 1L
+            val questContinuousRegistrationDays = 1L
+            every { user.currentQuestContinuousRegistrationDays } returns questContinuousRegistrationDays
+            val achieveRequest = AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION, userId, questContinuousRegistrationDays)
+
+            //when
+            userService.recordQuestRegistration(userId, LocalDate.now())
+
+            //then
+            verify { achievementService.checkAndAchieveAchievement(eq(achieveRequest)) }
+        }
+    }
+
+    @DisplayName("퀘스트 완료 기록 메서드 호출 시")
+    @Nested
+    inner class TestRecordQuestCompletion {
+        @DisplayName("조회한 유저의 퀘스트 완료 횟수 증가 로직이 호출된다")
+        @Test
+        fun `조회한 유저의 퀘스트 완료 횟수 증가 로직이 호출된다`() {
+            //given
+            val userId = 1L
+
+            //when
+            userService.recordQuestCompletion(userId, LocalDate.now())
+
+            //then
+            verify { user.increaseQuestCompletionCount(any()) }
+        }
+
+        @DisplayName("퀘스트 완료 횟수 업적 달성 확인 로직이 호출된다")
+        @Test
+        fun `퀘스트 완료 횟수 업적 달성 확인 로직이 호출된다`() {
+            //given
+            val userId = 1L
+            val questCompletionCount = 1L
+            every { user.questCompletionCount } returns questCompletionCount
+            val achieveRequest = AchievementAchieveRequest.of(QUEST_COMPLETION, userId, questCompletionCount)
+
+            //when
+            userService.recordQuestCompletion(userId, LocalDate.now())
+
+            //then
+            verify { achievementService.checkAndAchieveAchievement(eq(achieveRequest)) }
+        }
+
+        @DisplayName("퀘스트 연속 등록 횟수 업적 달성 확인 로직이 호출된다")
+        @Test
+        fun `퀘스트 연속 등록 횟수 업적 달성 확인 로직이 호출된다`() {
+            //given
+            val userId = 1L
+            val questContinuousCompletionDays = 1L
+            every { user.currentQuestContinuousCompletionDays } returns questContinuousCompletionDays
+            val achieveRequest = AchievementAchieveRequest.of(QUEST_CONTINUOUS_COMPLETION, userId, questContinuousCompletionDays)
+
+            //when
+            userService.recordQuestCompletion(userId, LocalDate.now())
+
+            //then
+            verify { achievementService.checkAndAchieveAchievement(eq(achieveRequest)) }
         }
     }
 }

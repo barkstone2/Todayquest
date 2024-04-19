@@ -38,7 +38,6 @@ class AchievementService(
     }
 
     @Transactional
-    @Async
     fun checkAndAchieveAchievement(achieveRequest: AchievementAchieveRequest) {
         val targetAchievement = this.getNotAchievedAchievement(achieveRequest)
         if (targetAchievement?.canAchieve(achieveRequest.currentValue) == true) {

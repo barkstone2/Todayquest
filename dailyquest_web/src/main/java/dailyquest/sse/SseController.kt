@@ -20,7 +20,7 @@ class SseController(
     fun getSseEmitter(
         @AuthenticationPrincipal principal: UserPrincipal
     ): SseEmitter {
-        val emitter = sseService.findOrCreateEmitter(principal.id)
+        val emitter = sseService.createNewEmitter(principal.id)
         emitter.send(SseEmitter.event().name("connect").data(""))
         return emitter
     }

@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentHashMap
 class SseService {
     private val sseEmitters = ConcurrentHashMap<Long, SseEmitter>()
 
-    fun findOrCreateEmitter(userId: Long): SseEmitter {
-        val sseEmitter = createEmitter(userId)
+    fun createNewEmitter(userId: Long): SseEmitter {
+        val sseEmitter = SseEmitter(0)
         sseEmitters[userId] = sseEmitter
         return sseEmitter
     }
@@ -24,19 +24,5 @@ class SseService {
 
     private fun getEmitter(userId: Long): SseEmitter? {
         return sseEmitters[userId]
-    }
-
-    private fun createEmitter(userId: Long): SseEmitter {
-        val sseEmitter = SseEmitter()
-        sseEmitter.onCompletion {
-            sseEmitters.remove(userId)
-        }
-        sseEmitter.onError {
-            sseEmitter.complete()
-        }
-        sseEmitter.onTimeout {
-            sseEmitter.complete()
-        }
-        return sseEmitter
     }
 }

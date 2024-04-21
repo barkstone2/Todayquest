@@ -34,8 +34,10 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
         }
 
         return ClientConfiguration.builder()
-                .connectedTo(elasticProperties.combineHostAndPort())
+                .connectedTo(elasticProperties.getElasticAddress())
                 .usingSsl(sslContext)
+                .withConnectTimeout(elasticProperties.getConnectionTimeoutMillis())
+                .withSocketTimeout(elasticProperties.getSocketTimeoutMillis())
                 .withBasicAuth(elasticProperties.getUsername(), elasticProperties.getPassword())
                 .build();
     }

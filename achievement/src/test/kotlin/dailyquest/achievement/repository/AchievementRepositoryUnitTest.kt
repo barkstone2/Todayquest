@@ -75,7 +75,7 @@ class AchievementRepositoryUnitTest {
             val type = QUEST_REGISTRATION
             val userId = 1L
             val achievedAchievement = Achievement("", "", type, 1)
-            val notAchievedAchievement = Achievement("", "", type, 1)
+            val notAchievedAchievement = Achievement("", "", type, 2)
             achievementRepository.save(achievedAchievement)
             achievementRepository.save(notAchievedAchievement)
             achieveLogRepository.save(AchievementAchieveLog.of(achievedAchievement, userId))

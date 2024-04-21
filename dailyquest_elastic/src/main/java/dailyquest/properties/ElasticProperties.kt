@@ -1,27 +1,24 @@
 package dailyquest.properties
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.stereotype.Component
 
-@Component
 @ConfigurationProperties(prefix = "elastic")
-class ElasticProperties {
-    var username: String = ""
-    var password: String = ""
-    var host: String = ""
-    var port: String = ""
-    var truststore: ElasticSSLProperties = ElasticSSLProperties()
+class ElasticProperties(
+    private val host: String,
+    private val port: Int = 9200,
+    val username: String,
+    val password: String,
+    val connectionTimeoutMillis: Long = 5000,
+    val socketTimeoutMillis: Long = 5000,
+    val truststore: ElasticSSLProperties,
+) {
 
-    fun combineHostAndPort(): String {
-        return "$host:$port";
+    fun getElasticAddress(): String {
+        return "$host:$port"
     }
 
-
-    @Component
-    @ConfigurationProperties(prefix = "elastic.truststore")
-    class ElasticSSLProperties {
-        var location: String = ""
-        var password: String = ""
-    }
-
+    class ElasticSSLProperties(
+        val location: String,
+        val password: String,
+    )
 }

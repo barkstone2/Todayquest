@@ -41,6 +41,10 @@ class NotificationService @Autowired constructor(
         return notificationResponses
     }
 
+    fun getNotConfirmedNotificationCount(userId: Long): Int {
+        return notificationRepository.countByUserIdAndConfirmedDateIsNull(userId)
+    }
+
     @Transactional
     fun saveNotification(saveRequest: NotificationSaveRequest, userId: Long) {
         val saveEntity = saveRequest.mapToEntity()

@@ -38,14 +38,16 @@ class UserPrincipal(
     val goldUseAmount: Long = 0,
 ) : UserDetails {
 
-    @JsonIgnore
-    override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
-        return authorities
-    }
+    var notificationCount: Int = 0
 
     @JsonGetter("authorities")
     fun getAuthorityValues(): List<String> {
         return getAuthorities().map { it.authority }
+    }
+
+    @JsonIgnore
+    override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
+        return authorities
     }
 
     override fun getPassword(): String {

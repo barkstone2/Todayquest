@@ -2,37 +2,44 @@ package dailyquest.user.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import org.junit.jupiter.api.*
+import com.ninjasquad.springmockk.MockkBean
+import dailyquest.annotation.WithCustomMockUser
+import dailyquest.config.SecurityConfig
+import dailyquest.filter.InternalApiKeyValidationFilter
+import dailyquest.jwt.JwtAuthorizationFilter
+import dailyquest.notification.service.NotificationService
+import dailyquest.user.dto.UserUpdateRequest
+import dailyquest.user.service.UserService
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
+import io.mockk.verify
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
-import org.mockito.ArgumentMatchers
-import org.mockito.MockedStatic
-import org.mockito.Mockito
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doThrow
+import org.mockito.Mock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.MessageSource
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.FilterType
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import dailyquest.annotation.WithCustomMockUser
-import dailyquest.common.MessageUtil
-import dailyquest.config.SecurityConfig
-import dailyquest.filter.InternalApiKeyValidationFilter
-import dailyquest.jwt.JwtAuthorizationFilter
-import dailyquest.user.dto.UserUpdateRequest
-import dailyquest.user.service.UserService
 import java.util.stream.Stream
 
+@ExtendWith(MockKExtension::class)
 @Suppress("DEPRECATION")
 @DisplayName("유저 API 컨트롤러 유닛 테스트")
 @WithCustomMockUser
@@ -53,24 +60,16 @@ class UserControllerUnitTest {
     @Autowired
     lateinit var mvc: MockMvc
 
-    @MockBean
+    @MockkBean(relaxed = true)
     lateinit var userService: UserService
 
-    private lateinit var messageUtil: MockedStatic<MessageUtil>
+    @MockkBean(relaxed = true)
+    lateinit var notificationService: NotificationService
+
+    @MockkBean(relaxed = true)
+    lateinit var messageSource: MessageSource
 
     val om: ObjectMapper = ObjectMapper().registerModule(JavaTimeModule())
-
-    @BeforeEach
-    fun init() {
-        messageUtil = Mockito.mockStatic(MessageUtil::class.java)
-        Mockito.`when`(MessageUtil.getMessage(ArgumentMatchers.anyString())).thenReturn("")
-        Mockito.`when`(MessageUtil.getMessage(ArgumentMatchers.anyString(), ArgumentMatchers.any())).thenReturn("")
-    }
-
-    @AfterEach
-    fun afterEach() {
-        messageUtil.close()
-    }
 
     class InValidUserSettingRequest: ArgumentsProvider {
         override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
@@ -156,7 +155,7 @@ class UserControllerUnitTest {
         fun `제약조건 위반 예외 발생 시 409를 반환한다`() {
             //given
             val dto = UserUpdateRequest()
-            doThrow(DataIntegrityViolationException::class).`when`(userService).updateUser(any(), any())
+            every { userService.updateUser(any(), any()) } throws DataIntegrityViolationException("")
 
             //when
             val result = mvc.perform(
@@ -169,6 +168,33 @@ class UserControllerUnitTest {
             //then
             result
                 .andExpect(status().isConflict)
+        }
+    }
+
+    @DisplayName("유저 Principal 조회 시")
+    @Nested
+    inner class TestGetUserPrincipal {
+        @DisplayName("현재 알림 수를 조회해 같이 반환한다")
+        @Test
+        fun `현재 알림 수를 조회해 같이 반환한다`() {
+            //given
+            val notificationCount = 1
+            every { notificationService.getNotConfirmedNotificationCount(any()) } returns notificationCount
+
+            //when
+            mvc.get(URI_PREFIX) {
+                with(csrf())
+            }.andExpect {
+                status { isOk() }
+                jsonPath("$.data.notificationCount") {
+                    value(notificationCount)
+                }
+            }
+
+            //then
+            verify {
+                notificationService.getNotConfirmedNotificationCount(any())
+            }
         }
     }
 }

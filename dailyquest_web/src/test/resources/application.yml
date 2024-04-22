@@ -18,7 +18,7 @@ spring:
       password: sa
       driver-class-name: com.mysql.cj.jdbc.Driver
   messages:
-    basename: message.web, message.achievement
+    basename: message.web, message.achievement, message.user
   data:
     redis:
       database: 1

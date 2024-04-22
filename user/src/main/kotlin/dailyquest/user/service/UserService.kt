@@ -38,7 +38,7 @@ class UserService(
     @Throws(EntityNotFoundException::class)
     private fun findUser(userId: Long): User {
         val foundUser = userRepository.findById(userId).getOrNull()
-        val entityNotFoundMessage = messageSourceAccessor.getMessage("exception.entity.notfound", messageSourceAccessor.getMessage("user"))
+        val entityNotFoundMessage = messageSourceAccessor.getMessage("exception.entity.notfound", arrayOf(messageSourceAccessor.getMessage("user")))
         return foundUser ?: throw EntityNotFoundException(entityNotFoundMessage)
     }
 
@@ -60,7 +60,7 @@ class UserService(
         if (!updateSucceed) {
             val updateAvailableTime: LocalDateTime = updateTarget.getUpdateAvailableDateTimeOfCoreTime()
             val timeSinceNowUntilAvailable: String = updateAvailableTime.timeSinceNowAsString()
-            val errorMessage: String = messageSourceAccessor.getMessage("user.coreTime.updateLimit", timeSinceNowUntilAvailable)
+            val errorMessage: String = messageSourceAccessor.getMessage("user.coreTime.updateLimit", arrayOf(timeSinceNowUntilAvailable))
             throw IllegalStateException(errorMessage)
         }
     }

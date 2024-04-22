@@ -29,8 +29,6 @@ public class QuestCommandService {
 
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {
         User findUser = userRepository.getReferenceById(userId);
-        dto.checkRangeOfDeadLine();
-
         Long nextSeq = questRepository.getNextSeqByUserId(userId);
 
         Quest quest = dto.mapToEntity(nextSeq, findUser);
@@ -43,7 +41,6 @@ public class QuestCommandService {
 
     public QuestResponse updateQuest(QuestRequest dto, Long questId, Long userId) {
         Quest quest = questQueryService.getProceedEntityOfUser(questId, userId);
-        dto.checkRangeOfDeadLine();
         if(quest.isMainQuest()) dto.toMainQuest();
 
         List<DetailQuest> details = dto.getDetails().stream().map(detail -> detail.mapToEntity(quest)).toList();

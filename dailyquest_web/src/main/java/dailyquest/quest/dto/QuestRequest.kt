@@ -6,6 +6,7 @@ import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
 import dailyquest.user.entity.User
+import dailyquest.validation.constratins.DeadLineRange
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -20,6 +21,7 @@ data class QuestRequest(
     @field:Valid
     @field:Size(max = 5, message = "{Size.quest.details}")
     val details: List<DetailRequest> = emptyList(),
+    @field:DeadLineRange("{Range.quest.deadLine}")
     val deadLine: LocalDateTime? = null,
     private val preferenceQuest: PreferenceQuest? = null,
 ) {

@@ -15,6 +15,8 @@ import dailyquest.quest.service.QuestService
 import dailyquest.redis.service.RedisService
 import dailyquest.search.service.QuestIndexService
 import dailyquest.user.dto.UserPrincipal
+import io.mockk.every
+import io.mockk.mockkStatic
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -42,55 +44,9 @@ import java.time.LocalDateTime
 import java.util.function.Supplier
 import java.util.stream.Stream
 
-
 @DisplayName("퀘스트 API 컨트롤러 유닛 테스트")
 @WebMvcUnitTest([QuestApiController::class])
 class QuestApiControllerUnitTest {
-
-    companion object {
-        const val URI_PREFIX = "/api/v1/quests"
-
-    }
-
-    class InvalidIntegerSources : ArgumentsProvider {
-        override fun provideArguments(context: ExtensionContext): Stream<out Arguments> {
-            return Stream.of(
-                Arguments.of("text"),
-                Arguments.of("-100"),
-                Arguments.of(Long.MAX_VALUE),
-            )
-        }
-    }
-
-    class InvalidLongSources : ArgumentsProvider {
-        override fun provideArguments(context: ExtensionContext): Stream<out Arguments> {
-            return Stream.of(
-                Arguments.of("0"),
-                Arguments.of("text"),
-                Arguments.of("-100"),
-                Arguments.of(BigInteger("1234567890123456789012345678901234567890"))
-            )
-        }
-    }
-
-    class ValidQuestRequest: ArgumentsProvider {
-        override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
-            return Stream.of(
-                Arguments.of(QuestRequest("title", "desc")),
-            )
-        }
-    }
-
-    class InValidQuestRequest: ArgumentsProvider {
-        override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
-            val details = mutableListOf(DetailRequest("", DetailQuestType.COUNT, 0))
-            return Stream.of(
-                Arguments.of(QuestRequest("", "", details)),
-                Arguments.of(null),
-            )
-        }
-    }
-
     @Autowired
     lateinit var mvc: MockMvc
 
@@ -322,15 +278,21 @@ class QuestApiControllerUnitTest {
     @DisplayName("퀘스트 등록 시")
     @Nested
     inner class QuestSaveTest {
+        private val now = LocalDateTime.of(2020, 12, 12, 15, 0)
+        private val nextReset = now.plusDays(1).withHour(6)
+
+        @BeforeEach
+        fun init() {
+            mockkStatic(LocalDateTime::class)
+            every { LocalDateTime.now() } returns now
+            `when`(userLevelLock.executeWithLock(any(), anyInt(), any(Supplier::class.java)))
+                .thenReturn(questResponse)
+        }
 
         @ArgumentsSource(ValidQuestRequest::class)
         @DisplayName("DTO 필수 값이 모두 있다면 200 OK가 반환된다")
         @ParameterizedTest(name = "{0} 값이 들어오면 200을 반환한다")
         fun `필수 값이 모두 있다면 200 OK가 반환된다`(questRequest: QuestRequest) {
-            //given
-            `when`(userLevelLock.executeWithLock(any(), anyInt(), any(Supplier::class.java)))
-                .thenReturn(questResponse)
-
             //when
             val result = mvc.perform(
                 post(URI_PREFIX)
@@ -351,10 +313,6 @@ class QuestApiControllerUnitTest {
         @DisplayName("DTO 필수 값이 없다면 400 BAD_REQUEST가 반환된다")
         @ParameterizedTest(name = "{0} 값이 들어오면 400이 반환한다")
         fun `필수 값이 없다면 400 BAD_REQUEST가 반환된다`(questRequest: QuestRequest?) {
-            //given
-            `when`(userLevelLock.executeWithLock(any(), anyInt(), any(Supplier::class.java)))
-                .thenReturn(questResponse)
-
             //when
             val result = mvc.perform(
                 post(URI_PREFIX)
@@ -381,8 +339,6 @@ class QuestApiControllerUnitTest {
             val principal = SecurityContextHolder.getDeferredContext().get().authentication.principal as UserPrincipal
             doReturn(true).`when`(principal).isNowCoreTime()
             val questRequest = QuestRequest("t", "d")
-            `when`(userLevelLock.executeWithLock(any(), anyInt(), any(Supplier::class.java)))
-                .thenReturn(questResponse)
 
             //when
             mvc.post(URI_PREFIX) {
@@ -396,6 +352,158 @@ class QuestApiControllerUnitTest {
             assertThat(argumentCaptor.firstValue.type).isEqualTo(QuestType.MAIN)
         }
 
+        @DisplayName("현재 시간이 유저의 코어타임이 아니면 요청 DTO가 서브 타입으로 유지된다")
+        @Test
+        fun `현재 시간이 유저의 코어타임이 아니면 요청 DTO가 서브 타입으로 유지된다`() {
+            //given
+            val principal = SecurityContextHolder.getDeferredContext().get().authentication.principal as UserPrincipal
+            doReturn(false).`when`(principal).isNowCoreTime()
+            val questRequest = QuestRequest("t", "d")
+
+            //when
+            mvc.post(URI_PREFIX) {
+                content = om.writeValueAsString(questRequest)
+                unitTestDefaultConfiguration()
+            }
+
+            //then
+            val argumentCaptor = argumentCaptor<QuestRequest>()
+            verify(questApiController).saveQuest(argumentCaptor.capture(), any())
+            assertThat(argumentCaptor.firstValue.type).isEqualTo(QuestType.SUB)
+        }
+
+        @DisplayName("다른 값이 모두 유효하고 데드라인이 null이면 200이 반환된다")
+        @Test
+        fun `다른 값이 모두 유효하고 데드라인이 null이면 200이 반환된다`() {
+            //given
+            val deadLine = null
+            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+
+            //when
+            val result = mvc.post(URI_PREFIX) {
+                content = om.writeValueAsString(questRequest)
+                unitTestDefaultConfiguration()
+            }
+
+            //then
+            result.andExpect {
+                status { isOk() }
+            }
+        }
+
+        @DisplayName("데드라인 값이 현재 시간 + 5분 이전이면 400이 반환된다")
+        @Test
+        fun `데드라인 값이 현재 시간 + 5분 이전이면 400이 반환된다`() {
+            //given
+            val deadLine = now.plusMinutes(5).minusSeconds(1)
+            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+
+            //when
+            val result = mvc.post(URI_PREFIX) {
+                content = om.writeValueAsString(questRequest)
+                unitTestDefaultConfiguration()
+            }
+
+            //then
+            result.andExpect {
+                status { isBadRequest() }
+            }
+        }
+
+        @DisplayName("데드라인 값이 현재 시간 + 5분과 동일하면 400이 반환된다")
+        @Test
+        fun `데드라인 값이 현재 시간 + 5분과 동일하면 400이 반환된다`() {
+            //given
+            val deadLine = now.plusMinutes(5)
+            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+
+            //when
+            val result = mvc.post(URI_PREFIX) {
+                content = om.writeValueAsString(questRequest)
+                unitTestDefaultConfiguration()
+            }
+
+            //then
+            result.andExpect {
+                status { isBadRequest() }
+            }
+        }
+
+        @DisplayName("데드라인 값이 현재 시간 + 5분 이후면 200이 반환된다")
+        @Test
+        fun `데드라인 값이 현재 시간 + 5분 이후면 200이 반환된다`() {
+            //given
+            val deadLine = now.plusMinutes(5).plusSeconds(1)
+            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+
+            //when
+            val result = mvc.post(URI_PREFIX) {
+                content = om.writeValueAsString(questRequest)
+                unitTestDefaultConfiguration()
+            }
+
+            //then
+            result.andExpect {
+                status { isOk() }
+            }
+        }
+
+        @DisplayName("데드라인 값이 다음 오전 6시 -5분 이후면 400이 반환된다")
+        @Test
+        fun `데드라인 값이 다음 오전 6시 -5분 이후면 400이 반환된다`() {
+            //given
+            val deadLine = nextReset.minusMinutes(5).plusSeconds(1)
+            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+
+            //when
+            val result = mvc.post(URI_PREFIX) {
+                content = om.writeValueAsString(questRequest)
+                unitTestDefaultConfiguration()
+            }
+
+            //then
+            result.andExpect {
+                status { isBadRequest() }
+            }
+        }
+
+        @DisplayName("데드라인 값이 다음 오전 6시 -5분과 동일하면 400이 반환된다")
+        @Test
+        fun `데드라인 값이 다음 오전 6시 -5분과 동일하면 400이 반환된다`() {
+            //given
+            val deadLine = nextReset.minusMinutes(5)
+            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+
+            //when
+            val result = mvc.post(URI_PREFIX) {
+                content = om.writeValueAsString(questRequest)
+                unitTestDefaultConfiguration()
+            }
+
+            //then
+            result.andExpect {
+                status { isBadRequest() }
+            }
+        }
+
+        @DisplayName("데드라인 값이 다음 오전 6시 -5분 이전이면 200이 반환된다")
+        @Test
+        fun `데드라인 값이 다음 오전 6시 -5분 이전이면 200이 반환된다`() {
+            //given
+            val deadLine = nextReset.minusMinutes(5).minusSeconds(1)
+            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+
+            //when
+            val result = mvc.post(URI_PREFIX) {
+                content = om.writeValueAsString(questRequest)
+                unitTestDefaultConfiguration()
+            }
+
+            //then
+            result.andExpect {
+                status { isOk() }
+            }
+        }
     }
 
     @DisplayName("퀘스트 수정 시")
@@ -833,4 +941,46 @@ class QuestApiControllerUnitTest {
         }
     }
 
+    class InvalidIntegerSources : ArgumentsProvider {
+        override fun provideArguments(context: ExtensionContext): Stream<out Arguments> {
+            return Stream.of(
+                Arguments.of("text"),
+                Arguments.of("-100"),
+                Arguments.of(Long.MAX_VALUE),
+            )
+        }
+    }
+
+    class InvalidLongSources : ArgumentsProvider {
+        override fun provideArguments(context: ExtensionContext): Stream<out Arguments> {
+            return Stream.of(
+                Arguments.of("0"),
+                Arguments.of("text"),
+                Arguments.of("-100"),
+                Arguments.of(BigInteger("1234567890123456789012345678901234567890"))
+            )
+        }
+    }
+
+    class ValidQuestRequest: ArgumentsProvider {
+        override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
+            return Stream.of(
+                Arguments.of(QuestRequest("title", "desc")),
+            )
+        }
+    }
+
+    class InValidQuestRequest: ArgumentsProvider {
+        override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
+            val details = mutableListOf(DetailRequest("", DetailQuestType.COUNT, 0))
+            return Stream.of(
+                Arguments.of(QuestRequest("", "", details)),
+                Arguments.of(null),
+            )
+        }
+    }
+
+    companion object {
+        const val URI_PREFIX = "/api/v1/quests"
+    }
 }

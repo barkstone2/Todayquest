@@ -31,10 +31,6 @@ public class QuestCommandService {
         User findUser = userRepository.getReferenceById(userId);
         dto.checkRangeOfDeadLine();
 
-        if (findUser.isNowCoreTime()) {
-            dto.toMainQuest();
-        }
-
         Long nextSeq = questRepository.getNextSeqByUserId(userId);
 
         Quest quest = dto.mapToEntity(nextSeq, findUser);

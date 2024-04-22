@@ -4,8 +4,6 @@ import dailyquest.common.MessageUtil
 import dailyquest.quest.entity.DetailQuestType
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
-import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.User
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -77,7 +75,7 @@ class QuestRequestUnitTest {
         val questRequest = QuestRequest("title init", "description init")
 
         //when
-        val entity = questRequest.mapToEntity(1L, User("", "", ProviderType.GOOGLE))
+        val entity = questRequest.mapToEntity(1L, 1L)
 
         //then
         assertThat(entity.title).isEqualTo(questRequest.title)

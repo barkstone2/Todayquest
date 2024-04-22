@@ -44,11 +44,11 @@ data class QuestRequest(
         this.type = QuestType.MAIN
     }
 
-    fun mapToEntity(nextSeq: Long, user: User): Quest {
+    fun mapToEntity(nextSeq: Long, userId: Long): Quest {
         val quest = Quest(
             title = title,
             description = description,
-            user = user,
+            userId = userId,
             seq = nextSeq,
             state = QuestState.PROCEED,
             type = type,

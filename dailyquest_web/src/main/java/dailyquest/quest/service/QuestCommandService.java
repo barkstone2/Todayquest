@@ -6,8 +6,6 @@ import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestRepository;
-import dailyquest.user.entity.User;
-import dailyquest.user.repository.UserRepository;
 import dailyquest.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,18 +18,13 @@ import java.util.List;
 @Service
 public class QuestCommandService {
     private final QuestQueryService questQueryService;
-
     private final QuestRepository questRepository;
-    private final UserRepository userRepository;
-
     private final UserService userService;
     private final QuestLogService questLogService;
 
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {
-        User findUser = userRepository.getReferenceById(userId);
         Long nextSeq = questRepository.getNextSeqByUserId(userId);
-
-        Quest quest = dto.mapToEntity(nextSeq, findUser);
+        Quest quest = dto.mapToEntity(nextSeq, userId);
         questRepository.save(quest);
         QuestLogRequest questLogRequest = QuestLogRequest.from(quest);
         questLogService.saveQuestLog(questLogRequest);

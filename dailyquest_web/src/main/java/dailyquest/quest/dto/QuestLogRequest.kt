@@ -25,7 +25,7 @@ class QuestLogRequest private constructor(
             val nowTime = quest.createdDate.toLocalTime()
             val resetTime = LocalTime.of(6, 0)
             val loggedDate = if (nowTime.isBefore(resetTime)) createdDate.minusDays(1L) else createdDate
-            return QuestLogRequest(quest.user.id, quest.id, quest.state, quest.type, loggedDate)
+            return QuestLogRequest(quest.userId, quest.id, quest.state, quest.type, loggedDate)
         }
     }
 }

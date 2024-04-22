@@ -6,8 +6,6 @@ import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestRepository;
-import dailyquest.user.entity.User;
-import dailyquest.user.repository.UserRepository;
 import dailyquest.user.service.UserService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +30,6 @@ public class QuestCommandServiceUnitTest {
     @InjectMocks QuestCommandService questCommandService;
     @Mock QuestQueryService questQueryService;
     @Mock QuestRepository questRepository;
-    @Mock UserRepository userRepository;
     @Mock UserService userService;
     @Mock QuestLogService questLogService;
     MockedStatic<QuestLogRequest> mockedStatic;
@@ -53,14 +50,12 @@ public class QuestCommandServiceUnitTest {
     @Nested
     class QuestSaveTest {
 
-        @Mock private User foundUser;
         @Mock private QuestRequest saveRequest;
         @Mock(answer = Answers.RETURNS_SMART_NULLS) private Quest saveEntity;
 
         @BeforeEach
         void init() {
-            doReturn(foundUser).when(userRepository).getReferenceById(any());
-            doReturn(saveEntity).when(saveRequest).mapToEntity(anyLong(), any());
+            doReturn(saveEntity).when(saveRequest).mapToEntity(anyLong(), anyLong());
             doReturn(1L).when(questRepository).getNextSeqByUserId(any());
         }
 

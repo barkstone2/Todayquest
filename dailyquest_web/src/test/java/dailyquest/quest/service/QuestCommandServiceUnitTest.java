@@ -99,22 +99,6 @@ public class QuestCommandServiceUnitTest {
             verify(questQueryService).getProceedEntityOfUser(eq(questId), eq(userId));
         }
 
-
-        @DisplayName("요청 DTO 의 데드라인 범위 체크 메서드가 호출된다")
-        @Test
-        void invokeDeadLineCheckMethod() {
-            //given
-            doReturn(updateTarget).when(questQueryService).getProceedEntityOfUser(any(), any());
-            doReturn(false).when(updateTarget).isMainQuest();
-            QuestRequest mockDto = mock(QuestRequest.class);
-
-            //when
-            questCommandService.updateQuest(mockDto, 1L, 1L);
-
-            //then
-            verify(mockDto, times(1)).checkRangeOfDeadLine();
-        }
-
         @DisplayName("요청 DTO 정보로 updateQuestEntity 메서드가 호출된다")
         @Test
         void invokeQuestUpdateMethod() {

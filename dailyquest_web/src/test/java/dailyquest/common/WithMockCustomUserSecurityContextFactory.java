@@ -1,6 +1,7 @@
 package dailyquest.common;
 
 import dailyquest.user.dto.UserResponse;
+import org.mockito.Mockito;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -19,8 +20,9 @@ public class WithMockCustomUserSecurityContextFactory implements WithSecurityCon
 
         UserResponse userResponse = new UserResponse(1, "");
         UserPrincipal principal = UserPrincipal.from(userResponse, new HashMap<>());
+        UserPrincipal spyPrincipal = Mockito.spy(principal);
 
-        Authentication auth = new UsernamePasswordAuthenticationToken(principal, principal.getPassword(), principal.getAuthorities());
+        Authentication auth = new UsernamePasswordAuthenticationToken(spyPrincipal, principal.getPassword(), principal.getAuthorities());
         context.setAuthentication(auth);
         return context;
     }

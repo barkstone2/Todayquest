@@ -23,7 +23,8 @@ data class QuestRequest(
     val deadLine: LocalDateTime? = null,
     private val preferenceQuest: PreferenceQuest? = null,
 ) {
-    private var type: QuestType = QuestType.SUB
+    var type: QuestType = QuestType.SUB
+        private set
 
     companion object {
         @JvmStatic

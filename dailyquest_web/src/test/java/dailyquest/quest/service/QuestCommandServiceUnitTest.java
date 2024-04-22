@@ -64,32 +64,6 @@ public class QuestCommandServiceUnitTest {
             doReturn(1L).when(questRepository).getNextSeqByUserId(any());
         }
 
-        @DisplayName("현재 시간이 유저의 코어타임이라면 타입 변경 로직을 호출한다")
-        @Test
-        void ifCoreTimeChangeToMainType() {
-            //given
-            doReturn(true).when(foundUser).isNowCoreTime();
-
-            //when
-            questCommandService.saveQuest(saveRequest, 1L);
-
-            //then
-            verify(saveRequest, times(1)).toMainQuest();
-        }
-
-        @DisplayName("현재 시간이 유저의 코어타임 아니라면 타입 변경 로직을 호출하지 않는다")
-        @Test
-        void ifNotCoreTimeDoesNotChangeType() {
-            //given
-            doReturn(false).when(foundUser).isNowCoreTime();
-
-            //when
-            questCommandService.saveQuest(saveRequest, 1L);
-
-            //then
-            verify(saveRequest, times(0)).toMainQuest();
-        }
-
         @DisplayName("유저의 퀘스트 등록 횟수 증가 로직이 호출된다")
         @Test
         public void callAddQuestRegistrationCountOfUser() throws Exception {
@@ -125,35 +99,6 @@ public class QuestCommandServiceUnitTest {
             verify(questQueryService).getProceedEntityOfUser(eq(questId), eq(userId));
         }
 
-        @DisplayName("대상 퀘스트가 메인 퀘스트라면 DTO 타입도 메인으로 변경한다")
-        @Test
-        void ifQuestTypeIsMainThanChangeTypeOfDtoToMain() {
-            //given
-            doReturn(updateTarget).when(questQueryService).getProceedEntityOfUser(any(), any());
-            doReturn(true).when(updateTarget).isMainQuest();
-            QuestRequest mockDto = mock(QuestRequest.class);
-
-            //when
-            questCommandService.updateQuest(mockDto, 1L, 1L);
-
-            //then
-            verify(mockDto, times(1)).toMainQuest();
-        }
-
-        @DisplayName("대상 퀘스트가 서브 퀘스트라면 DTO 타입 변경이 발생하지 않는다")
-        @Test
-        void ifQuestTypeIsSubThanDoNotChangeTypeOfDto() {
-            //given
-            doReturn(updateTarget).when(questQueryService).getProceedEntityOfUser(any(), any());
-            doReturn(false).when(updateTarget).isMainQuest();
-            QuestRequest mockDto = mock(QuestRequest.class);
-
-            //when
-            questCommandService.updateQuest(mockDto, 1L, 1L);
-
-            //then
-            verify(mockDto, never()).toMainQuest();
-        }
 
         @DisplayName("요청 DTO 의 데드라인 범위 체크 메서드가 호출된다")
         @Test

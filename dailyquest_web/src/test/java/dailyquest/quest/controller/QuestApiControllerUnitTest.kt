@@ -2,20 +2,19 @@ package dailyquest.quest.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import dailyquest.achievement.service.AchievementService
-import dailyquest.annotation.WithCustomMockUser
+import dailyquest.annotation.WebMvcUnitTest
 import dailyquest.common.MessageUtil
 import dailyquest.common.RestPage
 import dailyquest.common.UserLevelLock
-import dailyquest.config.SecurityConfig
-import dailyquest.filter.InternalApiKeyValidationFilter
-import dailyquest.jwt.JwtAuthorizationFilter
+import dailyquest.common.unitTestDefaultConfiguration
 import dailyquest.quest.dto.*
 import dailyquest.quest.entity.DetailQuestType
 import dailyquest.quest.entity.QuestState
+import dailyquest.quest.entity.QuestType
 import dailyquest.quest.service.QuestService
 import dailyquest.redis.service.RedisService
 import dailyquest.search.service.QuestIndexService
+import dailyquest.user.dto.UserPrincipal
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -27,31 +26,25 @@ import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.context.annotation.ComponentScan.Filter
-import org.springframework.context.annotation.FilterType
+import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.http.MediaType
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.math.BigInteger
+import java.time.LocalDateTime
 import java.util.function.Supplier
 import java.util.stream.Stream
 
 
 @DisplayName("퀘스트 API 컨트롤러 유닛 테스트")
-@WithCustomMockUser
-@WebMvcTest(controllers = [QuestApiController::class],
-    excludeFilters = [
-        Filter(
-            type = FilterType.ASSIGNABLE_TYPE,
-            classes = [SecurityConfig::class, JwtAuthorizationFilter::class, InternalApiKeyValidationFilter::class]
-        )
-    ]
-)
+@WebMvcUnitTest([QuestApiController::class])
 class QuestApiControllerUnitTest {
 
     companion object {
@@ -112,6 +105,9 @@ class QuestApiControllerUnitTest {
 
     @MockBean
     lateinit var redisService: RedisService
+
+    @SpyBean
+    lateinit var questApiController: QuestApiController
 
     private lateinit var messageUtil: MockedStatic<MessageUtil>
 
@@ -376,6 +372,28 @@ class QuestApiControllerUnitTest {
                 .andExpect(jsonPath("$.errorResponse.message").exists())
                 .andExpect(jsonPath("$.errorResponse.errors").exists())
                 .andReturn()
+        }
+
+        @DisplayName("현재 시간이 유저의 코어타임이라면 요청 DTO가 main 타입으로 변경된다")
+        @Test
+        fun `현재 시간이 유저의 코어타임이라면 요청 DTO가 main 타입으로 변경된다`() {
+            //given
+            val principal = SecurityContextHolder.getDeferredContext().get().authentication.principal as UserPrincipal
+            doReturn(true).`when`(principal).isNowCoreTime()
+            val questRequest = QuestRequest("t", "d")
+            `when`(userLevelLock.executeWithLock(any(), anyInt(), any(Supplier::class.java)))
+                .thenReturn(questResponse)
+
+            //when
+            mvc.post(URI_PREFIX) {
+                content = om.writeValueAsString(questRequest)
+                unitTestDefaultConfiguration()
+            }
+
+            //then
+            val argumentCaptor = argumentCaptor<QuestRequest>()
+            verify(questApiController).saveQuest(argumentCaptor.capture(), any())
+            assertThat(argumentCaptor.firstValue.type).isEqualTo(QuestType.MAIN)
         }
 
     }

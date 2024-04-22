@@ -126,47 +126,6 @@ class UserEntityUnitTest {
         }
     }
 
-    @DisplayName("코어타임 확인 로직 호출시")
-    @Nested
-    inner class IsNowCoreTimeTest {
-
-        @DisplayName("현재 시간이 코어 타임 범위에 속하지 않는 경우 false를 반환한다")
-        @Test
-        fun `현재 시간이 코어 타임 범위에 속하지 않는 경우 false를 반환한다`() {
-            //given
-            val now = LocalTime.now()
-            val user = User("", "", ProviderType.GOOGLE)
-
-            val coreTime = now.minusHours(1).hour
-
-            user.updateCoreTime(coreTime)
-
-            //when
-            val nowCoreTime = user.isNowCoreTime()
-
-            //then
-            assertThat(nowCoreTime).isFalse()
-        }
-
-        @DisplayName("현재 시간이 코어타임에 포함된 경우 true 를 반환한다")
-        @Test
-        fun `현재 시간이 코어타임에 포함된 경우 true 를 반환한다`() {
-            //given
-            val now = LocalTime.now()
-            val user = User("", "", ProviderType.GOOGLE)
-
-            val coreTime = now.hour
-
-            user.updateCoreTime(coreTime)
-
-            //when
-            val nowCoreTime = user.isNowCoreTime()
-
-            //then
-            assertThat(nowCoreTime).isTrue()
-        }
-    }
-
     @DisplayName("유저 업데이트 시")
     @Nested
     inner class TestUserUpdate {

@@ -77,6 +77,9 @@ public class QuestApiController {
             @Valid @RequestBody QuestRequest dto,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        if (principal.isNowCoreTime()) {
+            dto.toMainQuest();
+        }
 
         QuestResponse savedQuest = userLevelLock.executeWithLock(
                 "QUEST_SEQ" + principal.getId(),

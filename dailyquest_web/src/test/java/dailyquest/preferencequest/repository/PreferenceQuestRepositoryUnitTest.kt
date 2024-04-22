@@ -98,7 +98,7 @@ class PreferenceQuestRepositoryUnitTest {
             val usedCountList = listOf(1L, 3L, 0L)
             for (i in pqList.indices) {
                 for (j in 0 until usedCountList[i]) {
-                    val quest = Quest("t", user = user, seq = 1L, type = QuestType.MAIN, preferenceQuest = pqList[i])
+                    val quest = Quest("t", userId = user.id, seq = 1L, type = QuestType.MAIN, preferenceQuest = pqList[i])
                     questRepository.save(quest)
                 }
             }

@@ -1,16 +1,16 @@
 package dailyquest.quest.service;
 
-import dailyquest.common.RestPage;
 import dailyquest.quest.dto.*;
 import dailyquest.quest.entity.QuestState;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class QuestService {
@@ -22,40 +22,45 @@ public class QuestService {
         return questQueryService.getCurrentQuests(userId, state);
     }
 
-    public RestPage<QuestResponse> searchQuest(Long userId, QuestSearchCondition searchCondition, Pageable pageable) {
+    public Page<QuestResponse> searchQuest(Long userId, QuestSearchCondition searchCondition, Pageable pageable) {
         return questQueryService.getQuestsByCondition(userId, searchCondition, pageable);
     }
 
-    public RestPage<QuestResponse> searchQuest(List<Long> searchedIds, Pageable pageable) {
+    public Page<QuestResponse> searchQuest(List<Long> searchedIds, Pageable pageable) {
         return questQueryService.getSearchedQuests(searchedIds, pageable);
     }
 
     public QuestResponse getQuestInfo(Long questId, Long userId) {
-        return QuestResponse.createDto(questQueryService.getEntityOfUser(questId, userId));
+        return questQueryService.getQuestInfo(questId, userId);
     }
 
+    @Transactional
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {
         return questCommandService.saveQuest(dto, userId);
     }
 
+    @Transactional
     public QuestResponse updateQuest(QuestRequest dto, Long questId, Long userId) {
         return questCommandService.updateQuest(dto, questId, userId);
     }
 
+    @Transactional
     public QuestResponse deleteQuest(Long questId, Long userId) {
         return questCommandService.deleteQuest(questId, userId);
     }
 
+    @Transactional
     public QuestResponse completeQuest(Long userId, QuestCompletionRequest questCompletionRequest) {
         return questCommandService.completeQuest(userId, questCompletionRequest);
     }
 
+    @Transactional
     public QuestResponse discardQuest(Long questId, Long userId) {
         return questCommandService.discardQuest(questId, userId);
     }
 
+    @Transactional
     public DetailResponse updateDetailQuestCount(Long userId, DetailInteractRequest request) {
         return questCommandService.updateDetailQuestCount(userId, request);
     }
-
 }

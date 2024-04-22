@@ -56,9 +56,9 @@ public class QuestApiController {
         PageRequest pageable = PageRequest.of(searchCondition.page(), pageSize);
         if(searchCondition.isKeywordSearch()) {
             List<Long> searchedIds = questIndexService.searchDocuments(searchCondition, principal.getId(), pageable);
-            questList = questService.searchQuest(searchedIds, pageable);
+            questList = new RestPage<>(questService.searchQuest(searchedIds, pageable));
         } else {
-            questList = questService.searchQuest(principal.getId(), searchCondition, pageable);
+            questList = new RestPage<>(questService.searchQuest(principal.getId(), searchCondition, pageable));
         }
         return ResponseEntity.ok(new ResponseData<>(questList));
     }

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import dailyquest.annotation.WebMvcUnitTest
 import dailyquest.common.MessageUtil
-import dailyquest.common.RestPage
 import dailyquest.common.UserLevelLock
 import dailyquest.common.unitTestDefaultConfiguration
 import dailyquest.quest.dto.*
@@ -32,6 +31,8 @@ import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -72,7 +73,7 @@ class QuestApiControllerUnitTest {
     val om: ObjectMapper = ObjectMapper().registerModule(JavaTimeModule())
 
     lateinit var currentQuests: List<QuestResponse>
-    lateinit var searchedQuests: RestPage<QuestResponse>
+    lateinit var searchedQuests: Page<QuestResponse>
 
     @BeforeEach
     fun init() {
@@ -81,7 +82,8 @@ class QuestApiControllerUnitTest {
 
         val quest2 = questResponse.copy(title = "title2")
         currentQuests = listOf(questResponse, quest2)
-        searchedQuests = RestPage(currentQuests, 0, 10, 10)
+        searchedQuests = PageImpl(currentQuests)
+        doReturn(searchedQuests).`when`(questService).searchQuest(any(), any(), any())
         detailResponse = DetailResponse(title = "title")
 
         messageUtil = mockStatic(MessageUtil::class.java)

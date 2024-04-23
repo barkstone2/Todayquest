@@ -32,7 +32,7 @@ public class QuestCommandService {
     }
 
     public QuestResponse saveQuest(QuestRequest dto, Long userId) {
-        Long nextSeq = questRepository.getNextSeqByUserId(userId);
+        Long nextSeq = questRepository.getNextSeqOfUser(userId);
         Quest quest = dto.mapToEntity(nextSeq, userId);
         questRepository.save(quest);
         QuestLogRequest questLogRequest = QuestLogRequest.from(quest);

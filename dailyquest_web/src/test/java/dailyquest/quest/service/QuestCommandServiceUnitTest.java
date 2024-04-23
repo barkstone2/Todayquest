@@ -57,7 +57,7 @@ public class QuestCommandServiceUnitTest {
         @BeforeEach
         void init() {
             doReturn(saveEntity).when(saveRequest).mapToEntity(anyLong(), anyLong());
-            doReturn(1L).when(questRepository).getNextSeqByUserId(any());
+            doReturn(1L).when(questRepository).getNextSeqOfUser(any());
         }
 
         @DisplayName("유저의 퀘스트 등록 횟수 증가 로직이 호출된다")

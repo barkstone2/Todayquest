@@ -177,10 +177,10 @@ class QuestRepositoryUnitTest {
 
             //given
             val userId = user.id
-            val initSeq = questRepository.getNextSeqByUserId(userId)
+            val initSeq = questRepository.getNextSeqOfUser(userId)
 
             //when
-            val nextSeq = questRepository.getNextSeqByUserId(userId)
+            val nextSeq = questRepository.getNextSeqOfUser(userId)
 
             //then
             assertThat(initSeq).isEqualTo(nextSeq)
@@ -197,7 +197,7 @@ class QuestRepositoryUnitTest {
             questRepository.save(saveQuest)
 
             //when
-            val nextSeq = questRepository.getNextSeqByUserId(userId)
+            val nextSeq = questRepository.getNextSeqOfUser(userId)
 
             //then
             assertThat(nextSeq).isEqualTo(maxSeq+1)
@@ -213,7 +213,7 @@ class QuestRepositoryUnitTest {
             questRepository.flush()
 
             //when
-            val nextSeq = questRepository.getNextSeqByUserId(userId)
+            val nextSeq = questRepository.getNextSeqOfUser(userId)
 
             //then
             assertThat(nextSeq).isEqualTo(1)
@@ -235,8 +235,8 @@ class QuestRepositoryUnitTest {
             questRepository.save(saveQuest)
 
             //when
-            val user1NextSeq = questRepository.getNextSeqByUserId(userId1)
-            val user2NextSeq = questRepository.getNextSeqByUserId(userId2)
+            val user1NextSeq = questRepository.getNextSeqOfUser(userId1)
+            val user2NextSeq = questRepository.getNextSeqOfUser(userId2)
 
             //then
             assertThat(user1NextSeq).isEqualTo(user1Seq+1)

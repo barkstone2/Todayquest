@@ -7,6 +7,6 @@ import org.springframework.data.domain.Pageable;
 
 public interface QuestRepositoryCustom {
 
-    Long getNextSeqByUserId(Long userId);
+    Long getNextSeqOfUser(Long userId);
     Page<Quest> findQuestsByCondition(Long userId, QuestSearchCondition searchCondition, Pageable pageable);
 }

@@ -28,6 +28,7 @@ class UserPrincipalUnitTest {
         @AfterEach
         fun destroy() {
             unmockkStatic(LocalDate::class)
+            unmockkStatic(LocalDateTime::class)
         }
 
         @DisplayName("현재 시간이 코어타임 시간과 동일한 경우 true를 반환한다")

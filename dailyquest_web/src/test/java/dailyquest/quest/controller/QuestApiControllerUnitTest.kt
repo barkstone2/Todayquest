@@ -16,6 +16,7 @@ import dailyquest.search.service.QuestIndexService
 import dailyquest.user.dto.UserPrincipal
 import io.mockk.every
 import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -289,6 +290,11 @@ class QuestApiControllerUnitTest {
             every { LocalDateTime.now() } returns now
             `when`(userLevelLock.executeWithLock(any(), anyInt(), any(Supplier::class.java)))
                 .thenReturn(questResponse)
+        }
+
+        @AfterEach
+        fun destroy() {
+            unmockkStatic(LocalDateTime::class)
         }
 
         @ArgumentsSource(ValidQuestRequest::class)

@@ -2,7 +2,9 @@ package dailyquest.validation.validator
 
 import io.mockk.every
 import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -27,6 +29,11 @@ class DeadLineRangeValidatorUnitTest {
         fun init() {
             mockkStatic(LocalDateTime::class)
             every { LocalDateTime.now() } returns now
+        }
+
+        @AfterEach
+        fun destroy() {
+            unmockkStatic(LocalDateTime::class)
         }
 
         @DisplayName("검증값이 null이면 true를 반환한다")

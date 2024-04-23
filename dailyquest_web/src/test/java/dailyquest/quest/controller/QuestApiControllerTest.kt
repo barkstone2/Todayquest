@@ -2006,14 +2006,14 @@ class QuestApiControllerTest @Autowired constructor(
 
         @BeforeEach
         fun beforeEach() {
-            val seq = questRepository.getNextSeqByUserId(user.id)
+            val seq = questRepository.getNextSeqOfUser(user.id)
             quest = Quest("t", "d", user.id, seq, type = QuestType.MAIN)
             proceedDetailQuest = DetailQuest.of("t", 10, DetailQuestType.COUNT, DetailQuestState.PROCEED, quest)
             completedDetailQuest = DetailQuest.of("t", 10, 10, DetailQuestType.COUNT, DetailQuestState.COMPLETE, quest)
             quest.replaceDetailQuests(listOf(proceedDetailQuest, completedDetailQuest))
             questRepository.save(quest)
 
-            val anotherSeq = questRepository.getNextSeqByUserId(anotherUser.id)
+            val anotherSeq = questRepository.getNextSeqOfUser(anotherUser.id)
             questOfOtherUser = Quest("t", "d", anotherUser.id, anotherSeq, type = QuestType.MAIN)
             detailQuestOfOtherUser = DetailQuest.of("t", 10, DetailQuestType.COUNT, DetailQuestState.PROCEED, questOfOtherUser)
             questOfOtherUser.replaceDetailQuests(listOf(detailQuestOfOtherUser))

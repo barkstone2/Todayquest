@@ -35,7 +35,7 @@ public class QuestRepositoryImpl implements QuestRepositoryCustom {
      * 동시성 문제로 인해 네임드 락을 사용한 환경에서만 호출하도록 해야함
      */
     @Override
-    public Long getNextSeqByUserId(Long userId) {
+    public Long getNextSeqOfUser(Long userId) {
 
         return Optional.ofNullable(query.select(quest.seq.max())
                 .from(quest)

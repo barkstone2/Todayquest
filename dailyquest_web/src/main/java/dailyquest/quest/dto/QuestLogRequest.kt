@@ -18,6 +18,30 @@ class QuestLogRequest private constructor(
         return QuestLog(userId, questId, state, type, loggedDate)
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as QuestLogRequest
+
+        if (userId != other.userId) return false
+        if (questId != other.questId) return false
+        if (state != other.state) return false
+        if (type != other.type) return false
+        if (loggedDate != other.loggedDate) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = userId.hashCode()
+        result = 31 * result + questId.hashCode()
+        result = 31 * result + state.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + loggedDate.hashCode()
+        return result
+    }
+
     companion object {
         @JvmStatic
         fun from(quest: Quest): QuestLogRequest {

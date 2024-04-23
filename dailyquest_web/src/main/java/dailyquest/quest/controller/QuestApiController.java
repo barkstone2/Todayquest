@@ -6,7 +6,6 @@ import dailyquest.common.UserLevelLock;
 import dailyquest.quest.dto.*;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.service.QuestService;
-import dailyquest.redis.service.RedisService;
 import dailyquest.search.service.QuestIndexService;
 import dailyquest.user.dto.UserPrincipal;
 import jakarta.validation.Valid;
@@ -33,7 +32,6 @@ public class QuestApiController {
     private final QuestService questService;
     private final UserLevelLock userLevelLock;
     private final QuestIndexService questIndexService;
-    private final RedisService redisService;
 
     @Value("${quest.page.size}")
     private int pageSize;
@@ -116,10 +114,7 @@ public class QuestApiController {
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) throws IOException {
-        long questClearExp = redisService.getQuestClearExp();
-        long questClearGold = redisService.getQuestClearGold();
-        QuestCompletionRequest questCompletionRequest = new QuestCompletionRequest(questClearExp, questClearGold, questId);
-        QuestResponse completedQuest = questService.completeQuest(principal.getId(), questCompletionRequest);
+        QuestResponse completedQuest = questService.completeQuest(principal.getId(), questId);
         questIndexService.updateQuestStateOfDocument(completedQuest, principal.getId());
         return ResponseEntity.ok(new ResponseData<>());
     }

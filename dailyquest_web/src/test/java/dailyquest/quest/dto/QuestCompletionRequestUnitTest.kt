@@ -18,7 +18,7 @@ class QuestCompletionRequestUnitTest {
             //given
             val baseExp = 10L
             val type = QuestType.MAIN
-            val request = QuestCompletionRequest(earnedExp = baseExp, questId = 1, type = type)
+            val request = QuestCompletionUserUpdateRequest(earnedExp = baseExp, type = type)
 
             //when
             val resultExp = request.earnedExp
@@ -33,7 +33,7 @@ class QuestCompletionRequestUnitTest {
             //given
             val baseExp = 10L
             val type = QuestType.SUB
-            val request = QuestCompletionRequest(earnedExp = baseExp, questId = 1, type = type)
+            val request = QuestCompletionUserUpdateRequest(earnedExp = baseExp, type = type)
 
             //when
             val resultExp = request.earnedExp
@@ -52,7 +52,7 @@ class QuestCompletionRequestUnitTest {
             //given
             val baseGold = 10L
             val type = QuestType.MAIN
-            val request = QuestCompletionRequest(earnedGold = baseGold, questId = 1, type = type)
+            val request = QuestCompletionUserUpdateRequest(earnedGold = baseGold, type = type)
 
             //when
             val resultExp = request.earnedGold
@@ -67,7 +67,7 @@ class QuestCompletionRequestUnitTest {
             //given
             val baseGold = 10L
             val type = QuestType.SUB
-            val request = QuestCompletionRequest(earnedGold = baseGold, questId = 1, type = type)
+            val request = QuestCompletionUserUpdateRequest(earnedGold = baseGold, type = type)
 
             //when
             val resultExp = request.earnedGold

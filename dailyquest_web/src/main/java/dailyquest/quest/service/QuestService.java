@@ -50,8 +50,8 @@ public class QuestService {
     }
 
     @Transactional
-    public QuestResponse completeQuest(Long userId, QuestCompletionRequest questCompletionRequest) {
-        return questCommandService.completeQuest(userId, questCompletionRequest);
+    public QuestResponse completeQuest(Long userId, Long questId) {
+        return questCommandService.completeQuest(userId, questId);
     }
 
     @Transactional

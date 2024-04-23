@@ -5,6 +5,7 @@ import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestRepository;
+import dailyquest.redis.service.RedisService;
 import dailyquest.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +22,15 @@ public class QuestCommandService {
     private final QuestRepository questRepository;
     private final UserService userService;
     private final QuestLogService questLogService;
+    private final RedisService redisService;
     private final MessageSourceAccessor messageSourceAccessor;
 
     @Autowired
-    public QuestCommandService(QuestRepository questRepository, UserService userService, QuestLogService questLogService, MessageSource messageSource) {
+    public QuestCommandService(QuestRepository questRepository, UserService userService, QuestLogService questLogService, RedisService redisService, MessageSource messageSource) {
         this.questRepository = questRepository;
         this.userService = userService;
         this.questLogService = questLogService;
+        this.redisService = redisService;
         this.messageSourceAccessor = new MessageSourceAccessor(messageSource);
     }
 
@@ -70,17 +73,16 @@ public class QuestCommandService {
         return QuestResponse.createDto(quest);
     }
 
-    public QuestResponse completeQuest(Long userId, QuestCompletionRequest questCompletionRequest) {
-        Quest quest = this.getEntityOfUser(questCompletionRequest.getQuestId(), userId);
+    public QuestResponse completeQuest(Long userId, Long questId) {
+        Quest quest = this.getEntityOfUser(questId, userId);
         QuestState resultState = quest.completeQuest();
         switch (resultState) {
             case COMPLETE -> {
-                if (quest.isMainQuest()) {
-                    questCompletionRequest.toMainQuest();
-                }
-                userService.addUserExpAndGold(userId, questCompletionRequest);
                 QuestLogRequest questLogRequest = QuestLogRequest.from(quest);
                 questLogService.saveQuestLog(questLogRequest);
+                QuestCompletionUserUpdateRequest questCompletionUserUpdateRequest
+                        = new QuestCompletionUserUpdateRequest(redisService.getQuestClearExp(), redisService.getQuestClearGold(), quest.getType());
+                userService.addUserExpAndGold(userId, questCompletionUserUpdateRequest);
                 userService.recordQuestCompletion(userId, questLogRequest.getLoggedDate());
             }
             case DELETE -> throw new IllegalStateException(messageSourceAccessor.getMessage("quest.error.deleted"));

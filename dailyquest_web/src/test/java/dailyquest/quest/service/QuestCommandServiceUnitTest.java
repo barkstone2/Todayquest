@@ -4,7 +4,9 @@ import dailyquest.quest.dto.*;
 import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
+import dailyquest.quest.entity.QuestType;
 import dailyquest.quest.repository.QuestRepository;
+import dailyquest.redis.service.RedisService;
 import dailyquest.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
@@ -17,6 +19,8 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +37,7 @@ public class QuestCommandServiceUnitTest {
     @Mock UserService userService;
     @Mock QuestLogService questLogService;
     @Mock MessageSource messageSource;
+    @Mock RedisService redisService;
     MockedStatic<QuestLogRequest> mockedStatic;
 
     @BeforeEach
@@ -166,7 +171,6 @@ public class QuestCommandServiceUnitTest {
     @Nested
     class QuestCompleteTest {
         private Quest completeTarget;
-        private QuestCompletionRequest questCompletionRequest;
 
         @BeforeEach
         void beforeEach() {
@@ -174,18 +178,16 @@ public class QuestCommandServiceUnitTest {
             lenient().doReturn(completeTarget).when(questRepository).findByIdAndUserId(any(), any());
             lenient().doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
             lenient().doReturn(true).when(completeTarget).isMainQuest();
-            questCompletionRequest = mock(QuestCompletionRequest.class, Answers.RETURNS_SMART_NULLS);
         }
 
         @DisplayName("리포지토리 조회 결과가 null이면 EntityNotFound 예외가 발생한다")
         @Test
         void throwIfRepositoryReturnNull() {
             //given
-            Long userId = 1L;
             doReturn(null).when(questRepository).findByIdAndUserId(any(), any());
 
             //when
-            Executable run = () -> questCommandService.completeQuest(userId, questCompletionRequest);
+            Executable run = () -> questCommandService.completeQuest(1L, 1L);
 
             //then
             assertThrows(EntityNotFoundException.class, run);
@@ -198,7 +200,7 @@ public class QuestCommandServiceUnitTest {
             doReturn(QuestState.DELETE).when(completeTarget).completeQuest();
 
             //when
-            Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
+            Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
 
             //then
             assertThrows(IllegalStateException.class, testMethod);
@@ -211,78 +213,85 @@ public class QuestCommandServiceUnitTest {
             doReturn(QuestState.PROCEED).when(completeTarget).completeQuest();
 
             //when
-            Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
+            Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
 
             //then
             assertThrows(IllegalStateException.class, testMethod);
         }
 
-        @DisplayName("결과 상태가 COMPLETE 가 아니면 IllegalStateException 예외를 던진다")
+        @DisplayName("결과 상태가 DELETE, PROCEED, COMPLETE 가 아니면 IllegalStateException 예외를 던진다")
         @Test
         public void ifResultStateIsNotCompleteThanThrowException() {
             //given
             doReturn(QuestState.FAIL).when(completeTarget).completeQuest();
 
             //when
-            Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
+            Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
 
             //then
             assertThrows(IllegalStateException.class, testMethod);
         }
 
-        @DisplayName("결과 상태가 COMPLETE면 유저 경험치, 골드 증가 로직을 호출한다")
-        @Test
-        public void ifResultStateIsCompleteThanCallUserExpAndGoldEarn() {
-            //given
-            long userId = 1L;
-            doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
+        @DisplayName("결과 상태가 COMPLETE면")
+        @Nested
+        class TestWhenComplete {
+            private final long userId = 1L;
+            private final long questId = 1L;
 
-            //when
-            questCommandService.completeQuest(userId, questCompletionRequest);
+            @BeforeEach
+            void init() {
+                lenient().doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
+                lenient().doReturn(QuestType.MAIN).when(completeTarget).getType();
+                lenient().doReturn(userId).when(completeTarget).getUserId();
+                lenient().doReturn(questId).when(completeTarget).getId();
+                lenient().doReturn(LocalDateTime.now()).when(completeTarget).getCreatedDate();
+            }
 
-            //then
-            verify(userService, times(1)).addUserExpAndGold(eq(userId), eq(questCompletionRequest));
-        }
+            @DisplayName("레디스 서비스를 통해 조회한 퀘스트 클리어 경험치, 골드와 현재 퀘스트 타입으로 DTO를 생성해 유저 경험치 골드 추가 요청을 한다")
+            @Test
+            public void requestAddUserExpAndGoldByRedisAndCurrentType() {
+                //given
+                long clearExp = 1L;
+                long clearGold = 1L;
+                QuestType type = QuestType.SUB;
+                doReturn(clearExp).when(redisService).getQuestClearExp();
+                doReturn(clearGold).when(redisService).getQuestClearGold();
+                doReturn(type).when(completeTarget).getType();
+                QuestCompletionUserUpdateRequest userUpdateRequest = new QuestCompletionUserUpdateRequest(clearExp, clearGold, type);
 
-        @DisplayName("결과 상태가 COMPLETE면 변경 로그를 저장한다")
-        @Test
-        public void ifResultStateIsCompleteThanSaveLog() {
-            //given
-            long userId = 1L;
-            doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
+                //when
+                questCommandService.completeQuest(userId, questId);
 
-            //when
-            questCommandService.completeQuest(userId, questCompletionRequest);
+                //then
+                verify(userService, times(1)).addUserExpAndGold(eq(userId), eq(userUpdateRequest));
+            }
 
-            //then
-            verify(questLogService, times(1)).saveQuestLog(any());
-        }
+            @DisplayName("변경된 퀘스트 정보로 DTO를 생성해 퀘스트 로그 저장 요청을 한다")
+            @Test
+            public void requestSaveQuestLogByTargetEntity() {
+                //given
+                QuestLogRequest questLogRequest = QuestLogRequest.from(completeTarget);
 
-        @DisplayName("결과 상태가 COMPLETE고 완료한 퀘스트가 MAIN 퀘스트면 완료 요청 DTO 타입을 메인으로 변경한다")
-        @Test
-        public void ifResultIsCompletedAndIsMainQuestThenChangeToMain() {
-            //given
-            doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
-            doReturn(true).when(completeTarget).isMainQuest();
+                //when
+                questCommandService.completeQuest(userId, questId);
 
-            //when
-            questCommandService.completeQuest(1L, questCompletionRequest);
+                //then
+                verify(questLogService, times(1)).saveQuestLog(eq(questLogRequest));
+            }
 
-            //then
-            verify(questCompletionRequest, times(1)).toMainQuest();
-        }
+            @DisplayName("기록된 로그 날짜로 유저의 퀘스트 완료 기록을 갱신 요청한다")
+            @Test
+            public void requestRecordCompletionByLoggedDate() {
+                //given
+                QuestLogRequest questLogRequest = QuestLogRequest.from(completeTarget);
+                LocalDate loggedDate = questLogRequest.getLoggedDate();
 
-        @DisplayName("결과 상태가 COMPLETE면 유저의 퀘스트 완료 횟수 증가 로직이 호출된다")
-        @Test
-        public void ifResultIsCompletedThenAddQuestCompletionCountOfUser() {
-            //given
-            Long userId = 1L;
+                //when
+                questCommandService.completeQuest(userId, questId);
 
-            //when
-            questCommandService.completeQuest(userId, questCompletionRequest);
-
-            //then
-            verify(userService).recordQuestCompletion(eq(userId), any());
+                //then
+                verify(userService).recordQuestCompletion(eq(userId), eq(loggedDate));
+            }
         }
     }
 

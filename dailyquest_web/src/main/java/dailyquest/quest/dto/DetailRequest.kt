@@ -16,6 +16,7 @@ data class DetailRequest(
     val type: DetailQuestType,
     @field:Range(min = 1, max = 255, message = "{Range.details.targetCount}")
     val targetCount: Int,
+    val count: Int = 0,
 ) {
 
     constructor(preferenceDetailQuest: PreferenceDetailQuest) : this(
@@ -28,6 +29,7 @@ data class DetailRequest(
         return DetailQuest.of(
             title = title,
             type = type,
+            count = count,
             state = DetailQuestState.PROCEED,
             targetCount = targetCount,
             quest = quest

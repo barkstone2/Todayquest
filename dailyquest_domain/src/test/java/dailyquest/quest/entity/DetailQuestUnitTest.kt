@@ -19,8 +19,8 @@ class DetailQuestUnitTest {
         fun `요청 count가 null이고 현재 완료 상태라면 현재 카운트가 0이 된다`() {
             //given
             val currentState = DetailQuestState.COMPLETE
-            val initialCount = 1
-            val targetDetailQuest = DetailQuest.of("proceed", 10,
+            val initialCount = 10
+            val targetDetailQuest = DetailQuest.of("proceed", initialCount,
                 initialCount, DetailQuestType.COUNT, currentState, mockQuest)
 
             //when

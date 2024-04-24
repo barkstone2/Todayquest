@@ -1,7 +1,6 @@
 package dailyquest.config;
 
 import dailyquest.jwt.JwtAuthorizationFilter;
-import dailyquest.properties.JwtTokenProperties;
 import dailyquest.properties.SecurityOriginProperties;
 import dailyquest.properties.SecurityUrlProperties;
 import dailyquest.user.entity.RoleType;
@@ -27,7 +26,6 @@ public class SecurityConfig {
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
     private final SecurityUrlProperties securityUrlProperties;
     private final SecurityOriginProperties securityOriginProperties;
-    private final JwtTokenProperties jwtTokenProperties;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -45,14 +43,7 @@ public class SecurityConfig {
                 .requestMatchers(securityUrlProperties.getAdminUrl()).hasAuthority(RoleType.ADMIN.getCode())
                 .anyRequest().authenticated();
 
-        http.logout()
-                .logoutUrl(securityUrlProperties.getLogoutUrl())
-                .deleteCookies("JSESSIONID")
-                .deleteCookies(jwtTokenProperties.getAccessTokenName())
-                .deleteCookies(jwtTokenProperties.getRefreshTokenName());
-
         http.addFilterBefore(jwtAuthorizationFilter, BasicAuthenticationFilter.class);
-
         return http.build();
     }
 

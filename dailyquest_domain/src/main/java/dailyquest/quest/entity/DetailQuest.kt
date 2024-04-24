@@ -133,6 +133,7 @@ class DetailQuest private constructor(
         ): DetailQuest {
             val detailQuest = DetailQuest(title, targetCount, count, type, state, quest)
             detailQuest.updateTargetCountBasedOnType()
+            detailQuest.updateCountAndStateBasedOnCount(count)
             return detailQuest
         }
 

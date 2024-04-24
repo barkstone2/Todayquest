@@ -160,6 +160,8 @@ class User @JvmOverloads constructor(
         this.questRegistrationCount++
         if (this.isContinuousRegistration(registrationDate)) {
             this.increaseCurrentQuestContinuousRegistrationDays()
+        } else if (registrationDate != lastQuestRegistrationDate) {
+            this.currentQuestContinuousRegistrationDays = 1
         }
         if (this.isLatestRegistration(registrationDate)) {
             this.lastQuestRegistrationDate = registrationDate
@@ -181,6 +183,8 @@ class User @JvmOverloads constructor(
         this.questCompletionCount++
         if (this.isContinuousCompletion(completionDate)) {
             this.increaseCurrentQuestContinuousCompletionDays()
+        } else if (completionDate != lastQuestCompletionDate) {
+            this.currentQuestContinuousCompletionDays = 1
         }
         if (this.isLatestCompletion(completionDate)) {
             this.lastQuestCompletionDate = completionDate

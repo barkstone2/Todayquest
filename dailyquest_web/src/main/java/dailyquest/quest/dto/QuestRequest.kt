@@ -1,11 +1,10 @@
 package dailyquest.quest.dto
 
-import dailyquest.common.MessageUtil
 import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
-import dailyquest.user.entity.User
+import dailyquest.validation.constratins.DeadLineRange
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -20,10 +19,12 @@ data class QuestRequest(
     @field:Valid
     @field:Size(max = 5, message = "{Size.quest.details}")
     val details: List<DetailRequest> = emptyList(),
+    @field:DeadLineRange("{Range.quest.deadLine}")
     val deadLine: LocalDateTime? = null,
     private val preferenceQuest: PreferenceQuest? = null,
 ) {
-    private var type: QuestType = QuestType.SUB
+    var type: QuestType = QuestType.SUB
+        private set
 
     companion object {
         @JvmStatic
@@ -32,7 +33,6 @@ data class QuestRequest(
                 title = preferenceQuest.title,
                 description = preferenceQuest.description,
                 details = preferenceQuest.preferenceDetailQuests.map { DetailRequest(it) },
-                deadLine = preferenceQuest.deadLine,
                 preferenceQuest = preferenceQuest
             )
         }
@@ -42,11 +42,11 @@ data class QuestRequest(
         this.type = QuestType.MAIN
     }
 
-    fun mapToEntity(nextSeq: Long, user: User): Quest {
+    fun mapToEntity(nextSeq: Long, userId: Long): Quest {
         val quest = Quest(
             title = title,
             description = description,
-            user = user,
+            userId = userId,
             seq = nextSeq,
             state = QuestState.PROCEED,
             type = type,
@@ -55,15 +55,5 @@ data class QuestRequest(
         )
         quest.replaceDetailQuests(this.details.map { it.mapToEntity(quest) })
         return quest
-    }
-
-    fun checkRangeOfDeadLine() {
-        if (deadLine != null) {
-            val now = LocalDateTime.now().withSecond(0).withNano(0)
-            var nextReset = now.withHour(6).withMinute(0)
-            if(now.isEqual(nextReset) || now.isAfter(nextReset)) nextReset = nextReset.plusDays(1L)
-
-            require(deadLine.isAfter(now.plusMinutes(5)) && deadLine.isBefore(nextReset.minusMinutes(5))) { MessageUtil.getMessage("Range.quest.deadLine") }
-        }
     }
 }

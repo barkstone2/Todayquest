@@ -5,6 +5,7 @@ import dailyquest.common.BaseTimeEntity
 import jakarta.persistence.*
 import java.io.Serializable
 
+@Table(name = "achievement", uniqueConstraints = [UniqueConstraint(name = "unique_type_target_value", columnNames = ["type", "target_value"])])
 @Entity
 class Achievement(
     title: String = "",
@@ -29,11 +30,14 @@ class Achievement(
     @Column(nullable = false, updatable = false)
     val type: AchievementType = type
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "target_value", nullable = false, updatable = false)
     val targetValue: Long = targetValue
 
     @Column(nullable = false)
     var inactivated: Boolean = false
+
+    @Version
+    private val version: Int = 0
 
     fun canAchieve(currentValue: Long): Boolean {
         return targetValue <= currentValue

@@ -13,7 +13,6 @@ import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -23,18 +22,20 @@ class AchievementService(
     private val achievementRepository: AchievementRepository,
     private val achievementPageSizeProperties: AchievementPageSizeProperties,
     private val achieveLogCommandService: AchievementAchieveLogCommandService,
+    private val achieveLogQueryService: AchievementAchieveLogQueryService,
     messageSource: MessageSource
 ) {
     private val messageSourceAccessor: MessageSourceAccessor = MessageSourceAccessor(messageSource)
 
     fun getAchievedAchievements(userId: Long, page: Int): Page<AchievementResponse> {
         val pageRequest = PageRequest.of(page, achievementPageSizeProperties.size)
-        return achievementRepository.getAchievedAchievements(userId, pageRequest)
+        return achieveLogQueryService.getAchievedAchievements(userId, pageRequest)
     }
 
     fun getNotAchievedAchievements(userId: Long, page: Int): Page<AchievementResponse> {
         val pageRequest = PageRequest.of(page, achievementPageSizeProperties.size)
         return achievementRepository.getNotAchievedAchievements(userId, pageRequest)
+            .map { AchievementResponse.from(it) }
     }
 
     @Transactional

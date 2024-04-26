@@ -81,11 +81,11 @@ public class UserLevelLockTest extends IntegrationTestContext {
             return userId;
         });
 
-        Long beforeSeq = questRepository.getNextSeqByUserId(resultUserId.get());
+        Long beforeSeq = questRepository.getNextSeqOfUser(resultUserId.get());
         latch.await();
 
         //then
-        Long afterSeq = questRepository.getNextSeqByUserId(resultUserId.get());
+        Long afterSeq = questRepository.getNextSeqOfUser(resultUserId.get());
         assertThat(beforeSeq + threadCount).isEqualTo(afterSeq);
     }
 

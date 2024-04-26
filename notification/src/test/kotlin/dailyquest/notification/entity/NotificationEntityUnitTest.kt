@@ -5,10 +5,7 @@ import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import java.time.LocalDateTime
 
 @DisplayName("알림 엔티티 유닛 테스트")
@@ -68,6 +65,18 @@ class NotificationEntityUnitTest {
     @DisplayName("confirmNotification 호출 시")
     @Nested
     inner class TestConfirmNotification {
+        private val now = LocalDateTime.of(2020, 12, 12, 12, 0)
+        private val confirmedNotification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
+        private val deletedNotification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
+
+        @BeforeEach
+        fun init() {
+            confirmedNotification.confirmNotification()
+            deletedNotification.deleteNotification()
+            mockkStatic(LocalDateTime::class)
+            every { LocalDateTime.now() } returns now
+        }
+
         @AfterEach
         fun close() {
             unmockkStatic(LocalDateTime::class)
@@ -76,44 +85,27 @@ class NotificationEntityUnitTest {
         @DisplayName("confirmedDate가 null이 아니면 confirmedDate가 변경되지 않는다")
         @Test
         fun `confirmedDate가 null이 아니면 confirmedDate가 변경되지 않는다`() {
-            //given
-            val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
-            notification.confirmNotification()
-            val now = LocalDateTime.of(2020, 12, 12, 12, 0)
-            mockkStatic(LocalDateTime::class)
-            every { LocalDateTime.now() } returns now
-
             //when
-            notification.confirmNotification()
+            confirmedNotification.confirmNotification()
 
             //then
-            assertThat(notification.confirmedDate).isNotEqualTo(now)
+            assertThat(confirmedNotification.confirmedDate).isNotEqualTo(now)
         }
 
         @DisplayName("deletedDate가 null이 아니면 confirmedDate가 변경되지 않는다")
         @Test
         fun `deletedDate가 null이 아니면 confirmedDate가 변경되지 않는다`() {
-            //given
-            val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
-            notification.deleteNotification()
-            val now = LocalDateTime.of(2020, 12, 12, 12, 0)
-            mockkStatic(LocalDateTime::class)
-            every { LocalDateTime.now() } returns now
-
             //when
-            notification.confirmNotification()
+            deletedNotification.confirmNotification()
 
             //then
-            assertThat(notification.confirmedDate).isNotEqualTo(now)
+            assertThat(deletedNotification.confirmedDate).isNotEqualTo(now)
         }
 
         @DisplayName("confirmedDate가 null이면 confirmedDate가 현재 시간으로 변경된다")
         @Test
         fun `confirmedDate가 null이면 confirmedDate가 현재 시간으로 변경된다`() {
             //given
-            val now = LocalDateTime.of(2020, 12, 12, 12, 0)
-            mockkStatic(LocalDateTime::class)
-            every { LocalDateTime.now() } returns now
             val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
 
             //when
@@ -122,13 +114,23 @@ class NotificationEntityUnitTest {
             //then
             assertThat(notification.confirmedDate).isEqualTo(now)
         }
-
-
     }
 
     @DisplayName("deleteNotification 호출 시")
     @Nested
     inner class TestDeleteNotification {
+        private val now = LocalDateTime.of(2020, 12, 12, 12, 0)
+        private val confirmedNotification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
+        private val deletedNotification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
+
+        @BeforeEach
+        fun init() {
+            confirmedNotification.confirmNotification()
+            deletedNotification.deleteNotification()
+            mockkStatic(LocalDateTime::class)
+            every { LocalDateTime.now() } returns now
+        }
+
         @AfterEach
         fun close() {
             unmockkStatic(LocalDateTime::class)
@@ -138,9 +140,6 @@ class NotificationEntityUnitTest {
         @Test
         fun `deletedDate가 null이면 현재 시간으로 변경된다`() {
             //given
-            val now = LocalDateTime.of(2020, 12, 12, 12, 0)
-            mockkStatic(LocalDateTime::class)
-            every { LocalDateTime.now() } returns now
             val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
 
             //when
@@ -153,18 +152,11 @@ class NotificationEntityUnitTest {
         @DisplayName("deletedDate가 null이 아니면 변경되지 않는다")
         @Test
         fun `deletedDate가 null이 아니면 변경되지 않는다`() {
-            //given
-            val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, 1L, "")
-            notification.deleteNotification()
-            val now = LocalDateTime.of(2020, 12, 12, 12, 0)
-            mockkStatic(LocalDateTime::class)
-            every { LocalDateTime.now() } returns now
-
             //when
-            notification.deleteNotification()
+            deletedNotification.deleteNotification()
 
             //then
-            assertThat(notification.deletedDate).isNotEqualTo(now)
+            assertThat(deletedNotification.deletedDate).isNotEqualTo(now)
         }
     }
 }

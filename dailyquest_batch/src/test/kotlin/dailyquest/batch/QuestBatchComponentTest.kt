@@ -126,17 +126,17 @@ class QuestBatchComponentTest @Autowired constructor(
         val currentTime = LocalDateTime.now().withSecond(0).withNano(0)
 
         val mustContainList = listOf(
-            questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
-            questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
-            questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
-            questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
+            questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
+            questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
+            questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
+            questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
         )
 
         val mustNotContainList = listOf(
-            questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.plusMinutes(1))),
-            questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-            questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.plusMinutes(1))),
-            questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
+            questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.plusMinutes(1))),
+            questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
+            questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.plusMinutes(1))),
+            questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
         )
 
         val jobParameters = JobParametersBuilder()
@@ -163,7 +163,7 @@ class QuestBatchComponentTest @Autowired constructor(
     @Test
     fun `failProcessor 동작 후 퀘스트가 fail 상태로 변경된다`() {
         //given
-        val quest = Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)
+        val quest = Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, null)
 
         //when
         questFailProcessor.process(quest)
@@ -176,7 +176,7 @@ class QuestBatchComponentTest @Autowired constructor(
     @Test
     fun `questWriter 동작 시 quest 상태가 저장된다`() {
         //given
-        val quest = Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)
+        val quest = Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, null)
 
         //when
         questWriter.write(Chunk(quest))

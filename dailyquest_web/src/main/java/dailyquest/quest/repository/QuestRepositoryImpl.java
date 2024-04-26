@@ -35,11 +35,11 @@ public class QuestRepositoryImpl implements QuestRepositoryCustom {
      * 동시성 문제로 인해 네임드 락을 사용한 환경에서만 호출하도록 해야함
      */
     @Override
-    public Long getNextSeqByUserId(Long userId) {
+    public Long getNextSeqOfUser(Long userId) {
 
         return Optional.ofNullable(query.select(quest.seq.max())
                 .from(quest)
-                .where(quest.user.id.eq(userId))
+                .where(quest.userId.eq(userId))
                 .fetchOne()).orElse(0L) + 1L;
     }
 
@@ -50,7 +50,7 @@ public class QuestRepositoryImpl implements QuestRepositoryCustom {
         LocalDateTime startDateTime = condition.getStartResetTime();
         LocalDateTime endDateTime = condition.getEndResetTime();
 
-        BooleanExpression wherePredicate = quest.user.id.eq(userId);
+        BooleanExpression wherePredicate = quest.userId.eq(userId);
         if(state != null) wherePredicate = wherePredicate.and(quest.state.eq(state));
         if(startDateTime != null && endDateTime != null) {
             wherePredicate = wherePredicate.and(quest.createdDate.between(startDateTime, endDateTime));

@@ -19,10 +19,19 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException
 import dailyquest.common.MessageUtil
 import dailyquest.common.ResponseData
+import jakarta.persistence.OptimisticLockException
+import jakarta.persistence.PersistenceException
+import org.hibernate.StaleObjectStateException
+import org.hibernate.dialect.lock.OptimisticEntityLockException
+import org.springframework.context.MessageSource
+import org.springframework.context.support.MessageSourceAccessor
 import java.util.function.Consumer
 
 @RestControllerAdvice
-class RestApiExceptionHandler {
+class RestApiExceptionHandler(
+    messageSource: MessageSource
+) {
+    private val messageSourceAccessor = MessageSourceAccessor(messageSource)
 
     var log = LoggerFactory.getLogger(this.javaClass)
 
@@ -116,6 +125,13 @@ class RestApiExceptionHandler {
     fun serverError(e: RedisDataNotFoundException): ResponseData<Void> {
         log.error("[exceptionHandle] ex", e)
         val errorResponse = ErrorResponse(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseData(errorResponse)
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(OptimisticLockException::class, OptimisticEntityLockException::class, StaleObjectStateException::class)
+    fun optimisticLock(e: PersistenceException): ResponseData<Void> {
+        val errorResponse = ErrorResponse(messageSourceAccessor.getMessage("exception.optimisticLock"), HttpStatus.CONFLICT)
         return ResponseData(errorResponse)
     }
 

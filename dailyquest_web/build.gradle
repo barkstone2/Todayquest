@@ -43,7 +43,7 @@ dependencies {
 	implementation "org.jetbrains.kotlin:kotlin-reflect"
 
 	// Google Id Token 처리용
-	implementation('com.google.api-client:google-api-client:2.2.0')
+	implementation('com.google.api-client:google-api-client:2.4.0')
 
 	// JPA 로그 처리
 	implementation('com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.8.0')

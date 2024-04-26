@@ -228,4 +228,30 @@ class NotificationRepositoryUnitTest {
             assertThat(result.confirmedDate).isNull()
         }
     }
+
+    @DisplayName("확인하지 않은 알림 개수 조회 시")
+    @Nested
+    inner class TestCountOfNotConfirmedNotifications {
+        @DisplayName("확인하지 않은 알림 수가 조회된다")
+        @Test
+        fun `확인하지 않은 알림 수가 조회된다`() {
+            //given
+            val userId = 1L
+            val notConfirmedCount = 2
+            repeat(notConfirmedCount) {
+                val notification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, userId, "")
+                notificationRepository.save(notification)
+            }
+            val confirmedNotification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, userId, "")
+            notificationRepository.save(confirmedNotification)
+            confirmedNotification.confirmNotification()
+            notificationRepository.save(confirmedNotification)
+
+            //when
+            val resultCount = notificationRepository.countByUserIdAndConfirmedDateIsNull(userId)
+
+            //then
+            assertThat(resultCount).isEqualTo(notConfirmedCount)
+        }
+    }
 }

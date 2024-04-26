@@ -15,7 +15,12 @@ class PreferenceQuestQueryService @Autowired constructor(
     private val preferenceQuestRepository: PreferenceQuestRepository
 ) {
     fun getActivePreferenceQuests(userId: Long): List<PreferenceQuestResponse> {
-        return preferenceQuestRepository.getActiveEntitiesByUserIdWithUsedCount(userId)
+        val preferenceQuests = preferenceQuestRepository.getActivePrefQuests(userId)
+        val usedCounts = preferenceQuestRepository.getUsedCountOfActivePrefQuests(userId)
+        val mappedPrefQuests = preferenceQuests.mapIndexed { index, preferenceQuest ->
+            PreferenceQuestResponse.of(preferenceQuest, usedCounts[index])
+        }
+        return mappedPrefQuests
     }
 
      fun getPreferenceQuest(preferenceQuestId: Long, userId: Long): PreferenceQuest {

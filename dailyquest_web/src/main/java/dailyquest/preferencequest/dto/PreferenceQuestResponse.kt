@@ -15,18 +15,6 @@ data class PreferenceQuestResponse(
     val preferenceDetailQuests: List<PreferenceDetailResponse> = listOf(),
     val usedCount: Long = 0
 ) {
-
-    // JPQL 생성자 호출에 사용되므로 팩토리 메서드로 전환 불가
-    constructor(preferenceQuest: PreferenceQuest, usedCount: Long) : this(
-        preferenceQuest.id,
-        preferenceQuest.title,
-        preferenceQuest.description,
-        preferenceQuest.createdDate,
-        preferenceQuest.lastModifiedDate,
-        preferenceQuest.preferenceDetailQuests.map { PreferenceDetailResponse.from(it) },
-        usedCount
-    )
-
     companion object {
         @JvmStatic
         fun from(preferenceQuest: PreferenceQuest): PreferenceQuestResponse {
@@ -39,6 +27,19 @@ data class PreferenceQuestResponse(
                 preferenceDetailQuests = preferenceQuest.preferenceDetailQuests.map {
                     PreferenceDetailResponse.from(it)
                 },
+            )
+        }
+
+        @JvmStatic
+        fun of(preferenceQuest: PreferenceQuest, usedCount: Long): PreferenceQuestResponse {
+            return PreferenceQuestResponse(
+                preferenceQuest.id,
+                preferenceQuest.title,
+                preferenceQuest.description,
+                preferenceQuest.createdDate,
+                preferenceQuest.lastModifiedDate,
+                preferenceQuest.preferenceDetailQuests.map { PreferenceDetailResponse.from(it) },
+                usedCount
             )
         }
     }

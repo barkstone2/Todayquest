@@ -13,8 +13,6 @@ data class PreferenceQuestResponse(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     val lastModifiedDate: LocalDateTime? = null,
     val preferenceDetailQuests: List<PreferenceDetailResponse> = listOf(),
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    val deadLine: LocalDateTime? = null,
     val usedCount: Long = 0
 ) {
 
@@ -26,7 +24,6 @@ data class PreferenceQuestResponse(
         preferenceQuest.createdDate,
         preferenceQuest.lastModifiedDate,
         preferenceQuest.preferenceDetailQuests.map { PreferenceDetailResponse.from(it) },
-        preferenceQuest.deadLine,
         usedCount
     )
 
@@ -42,7 +39,6 @@ data class PreferenceQuestResponse(
                 preferenceDetailQuests = preferenceQuest.preferenceDetailQuests.map {
                     PreferenceDetailResponse.from(it)
                 },
-                deadLine = preferenceQuest.deadLine
             )
         }
     }

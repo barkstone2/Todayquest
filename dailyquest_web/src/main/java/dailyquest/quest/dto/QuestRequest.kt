@@ -4,7 +4,6 @@ import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
-import dailyquest.user.entity.User
 import dailyquest.validation.constratins.DeadLineRange
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -34,7 +33,6 @@ data class QuestRequest(
                 title = preferenceQuest.title,
                 description = preferenceQuest.description,
                 details = preferenceQuest.preferenceDetailQuests.map { DetailRequest(it) },
-                deadLine = preferenceQuest.deadLine,
                 preferenceQuest = preferenceQuest
             )
         }

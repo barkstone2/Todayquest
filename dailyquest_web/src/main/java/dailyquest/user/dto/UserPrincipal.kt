@@ -22,7 +22,7 @@ class UserPrincipal(
     val requireExp: Long = 0,
     val gold: Long = 0,
     val coreTimeHour: Int = 8,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val coreTimeLastModifiedDate: LocalDateTime? = null,
     val questRegistrationCount: Long = 0,
     val questCompletionCount: Long = 0,

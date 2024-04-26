@@ -1,14 +1,14 @@
 package dailyquest.quest.service;
 
-import dailyquest.common.MessageUtil;
 import dailyquest.quest.dto.*;
 import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
+import dailyquest.quest.entity.QuestType;
 import dailyquest.quest.repository.QuestRepository;
-import dailyquest.user.entity.User;
-import dailyquest.user.repository.UserRepository;
+import dailyquest.redis.service.RedisService;
 import dailyquest.user.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -17,7 +17,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,11 +33,11 @@ import static org.mockito.Mockito.*;
 public class QuestCommandServiceUnitTest {
 
     @InjectMocks QuestCommandService questCommandService;
-    @Mock QuestQueryService questQueryService;
-    @Mock QuestRepository questRepository;
-    @Mock UserRepository userRepository;
+    @Mock(answer = Answers.RETURNS_SMART_NULLS) QuestRepository questRepository;
     @Mock UserService userService;
     @Mock QuestLogService questLogService;
+    @Mock MessageSource messageSource;
+    @Mock RedisService redisService;
     MockedStatic<QuestLogRequest> mockedStatic;
 
     @BeforeEach
@@ -53,46 +56,18 @@ public class QuestCommandServiceUnitTest {
     @Nested
     class QuestSaveTest {
 
-        @Mock private User foundUser;
         @Mock private QuestRequest saveRequest;
         @Mock(answer = Answers.RETURNS_SMART_NULLS) private Quest saveEntity;
 
         @BeforeEach
         void init() {
-            doReturn(foundUser).when(userRepository).getReferenceById(any());
-            doReturn(saveEntity).when(saveRequest).mapToEntity(anyLong(), any());
-            doReturn(1L).when(questRepository).getNextSeqByUserId(any());
-        }
-
-        @DisplayName("현재 시간이 유저의 코어타임이라면 타입 변경 로직을 호출한다")
-        @Test
-        void ifCoreTimeChangeToMainType() {
-            //given
-            doReturn(true).when(foundUser).isNowCoreTime();
-
-            //when
-            questCommandService.saveQuest(saveRequest, 1L);
-
-            //then
-            verify(saveRequest, times(1)).toMainQuest();
-        }
-
-        @DisplayName("현재 시간이 유저의 코어타임 아니라면 타입 변경 로직을 호출하지 않는다")
-        @Test
-        void ifNotCoreTimeDoesNotChangeType() {
-            //given
-            doReturn(false).when(foundUser).isNowCoreTime();
-
-            //when
-            questCommandService.saveQuest(saveRequest, 1L);
-
-            //then
-            verify(saveRequest, times(0)).toMainQuest();
+            doReturn(saveEntity).when(saveRequest).mapToEntity(anyLong(), anyLong());
+            doReturn(1L).when(questRepository).getNextSeqOfUser(any());
         }
 
         @DisplayName("유저의 퀘스트 등록 횟수 증가 로직이 호출된다")
         @Test
-        public void callAddQuestRegistrationCountOfUser() throws Exception {
+        public void callAddQuestRegistrationCountOfUser() {
             //given
             Long userId = 1L;
 
@@ -110,72 +85,43 @@ public class QuestCommandServiceUnitTest {
 
         private final Quest updateTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
 
-        @DisplayName("쿼리 서비스를 통해 엔티티를 조회한다")
+        @DisplayName("리포지토리 조회 결과가 null이면 EntityNotFound 예외가 발생한다")
         @Test
-        void getEntityViaQueryService() {
+        void throwIfRepositoryReturnNull() {
             //given
             Long questId = 1L;
             Long userId = 1L;
-            doReturn(updateTarget).when(questQueryService).getProceedEntityOfUser(any(), any());
+            doReturn(null).when(questRepository).findByIdAndUserId(any(), any());
 
             //when
-            questCommandService.updateQuest(mock(QuestRequest.class), questId, userId);
+            Executable run = () -> questCommandService.updateQuest(mock(QuestRequest.class), questId, userId);
 
             //then
-            verify(questQueryService).getProceedEntityOfUser(eq(questId), eq(userId));
+            assertThrows(EntityNotFoundException.class, run);
         }
 
-        @DisplayName("대상 퀘스트가 메인 퀘스트라면 DTO 타입도 메인으로 변경한다")
+        @DisplayName("조회된 엔티티가 proceed 상태가 아니면 IllegalState 예외가 발생한다")
         @Test
-        void ifQuestTypeIsMainThanChangeTypeOfDtoToMain() {
+        void throwIfEntityIsNotProceed() {
             //given
-            doReturn(updateTarget).when(questQueryService).getProceedEntityOfUser(any(), any());
-            doReturn(true).when(updateTarget).isMainQuest();
-            QuestRequest mockDto = mock(QuestRequest.class);
+            Long questId = 1L;
+            Long userId = 1L;
+            doReturn(updateTarget).when(questRepository).findByIdAndUserId(any(), any());
+            doReturn(false).when(updateTarget).isProceed();
 
             //when
-            questCommandService.updateQuest(mockDto, 1L, 1L);
+            Executable run = () -> questCommandService.updateQuest(mock(QuestRequest.class), questId, userId);
 
             //then
-            verify(mockDto, times(1)).toMainQuest();
-        }
-
-        @DisplayName("대상 퀘스트가 서브 퀘스트라면 DTO 타입 변경이 발생하지 않는다")
-        @Test
-        void ifQuestTypeIsSubThanDoNotChangeTypeOfDto() {
-            //given
-            doReturn(updateTarget).when(questQueryService).getProceedEntityOfUser(any(), any());
-            doReturn(false).when(updateTarget).isMainQuest();
-            QuestRequest mockDto = mock(QuestRequest.class);
-
-            //when
-            questCommandService.updateQuest(mockDto, 1L, 1L);
-
-            //then
-            verify(mockDto, never()).toMainQuest();
-        }
-
-        @DisplayName("요청 DTO 의 데드라인 범위 체크 메서드가 호출된다")
-        @Test
-        void invokeDeadLineCheckMethod() {
-            //given
-            doReturn(updateTarget).when(questQueryService).getProceedEntityOfUser(any(), any());
-            doReturn(false).when(updateTarget).isMainQuest();
-            QuestRequest mockDto = mock(QuestRequest.class);
-
-            //when
-            questCommandService.updateQuest(mockDto, 1L, 1L);
-
-            //then
-            verify(mockDto, times(1)).checkRangeOfDeadLine();
+            assertThrows(IllegalStateException.class, run);
         }
 
         @DisplayName("요청 DTO 정보로 updateQuestEntity 메서드가 호출된다")
         @Test
         void invokeQuestUpdateMethod() {
             //given
-            doReturn(updateTarget).when(questQueryService).getProceedEntityOfUser(any(), any());
-            doReturn(false).when(updateTarget).isMainQuest();
+            doReturn(updateTarget).when(questRepository).findByIdAndUserId(any(), any());
+            doReturn(true).when(updateTarget).isProceed();
             QuestRequest requestDto = new QuestRequest("title", "desc", List.of(), null, null);
 
             //when
@@ -190,20 +136,20 @@ public class QuestCommandServiceUnitTest {
     @DisplayName("퀘스트 삭제 시")
     @Nested
     class QuestDeleteTest {
-        @DisplayName("쿼리 서비스를 통해 엔티티를 조회한다")
+
+        @DisplayName("리포지토리 조회 결과가 null이면 EntityNotFound 예외가 발생한다")
         @Test
-        void getEntityViaQueryService() {
+        void throwIfRepositoryReturnNull() {
             //given
             Long questId = 1L;
             Long userId = 1L;
-            Quest deleteTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            doReturn(deleteTarget).when(questQueryService).getEntityOfUser(any(), any());
+            doReturn(null).when(questRepository).findByIdAndUserId(any(), any());
 
             //when
-            questCommandService.deleteQuest(questId, userId);
+            Executable run = () -> questCommandService.deleteQuest(questId, userId);
 
             //then
-            verify(questQueryService).getEntityOfUser(eq(questId), eq(userId));
+            assertThrows(EntityNotFoundException.class, run);
         }
 
         @DisplayName("퀘스트 삭제 요청이 호출된다")
@@ -211,7 +157,7 @@ public class QuestCommandServiceUnitTest {
         void ifQuestOfUserThanCallMethod() {
             //given
             Quest deleteTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            doReturn(deleteTarget).when(questQueryService).getEntityOfUser(any(), any());
+            doReturn(deleteTarget).when(questRepository).findByIdAndUserId(any(), any());
 
             //when
             questCommandService.deleteQuest(1L, 1L);
@@ -224,212 +170,186 @@ public class QuestCommandServiceUnitTest {
     @DisplayName("퀘스트 완료 시")
     @Nested
     class QuestCompleteTest {
-        private MockedStatic<MessageUtil> messageUtil;
-        private final String deleteMessage = "delete";
-        private final String proceedMessage = "proceed";
-        private final String notProceedMessage = "not-proceed";
-
         private Quest completeTarget;
-        private QuestCompletionRequest questCompletionRequest;
 
         @BeforeEach
         void beforeEach() {
-            messageUtil = mockStatic(MessageUtil.class);
-            when(MessageUtil.getMessage(eq("quest.error.deleted"))).thenReturn(deleteMessage);
-            when(MessageUtil.getMessage(eq("quest.error.complete.detail"))).thenReturn(proceedMessage);
-            when(MessageUtil.getMessage(eq("quest.error.not-proceed"))).thenReturn(notProceedMessage);
             completeTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            lenient().doReturn(completeTarget).when(questQueryService).getEntityOfUser(any(), any());
+            lenient().doReturn(completeTarget).when(questRepository).findByIdAndUserId(any(), any());
             lenient().doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
             lenient().doReturn(true).when(completeTarget).isMainQuest();
-            questCompletionRequest = mock(QuestCompletionRequest.class, Answers.RETURNS_SMART_NULLS);
         }
 
-        @AfterEach
-        void afterEach() {
-            messageUtil.close();
-        }
-
-        @DisplayName("쿼리 서비스를 통해 엔티티를 조회한다")
+        @DisplayName("리포지토리 조회 결과가 null이면 EntityNotFound 예외가 발생한다")
         @Test
-        void getEntityViaQueryService() {
+        void throwIfRepositoryReturnNull() {
             //given
-            Long userId = 1L;
+            doReturn(null).when(questRepository).findByIdAndUserId(any(), any());
 
             //when
-            questCommandService.completeQuest(userId, questCompletionRequest);
+            Executable run = () -> questCommandService.completeQuest(1L, 1L);
 
             //then
-            verify(questQueryService).getEntityOfUser(any(), eq(userId));
+            assertThrows(EntityNotFoundException.class, run);
         }
 
         @DisplayName("결과 상태가 DELETE 면 IllegalStateException 예외를 던진다")
         @Test
-        public void ifResultStateIsDeleteThanThrowException() throws Exception {
+        public void ifResultStateIsDeleteThanThrowException() {
             //given
             doReturn(QuestState.DELETE).when(completeTarget).completeQuest();
 
             //when
-            Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
+            Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
 
             //then
-            assertThrows(IllegalStateException.class, testMethod, deleteMessage);
+            assertThrows(IllegalStateException.class, testMethod);
         }
 
         @DisplayName("결과 상태가 PROCEED 면 IllegalStateException 예외를 던진다")
         @Test
-        public void ifResultStateIsProceedThanThrowException() throws Exception {
+        public void ifResultStateIsProceedThanThrowException() {
             //given
             doReturn(QuestState.PROCEED).when(completeTarget).completeQuest();
 
             //when
-            Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
+            Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
 
             //then
-            assertThrows(IllegalStateException.class, testMethod, proceedMessage);
+            assertThrows(IllegalStateException.class, testMethod);
         }
 
-        @DisplayName("결과 상태가 COMPLETE 가 아니면 IllegalStateException 예외를 던진다")
+        @DisplayName("결과 상태가 DELETE, PROCEED, COMPLETE 가 아니면 IllegalStateException 예외를 던진다")
         @Test
-        public void ifResultStateIsNotCompleteThanThrowException() throws Exception {
+        public void ifResultStateIsNotCompleteThanThrowException() {
             //given
             doReturn(QuestState.FAIL).when(completeTarget).completeQuest();
 
             //when
-            Executable testMethod = () -> questCommandService.completeQuest(1L, questCompletionRequest);
+            Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
 
             //then
-            assertThrows(IllegalStateException.class, testMethod, notProceedMessage);
+            assertThrows(IllegalStateException.class, testMethod);
         }
 
-        @DisplayName("결과 상태가 COMPLETE면 유저 경험치, 골드 증가 로직을 호출한다")
-        @Test
-        public void ifResultStateIsCompleteThanCallUserExpAndGoldEarn() throws Exception {
-            //given
-            long userId = 1L;
-            doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
+        @DisplayName("결과 상태가 COMPLETE면")
+        @Nested
+        class TestWhenComplete {
+            private final long userId = 1L;
+            private final long questId = 1L;
 
-            //when
-            questCommandService.completeQuest(userId, questCompletionRequest);
+            @BeforeEach
+            void init() {
+                lenient().doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
+                lenient().doReturn(QuestType.MAIN).when(completeTarget).getType();
+                lenient().doReturn(userId).when(completeTarget).getUserId();
+                lenient().doReturn(questId).when(completeTarget).getId();
+                lenient().doReturn(LocalDateTime.now()).when(completeTarget).getCreatedDate();
+            }
 
-            //then
-            verify(userService, times(1)).addUserExpAndGold(eq(userId), eq(questCompletionRequest));
-        }
+            @DisplayName("레디스 서비스를 통해 조회한 퀘스트 클리어 경험치, 골드와 현재 퀘스트 타입으로 DTO를 생성해 유저 경험치 골드 추가 요청을 한다")
+            @Test
+            public void requestAddUserExpAndGoldByRedisAndCurrentType() {
+                //given
+                long clearExp = 1L;
+                long clearGold = 1L;
+                QuestType type = QuestType.SUB;
+                doReturn(clearExp).when(redisService).getQuestClearExp();
+                doReturn(clearGold).when(redisService).getQuestClearGold();
+                doReturn(type).when(completeTarget).getType();
+                QuestCompletionUserUpdateRequest userUpdateRequest = new QuestCompletionUserUpdateRequest(clearExp, clearGold, type);
 
-        @DisplayName("결과 상태가 COMPLETE면 변경 로그를 저장한다")
-        @Test
-        public void ifResultStateIsCompleteThanSaveLog() throws Exception {
-            //given
-            long userId = 1L;
-            doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
+                //when
+                questCommandService.completeQuest(userId, questId);
 
-            //when
-            questCommandService.completeQuest(userId, questCompletionRequest);
+                //then
+                verify(userService, times(1)).addUserExpAndGold(eq(userId), eq(userUpdateRequest));
+            }
 
-            //then
-            verify(questLogService, times(1)).saveQuestLog(any());
-        }
+            @DisplayName("변경된 퀘스트 정보로 DTO를 생성해 퀘스트 로그 저장 요청을 한다")
+            @Test
+            public void requestSaveQuestLogByTargetEntity() {
+                //given
+                QuestLogRequest questLogRequest = QuestLogRequest.from(completeTarget);
 
-        @DisplayName("결과 상태가 COMPLETE고 완료한 퀘스트가 MAIN 퀘스트면 완료 요청 DTO 타입을 메인으로 변경한다")
-        @Test
-        public void ifResultIsCompletedAndIsMainQuestThenChangeToMain() throws Exception {
-            //given
-            doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
-            doReturn(true).when(completeTarget).isMainQuest();
+                //when
+                questCommandService.completeQuest(userId, questId);
 
-            //when
-            questCommandService.completeQuest(1L, questCompletionRequest);
+                //then
+                verify(questLogService, times(1)).saveQuestLog(eq(questLogRequest));
+            }
 
-            //then
-            verify(questCompletionRequest, times(1)).toMainQuest();
-        }
+            @DisplayName("기록된 로그 날짜로 유저의 퀘스트 완료 기록을 갱신 요청한다")
+            @Test
+            public void requestRecordCompletionByLoggedDate() {
+                //given
+                QuestLogRequest questLogRequest = QuestLogRequest.from(completeTarget);
+                LocalDate loggedDate = questLogRequest.getLoggedDate();
 
-        @DisplayName("결과 상태가 COMPLETE면 유저의 퀘스트 완료 횟수 증가 로직이 호출된다")
-        @Test
-        public void ifResultIsCompletedThenAddQuestCompletionCountOfUser() throws Exception {
-            //given
-            Long userId = 1L;
+                //when
+                questCommandService.completeQuest(userId, questId);
 
-            //when
-            questCommandService.completeQuest(userId, questCompletionRequest);
-
-            //then
-            verify(userService).recordQuestCompletion(eq(userId), any());
+                //then
+                verify(userService).recordQuestCompletion(eq(userId), eq(loggedDate));
+            }
         }
     }
 
     @DisplayName("퀘스트 포기 시")
     @Nested
     class QuestDiscardTest {
-        private MockedStatic<MessageUtil> messageUtil;
-        private final String deletedMessage = "deleted";
-        private final String notProceedMessage = "not-proceed";
 
-        @BeforeEach
-        void beforeEach() {
-            messageUtil = mockStatic(MessageUtil.class);
-            when(MessageUtil.getMessage(eq("quest.error.deleted"))).thenReturn(deletedMessage);
-            when(MessageUtil.getMessage(eq("quest.error.not-proceed"))).thenReturn(notProceedMessage);
-        }
-
-        @AfterEach
-        void afterEach() {
-            messageUtil.close();
-        }
-
-        @DisplayName("쿼리 서비스를 통해 엔티티를 조회한다")
+        @DisplayName("리포지토리 조회 결과가 null이면 EntityNotFound 예외가 발생한다")
         @Test
-        void getEntityViaQueryService() {
+        void throwIfRepositoryReturnNull() {
             //given
             Long questId = 1L;
             Long userId = 1L;
-            Quest discardTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            doReturn(discardTarget).when(questQueryService).getEntityOfUser(any(), any());
-            doReturn(QuestState.DISCARD).when(discardTarget).discardQuest();
+            doReturn(null).when(questRepository).findByIdAndUserId(any(), any());
 
             //when
-            questCommandService.discardQuest(questId, userId);
+            Executable run = () -> questCommandService.discardQuest(questId, userId);
 
             //then
-            verify(questQueryService).getEntityOfUser(eq(questId), eq(userId));
+            assertThrows(EntityNotFoundException.class, run);
         }
 
         @DisplayName("결과 상태가 DELETE 면 IllegalStateException 예외를 던진다")
         @Test
-        public void ifResultStateIsDeleteThanThrowException() throws Exception {
+        public void ifResultStateIsDeleteThanThrowException() {
             //given
             Quest discardTarget = mock(Quest.class);
-            doReturn(discardTarget).when(questQueryService).getEntityOfUser(any(), any());
+            doReturn(discardTarget).when(questRepository).findByIdAndUserId(any(), any());
             doReturn(QuestState.DELETE).when(discardTarget).discardQuest();
 
             //when
             Executable testMethod = () -> questCommandService.discardQuest(1L, 1L);
 
             //then
-            assertThrows(IllegalStateException.class, testMethod, deletedMessage);
+            assertThrows(IllegalStateException.class, testMethod);
         }
 
         @DisplayName("결과 상태가 PROCEED면 IllegalStateException 예외를 던진다")
         @Test
-        public void ifResultStateIsProceedThanThrowException() throws Exception {
+        public void ifResultStateIsProceedThanThrowException() {
             //given
             Quest discardTarget = mock(Quest.class);
-            doReturn(discardTarget).when(questQueryService).getEntityOfUser(any(), any());
+            doReturn(discardTarget).when(questRepository).findByIdAndUserId(any(), any());
             doReturn(QuestState.PROCEED).when(discardTarget).discardQuest();
 
             //when
             Executable testMethod = () -> questCommandService.discardQuest(1L, 1L);
 
             //then
-            assertThrows(IllegalStateException.class, testMethod, notProceedMessage);
+            assertThrows(IllegalStateException.class, testMethod);
         }
 
         @DisplayName("결과 상태가 DISCARD 면 퀘스트 상태 변경 로그 저장 로직이 호출된다")
         @Test
-        public void ifResultStateIsDiscardThanSaveStateChangeLog() throws Exception {
+        public void ifResultStateIsDiscardThanSaveStateChangeLog() {
             //given
             Quest discardTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            doReturn(discardTarget).when(questQueryService).getEntityOfUser(any(), any());
+            doReturn(discardTarget).when(questRepository).findByIdAndUserId(any(), any());
             doReturn(QuestState.DISCARD).when(discardTarget).discardQuest();
 
             //when
@@ -443,58 +363,58 @@ public class QuestCommandServiceUnitTest {
     @DisplayName("세부 퀘스트 카운트 변경 시")
     @Nested
     class DetailQuestCountUpdateTest {
-        private MockedStatic<MessageUtil> messageUtil;
-        private final String badRequestMessage = "bad-request";
-
-        @BeforeEach
-        void beforeEach() {
-            messageUtil = mockStatic(MessageUtil.class);
-            when(MessageUtil.getMessage(eq("exception.badRequest"))).thenReturn(badRequestMessage);
-        }
-
-        @AfterEach
-        void afterEach() {
-            messageUtil.close();
-        }
-
         private final Long userId = 1L;
         private final DetailInteractRequest interactRequest = new DetailInteractRequest();
         private final Quest foundEntity = mock(Quest.class);
         private final DetailQuest interactResult = mock(DetailQuest.class, Answers.RETURNS_SMART_NULLS);
 
-        @DisplayName("쿼리 서비스를 통해 퀘스트 엔티티를 조회한다")
+        @DisplayName("리포지토리 조회 결과가 null이면 EntityNotFound 예외가 발생한다")
         @Test
-        void getQuestEntityViaQueryService() {
+        void throwIfRepositoryReturnNull() {
             //given
-            doReturn(foundEntity).when(questQueryService).getProceedEntityOfUser(any(), any());
-            doReturn(interactResult).when(foundEntity).updateDetailQuestCount(anyLong(), any());
+            doReturn(null).when(questRepository).findByIdAndUserId(any(), any());
 
             //when
-            questCommandService.updateDetailQuestCount(userId, interactRequest);
+            Executable run = () -> questCommandService.updateDetailQuestCount(userId, interactRequest);
 
             //then
-            verify(questQueryService).getProceedEntityOfUser(eq(interactRequest.getQuestId()), eq(userId));
+            assertThrows(EntityNotFoundException.class, run);
+        }
+
+        @DisplayName("조회된 엔티티가 proceed 상태가 아니면 IllegalState 예외가 발생한다")
+        @Test
+        void throwIfEntityIsNotProceed() {
+            //given
+            doReturn(foundEntity).when(questRepository).findByIdAndUserId(any(), any());
+            doReturn(false).when(foundEntity).isProceed();
+
+            //when
+            Executable run = () -> questCommandService.updateDetailQuestCount(userId, interactRequest);
+
+            //then
+            assertThrows(IllegalStateException.class, run);
         }
 
         @DisplayName("카운트 변경 결과가 null이면 IllegalStateException 예외를 던진다")
         @Test
         void ifResultIsNullThrowException() {
             //given
-            doReturn(foundEntity).when(questQueryService).getProceedEntityOfUser(any(), any());
+            doReturn(foundEntity).when(questRepository).findByIdAndUserId(any(), any());
             doReturn(null).when(foundEntity).updateDetailQuestCount(anyLong(), any());
 
             //when
             Executable testMethod = () -> questCommandService.updateDetailQuestCount(userId, mock(DetailInteractRequest.class));
 
             //then
-            assertThrows(IllegalStateException.class, testMethod, badRequestMessage);
+            assertThrows(IllegalStateException.class, testMethod);
         }
 
         @DisplayName("카운트 변경 결과가 null이 아니면, 응답 DTO가 반환된다")
         @Test
         void ifResultIsNotNullThenReturnResponse() {
             //given
-            doReturn(foundEntity).when(questQueryService).getProceedEntityOfUser(any(), any());
+            doReturn(foundEntity).when(questRepository).findByIdAndUserId(any(), any());
+            doReturn(true).when(foundEntity).isProceed();
             doReturn(interactResult).when(foundEntity).updateDetailQuestCount(anyLong(), any());
 
             //when

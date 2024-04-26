@@ -83,7 +83,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `요청한 State에 맞는 퀘스트만 조회된다`(state: QuestState) {
             //given
             for (stateEnum in QuestState.values()) {
-                questRepository.save(Quest("제목", "1", user, 1L, stateEnum, QuestType.MAIN))
+                questRepository.save(Quest("제목", "1", user.id, 1L, stateEnum, QuestType.MAIN))
             }
 
             //when
@@ -111,7 +111,7 @@ class QuestApiControllerTest @Autowired constructor(
             //given
             val questIdsOfAnotherUser = mutableListOf<Long>()
             for (i in 1..3) {
-                val savedQuest = questRepository.save(Quest("다른 유저", "1", anotherUser, i.toLong(), QuestState.PROCEED, QuestType.MAIN))
+                val savedQuest = questRepository.save(Quest("다른 유저", "1", anotherUser.id, i.toLong(), QuestState.PROCEED, QuestType.MAIN))
                 questIdsOfAnotherUser.add(savedQuest.id)
             }
 
@@ -146,7 +146,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `요청한 State에 맞는 퀘스트만 조회된다`(state: QuestState) {
             //given
             for (stateEnum in QuestState.values()) {
-                questRepository.save(Quest("제목", "1", user, 1L, stateEnum, QuestType.MAIN))
+                questRepository.save(Quest("제목", "1", user.id, 1L, stateEnum, QuestType.MAIN))
             }
 
             //when
@@ -175,7 +175,7 @@ class QuestApiControllerTest @Autowired constructor(
             //given
             val questIdsOfAnotherUser = mutableListOf<Long>()
             for (i in 1..3) {
-                val savedQuest = questRepository.save(Quest("다른 유저", "1", anotherUser, i.toLong(), QuestState.PROCEED, QuestType.MAIN))
+                val savedQuest = questRepository.save(Quest("다른 유저", "1", anotherUser.id, i.toLong(), QuestState.PROCEED, QuestType.MAIN))
                 questIdsOfAnotherUser.add(savedQuest.id)
             }
 
@@ -204,7 +204,7 @@ class QuestApiControllerTest @Autowired constructor(
             //given
             for (pageNo in 1 downTo 0) {
                 for (j in 1..pageSize) {
-                    questRepository.save(Quest("$pageNo", "1", user, pageNo.toLong(), QuestState.PROCEED, QuestType.MAIN))
+                    questRepository.save(Quest("$pageNo", "1", user.id, pageNo.toLong(), QuestState.PROCEED, QuestType.MAIN))
                 }
             }
 
@@ -234,7 +234,7 @@ class QuestApiControllerTest @Autowired constructor(
             //given
             for (pageNo in 1 downTo 0) {
                 for (j in 1..pageSize) {
-                    questRepository.save(Quest("$pageNo", "1", user, pageNo.toLong(), QuestState.PROCEED, QuestType.MAIN))
+                    questRepository.save(Quest("$pageNo", "1", user.id, pageNo.toLong(), QuestState.PROCEED, QuestType.MAIN))
                 }
             }
 
@@ -419,14 +419,14 @@ class QuestApiControllerTest @Autowired constructor(
             val keywordType = QuestSearchKeywordType.ALL.name
 
             val mustContainIds = mutableListOf<Long>()
-            questRepository.save(Quest("$keyword 제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
-            questRepository.save(Quest("${keyword}제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
-            questRepository.save(Quest("제목", "$keyword 설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("$keyword 제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("${keyword}제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "$keyword 설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
 
-            val questHasDetail = Quest("제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)
+            val questHasDetail = Quest("제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)
             DetailQuest.of("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, questHasDetail)
             questRepository.save(questHasDetail).let { mustContainIds.add(it.id) }
-            val mustNotContainId = questRepository.save(Quest("제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).id
+            val mustNotContainId = questRepository.save(Quest("제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).id
 
             //when
             val request = mvc
@@ -463,15 +463,15 @@ class QuestApiControllerTest @Autowired constructor(
             val keywordType = QuestSearchKeywordType.TITLE.name
 
             val mustContainIds = mutableListOf<Long>()
-            questRepository.save(Quest("$keyword 제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
-            questRepository.save(Quest("${keyword}제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("$keyword 제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("${keyword}제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
 
             val mustNotContainIds = mutableListOf<Long>()
-            questRepository.save(Quest("제목", "$keyword 설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
-            val questHasDetail = Quest("제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)
+            questRepository.save(Quest("제목", "$keyword 설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            val questHasDetail = Quest("제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)
             DetailQuest.of("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, questHasDetail)
             questRepository.save(questHasDetail).let { mustNotContainIds.add(it.id) }
-            questRepository.save(Quest("제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
 
             //when
             val request = mvc
@@ -510,15 +510,15 @@ class QuestApiControllerTest @Autowired constructor(
             val mustContainIds = mutableListOf<Long>()
             val mustNotContainIds = mutableListOf<Long>()
 
-            questRepository.save(Quest("$keyword 제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
-            questRepository.save(Quest("${keyword}제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
-            questRepository.save(Quest("제목", "$keyword 설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("$keyword 제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("${keyword}제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "$keyword 설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
 
-            val q = Quest("제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)
+            val q = Quest("제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)
             DetailQuest.of("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
             questRepository.save(q).let { mustNotContainIds.add(it.id) }
 
-            questRepository.save(Quest("제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
 
             //when
             val request = mvc
@@ -556,16 +556,16 @@ class QuestApiControllerTest @Autowired constructor(
             val mustContainIds = mutableListOf<Long>()
             val mustNotContainIds = mutableListOf<Long>()
 
-            questRepository.save(Quest("$keyword 제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
-            questRepository.save(Quest("${keyword}제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("$keyword 제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("${keyword}제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
 
-            questRepository.save(Quest("제목", "$keyword 설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "$keyword 설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustContainIds.add(it.id) }
 
-            val q = Quest("제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)
+            val q = Quest("제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)
             DetailQuest.of("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
 
             questRepository.save(q).let { mustNotContainIds.add(it.id) }
-            questRepository.save(Quest("제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
 
             //when
             val request = mvc
@@ -603,15 +603,15 @@ class QuestApiControllerTest @Autowired constructor(
             val mustContainIds = mutableListOf<Long>()
             val mustNotContainIds = mutableListOf<Long>()
 
-            questRepository.save(Quest("$keyword 제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
-            questRepository.save(Quest("${keyword}제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
-            questRepository.save(Quest("제목", "$keyword 설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("$keyword 제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("${keyword}제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "$keyword 설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
 
-            val q = Quest("제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)
+            val q = Quest("제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)
             DetailQuest.of("$keyword 세부 제목", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED, q)
 
             questRepository.save(q).let { mustContainIds.add(it.id) }
-            questRepository.save(Quest("제목", "설명", user, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
+            questRepository.save(Quest("제목", "설명", user.id, 1, QuestState.PROCEED, QuestType.MAIN)).let { mustNotContainIds.add(it.id) }
 
             //when
             val request = mvc
@@ -651,7 +651,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `본인의 퀘스트 요청 시 퀘스트가 조회된다`() {
             //given
-            val savedQuest = questRepository.save(Quest("제목", "1", user, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val savedQuest = questRepository.save(Quest("제목", "1", user.id, 1L, QuestState.PROCEED, QuestType.MAIN))
             val detailRequest = DetailQuest.of("detail", 3, DetailQuestType.COUNT, DetailQuestState.PROCEED, savedQuest)
             savedQuest.replaceDetailQuests(listOf(detailRequest))
 
@@ -689,7 +689,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
             //given
-            val savedQuest = questRepository.save(Quest("제목", "1", user, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val savedQuest = questRepository.save(Quest("제목", "1", user.id, 1L, QuestState.PROCEED, QuestType.MAIN))
             val questId = savedQuest.id + 1
             val url = "$urlPrefix/$questId"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
@@ -723,7 +723,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `타인의 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
             //given
-            val savedQuest = questRepository.save(Quest("제목", "1", anotherUser, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val savedQuest = questRepository.save(Quest("제목", "1", anotherUser.id, 1L, QuestState.PROCEED, QuestType.MAIN))
             val questId = savedQuest.id
             val url = "$urlPrefix/$questId"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
@@ -1122,7 +1122,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `DTO Validation에 실패하면 BAD_REQUEST가 반환된다`() {
             //given
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = "$urlPrefix/${savedQuest.id}"
 
             val errorMessage = MessageUtil.getMessage("exception.badRequest")
@@ -1166,7 +1166,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("다른 유저의 퀘스트를 요청하면 NOT_FOUND가 반환된다")
         @Test
         fun `다른 유저의 퀘스트를 요청하면 NOT_FOUND가 반환된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", anotherUser, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", anotherUser.id, 1L, QuestState.PROCEED, QuestType.SUB))
 
             val url = "$urlPrefix/${savedQuest.id}"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
@@ -1240,7 +1240,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("진행 중인 퀘스트가 아니라면 BAD_REQUEST 를 반환한다")
         @Test
         fun `진행 중인 퀘스트가 아니라면 BAD_REQUEST 를 반환한다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.FAIL, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.FAIL, QuestType.SUB))
 
             val url = "$urlPrefix/${savedQuest.id}"
             val errorMessage = MessageUtil.getMessage("quest.error.not-proceed")
@@ -1278,7 +1278,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("퀘스트 타입이 변하지 않는다")
         @Test
         fun `퀘스트 타입이 변하지 않는다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.MAIN))
 
             val url = "$urlPrefix/${savedQuest.id}"
 
@@ -1313,7 +1313,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("수정된 결과가 반환된다")
         @Test
         fun `수정된 결과가 반환된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
 
             val url = "$urlPrefix/${savedQuest.id}"
 
@@ -1391,7 +1391,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("다른 유저의 퀘스트를 요청하면 NOT_FOUND가 반환된다")
         @Test
         fun `다른 유저의 퀘스트를 요청하면 NOT_FOUND가 반환된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", anotherUser, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", anotherUser.id, 1L, QuestState.PROCEED, QuestType.SUB))
 
             val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/delete"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
@@ -1457,7 +1457,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("요청 완료 후 퀘스트가 삭제 상태가 된다")
         @Test
         fun `요청 완료 후 퀘스트가 삭제 상태가 된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/delete"
 
             //when
@@ -1488,7 +1488,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("엘라스틱서치 문서가 삭제된다")
         @Test
         fun `엘라스틱서치 문서가 삭제된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/delete"
 
             //when
@@ -1557,7 +1557,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("삭제된 퀘스트라면 BAD_REQUEST가 반환된다")
         @Test
         fun `삭제된 퀘스트라면 BAD_REQUEST가 반환된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.DELETE, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.DELETE, QuestType.SUB))
             val url = urlFormat.format(savedQuest.id)
             val errorMessage = MessageUtil.getMessage("quest.error.deleted")
 
@@ -1590,7 +1590,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("진행중인 퀘스트가 아니라면 BAD_REQUEST가 반환된다")
         @Test
         fun `진행중인 퀘스트가 아니라면 BAD_REQUEST가 반환된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.FAIL, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.FAIL, QuestType.SUB))
             val url = urlFormat.format(savedQuest.id)
             val errorMessage = MessageUtil.getMessage("quest.error.not-proceed")
 
@@ -1623,7 +1623,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("완료하지 않은 세부 퀘스트가 있다면 BAD_REQUEST가 반환된다")
         @Test
         fun `완료하지 않은 세부 퀘스트가 있다면 BAD_REQUEST가 반환된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val detailRequest = DetailQuest.of("detail", 1, DetailQuestType.CHECK, DetailQuestState.PROCEED , savedQuest)
             savedQuest.replaceDetailQuests(listOf(detailRequest))
 
@@ -1659,7 +1659,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("요청 완료 후 퀘스트가 완료 상태가 된다")
         @Test
         fun `요청 완료 후 퀘스트가 완료 상태가 된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = urlFormat.format(savedQuest.id)
 
             //when
@@ -1690,7 +1690,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("메인 퀘스트 완료 시 경험치와 골드를 획득한다")
         @Test
         fun `메인 퀘스트 완료 시 경험치와 골드를 두배로 획득한다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.MAIN))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.MAIN))
             val url = urlFormat.format(savedQuest.id)
 
             val ops = redisTemplate.boundHashOps<String, Long>(redisKeyProperties.settings)
@@ -1722,7 +1722,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("서브 퀘스트 완료 시 1배의 경험치와 골드를 획득한다")
         @Test
         fun `서브 퀘스트 완료 시 1배의 경험치와 골드를 획득한다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = urlFormat.format(savedQuest.id)
 
             val ops = redisTemplate.boundHashOps<String, Long>(redisKeyProperties.settings)
@@ -1754,7 +1754,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("로그 테이블에 데이터가 등록된다")
         @Test
         fun `로그 테이블에 데이터가 등록된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = urlFormat.format(savedQuest.id)
 
             //when
@@ -1779,7 +1779,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `현재 총 골드 획득이 0이고, 목표값이 1인 골드 획득 업적이 있을 때, 해당 업적이 달성된다`() {
             //given
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = urlFormat.format(savedQuest.id)
             val targetAchievement = Achievement("t", "d", AchievementType.GOLD_EARN, 1)
             achievementRepository.save(targetAchievement)
@@ -1798,7 +1798,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `현재 완료 횟수가 0이고, 목표값이 1인 완료 업적이 있을 때, 해당 업적이 달성된다`() {
             //given
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = urlFormat.format(savedQuest.id)
             val targetAchievement = Achievement("t", "d", AchievementType.QUEST_COMPLETION, 1)
             achievementRepository.save(targetAchievement)
@@ -1817,7 +1817,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `현재 연속 완료일이 0이고, 목표 값이 1인 연속 완료 업적이 있으면, 해당 업적이 달성된다`() {
             //given
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = urlFormat.format(savedQuest.id)
             val targetAchievement = Achievement("t", "d", AchievementType.QUEST_CONTINUOUS_COMPLETION, 1)
             achievementRepository.save(targetAchievement)
@@ -1873,7 +1873,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("삭제된 퀘스트라면 BAD_REQUEST가 반환된다")
         @Test
         fun `삭제된 퀘스트라면 BAD_REQUEST가 반환된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.DELETE, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.DELETE, QuestType.SUB))
             val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/discard"
             val errorMessage = MessageUtil.getMessage("quest.error.deleted")
 
@@ -1906,7 +1906,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("진행중인 퀘스트가 아니라면 BAD_REQUEST가 반환된다")
         @Test
         fun `진행중인 퀘스트가 아니라면 BAD_REQUEST가 반환된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.FAIL, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.FAIL, QuestType.SUB))
             val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/discard"
             val errorMessage = MessageUtil.getMessage("quest.error.not-proceed")
 
@@ -1939,7 +1939,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("요청 완료 후 퀘스트가 포기 상태가 된다")
         @Test
         fun `요청 완료 후 퀘스트가 포기 상태가 된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/discard"
 
             //when
@@ -1970,7 +1970,7 @@ class QuestApiControllerTest @Autowired constructor(
         @DisplayName("로그 테이블에 데이터가 등록된다")
         @Test
         fun `로그 테이블에 데이터가 등록된다`() {
-            val savedQuest = questRepository.save(Quest("title", "desc", user, 1L, QuestState.PROCEED, QuestType.SUB))
+            val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/discard"
 
             //when
@@ -2006,15 +2006,15 @@ class QuestApiControllerTest @Autowired constructor(
 
         @BeforeEach
         fun beforeEach() {
-            val seq = questRepository.getNextSeqByUserId(user.id)
-            quest = Quest("t", "d", user, seq, type = QuestType.MAIN)
+            val seq = questRepository.getNextSeqOfUser(user.id)
+            quest = Quest("t", "d", user.id, seq, type = QuestType.MAIN)
             proceedDetailQuest = DetailQuest.of("t", 10, DetailQuestType.COUNT, DetailQuestState.PROCEED, quest)
             completedDetailQuest = DetailQuest.of("t", 10, 10, DetailQuestType.COUNT, DetailQuestState.COMPLETE, quest)
             quest.replaceDetailQuests(listOf(proceedDetailQuest, completedDetailQuest))
             questRepository.save(quest)
 
-            val anotherSeq = questRepository.getNextSeqByUserId(anotherUser.id)
-            questOfOtherUser = Quest("t", "d", anotherUser, anotherSeq, type = QuestType.MAIN)
+            val anotherSeq = questRepository.getNextSeqOfUser(anotherUser.id)
+            questOfOtherUser = Quest("t", "d", anotherUser.id, anotherSeq, type = QuestType.MAIN)
             detailQuestOfOtherUser = DetailQuest.of("t", 10, DetailQuestType.COUNT, DetailQuestState.PROCEED, questOfOtherUser)
             questOfOtherUser.replaceDetailQuests(listOf(detailQuestOfOtherUser))
             questRepository.save(questOfOtherUser)

@@ -7,8 +7,6 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import dailyquest.quest.entity.*
-import dailyquest.user.entity.ProviderType
-import dailyquest.user.entity.User
 import java.time.LocalDateTime
 
 @DisplayName("퀘스트 리스폰스 DTO 테스트")
@@ -76,7 +74,7 @@ class QuestResponseUnitTest {
             description = description,
             seq = seq,
             state = state,
-            user = User("", "", ProviderType.GOOGLE),
+            userId = 1L,
             type = type
         )
 

@@ -17,7 +17,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.verify
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.MessageSource
@@ -33,6 +33,8 @@ class AchievementServiceUnitTest {
     private lateinit var achievementPageSizeProperties: AchievementPageSizeProperties
     @RelaxedMockK
     private lateinit var achieveLogCommandService: AchievementAchieveLogCommandService
+    @RelaxedMockK
+    private lateinit var achieveLogQueryService: AchievementAchieveLogQueryService
     @RelaxedMockK
     private lateinit var notificationService: NotificationService
     @RelaxedMockK
@@ -58,7 +60,7 @@ class AchievementServiceUnitTest {
 
             //then
             verify {
-                achievementRepository.getAchievedAchievements(eq(userId), eq(pageRequest))
+                achieveLogQueryService.getAchievedAchievements(eq(userId), eq(pageRequest))
             }
         }
     }
@@ -242,7 +244,7 @@ class AchievementServiceUnitTest {
         fun init() {
             val achievementResponse = mockk<AchievementResponse>()
             mockkObject(AchievementResponse)
-            every { AchievementResponse.from(any()) } returns achievementResponse
+            every { AchievementResponse.from(any<Achievement>()) } returns achievementResponse
         }
 
         @DisplayName("리포지토리 반환 결과가 없으면 각 타입에 대해 빈 리스트가 담겨 반환된다")

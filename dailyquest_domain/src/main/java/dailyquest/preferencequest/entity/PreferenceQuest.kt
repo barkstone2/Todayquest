@@ -10,7 +10,6 @@ import java.time.LocalDateTime
 class PreferenceQuest private constructor(
     title: String,
     description: String = "",
-    deadLine: LocalDateTime? = null,
     user: User,
 ) : BaseTimeEntity() {
 
@@ -30,9 +29,6 @@ class PreferenceQuest private constructor(
     var deletedDate: LocalDateTime? = null
         protected set
 
-    var deadLine: LocalDateTime? = deadLine
-        protected set
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     val user: User = user
@@ -45,7 +41,6 @@ class PreferenceQuest private constructor(
     fun updatePreferenceQuest(requestEntity: PreferenceQuest) {
         this.title = requestEntity.title
         this.description = requestEntity.description
-        this.deadLine = requestEntity.deadLine
         replaceDetailQuests(requestEntity.preferenceDetailQuests)
     }
 
@@ -77,14 +72,12 @@ class PreferenceQuest private constructor(
         fun of(
             title: String,
             description: String = "",
-            deadLine: LocalDateTime? = null,
             details: List<PreferenceDetailQuest> = emptyList(),
             user: User
         ): PreferenceQuest {
             val preferenceQuest = PreferenceQuest(
                 title,
                 description,
-                deadLine,
                 user
             )
             preferenceQuest.replaceDetailQuests(details)

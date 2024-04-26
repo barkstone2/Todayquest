@@ -10,6 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 class UserPrincipal(
     val id: Long,
@@ -20,8 +21,8 @@ class UserPrincipal(
     val currentExp: Long = 0,
     val requireExp: Long = 0,
     val gold: Long = 0,
-    val coreTime: Int = 8,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    val coreTimeHour: Int = 8,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val coreTimeLastModifiedDate: LocalDateTime? = null,
     val questRegistrationCount: Long = 0,
     val questCompletionCount: Long = 0,
@@ -38,14 +39,23 @@ class UserPrincipal(
     val goldUseAmount: Long = 0,
 ) : UserDetails {
 
-    @JsonIgnore
-    override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
-        return authorities
-    }
+    var notificationCount: Int = 0
 
     @JsonGetter("authorities")
     fun getAuthorityValues(): List<String> {
         return getAuthorities().map { it.authority }
+    }
+
+    fun isNowCoreTime() : Boolean {
+        val now = LocalDateTime.now()
+        val coreTimeOfToday = LocalDateTime.of(LocalDate.now(), LocalTime.of(coreTimeHour, 0))
+        val isNowBetweenCoreTimeAndAfterOneHour = !(now.isBefore(coreTimeOfToday) || now.isAfter(coreTimeOfToday.plusHours(1)))
+        return isNowBetweenCoreTimeAndAfterOneHour
+    }
+
+    @JsonIgnore
+    override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
+        return authorities
     }
 
     override fun getPassword(): String {
@@ -85,7 +95,7 @@ class UserPrincipal(
                 currentExp = currentExp,
                 requireExp = requireExp,
                 gold = userResponse.gold,
-                coreTime = userResponse.coreTime.hour,
+                coreTimeHour = userResponse.coreTime.hour,
                 coreTimeLastModifiedDate = userResponse.coreTimeLastModifiedDate,
                 questRegistrationCount = userResponse.questRegistrationCount,
                 questCompletionCount = userResponse.questCompletionCount,

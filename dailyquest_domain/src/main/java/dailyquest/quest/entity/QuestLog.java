@@ -47,7 +47,7 @@ public class QuestLog extends BaseTimeEntity {
     }
 
     public QuestLog(Quest quest, LocalDate loggedDate) {
-        this.userId = quest.getUser().getId();
+        this.userId = quest.getUserId();
         this.questId = quest.getId();
         this.state = quest.getState();
         this.type = quest.getType();

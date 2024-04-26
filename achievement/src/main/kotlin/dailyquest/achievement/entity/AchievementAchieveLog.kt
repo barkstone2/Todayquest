@@ -4,7 +4,7 @@ import dailyquest.common.CreatedTimeEntity
 import jakarta.persistence.*
 import java.io.Serializable
 
-@Table(name = "achievement_achieve_log")
+@Table(name = "achievement_achieve_log", uniqueConstraints = [UniqueConstraint(name = "unique_user_achievement", columnNames = ["user_id", "achievement_id"])])
 @Entity
 class AchievementAchieveLog(
     achievement: Achievement,
@@ -28,5 +28,4 @@ class AchievementAchieveLog(
             return AchievementAchieveLog(achievement, userId)
         }
     }
-
 }

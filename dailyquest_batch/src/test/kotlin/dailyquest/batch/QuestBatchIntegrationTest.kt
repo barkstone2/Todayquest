@@ -223,17 +223,17 @@ class QuestBatchIntegrationTest @Autowired constructor(
             val currentTime = LocalDateTime.now().withSecond(0).withNano(0)
 
             val processedIds = listOf(
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
-                questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
-                questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
+                questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
+                questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
+                questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
+                questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
             ).map(Quest::id)
 
             val notProcessedIds = listOf(
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.plusMinutes(1))),
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
-                questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.plusMinutes(1))),
-                questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
+                questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.plusMinutes(1))),
+                questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
+                questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.plusMinutes(1))),
+                questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, null)),
             ).map(Quest::id)
 
             jobLauncherTestUtils.job = questDeadLineBatchJob
@@ -261,10 +261,10 @@ class QuestBatchIntegrationTest @Autowired constructor(
             val currentTime = LocalDateTime.now().withSecond(0).withNano(0)
 
             val processedIds = listOf(
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
-                questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
-                questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
+                questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
+                questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
+                questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
+                questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
             ).map(Quest::id)
 
             jobLauncherTestUtils.job = questDeadLineBatchJob
@@ -289,10 +289,10 @@ class QuestBatchIntegrationTest @Autowired constructor(
             val currentTime = LocalDateTime.now().withSecond(0).withNano(0)
 
             val processedIds = listOf(
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
-                questRepository.save(Quest("", "", testUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
-                questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
-                questRepository.save(Quest("", "", anotherUser, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
+                questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
+                questRepository.save(Quest("", "", testUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
+                questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime)),
+                questRepository.save(Quest("", "", anotherUser.id, 0L, QuestState.PROCEED, QuestType.MAIN, currentTime.minusMinutes(1))),
             ).map(Quest::id)
 
             jobLauncherTestUtils.job = questDeadLineBatchJob

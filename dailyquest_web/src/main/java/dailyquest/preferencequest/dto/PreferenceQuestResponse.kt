@@ -8,28 +8,13 @@ data class PreferenceQuestResponse(
     val id: Long = 0,
     val title: String,
     val description: String = "",
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val createdDate: LocalDateTime? = null,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val lastModifiedDate: LocalDateTime? = null,
     val preferenceDetailQuests: List<PreferenceDetailResponse> = listOf(),
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    val deadLine: LocalDateTime? = null,
     val usedCount: Long = 0
 ) {
-
-    // JPQL 생성자 호출에 사용되므로 팩토리 메서드로 전환 불가
-    constructor(preferenceQuest: PreferenceQuest, usedCount: Long) : this(
-        preferenceQuest.id,
-        preferenceQuest.title,
-        preferenceQuest.description,
-        preferenceQuest.createdDate,
-        preferenceQuest.lastModifiedDate,
-        preferenceQuest.preferenceDetailQuests.map { PreferenceDetailResponse.from(it) },
-        preferenceQuest.deadLine,
-        usedCount
-    )
-
     companion object {
         @JvmStatic
         fun from(preferenceQuest: PreferenceQuest): PreferenceQuestResponse {
@@ -42,7 +27,19 @@ data class PreferenceQuestResponse(
                 preferenceDetailQuests = preferenceQuest.preferenceDetailQuests.map {
                     PreferenceDetailResponse.from(it)
                 },
-                deadLine = preferenceQuest.deadLine
+            )
+        }
+
+        @JvmStatic
+        fun of(preferenceQuest: PreferenceQuest, usedCount: Long): PreferenceQuestResponse {
+            return PreferenceQuestResponse(
+                preferenceQuest.id,
+                preferenceQuest.title,
+                preferenceQuest.description,
+                preferenceQuest.createdDate,
+                preferenceQuest.lastModifiedDate,
+                preferenceQuest.preferenceDetailQuests.map { PreferenceDetailResponse.from(it) },
+                usedCount
             )
         }
     }

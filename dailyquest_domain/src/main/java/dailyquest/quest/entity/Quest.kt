@@ -2,7 +2,6 @@ package dailyquest.quest.entity
 
 import dailyquest.common.BaseTimeEntity
 import dailyquest.preferencequest.entity.PreferenceQuest
-import dailyquest.user.entity.User
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -10,7 +9,7 @@ import java.time.LocalDateTime
 class Quest(
     title: String,
     description: String = "",
-    user: User,
+    userId: Long,
     seq: Long,
     state: QuestState = QuestState.PROCEED,
     type: QuestType,
@@ -30,9 +29,8 @@ class Quest(
     var description: String = description
         protected set
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    val user: User = user
+    @Column(name = "user_id")
+    val userId: Long = userId
 
     @Column(name = "user_quest_seq", nullable = false)
     val seq: Long = seq

@@ -3,16 +3,15 @@ package dailyquest.preferencequest.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import dailyquest.annotation.WithCustomMockUser
+import dailyquest.annotation.WebMvcUnitTest
 import dailyquest.common.MessageUtil
 import dailyquest.common.UserLevelLock
-import dailyquest.config.SecurityConfig
-import dailyquest.filter.InternalApiKeyValidationFilter
-import dailyquest.jwt.JwtAuthorizationFilter
+import dailyquest.common.unitTestDefaultConfiguration
 import dailyquest.preferencequest.dto.PreferenceDetailRequest
 import dailyquest.preferencequest.dto.PreferenceQuestRequest
 import dailyquest.preferencequest.service.PreferenceQuestService
 import dailyquest.quest.dto.QuestResponse
+import dailyquest.search.service.QuestIndexService
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.ParameterizedTest
@@ -24,10 +23,7 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.FilterType
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
@@ -39,19 +35,8 @@ import java.util.function.Supplier
 import java.util.stream.Stream
 
 @DisplayName("선호 퀘스트 API 컨트롤러 유닛 테스트")
-@WithCustomMockUser
-@WebMvcTest(controllers = [PreferenceQuestApiController::class],
-    excludeFilters = [
-        ComponentScan.Filter(
-            type = FilterType.ASSIGNABLE_TYPE,
-            classes = [SecurityConfig::class, JwtAuthorizationFilter::class, InternalApiKeyValidationFilter::class]
-        )
-    ]
-)
+@WebMvcUnitTest([PreferenceQuestApiController::class])
 class PreferenceQuestApiControllerUnitTest {
-    companion object {
-        const val URI_PREFIX = "/api/v1/preference/quests"
-    }
 
     @Autowired
     lateinit var mvc: MockMvc
@@ -61,6 +46,9 @@ class PreferenceQuestApiControllerUnitTest {
 
     @MockBean
     lateinit var userLevelLock: UserLevelLock
+
+    @MockBean
+    lateinit var questIndexService: QuestIndexService
 
     private lateinit var messageUtil: MockedStatic<MessageUtil>
     val om: ObjectMapper = ObjectMapper().registerModule(JavaTimeModule()).registerKotlinModule()
@@ -73,47 +61,6 @@ class PreferenceQuestApiControllerUnitTest {
     @AfterEach
     fun afterEach() {
         messageUtil.close()
-    }
-
-    class InvalidLongSources : ArgumentsProvider {
-        override fun provideArguments(context: ExtensionContext): Stream<out Arguments> {
-            return Stream.of(
-                Arguments.of("0"),
-                Arguments.of("text"),
-                Arguments.of("-100"),
-                Arguments.of(BigInteger("1234567890123456789012345678901234567890")),
-            )
-        }
-    }
-
-    class InValidPreferenceQuestRequest: ArgumentsProvider {
-        override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
-            val validTitle = "title"
-
-            val overRangeTitle = "t".repeat(100)
-            val overRangeDesc = "d".repeat(301)
-
-            val validDetail = PreferenceDetailRequest(validTitle, targetCount = 3)
-            val validDetails = listOf(validDetail)
-
-            val emptyTitleDetails = listOf(PreferenceDetailRequest("", targetCount = 3))
-            val blankTitleDetails = listOf(PreferenceDetailRequest("        ", targetCount = 3))
-            val rangeOutTitleDetails = listOf(PreferenceDetailRequest(overRangeTitle, targetCount = 3))
-            val rangeOutDetails = listOf(PreferenceDetailRequest(validTitle, targetCount = 0))
-            val countOutDetails = mutableListOf<PreferenceDetailRequest>().also { list -> repeat(6) { list.add(validDetail) } }
-
-            return Stream.of(
-                Arguments.of(PreferenceQuestRequest("", "", validDetails), "제목 길이가 0이면"),
-                Arguments.of(PreferenceQuestRequest("   ", "", validDetails), "제목에 공백만 있으면"),
-                Arguments.of(PreferenceQuestRequest(overRangeTitle, "", validDetails), "제목 길이가 초과하면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, overRangeDesc, validDetails), "설명 길이가 초과하면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, "", emptyTitleDetails), "세부 제목 길이가 0이면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, "", blankTitleDetails), "세부 제목에 공백만 있으면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, "", rangeOutTitleDetails), "세부 제목 길이가 초과하면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, "", rangeOutDetails), "세부 설명 길이가 초과하면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, "", countOutDetails), "세부 퀘스트 개수가 초과하면"),
-            )
-        }
     }
 
     @DisplayName("전체 선호 퀘스트 목록 조회 시 서비스 메서드가 호출된다")
@@ -412,5 +359,67 @@ class PreferenceQuestApiControllerUnitTest {
             result.andExpect { status { isOk() } }
             verify(userLevelLock, times(1)).executeWithLock(any(), any(), any<Supplier<*>>())
         }
+
+
+        @DisplayName("엘라스틱서치 문서 저장 로직이 호출된다")
+        @Test
+        fun `엘라스틱서치 문서 저장 로직이 호출된다`() {
+            //given
+            val questResponse = mock<QuestResponse>(defaultAnswer = Answers.RETURNS_DEEP_STUBS)
+            doReturn(questResponse).`when`(userLevelLock).executeWithLock(any(), any(), any<Supplier<*>>())
+
+            //when
+            mvc.post("$URI_PREFIX/1/register") {
+                unitTestDefaultConfiguration()
+            }
+
+            //then
+            verify(questIndexService).saveDocument(eq(questResponse), any())
+        }
+    }
+
+    class InvalidLongSources : ArgumentsProvider {
+        override fun provideArguments(context: ExtensionContext): Stream<out Arguments> {
+            return Stream.of(
+                Arguments.of("0"),
+                Arguments.of("text"),
+                Arguments.of("-100"),
+                Arguments.of(BigInteger("1234567890123456789012345678901234567890")),
+            )
+        }
+    }
+
+    class InValidPreferenceQuestRequest: ArgumentsProvider {
+        override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
+            val validTitle = "title"
+
+            val overRangeTitle = "t".repeat(100)
+            val overRangeDesc = "d".repeat(301)
+
+            val validDetail = PreferenceDetailRequest(validTitle, targetCount = 3)
+            val validDetails = listOf(validDetail)
+
+            val emptyTitleDetails = listOf(PreferenceDetailRequest("", targetCount = 3))
+            val blankTitleDetails = listOf(PreferenceDetailRequest("        ", targetCount = 3))
+            val rangeOutTitleDetails = listOf(PreferenceDetailRequest(overRangeTitle, targetCount = 3))
+            val rangeOutDetails = listOf(PreferenceDetailRequest(validTitle, targetCount = 0))
+            val countOutDetails = mutableListOf<PreferenceDetailRequest>().also { list -> repeat(6) { list.add(validDetail) } }
+
+            return Stream.of(
+                Arguments.of(PreferenceQuestRequest("", "", validDetails), "제목 길이가 0이면"),
+                Arguments.of(PreferenceQuestRequest("   ", "", validDetails), "제목에 공백만 있으면"),
+                Arguments.of(PreferenceQuestRequest(overRangeTitle, "", validDetails), "제목 길이가 초과하면"),
+                Arguments.of(PreferenceQuestRequest(validTitle, overRangeDesc, validDetails), "설명 길이가 초과하면"),
+                Arguments.of(PreferenceQuestRequest(validTitle, "", emptyTitleDetails), "세부 제목 길이가 0이면"),
+                Arguments.of(PreferenceQuestRequest(validTitle, "", blankTitleDetails), "세부 제목에 공백만 있으면"),
+                Arguments.of(PreferenceQuestRequest(validTitle, "", rangeOutTitleDetails), "세부 제목 길이가 초과하면"),
+                Arguments.of(PreferenceQuestRequest(validTitle, "", rangeOutDetails), "세부 설명 길이가 초과하면"),
+                Arguments.of(PreferenceQuestRequest(validTitle, "", countOutDetails), "세부 퀘스트 개수가 초과하면"),
+            )
+        }
+    }
+
+    companion object {
+        const val URI_PREFIX = "/api/v1/preference/quests"
     }
 }

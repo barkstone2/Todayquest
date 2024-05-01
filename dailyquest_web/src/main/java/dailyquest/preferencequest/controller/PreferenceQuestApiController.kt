@@ -6,6 +6,7 @@ import dailyquest.preferencequest.dto.PreferenceQuestRequest
 import dailyquest.preferencequest.dto.PreferenceQuestResponse
 import dailyquest.preferencequest.service.PreferenceQuestService
 import dailyquest.quest.dto.QuestResponse
+import dailyquest.search.service.QuestIndexService
 import dailyquest.user.dto.UserPrincipal
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*
 class PreferenceQuestApiController(
     private val preferenceQuestService: PreferenceQuestService,
     private val userLevelLock: UserLevelLock,
+    private val questIndexService: QuestIndexService
 ) {
 
     @GetMapping("")
@@ -72,8 +74,7 @@ class PreferenceQuestApiController(
         val questResponse = userLevelLock.executeWithLock("QUEST_SEQ" + principal.id, 3) {
             preferenceQuestService.registerQuestByPreferenceQuest(preferenceQuestId, principal.id)
         }
-
+        questIndexService.saveDocument(questResponse, principal.id)
         return ResponseEntity.ok(ResponseData.of(questResponse))
     }
-
 }

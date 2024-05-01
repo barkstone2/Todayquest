@@ -78,6 +78,7 @@ public class QuestCommandService {
         QuestState resultState = quest.completeQuest();
         switch (resultState) {
             case COMPLETE -> {
+                quest = questRepository.saveAndFlush(quest);
                 QuestLogRequest questLogRequest = QuestLogRequest.from(quest);
                 questLogService.saveQuestLog(questLogRequest);
                 QuestCompletionUserUpdateRequest questCompletionUserUpdateRequest
@@ -97,6 +98,7 @@ public class QuestCommandService {
         QuestState resultState = quest.discardQuest();
         switch (resultState) {
             case DISCARD -> {
+                quest = questRepository.saveAndFlush(quest);
                 QuestLogRequest questLogRequest = QuestLogRequest.from(quest);
                 questLogService.saveQuestLog(questLogRequest);
             }

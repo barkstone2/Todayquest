@@ -2,15 +2,11 @@ name: 배치 애플리케이션 테스트 & 통합
 
 on:
   push:
-    branches:
-      - develop
-    paths:
-      - 'dailyquest_batch/**'
-      - 'dailyquest_domain/**'
-      - 'dailyquest_elastic/**'
-      - '*.gradle'
-      - '.github/workflows/batch-**'
-
+    branches: [ develop ]
+    paths: [ 'dailyquest_batch/**', 'achievement/**', 'notification/**', 'user/**', 'dailyquest_domain/**', 'dailyquest_elastic/**', '*.gradle', '.github/workflows/batch-**' ]
+  pull_request:
+    branches: [ develop ]
+    paths: [ 'dailyquest_batch/**', 'achievement/**', 'notification/**', 'user/**', 'dailyquest_domain/**', 'dailyquest_elastic/**', '*.gradle', '.github/workflows/batch-**' ]
 env:
   JAVA_PATH: /home/runner/jdk
   GRADLE_USER_HOME: /home/runner/gradle

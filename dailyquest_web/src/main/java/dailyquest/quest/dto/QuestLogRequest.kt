@@ -45,10 +45,10 @@ class QuestLogRequest private constructor(
     companion object {
         @JvmStatic
         fun from(quest: Quest): QuestLogRequest {
-            val createdDate = quest.createdDate.toLocalDate()
-            val nowTime = quest.createdDate.toLocalTime()
+            val lastModifiedDate = quest.lastModifiedDate.toLocalDate()
+            val baseTime = quest.lastModifiedDate.toLocalTime()
             val resetTime = LocalTime.of(6, 0)
-            val loggedDate = if (nowTime.isBefore(resetTime)) createdDate.minusDays(1L) else createdDate
+            val loggedDate = if (baseTime.isBefore(resetTime)) lastModifiedDate.minusDays(1L) else lastModifiedDate
             return QuestLogRequest(quest.userId, quest.id, quest.state, quest.type, loggedDate)
         }
     }

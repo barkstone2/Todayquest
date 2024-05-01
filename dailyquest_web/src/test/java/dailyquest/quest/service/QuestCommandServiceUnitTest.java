@@ -20,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,17 +38,21 @@ public class QuestCommandServiceUnitTest {
     @Mock MessageSource messageSource;
     @Mock RedisService redisService;
     MockedStatic<QuestLogRequest> mockedStatic;
+    MockedStatic<QuestResponse> mockedQuestResponse;
 
     @BeforeEach
     void init() {
         mockedStatic = mockStatic(QuestLogRequest.class);
         QuestLogRequest mock = mock(QuestLogRequest.class);
         when(QuestLogRequest.from(any())).thenReturn(mock);
+        mockedQuestResponse = mockStatic(QuestResponse.class);
+        lenient().when(QuestResponse.createDto(any())).thenReturn(mock(QuestResponse.class));
     }
 
     @AfterEach
     void close() {
         mockedStatic.close();
+        mockedQuestResponse.close();
     }
 
     @DisplayName("퀘스트 저장 시")
@@ -237,14 +240,23 @@ public class QuestCommandServiceUnitTest {
         class TestWhenComplete {
             private final long userId = 1L;
             private final long questId = 1L;
+            private final Quest saveAndFlushTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
 
             @BeforeEach
             void init() {
                 lenient().doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
-                lenient().doReturn(QuestType.MAIN).when(completeTarget).getType();
-                lenient().doReturn(userId).when(completeTarget).getUserId();
-                lenient().doReturn(questId).when(completeTarget).getId();
-                lenient().doReturn(LocalDateTime.now()).when(completeTarget).getCreatedDate();
+                lenient().doReturn(saveAndFlushTarget).when(questRepository).saveAndFlush(eq(completeTarget));
+            }
+
+            @DisplayName("saveAndFlush를 호출해 변경 사항을 먼저 DB에 반영한다")
+            @Test
+            public void callSaveAndFlush() {
+                //given
+                //when
+                questCommandService.completeQuest(userId, questId);
+
+                //then
+                verify(questRepository).saveAndFlush(eq(completeTarget));
             }
 
             @DisplayName("레디스 서비스를 통해 조회한 퀘스트 클리어 경험치, 골드와 현재 퀘스트 타입으로 DTO를 생성해 유저 경험치 골드 추가 요청을 한다")
@@ -256,7 +268,7 @@ public class QuestCommandServiceUnitTest {
                 QuestType type = QuestType.SUB;
                 doReturn(clearExp).when(redisService).getQuestClearExp();
                 doReturn(clearGold).when(redisService).getQuestClearGold();
-                doReturn(type).when(completeTarget).getType();
+                doReturn(type).when(saveAndFlushTarget).getType();
                 QuestCompletionUserUpdateRequest userUpdateRequest = new QuestCompletionUserUpdateRequest(clearExp, clearGold, type);
 
                 //when
@@ -266,24 +278,25 @@ public class QuestCommandServiceUnitTest {
                 verify(userService, times(1)).addUserExpAndGold(eq(userId), eq(userUpdateRequest));
             }
 
-            @DisplayName("변경된 퀘스트 정보로 DTO를 생성해 퀘스트 로그 저장 요청을 한다")
+            @DisplayName("saveAndFlush를 통해 반환된 퀘스트 정보로 DTO를 생성해 퀘스트 로그 저장 요청을 한다")
             @Test
-            public void requestSaveQuestLogByTargetEntity() {
+            public void requestSaveQuestLogByReturnedEntity() {
                 //given
-                QuestLogRequest questLogRequest = QuestLogRequest.from(completeTarget);
+                QuestLogRequest logRequest = mock(QuestLogRequest.class);
+                when(QuestLogRequest.from(eq(saveAndFlushTarget))).thenReturn(logRequest);
 
                 //when
                 questCommandService.completeQuest(userId, questId);
 
                 //then
-                verify(questLogService, times(1)).saveQuestLog(eq(questLogRequest));
+                verify(questLogService, times(1)).saveQuestLog(eq(logRequest));
             }
 
             @DisplayName("기록된 로그 날짜로 유저의 퀘스트 완료 기록을 갱신 요청한다")
             @Test
             public void requestRecordCompletionByLoggedDate() {
                 //given
-                QuestLogRequest questLogRequest = QuestLogRequest.from(completeTarget);
+                QuestLogRequest questLogRequest = QuestLogRequest.from(saveAndFlushTarget);
                 LocalDate loggedDate = questLogRequest.getLoggedDate();
 
                 //when
@@ -298,6 +311,12 @@ public class QuestCommandServiceUnitTest {
     @DisplayName("퀘스트 포기 시")
     @Nested
     class QuestDiscardTest {
+        private final Quest discardTarget = mock(Quest.class);
+
+        @BeforeEach
+        void init() {
+            lenient().doReturn(discardTarget).when(questRepository).findByIdAndUserId(any(), any());
+        }
 
         @DisplayName("리포지토리 조회 결과가 null이면 EntityNotFound 예외가 발생한다")
         @Test
@@ -318,8 +337,6 @@ public class QuestCommandServiceUnitTest {
         @Test
         public void ifResultStateIsDeleteThanThrowException() {
             //given
-            Quest discardTarget = mock(Quest.class);
-            doReturn(discardTarget).when(questRepository).findByIdAndUserId(any(), any());
             doReturn(QuestState.DELETE).when(discardTarget).discardQuest();
 
             //when
@@ -333,8 +350,6 @@ public class QuestCommandServiceUnitTest {
         @Test
         public void ifResultStateIsProceedThanThrowException() {
             //given
-            Quest discardTarget = mock(Quest.class);
-            doReturn(discardTarget).when(questRepository).findByIdAndUserId(any(), any());
             doReturn(QuestState.PROCEED).when(discardTarget).discardQuest();
 
             //when
@@ -344,19 +359,41 @@ public class QuestCommandServiceUnitTest {
             assertThrows(IllegalStateException.class, testMethod);
         }
 
-        @DisplayName("결과 상태가 DISCARD 면 퀘스트 상태 변경 로그 저장 로직이 호출된다")
-        @Test
-        public void ifResultStateIsDiscardThanSaveStateChangeLog() {
-            //given
-            Quest discardTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
-            doReturn(discardTarget).when(questRepository).findByIdAndUserId(any(), any());
-            doReturn(QuestState.DISCARD).when(discardTarget).discardQuest();
+        @DisplayName("결과 상태가 DISCARD면")
+        @Nested
+        class TestWhenReturnedTypeIsDiscard {
+            private Quest saveAndFlushTarget = mock(Quest.class);
 
-            //when
-            questCommandService.discardQuest(1L, 1L);
+            @BeforeEach
+            void init() {
+                doReturn(QuestState.DISCARD).when(discardTarget).discardQuest();
+                doReturn(saveAndFlushTarget).when(questRepository).saveAndFlush(eq(discardTarget));
+            }
 
-            //then
-            verify(questLogService, times(1)).saveQuestLog(any());
+            @DisplayName("saveAndFlush를 호출한다")
+            @Test
+            public void callSaveAndFlush() {
+                //given
+                //when
+                questCommandService.discardQuest(1L, 1L);
+
+                //then
+                verify(questRepository).saveAndFlush(eq(discardTarget));
+            }
+
+            @DisplayName("퀘스트 상태 변경 로그 저장 로직이 호출된다")
+            @Test
+            public void callSaveStateChangeLog() {
+                //given
+                QuestLogRequest logRequest = mock(QuestLogRequest.class);
+                when(QuestLogRequest.from(eq(saveAndFlushTarget))).thenReturn(logRequest);
+
+                //when
+                questCommandService.discardQuest(1L, 1L);
+
+                //then
+                verify(questLogService, times(1)).saveQuestLog(eq(logRequest));
+            }
         }
     }
 

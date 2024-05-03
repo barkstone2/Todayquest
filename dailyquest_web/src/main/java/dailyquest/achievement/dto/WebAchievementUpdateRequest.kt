@@ -10,5 +10,4 @@ class WebAchievementUpdateRequest(
     @field:NotBlank(message = "{achievement.description.notBlank}")
     @field:Size(max = 150, message = "{achievement.description.size}")
     override val description: String,
-) : AchievementUpdateRequest(title, description) {
-}
+) : AchievementUpdateRequest

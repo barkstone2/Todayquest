@@ -1,6 +1,5 @@
 package dailyquest.user.dto
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonGetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import dailyquest.user.entity.ProviderType
@@ -22,7 +21,6 @@ class UserPrincipal(
     val requireExp: Long = 0,
     val gold: Long = 0,
     val coreTimeHour: Int = 8,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val coreTimeLastModifiedDate: LocalDateTime? = null,
     val questRegistrationCount: Long = 0,
     val questCompletionCount: Long = 0,
@@ -30,9 +28,7 @@ class UserPrincipal(
     val currentQuestContinuousCompletionDays: Long = 0,
     val maxQuestContinuousRegistrationDays: Long = 0,
     val maxQuestContinuousCompletionDays: Long = 0,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val lastQuestRegistrationDate: LocalDate? = null,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val lastQuestCompletionDate: LocalDate? = null,
     val perfectDayCount: Long = 0,
     val goldEarnAmount: Long = 0,

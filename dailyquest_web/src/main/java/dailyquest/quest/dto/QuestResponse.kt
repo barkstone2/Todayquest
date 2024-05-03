@@ -1,6 +1,5 @@
 package dailyquest.quest.dto
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
@@ -13,14 +12,11 @@ data class QuestResponse(
     val description: String = "",
     val seq: Long = 0,
     val state: QuestState = QuestState.PROCEED,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val createdDate: LocalDateTime = LocalDateTime.now(),
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val lastModifiedDate: LocalDateTime = LocalDateTime.now(),
     val detailQuests: List<DetailResponse> = emptyList(),
     val canComplete : Boolean = false,
     val type: QuestType = QuestType.MAIN,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val deadLine: LocalDateTime? = null,
 ) {
 

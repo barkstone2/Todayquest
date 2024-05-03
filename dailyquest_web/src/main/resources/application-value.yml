@@ -60,3 +60,9 @@ api:
     key-header-name: ${BATCH_API_HEADER_NAME:Batch-API-Key}
     url:
       check-and-achieve: ${BATCH_API_URL_CHECK_AND_ACHIEVE:/api/v1/check-and-achieve}
+
+http:
+  response:
+    date-format: ${HTTP_RESPONSE_DATE_FORMAT:yyyy-MM-dd}
+    time-format: ${HTTP_RESPONSE_TIME_FORMAT:HH:mm:ss}
+    date-time-format: ${HTTP_RESPONSE_DATE_TIME_FORMAT:yyyy-MM-dd HH:mm:ss}

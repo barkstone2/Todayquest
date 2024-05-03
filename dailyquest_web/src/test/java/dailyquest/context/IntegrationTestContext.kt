@@ -1,8 +1,10 @@
 package dailyquest.context
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dailyquest.jwt.JwtTokenProvider
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.RoleType
@@ -22,6 +24,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.filter.CharacterEncodingFilter
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Transactional
 class IntegrationTestContext(
@@ -31,7 +35,16 @@ class IntegrationTestContext(
 ) {
     companion object {
         const val SERVER_ADDR = "http://localhost:"
-        val om: ObjectMapper = ObjectMapper().registerModule(JavaTimeModule()).registerKotlinModule()
+        val om: ObjectMapper
+            get() {
+                val om = jacksonObjectMapper().registerModule(JavaTimeModule())
+                val module = SimpleModule().apply {
+                    addDeserializer(LocalDateTime::class.java, LocalDateTimeDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                }
+                om.registerModule(module)
+                return om
+            }
+
     }
 
     @LocalServerPort

@@ -1,7 +1,5 @@
 package dailyquest.achievement.dto
 
-import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonProperty
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.entity.AchievementType
@@ -15,11 +13,9 @@ data class AchievementResponse(
     val targetValue: Long,
     val inactivated: Boolean,
     val isAchieved: Boolean = false,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val achievedDate: LocalDateTime? = null,
+    val targetMessage: String = type.representationFormat.format(targetValue)
 ) {
-    @JsonProperty
-    private val targetMessage = type.representationFormat.format(targetValue)
     companion object {
         @JvmStatic
         fun from(achievement: Achievement): AchievementResponse {

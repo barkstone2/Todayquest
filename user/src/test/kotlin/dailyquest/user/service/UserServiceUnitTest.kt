@@ -1,6 +1,6 @@
 package dailyquest.user.service
 
-import dailyquest.achievement.dto.AchievementAchieveRequest
+import dailyquest.achievement.dto.SimpleAchievementAchieveRequest
 import dailyquest.achievement.entity.AchievementType.*
 import dailyquest.achievement.service.AchievementService
 import dailyquest.user.dto.UserResponse
@@ -169,7 +169,7 @@ class UserServiceUnitTest {
             val userId = 1L
             val totalEarnGold = 1L
             every { user.goldEarnAmount } returns totalEarnGold
-            val achieveRequest = AchievementAchieveRequest.of(GOLD_EARN, userId, totalEarnGold)
+            val achieveRequest = SimpleAchievementAchieveRequest.of(GOLD_EARN, userId, totalEarnGold)
 
             //when
             userService.addUserExpAndGold(userId, updateRequest)
@@ -202,7 +202,7 @@ class UserServiceUnitTest {
             val userId = 1L
             val questRegistrationCount = 1L
             every { user.questRegistrationCount } returns questRegistrationCount
-            val achieveRequest = AchievementAchieveRequest.of(QUEST_REGISTRATION, userId, questRegistrationCount)
+            val achieveRequest = SimpleAchievementAchieveRequest.of(QUEST_REGISTRATION, userId, questRegistrationCount)
 
             //when
             userService.recordQuestRegistration(userId, LocalDate.now())
@@ -218,7 +218,7 @@ class UserServiceUnitTest {
             val userId = 1L
             val questContinuousRegistrationDays = 1L
             every { user.currentQuestContinuousRegistrationDays } returns questContinuousRegistrationDays
-            val achieveRequest = AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION, userId, questContinuousRegistrationDays)
+            val achieveRequest = SimpleAchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION, userId, questContinuousRegistrationDays)
 
             //when
             userService.recordQuestRegistration(userId, LocalDate.now())
@@ -251,7 +251,7 @@ class UserServiceUnitTest {
             val userId = 1L
             val questCompletionCount = 1L
             every { user.questCompletionCount } returns questCompletionCount
-            val achieveRequest = AchievementAchieveRequest.of(QUEST_COMPLETION, userId, questCompletionCount)
+            val achieveRequest = SimpleAchievementAchieveRequest.of(QUEST_COMPLETION, userId, questCompletionCount)
 
             //when
             userService.recordQuestCompletion(userId, LocalDate.now())
@@ -267,7 +267,7 @@ class UserServiceUnitTest {
             val userId = 1L
             val questContinuousCompletionDays = 1L
             every { user.currentQuestContinuousCompletionDays } returns questContinuousCompletionDays
-            val achieveRequest = AchievementAchieveRequest.of(QUEST_CONTINUOUS_COMPLETION, userId, questContinuousCompletionDays)
+            val achieveRequest = SimpleAchievementAchieveRequest.of(QUEST_CONTINUOUS_COMPLETION, userId, questContinuousCompletionDays)
 
             //when
             userService.recordQuestCompletion(userId, LocalDate.now())

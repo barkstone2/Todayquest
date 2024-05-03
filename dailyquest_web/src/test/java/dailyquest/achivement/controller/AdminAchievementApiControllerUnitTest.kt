@@ -3,15 +3,15 @@ package dailyquest.achivement.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import dailyquest.achievement.controller.AdminAchievementApiController
-import dailyquest.achievement.dto.AchievementSaveRequest
-import dailyquest.achievement.dto.AchievementUpdateRequest
+import dailyquest.achievement.dto.WebAchievementSaveRequest
+import dailyquest.achievement.dto.WebAchievementUpdateRequest
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementService
 import dailyquest.annotation.WebMvcUnitTest
 import dailyquest.common.BatchApiUtil
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
-import org.hamcrest.Matchers.*
+import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -46,7 +46,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
         fun `업적 제목이 50자를 초과하면 400이 반환된다`() {
             //given
             val exceedTitle = "t".repeat(51)
-            val saveRequest = AchievementSaveRequest(exceedTitle, "description", AchievementType.QUEST_REGISTRATION, 1)
+            val saveRequest = WebAchievementSaveRequest(exceedTitle, "description", AchievementType.QUEST_REGISTRATION, 1)
 
             //when
             val result = mvc.post(urlPrefix) {
@@ -64,7 +64,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
         fun `업적 제목이 공백이면 400이 반환된다`() {
             //given
             val emptyTitle = " "
-            val saveRequest = AchievementSaveRequest(emptyTitle, "description", AchievementType.QUEST_REGISTRATION, 1)
+            val saveRequest = WebAchievementSaveRequest(emptyTitle, "description", AchievementType.QUEST_REGISTRATION, 1)
 
             //when
             val result = mvc.post(urlPrefix) {
@@ -82,7 +82,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
         fun `업적 설명이 150자를 초과하면 400이 반환된다`() {
             //given
             val exceedDescription = "d".repeat(151)
-            val saveRequest = AchievementSaveRequest("title", exceedDescription, AchievementType.QUEST_REGISTRATION, 1)
+            val saveRequest = WebAchievementSaveRequest("title", exceedDescription, AchievementType.QUEST_REGISTRATION, 1)
 
             //when
             val result = mvc.post(urlPrefix) {
@@ -100,7 +100,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
         fun `업적 설명이 공백이면 400이 반환된다`() {
             // given
             val emptyDescription = " "
-            val saveRequest = AchievementSaveRequest("title", emptyDescription, AchievementType.QUEST_REGISTRATION, 1)
+            val saveRequest = WebAchievementSaveRequest("title", emptyDescription, AchievementType.QUEST_REGISTRATION, 1)
 
             //when
             val result = mvc.post(urlPrefix) {
@@ -118,7 +118,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
         fun `업적 목표값이 0이면 400이 반환된다`() {
             // given
             val zeroTargetValue = 0L
-            val saveRequest = AchievementSaveRequest("title", "description", AchievementType.QUEST_REGISTRATION, zeroTargetValue)
+            val saveRequest = WebAchievementSaveRequest("title", "description", AchievementType.QUEST_REGISTRATION, zeroTargetValue)
 
             //when
             val result = mvc.post(urlPrefix) {
@@ -135,7 +135,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
         @Test
         fun `Validation에 성공하면 업적 등록을 요청하고, 배치에 업적 달성 확인 요청을 한다`() {
             // given
-            val saveRequest = AchievementSaveRequest("title", "description", AchievementType.QUEST_REGISTRATION, 1L)
+            val saveRequest = WebAchievementSaveRequest("title", "description", AchievementType.QUEST_REGISTRATION, 1L)
 
             //when
             mvc.post(urlPrefix) {
@@ -161,7 +161,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
         fun `업적 제목이 50자를 초과하면 400이 반환된다`() {
             //given
             val exceedTitle = "t".repeat(51)
-            val updateRequest = AchievementUpdateRequest(exceedTitle, "description")
+            val updateRequest = WebAchievementUpdateRequest(exceedTitle, "description")
 
             //when
             val result = mvc.patch(url) {
@@ -179,7 +179,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
         fun `업적 제목이 공백이면 400이 반환된다`() {
             //given
             val emptyTitle = " "
-            val updateRequest = AchievementUpdateRequest(emptyTitle, "description")
+            val updateRequest = WebAchievementUpdateRequest(emptyTitle, "description")
 
             //when
             val result = mvc.patch(url) {
@@ -197,7 +197,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
         fun `업적 설명이 150자를 초과하면 400이 반환된다`() {
             //given
             val exceedDescription = "d".repeat(151)
-            val updateRequest = AchievementUpdateRequest("title", exceedDescription)
+            val updateRequest = WebAchievementUpdateRequest("title", exceedDescription)
 
             //when
             val result = mvc.patch(url) {
@@ -215,7 +215,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
         fun `업적 설명이 공백이면 400이 반환된다`() {
             // given
             val emptyDescription = " "
-            val updateRequest = AchievementUpdateRequest("title", emptyDescription)
+            val updateRequest = WebAchievementUpdateRequest("title", emptyDescription)
 
             //when
             val result = mvc.patch(url) {
@@ -232,7 +232,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
         @Test
         fun `Validation에 성공하면 업적 등록을 요청하고, 배치에 업적 달성 확인 요청을 한다`() {
             // given
-            val updateRequest = AchievementUpdateRequest("title", "description")
+            val updateRequest = WebAchievementUpdateRequest("title", "description")
 
             //when
             mvc.patch(url) {

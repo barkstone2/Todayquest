@@ -1,6 +1,6 @@
 package dailyquest.achievement.entity
 
-import dailyquest.achievement.dto.AchievementUpdateRequest
+import dailyquest.achievement.dto.SimpleAchievementUpdateRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -67,7 +67,7 @@ class AchievementEntityUnitTest {
             //given
             val achievement = Achievement("create", "", AchievementType.QUEST_COMPLETION, 1L)
             val afterTitle = "update"
-            val updateRequest = AchievementUpdateRequest(afterTitle, "")
+            val updateRequest = SimpleAchievementUpdateRequest(afterTitle, "")
 
             //when
             achievement.updateAchievement(updateRequest)
@@ -82,7 +82,7 @@ class AchievementEntityUnitTest {
             //given
             val achievement = Achievement("create", "create", AchievementType.QUEST_COMPLETION, 1L)
             val afterDescription = "update"
-            val updateRequest = AchievementUpdateRequest("", afterDescription)
+            val updateRequest = SimpleAchievementUpdateRequest("", afterDescription)
 
             //when
             achievement.updateAchievement(updateRequest)

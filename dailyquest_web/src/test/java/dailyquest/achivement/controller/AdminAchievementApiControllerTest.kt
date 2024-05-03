@@ -1,9 +1,7 @@
 package dailyquest.achivement.controller
 
 import com.ninjasquad.springmockk.MockkBean
-import dailyquest.achievement.dto.AchievementResponse
-import dailyquest.achievement.dto.AchievementSaveRequest
-import dailyquest.achievement.dto.AchievementUpdateRequest
+import dailyquest.achievement.dto.*
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.entity.AchievementType.*
@@ -52,7 +50,7 @@ class AdminAchievementApiControllerTest @Autowired constructor(
     @Nested
     inner class TestSaveAchievement {
         private val url = "$SERVER_ADDR$port$uriPrefix"
-        private val saveRequest = AchievementSaveRequest("저장", "저장", QUEST_REGISTRATION, 1)
+        private val saveRequest = WebAchievementSaveRequest("저장", "저장", QUEST_REGISTRATION, 1)
 
         @DisplayName("타입과 목표값이 모두 중복될 경우 400이 반환된다")
         @Test
@@ -159,7 +157,7 @@ class AdminAchievementApiControllerTest @Autowired constructor(
             //given
             val url = "$uriPrefix/${achievement.id}"
             val updateTitle = "update"
-            val updateRequest = AchievementUpdateRequest(updateTitle, "update")
+            val updateRequest = WebAchievementUpdateRequest(updateTitle, "update")
             val requestBody = om.writeValueAsString(updateRequest)
 
             //when
@@ -179,7 +177,7 @@ class AdminAchievementApiControllerTest @Autowired constructor(
             //given
             val url = "$uriPrefix/${achievement.id}"
             val updateDescription = "update"
-            val updateRequest = AchievementUpdateRequest("update", updateDescription)
+            val updateRequest = WebAchievementUpdateRequest("update", updateDescription)
             val requestBody = om.writeValueAsString(updateRequest)
 
             //when
@@ -199,7 +197,7 @@ class AdminAchievementApiControllerTest @Autowired constructor(
             //given
             val url = "$uriPrefix/${achievement.id}"
             val updateDescription = "update"
-            val updateRequest = AchievementUpdateRequest("update", updateDescription)
+            val updateRequest = WebAchievementUpdateRequest("update", updateDescription)
             val requestBody = om.writeValueAsString(updateRequest)
             //when
 

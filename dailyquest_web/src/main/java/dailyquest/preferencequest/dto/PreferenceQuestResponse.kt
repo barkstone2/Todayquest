@@ -1,6 +1,5 @@
 package dailyquest.preferencequest.dto
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import dailyquest.preferencequest.entity.PreferenceQuest
 import java.time.LocalDateTime
 
@@ -8,9 +7,7 @@ data class PreferenceQuestResponse(
     val id: Long = 0,
     val title: String,
     val description: String = "",
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val createdDate: LocalDateTime? = null,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val lastModifiedDate: LocalDateTime? = null,
     val preferenceDetailQuests: List<PreferenceDetailResponse> = listOf(),
     val usedCount: Long = 0

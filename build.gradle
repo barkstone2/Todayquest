@@ -32,8 +32,64 @@ allprojects {
     }
 }
 
+def testSrcDirs = ['src/test/unit', 'src/test/integration', 'src/test/e2e']
 subprojects {
     afterEvaluate {
+        sourceSets {
+            test {
+                java.srcDirs = testSrcDirs
+                kotlin.srcDirs = testSrcDirs
+            }
+            unitTest {
+                java.srcDirs = [testSrcDirs[0]]
+                kotlin.srcDirs = [testSrcDirs[0]]
+                resources.srcDirs = ['src/test/resources']
+            }
+            integrationTest {
+                java.srcDirs = [testSrcDirs[1]]
+                kotlin.srcDirs = [testSrcDirs[1]]
+                resources.srcDirs = ['src/test/resources']
+            }
+            e2eTest {
+                java.srcDirs = [testSrcDirs[2]]
+                kotlin.srcDirs = [testSrcDirs[2]]
+                resources.srcDirs = ['src/test/resources']
+            }
+        }
+
+        tasks.register('unitTest', Test) {
+            group = 'verification'
+            description = 'Running only test below /test/unit directory'
+            useJUnitPlatform()
+            outputs.dir("$buildDir/test-results/unit")
+            def sourceSet = sourceSets.unitTest
+            testClassesDirs = sourceSet.output.classesDirs
+            configurations[sourceSet.implementationConfigurationName].extendsFrom(configurations.testImplementation)
+            configurations[sourceSet.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly)
+        }
+
+        tasks.register('integrationTest', Test) {
+            group = 'verification'
+            description = 'Running only test below /test/integration directory'
+            useJUnitPlatform()
+            outputs.dir("$buildDir/test-results/integration")
+            def sourceSet = sourceSets.integrationTest
+            testClassesDirs = sourceSet.output.classesDirs
+            configurations[sourceSet.implementationConfigurationName].extendsFrom(configurations.testImplementation)
+            configurations[sourceSet.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly)
+        }
+
+        tasks.register('e2eTest', Test) {
+            group = 'verification'
+            description = 'Running only test below /test/e2e directory'
+            useJUnitPlatform()
+            outputs.dir("$buildDir/test-results/e2e")
+            def sourceSet = sourceSets.e2eTest
+            testClassesDirs = sourceSet.output.classesDirs
+            configurations[sourceSet.implementationConfigurationName].extendsFrom(configurations.testImplementation)
+            configurations[sourceSet.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly)
+        }
+
         dependencies {
             // 롬복 의존성
             compileOnly 'org.projectlombok:lombok'
@@ -49,6 +105,10 @@ subprojects {
             testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
             testImplementation("io.mockk:mockk:1.13.9")
             testImplementation("com.ninja-squad:springmockk:4.0.2")
+
+            unitTestImplementation project
+            integrationTestImplementation project
+            e2eTestImplementation project
         }
 
         kotlin {
@@ -63,4 +123,8 @@ subprojects {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         }
     }
+}
+
+bootJar {
+    enabled = false
 }

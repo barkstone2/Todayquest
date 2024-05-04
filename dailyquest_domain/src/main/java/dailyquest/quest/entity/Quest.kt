@@ -67,17 +67,10 @@ class Quest(
         replaceDetailQuests(details)
     }
 
-    /**
-     * 퀘스트가 [QuestState.PROCEED] 상태인 경우 퀘스트를 완료 상태로 변경한다.
-     * @return 변경에 성공하면 [QuestState.COMPLETE]가 반환된다.
-     * 현재 퀘스트의 상태 변경이 불가능하다면, 현재 퀘스트의 상태가 반환된다.
-     * 세부 퀘스트가 완료되지 않은 상태라면 현재 상태인 [QuestState.PROCEED] 상태가 반환된다.
-     */
-    fun completeQuest(): QuestState {
-        if(isProceed() && canComplete()) {
+    fun completeQuestIfPossible() {
+        if (this.isProceed() && this.canComplete()) {
             state = QuestState.COMPLETE
         }
-        return state
     }
 
     fun deleteQuest() {

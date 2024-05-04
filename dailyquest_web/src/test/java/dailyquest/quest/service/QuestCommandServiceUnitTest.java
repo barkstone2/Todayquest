@@ -179,7 +179,7 @@ public class QuestCommandServiceUnitTest {
         void beforeEach() {
             completeTarget = mock(Quest.class, Answers.RETURNS_SMART_NULLS);
             lenient().doReturn(completeTarget).when(questRepository).findByIdAndUserId(any(), any());
-            lenient().doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
+            lenient().doReturn(QuestState.COMPLETE).when(completeTarget).getState();
             lenient().doReturn(true).when(completeTarget).isMainQuest();
         }
 
@@ -200,7 +200,7 @@ public class QuestCommandServiceUnitTest {
         @Test
         public void ifResultStateIsDeleteThanThrowException() {
             //given
-            doReturn(QuestState.DELETE).when(completeTarget).completeQuest();
+            doReturn(QuestState.DELETE).when(completeTarget).getState();
 
             //when
             Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
@@ -213,7 +213,7 @@ public class QuestCommandServiceUnitTest {
         @Test
         public void ifResultStateIsProceedThanThrowException() {
             //given
-            doReturn(QuestState.PROCEED).when(completeTarget).completeQuest();
+            doReturn(QuestState.PROCEED).when(completeTarget).getState();
 
             //when
             Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
@@ -226,7 +226,7 @@ public class QuestCommandServiceUnitTest {
         @Test
         public void ifResultStateIsNotCompleteThanThrowException() {
             //given
-            doReturn(QuestState.FAIL).when(completeTarget).completeQuest();
+            doReturn(QuestState.FAIL).when(completeTarget).getState();
 
             //when
             Executable testMethod = () -> questCommandService.completeQuest(1L, 1L);
@@ -244,7 +244,7 @@ public class QuestCommandServiceUnitTest {
 
             @BeforeEach
             void init() {
-                lenient().doReturn(QuestState.COMPLETE).when(completeTarget).completeQuest();
+                lenient().doReturn(QuestState.COMPLETE).when(completeTarget).getState();
                 lenient().doReturn(saveAndFlushTarget).when(questRepository).saveAndFlush(eq(completeTarget));
             }
 

@@ -11,7 +11,6 @@ import dailyquest.notification.service.NotificationService
 import dailyquest.user.dto.UserUpdateRequest
 import dailyquest.user.service.UserService
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.junit.jupiter.api.DisplayName
@@ -23,10 +22,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
-import org.mockito.Mock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.MessageSource
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.FilterType

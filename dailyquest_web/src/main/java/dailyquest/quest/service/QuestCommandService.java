@@ -75,8 +75,8 @@ public class QuestCommandService {
 
     public QuestResponse completeQuest(Long userId, Long questId) {
         Quest quest = this.getEntityOfUser(questId, userId);
-        QuestState resultState = quest.completeQuest();
-        switch (resultState) {
+        quest.completeQuestIfPossible();
+        switch (quest.getState()) {
             case COMPLETE -> {
                 quest = questRepository.saveAndFlush(quest);
                 QuestLogRequest questLogRequest = QuestLogRequest.from(quest);

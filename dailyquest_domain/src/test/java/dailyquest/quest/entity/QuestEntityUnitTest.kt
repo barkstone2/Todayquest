@@ -152,30 +152,32 @@ class QuestEntityUnitTest {
     @DisplayName("퀘스트 포기 시")
     inner class QuestDiscardTest {
 
-        @DisplayName("퀘스트가 진행 상태가 아니면 상태 변경 없이 현재 상태가 반환된다")
+        @DisplayName("퀘스트가 진행 상태가 아니면 DISCARD 상태로 변경되지 않는다")
         @Test
-        fun `퀘스트가 진행 상태가 아니면 상태 변경 없이 현재 상태가 반환된다`() {
+        fun `퀘스트가 진행 상태가 아니면 DISCARD 상태로 변경되지 않는다`() {
             //given
-            val quest = Quest("", "", 1L, 1L, QuestState.DISCARD, QuestType.SUB)
+            val state = QuestState.FAIL
+            val quest = Quest("", "", 1L, 1L, state, QuestType.SUB)
 
             //when
-            val resultState = quest.discardQuest()
+            quest.discardQuestIfPossible()
 
             //then
-            assertThat(resultState).isEqualTo(QuestState.DISCARD)
+            assertThat(quest.state).isNotEqualTo(QuestState.DISCARD)
         }
 
-        @DisplayName("퀘스트가 진행 상태라면 상태 변경 후 현재 상태가 반환된다")
+        @DisplayName("퀘스트가 진행 상태라면 DISCARD 상태로 변경된다")
         @Test
-        fun `퀘스트가 진행 상태라면 상태 변경 후 현재 상태가 반환된다`() {
+        fun `퀘스트가 진행 상태라면 DISCARD 상태로 변경된다`() {
             //given
-            val quest = Quest("", "", 1L, 1L, QuestState.PROCEED, QuestType.SUB)
+            val state = QuestState.PROCEED
+            val quest = Quest("", "", 1L, 1L, state, QuestType.SUB)
 
             //when
-            val resultState = quest.discardQuest()
+            quest.discardQuestIfPossible()
 
             //then
-            assertThat(resultState).isEqualTo(QuestState.DISCARD)
+            assertThat(quest.state).isEqualTo(QuestState.DISCARD)
         }
     }
 

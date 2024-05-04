@@ -337,7 +337,7 @@ public class QuestCommandServiceUnitTest {
         @Test
         public void ifResultStateIsDeleteThanThrowException() {
             //given
-            doReturn(QuestState.DELETE).when(discardTarget).discardQuest();
+            doReturn(QuestState.DELETE).when(discardTarget).getState();
 
             //when
             Executable testMethod = () -> questCommandService.discardQuest(1L, 1L);
@@ -350,7 +350,7 @@ public class QuestCommandServiceUnitTest {
         @Test
         public void ifResultStateIsProceedThanThrowException() {
             //given
-            doReturn(QuestState.PROCEED).when(discardTarget).discardQuest();
+            doReturn(QuestState.PROCEED).when(discardTarget).getState();
 
             //when
             Executable testMethod = () -> questCommandService.discardQuest(1L, 1L);
@@ -366,7 +366,7 @@ public class QuestCommandServiceUnitTest {
 
             @BeforeEach
             void init() {
-                doReturn(QuestState.DISCARD).when(discardTarget).discardQuest();
+                doReturn(QuestState.DISCARD).when(discardTarget).getState();
                 doReturn(saveAndFlushTarget).when(questRepository).saveAndFlush(eq(discardTarget));
             }
 

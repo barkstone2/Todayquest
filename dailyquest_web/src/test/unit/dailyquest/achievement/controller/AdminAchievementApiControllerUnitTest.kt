@@ -1,8 +1,7 @@
-package dailyquest.achivement.controller
+package dailyquest.achievement.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
-import dailyquest.achievement.controller.AdminAchievementApiController
 import dailyquest.achievement.dto.WebAchievementSaveRequest
 import dailyquest.achievement.dto.WebAchievementUpdateRequest
 import dailyquest.achievement.entity.AchievementType

@@ -1,6 +1,9 @@
 
 package dailyquest.quest.entity
 
+import io.mockk.every
+import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -8,11 +11,10 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
-import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.*
 import java.time.LocalDateTime
 
-@ExtendWith(MockitoExtension::class)
+@ExtendWith(MockKExtension::class)
 @DisplayName("퀘스트 엔티티 유닛 테스트")
 class QuestEntityUnitTest {
 
@@ -83,74 +85,54 @@ class QuestEntityUnitTest {
     @Nested
     inner class QuestCompleteTest {
 
-        @DisplayName("퀘스트가 진행 상태가 아니면 상태 변경 없이 현재 상태를 반환한다")
+        @DisplayName("퀘스트가 진행 상태가 아니면 퀘스트 상태가 완료로 변경되지 않는다")
         @Test
-        fun `퀘스트가 진행 상태가 아니면 상태 변경 없이 현재 상태를 반환한다`() {
+        fun `퀘스트가 진행 상태가 아니면 퀘스트 상태가 완료로 변경되지 않는다`() {
             //given
             val quest = Quest("", "", 1L, 1L, QuestState.DISCARD, QuestType.SUB)
 
             //when
-            val resultState = quest.completeQuest()
+            quest.completeQuestIfPossible()
 
             //then
-            assertThat(resultState).isEqualTo(QuestState.DISCARD)
+            assertThat(quest.state).isNotEqualTo(QuestState.COMPLETE)
         }
 
-        @DisplayName("세부 퀘스트가 모두 완료되지 않았다면, 상태 변경 없이 현재 상태가 반환된다")
+        @DisplayName("퀘스트가 진행 상태지만 세부 퀘스트가 모두 완료되지 않았다면, 퀘스트 상태가 완료로 변경되지 않는다")
         @Test
-        fun `세부 퀘스트가 모두 완료되지 않았다면, 상태 변경 없이 현재 상태가 반환된다`() {
+        fun `퀘스트가 진행 상태지만 세부 퀘스트가 모두 완료되지 않았다면, 퀘스트 상태가 완료로 변경되지 않는다`() {
             //given
-            val quest = Quest("", "", 1L, 1L, QuestState.PROCEED, QuestType.SUB)
-            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
-            detailQuests.isAccessible = true
-
-            val mockDetail = Mockito.mock(DetailQuest::class.java)
+            val state = QuestState.PROCEED
+            val quest = Quest("", "", 1L, 1L, state, QuestType.SUB)
+            val mockDetail = mockk<DetailQuest>()
             val details = mutableListOf(mockDetail)
-            detailQuests.set(quest, details)
-
-            doReturn(false).`when`(mockDetail).isCompleted()
+            quest.replaceDetailQuests(details)
+            every { mockDetail.isCompleted() } returns false
 
             //when
-            val resultState = quest.completeQuest()
+            quest.completeQuestIfPossible()
 
             //then
-            assertThat(resultState).isEqualTo(QuestState.PROCEED)
+            assertThat(quest.state).isNotEqualTo(QuestState.COMPLETE)
         }
 
-        @DisplayName("현재 상태가 진행 상태이면서 모든 세부 퀘스트가 완료 상태라면, 퀘스트를 완료 상태로 변경 후 변경된 상태를 반환한다")
+        @DisplayName("퀘스트가 진행 상태이면서 모든 세부 퀘스트가 완료 상태라면, 퀘스트를 완료 상태로 변경한다")
         @Test
-        fun `현재 상태가 진행 상태이면서 모든 세부 퀘스트가 완료 상태라면, 퀘스트를 완료 상태로 변경 후 변경된 상태를 반환한다`() {
+        fun `퀘스트가 진행 상태이면서 모든 세부 퀘스트가 완료 상태라면, 퀘스트를 완료 상태로 변경한다`() {
             //given
-            val quest = Quest("", "", 1L, 1L, QuestState.PROCEED, QuestType.SUB)
-            val detailQuests = Quest::class.java.getDeclaredField("_detailQuests")
-            detailQuests.isAccessible = true
-
-            val mockDetail = Mockito.mock(DetailQuest::class.java)
+            val state = QuestState.PROCEED
+            val quest = Quest("", "", 1L, 1L, state, QuestType.SUB)
+            val mockDetail = mockk<DetailQuest>()
             val details = mutableListOf(mockDetail)
-            detailQuests.set(quest, details)
-
-            doReturn(true).`when`(mockDetail).isCompleted()
-
-            //when
-            val resultState = quest.completeQuest()
-
-            //then
-            assertThat(resultState).isEqualTo(QuestState.COMPLETE)
-        }
-
-        @DisplayName("퀘스트 완료가 가능한 상태면 완료 상태로 변경된다")
-        @Test
-        fun `퀘스트 완료가 가능한 상태면 완료 상태로 변경된다`() {
-            //given
-            val quest = Quest("", "", 1L, 1L, QuestState.PROCEED, QuestType.SUB)
+            quest.replaceDetailQuests(details)
+            every { mockDetail.isCompleted() } returns true
 
             //when
-            quest.completeQuest()
+            quest.completeQuestIfPossible()
 
             //then
             assertThat(quest.state).isEqualTo(QuestState.COMPLETE)
         }
-
     }
 
     @DisplayName("퀘스트 삭제 시 삭제 상태로 변경된다")

@@ -47,7 +47,3 @@ test {
     dependsOn(':dailyquest_elastic:test')
     dependsOn(":jpa-common:test")
 }
-
-jar {
-    enabled = false
-}

@@ -1,7 +1,6 @@
-package dailyquest.achivement.controller
+package dailyquest.achievement.controller
 
 import com.ninjasquad.springmockk.MockkBean
-import dailyquest.achievement.controller.AchievementApiController
 import dailyquest.achievement.service.AchievementService
 import dailyquest.annotation.WebMvcUnitTest
 import io.mockk.every

@@ -95,8 +95,8 @@ public class QuestCommandService {
 
     public QuestResponse discardQuest(Long questId, Long userId) {
         Quest quest = this.getEntityOfUser(questId, userId);
-        QuestState resultState = quest.discardQuest();
-        switch (resultState) {
+        quest.discardQuestIfPossible();
+        switch (quest.getState()) {
             case DISCARD -> {
                 quest = questRepository.saveAndFlush(quest);
                 QuestLogRequest questLogRequest = QuestLogRequest.from(quest);

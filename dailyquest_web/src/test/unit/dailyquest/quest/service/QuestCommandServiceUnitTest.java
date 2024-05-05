@@ -132,7 +132,7 @@ public class QuestCommandServiceUnitTest {
 
             //then
             verify(updateTarget, times(1))
-                    .updateQuestEntity(eq(requestDto.getTitle()), eq(requestDto.getDescription()), eq(requestDto.getDeadLine()), any());
+                    .updateQuestEntity(eq(requestDto));
         }
     }
 

@@ -2,6 +2,7 @@ package dailyquest.quest.entity
 
 import dailyquest.common.BaseTimeEntity
 import dailyquest.preferencequest.entity.PreferenceQuest
+import dailyquest.quest.dto.QuestRequest
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -60,11 +61,11 @@ class Quest(
         _detailQuests.addAll(detailQuests)
     }
 
-    fun updateQuestEntity(title: String, description: String = "", deadLine: LocalDateTime?, details: List<DetailQuest> = emptyList()) {
-        this.title = title
-        this.description = description
-        this.deadLine = deadLine
-        replaceDetailQuests(details)
+    fun updateQuestEntity(questRequest: QuestRequest) {
+        this.title = questRequest.title
+        this.description = questRequest.description
+        this.deadLine = questRequest.deadLine
+        replaceDetailQuests(questRequest.details.map { it.mapToEntity(this) })
     }
 
     fun completeQuestIfPossible() {

@@ -43,10 +43,9 @@ public class QuestCommandService {
         return QuestResponse.createDto(quest);
     }
 
-    public QuestResponse updateQuest(WebQuestRequest dto, Long questId, Long userId) {
+    public QuestResponse updateQuest(WebQuestRequest updateRequest, Long questId, Long userId) {
         Quest quest = this.getProceedEntityOfUser(questId, userId);
-        List<DetailQuest> details = dto.getDetails().stream().map(detail -> detail.mapToEntity(quest)).toList();
-        quest.updateQuestEntity(dto.getTitle(), dto.getDescription(), dto.getDeadLine(), details);
+        quest.updateQuestEntity(updateRequest);
         return QuestResponse.createDto(quest);
     }
 

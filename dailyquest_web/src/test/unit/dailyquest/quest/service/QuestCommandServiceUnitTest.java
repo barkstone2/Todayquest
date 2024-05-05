@@ -59,7 +59,7 @@ public class QuestCommandServiceUnitTest {
     @Nested
     class QuestSaveTest {
 
-        @Mock private QuestRequest saveRequest;
+        @Mock private WebQuestRequest saveRequest;
         @Mock(answer = Answers.RETURNS_SMART_NULLS) private Quest saveEntity;
 
         @BeforeEach
@@ -97,7 +97,7 @@ public class QuestCommandServiceUnitTest {
             doReturn(null).when(questRepository).findByIdAndUserId(any(), any());
 
             //when
-            Executable run = () -> questCommandService.updateQuest(mock(QuestRequest.class), questId, userId);
+            Executable run = () -> questCommandService.updateQuest(mock(WebQuestRequest.class), questId, userId);
 
             //then
             assertThrows(EntityNotFoundException.class, run);
@@ -113,7 +113,7 @@ public class QuestCommandServiceUnitTest {
             doReturn(false).when(updateTarget).isProceed();
 
             //when
-            Executable run = () -> questCommandService.updateQuest(mock(QuestRequest.class), questId, userId);
+            Executable run = () -> questCommandService.updateQuest(mock(WebQuestRequest.class), questId, userId);
 
             //then
             assertThrows(IllegalStateException.class, run);
@@ -125,7 +125,7 @@ public class QuestCommandServiceUnitTest {
             //given
             doReturn(updateTarget).when(questRepository).findByIdAndUserId(any(), any());
             doReturn(true).when(updateTarget).isProceed();
-            QuestRequest requestDto = new QuestRequest("title", "desc", List.of(), null, null);
+            WebQuestRequest requestDto = new WebQuestRequest("title", "desc", List.of(), null, null);
 
             //when
             questCommandService.updateQuest(requestDto, 1L, 1L);

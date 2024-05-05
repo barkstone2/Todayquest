@@ -1,83 +1,62 @@
 
 package dailyquest.quest.entity
 
+import dailyquest.quest.dto.DetailQuestRequest
+import dailyquest.quest.dto.SimpleQuestRequest
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
-import org.mockito.kotlin.*
+import org.mockito.kotlin.doReturn
 import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
 @DisplayName("퀘스트 엔티티 유닛 테스트")
 class QuestEntityUnitTest {
 
-    private lateinit var quest: Quest
-
-    @BeforeEach
-    fun beforeEach() {
-        quest = Quest("t1", "", 1L, 1L, QuestState.PROCEED, QuestType.MAIN)
-    }
-
     @DisplayName("엔티티 수정 메서드 호출 시")
     @Nested
     inner class EntityUpdateTest {
-        @DisplayName("details 인자가 없으면 emptyList를 replaceDetailQuests 메서드에 전달한다")
+
+        @DisplayName("type 정보는 변경되지 않는다")
         @Test
-        fun `details 인자가 없으면 emptyList를 replaceDetailQuests 메서드에 전달한다`() {
+        fun `type 정보는 변경되지 않는다`() {
             //given
-            val quest = Quest("init", "init", 1L, 1L, QuestState.PROCEED, QuestType.MAIN)
-            val title = "update"
-            val description = "update"
-            val details = listOf(mock<DetailQuest>())
-            quest.replaceDetailQuests(details)
+            val initType = QuestType.MAIN
+            val quest = Quest("init", "init", 1L, 1L, QuestState.PROCEED, initType)
+            val requestType = QuestType.SUB
+            val updateRequest = SimpleQuestRequest("update", type = requestType)
 
             //when
-            quest.updateQuestEntity(title, description, null)
+            quest.updateQuestEntity(updateRequest)
 
             //then
-            assertThat(quest.detailQuests).isEmpty()
+            assertThat(quest.type).isNotEqualTo(requestType)
         }
 
-        @DisplayName("details 인자가 null이 아니면 입력 인자를 replaceDetailQuests 메서드에 전달한다")
+        @DisplayName("넘겨 받은 DTO 값으로 엔티티를 업데이트 한다")
         @Test
-        fun `details 인자가 null이 아니면 입력 인자를 replaceDetailQuests 메서드에 전달한다`() {
+        fun `넘겨 받은 DTO 값으로 엔티티를 업데이트 한다`() {
             //given
             val quest = Quest("init", "init", 1L, 1L, QuestState.PROCEED, QuestType.MAIN)
-            val title = "update"
-            val description = "update"
-            val details = listOf(mock<DetailQuest>())
+            val detailQuestRequest = mockk<DetailQuestRequest>(relaxed = true)
+            val details = listOf(detailQuestRequest)
+            val updateRequest = SimpleQuestRequest("update", "update", details = details, deadLine = LocalDateTime.of(2022, 12, 12, 12, 0))
 
             //when
-            quest.updateQuestEntity(title, description, null, details)
+            quest.updateQuestEntity(updateRequest)
 
             //then
-            assertThat(quest.detailQuests.size).isEqualTo(details.size)
-            assertThat(quest.detailQuests[0]).isEqualTo(details[0])
-        }
-
-        @DisplayName("넘겨 받은 인자로 엔티티를 업데이트 한다")
-        @Test
-        fun `넘겨 받은 인자로 엔티티를 업데이트 한다`() {
-            //given
-            val quest = Quest("init", "init", 1L, 1L, QuestState.PROCEED, QuestType.MAIN)
-            val title = "update"
-            val description = "update"
-            val deadLine = LocalDateTime.of(2022, 12, 12, 12, 0, 0)
-
-            //when
-            quest.updateQuestEntity(title, description, deadLine)
-
-            //then
-            assertThat(quest.title).isEqualTo(title)
-            assertThat(quest.description).isEqualTo(description)
-            assertThat(quest.deadLine).isEqualTo(deadLine)
+            assertThat(quest.title).isEqualTo(updateRequest.title)
+            assertThat(quest.description).isEqualTo(updateRequest.description)
+            assertThat(quest.deadLine).isEqualTo(updateRequest.deadLine)
+            verify { detailQuestRequest.mapToEntity(eq(quest)) }
         }
     }
 
@@ -343,7 +322,7 @@ class QuestEntityUnitTest {
         fun ifDetailFoundThenCallUpdateMethod() {
             //given
             val quest = Quest("", "", 1L, 1L, QuestState.PROCEED, QuestType.MAIN)
-            val mockDetail = Mockito.mock(DetailQuest::class.java)
+            val mockDetail = mockk<DetailQuest>(relaxed = true)
             quest.replaceDetailQuests(listOf(mockDetail))
 
             val count = 3
@@ -352,7 +331,7 @@ class QuestEntityUnitTest {
             quest.updateDetailQuestCount(0, count)
 
             //then
-            verify(mockDetail, times(1)).updateCountAndState(eq(count))
+            verify { mockDetail.updateCountAndState(eq(count)) }
         }
     }
 

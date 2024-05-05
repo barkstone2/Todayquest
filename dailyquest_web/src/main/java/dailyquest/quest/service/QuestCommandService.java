@@ -3,7 +3,6 @@ package dailyquest.quest.service;
 import dailyquest.quest.dto.*;
 import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
-import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestRepository;
 import dailyquest.redis.service.RedisService;
 import dailyquest.user.service.UserService;
@@ -34,7 +33,7 @@ public class QuestCommandService {
         this.messageSourceAccessor = new MessageSourceAccessor(messageSource);
     }
 
-    public QuestResponse saveQuest(QuestRequest dto, Long userId) {
+    public QuestResponse saveQuest(WebQuestRequest dto, Long userId) {
         Long nextSeq = questRepository.getNextSeqOfUser(userId);
         Quest quest = dto.mapToEntity(nextSeq, userId);
         questRepository.save(quest);
@@ -44,7 +43,7 @@ public class QuestCommandService {
         return QuestResponse.createDto(quest);
     }
 
-    public QuestResponse updateQuest(QuestRequest dto, Long questId, Long userId) {
+    public QuestResponse updateQuest(WebQuestRequest dto, Long questId, Long userId) {
         Quest quest = this.getProceedEntityOfUser(questId, userId);
         List<DetailQuest> details = dto.getDetails().stream().map(detail -> detail.mapToEntity(quest)).toList();
         quest.updateQuestEntity(dto.getTitle(), dto.getDescription(), dto.getDeadLine(), details);

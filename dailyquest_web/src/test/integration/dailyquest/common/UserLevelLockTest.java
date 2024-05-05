@@ -4,7 +4,7 @@ import dailyquest.context.IntegrationTestContext;
 import dailyquest.context.MockElasticsearchTestContextConfig;
 import dailyquest.context.MockRedisTestContextConfig;
 import dailyquest.jwt.JwtTokenProvider;
-import dailyquest.quest.dto.QuestRequest;
+import dailyquest.quest.dto.WebQuestRequest;
 import dailyquest.quest.repository.QuestRepository;
 import dailyquest.quest.service.QuestService;
 import dailyquest.user.dto.UserSaveRequest;
@@ -56,7 +56,7 @@ public class UserLevelLockTest extends IntegrationTestContext {
     @Test
     public void testNamedLock() throws Exception {
         //given
-        QuestRequest dto = new QuestRequest("test", "test", Collections.emptyList(), null, null);
+        WebQuestRequest dto = new WebQuestRequest("test", "test", Collections.emptyList(), null, null);
 
         int threadCount = 5;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);

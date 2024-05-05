@@ -72,7 +72,7 @@ public class QuestApiController {
 
     @PostMapping("")
     public ResponseEntity<ResponseData<QuestResponse>> saveQuest(
-            @Valid @RequestBody QuestRequest dto,
+            @Valid @RequestBody WebQuestRequest dto,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         if (principal.isNowCoreTime()) {
@@ -90,7 +90,7 @@ public class QuestApiController {
 
     @PatchMapping("/{questId}")
     public ResponseEntity<ResponseData<QuestResponse>> update(
-            @Valid @RequestBody QuestRequest dto,
+            @Valid @RequestBody WebQuestRequest dto,
             @Min(1) @PathVariable("questId") Long questId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {

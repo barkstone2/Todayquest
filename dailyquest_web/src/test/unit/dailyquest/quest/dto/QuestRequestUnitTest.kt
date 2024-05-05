@@ -37,10 +37,10 @@ class QuestRequestUnitTest {
         val title = "title init"
         val description = "description init"
         val detailTitle = "detail title"
-        val details = mutableListOf(DetailRequest(detailTitle, DetailQuestType.CHECK, 1))
+        val details = mutableListOf(WebDetailQuestRequest(detailTitle, DetailQuestType.CHECK, 1))
 
         //when
-        val questRequest = QuestRequest(title, description, details)
+        val questRequest = WebQuestRequest(title, description, details)
 
         //then
         assertThat(questRequest.title).isEqualTo(title)
@@ -54,8 +54,8 @@ class QuestRequestUnitTest {
     @Test
     fun `toMainQuest 호출 시 MAIN 타입으로 변경된다`() {
         //given
-        val questRequest = QuestRequest("title", "description")
-        val typeField = QuestRequest::class.java.getDeclaredField("type")
+        val questRequest = WebQuestRequest("title", "description")
+        val typeField = WebQuestRequest::class.java.getDeclaredField("type")
         typeField.isAccessible = true
         val beforeType = typeField.get(questRequest) as QuestType
 
@@ -72,7 +72,7 @@ class QuestRequestUnitTest {
     @Test
     fun `mapToEntity 호출 시 Quest 엔티티로 변환된다`() {
         //given
-        val questRequest = QuestRequest("title init", "description init")
+        val questRequest = WebQuestRequest("title init", "description init")
 
         //when
         val entity = questRequest.mapToEntity(1L, 1L)

@@ -829,7 +829,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `DTO Validation에 실패하면 BAD_REQUEST가 반환된다`() {
             //given
             val errorMessage = MessageUtil.getMessage("exception.badRequest")
-            val questRequest = QuestRequest("", "", mutableListOf(DetailRequest("", DetailQuestType.COUNT, 1)))
+            val questRequest = WebQuestRequest("", "", mutableListOf(WebDetailQuestRequest("", DetailQuestType.COUNT, 1)))
             val requestBody = om.writeValueAsString(questRequest)
             val bindingMessages = listOf(
                 MessageUtil.getMessage("NotBlank.quest.title"),
@@ -866,7 +866,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `멀티 쓰레드로 동시에 요청하면 서로 다른 seq로 등록된다`() {
             //given
-            val questRequest = QuestRequest("title", "des")
+            val questRequest = WebQuestRequest("title", "des")
             val requestBody = om.writeValueAsString(questRequest)
             val numOfThreads = 3
             val seqSet = ConcurrentHashMap.newKeySet<Long>()
@@ -908,7 +908,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `현재 시간이 유저의 코어 타임이라면 메인 퀘스트로 등록된다`() {
             //given
-            val questRequest = QuestRequest("t", "d", mutableListOf(DetailRequest("dt", DetailQuestType.COUNT, 1)))
+            val questRequest = WebQuestRequest("t", "d", mutableListOf(WebDetailQuestRequest("dt", DetailQuestType.COUNT, 1)))
             val requestBody = om.writeValueAsString(questRequest)
             user.updateCoreTime(LocalTime.now().hour)
 
@@ -939,7 +939,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `현재 시간이 유저의 코어 타임이 아니면 서브 퀘스트로 등록된다`() {
             //given
-            val questRequest = QuestRequest("t", "d", mutableListOf(DetailRequest("dt", DetailQuestType.COUNT, 1)))
+            val questRequest = WebQuestRequest("t", "d", mutableListOf(WebDetailQuestRequest("dt", DetailQuestType.COUNT, 1)))
             val requestBody = om.writeValueAsString(questRequest)
 
             val now = LocalTime.now()
@@ -972,7 +972,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `퀘스트 등록 로그가 등록된다`() {
             //given
-            val questRequest = QuestRequest("t", "d", mutableListOf(DetailRequest("dt", DetailQuestType.COUNT, 1)))
+            val questRequest = WebQuestRequest("t", "d", mutableListOf(WebDetailQuestRequest("dt", DetailQuestType.COUNT, 1)))
             val requestBody = om.writeValueAsString(questRequest)
 
             //when
@@ -1003,7 +1003,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `퀘스트가 정상적으로 등록된다`() {
             //given
-            val questRequest = QuestRequest("t", "d", mutableListOf(DetailRequest("dt", DetailQuestType.COUNT, 1)))
+            val questRequest = WebQuestRequest("t", "d", mutableListOf(WebDetailQuestRequest("dt", DetailQuestType.COUNT, 1)))
             val requestBody = om.writeValueAsString(questRequest)
 
             //when
@@ -1039,7 +1039,7 @@ class QuestApiControllerTest @Autowired constructor(
             //given
             val targetAchievement = Achievement("t", "d", AchievementType.QUEST_REGISTRATION, 1)
             achievementRepository.save(targetAchievement)
-            val questRequest = QuestRequest("t", "d", mutableListOf(DetailRequest("dt", DetailQuestType.COUNT, 1)))
+            val questRequest = WebQuestRequest("t", "d", mutableListOf(WebDetailQuestRequest("dt", DetailQuestType.COUNT, 1)))
             val requestBody = om.writeValueAsString(questRequest)
 
             //when
@@ -1059,7 +1059,7 @@ class QuestApiControllerTest @Autowired constructor(
             //given
             val targetAchievement = Achievement("t", "d", AchievementType.QUEST_CONTINUOUS_REGISTRATION, 1)
             achievementRepository.save(targetAchievement)
-            val questRequest = QuestRequest("t", "d", mutableListOf(DetailRequest("dt", DetailQuestType.COUNT, 1)))
+            val questRequest = WebQuestRequest("t", "d", mutableListOf(WebDetailQuestRequest("dt", DetailQuestType.COUNT, 1)))
             val requestBody = om.writeValueAsString(questRequest)
 
             //when
@@ -1088,8 +1088,8 @@ class QuestApiControllerTest @Autowired constructor(
             val url = "$urlPrefix/$questId"
             val errorMessage = MessageUtil.getMessage("exception.badRequest")
 
-            val detailRequest = DetailRequest("update", DetailQuestType.COUNT, 1)
-            val questRequest = QuestRequest("update", "update", mutableListOf(detailRequest))
+            val detailRequest = WebDetailQuestRequest("update", DetailQuestType.COUNT, 1)
+            val questRequest = WebQuestRequest("update", "update", mutableListOf(detailRequest))
 
             val requestBody = om.writeValueAsString(questRequest)
 
@@ -1127,8 +1127,8 @@ class QuestApiControllerTest @Autowired constructor(
 
             val errorMessage = MessageUtil.getMessage("exception.badRequest")
 
-            val detailRequest = DetailRequest("", DetailQuestType.COUNT, 1)
-            val questRequest = QuestRequest("", "", mutableListOf(detailRequest))
+            val detailRequest = WebDetailQuestRequest("", DetailQuestType.COUNT, 1)
+            val questRequest = WebQuestRequest("", "", mutableListOf(detailRequest))
 
             val requestBody = om.writeValueAsString(questRequest)
 
@@ -1171,8 +1171,8 @@ class QuestApiControllerTest @Autowired constructor(
             val url = "$urlPrefix/${savedQuest.id}"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
-            val detailRequest = DetailRequest("update", DetailQuestType.COUNT, 1)
-            val questRequest = QuestRequest("update", "update", mutableListOf(detailRequest))
+            val detailRequest = WebDetailQuestRequest("update", DetailQuestType.COUNT, 1)
+            val questRequest = WebQuestRequest("update", "update", mutableListOf(detailRequest))
 
             val requestBody = om.writeValueAsString(questRequest)
 
@@ -1207,8 +1207,8 @@ class QuestApiControllerTest @Autowired constructor(
             val url = "$urlPrefix/10000"
             val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
 
-            val detailRequest = DetailRequest("update", DetailQuestType.COUNT, 1)
-            val questRequest = QuestRequest("update", "update", mutableListOf(detailRequest))
+            val detailRequest = WebDetailQuestRequest("update", DetailQuestType.COUNT, 1)
+            val questRequest = WebQuestRequest("update", "update", mutableListOf(detailRequest))
 
             val requestBody = om.writeValueAsString(questRequest)
 
@@ -1245,8 +1245,8 @@ class QuestApiControllerTest @Autowired constructor(
             val url = "$urlPrefix/${savedQuest.id}"
             val errorMessage = MessageUtil.getMessage("quest.error.not-proceed")
 
-            val detailRequest = DetailRequest("update", DetailQuestType.COUNT, 1)
-            val questRequest = QuestRequest("update", "update", mutableListOf(detailRequest))
+            val detailRequest = WebDetailQuestRequest("update", DetailQuestType.COUNT, 1)
+            val questRequest = WebQuestRequest("update", "update", mutableListOf(detailRequest))
 
             val requestBody = om.writeValueAsString(questRequest)
 
@@ -1282,8 +1282,8 @@ class QuestApiControllerTest @Autowired constructor(
 
             val url = "$urlPrefix/${savedQuest.id}"
 
-            val detailRequest = DetailRequest("update", DetailQuestType.COUNT, 1)
-            val questRequest = QuestRequest("update", "update", mutableListOf(detailRequest))
+            val detailRequest = WebDetailQuestRequest("update", DetailQuestType.COUNT, 1)
+            val questRequest = WebQuestRequest("update", "update", mutableListOf(detailRequest))
 
             val requestBody = om.writeValueAsString(questRequest)
 
@@ -1317,8 +1317,8 @@ class QuestApiControllerTest @Autowired constructor(
 
             val url = "$urlPrefix/${savedQuest.id}"
 
-            val detailRequest = DetailRequest("update", DetailQuestType.COUNT, 1)
-            val questRequest = QuestRequest("update", "update", mutableListOf(detailRequest))
+            val detailRequest = WebDetailQuestRequest("update", DetailQuestType.COUNT, 1)
+            val questRequest = WebQuestRequest("update", "update", mutableListOf(detailRequest))
 
             val requestBody = om.writeValueAsString(questRequest)
 

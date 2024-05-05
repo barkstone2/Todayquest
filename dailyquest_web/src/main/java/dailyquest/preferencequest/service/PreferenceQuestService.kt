@@ -2,7 +2,7 @@ package dailyquest.preferencequest.service
 
 import dailyquest.preferencequest.dto.PreferenceQuestRequest
 import dailyquest.preferencequest.dto.PreferenceQuestResponse
-import dailyquest.quest.dto.QuestRequest
+import dailyquest.quest.dto.WebQuestRequest
 import dailyquest.quest.dto.QuestResponse
 import dailyquest.quest.service.QuestService
 import org.springframework.stereotype.Service
@@ -40,7 +40,7 @@ class PreferenceQuestService(
 
     fun registerQuestByPreferenceQuest(preferenceQuestId: Long, userId: Long): QuestResponse {
         val preferenceQuest = preferenceQuestQueryService.getPreferenceQuest(preferenceQuestId, userId)
-        val questRequest = QuestRequest.from(preferenceQuest)
+        val questRequest = WebQuestRequest.from(preferenceQuest)
         return questService.saveQuest(questRequest, userId)
     }
 }

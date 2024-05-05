@@ -2,7 +2,7 @@ package dailyquest.preferencequest.service
 
 import dailyquest.preferencequest.dto.PreferenceQuestRequest
 import dailyquest.preferencequest.entity.PreferenceQuest
-import dailyquest.quest.dto.QuestRequest
+import dailyquest.quest.dto.WebQuestRequest
 import dailyquest.quest.dto.QuestResponse
 import dailyquest.quest.service.QuestService
 import dailyquest.user.entity.User
@@ -147,7 +147,7 @@ class PreferenceQuestServiceUnitTest {
         val userId = 1L
         val mockUser = mock<User>()
         val preferenceQuest = PreferenceQuest.of("pq-save-title", "pq-save-desc", user = mockUser)
-        val questRequest = QuestRequest.from(preferenceQuest)
+        val questRequest = WebQuestRequest.from(preferenceQuest)
         doReturn(preferenceQuest).`when`(preferenceQuestQueryService).getPreferenceQuest(any(), any())
         doReturn(mock<QuestResponse>()).`when`(questService).saveQuest(any(), any())
 

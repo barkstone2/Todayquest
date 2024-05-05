@@ -300,7 +300,7 @@ class QuestApiControllerUnitTest {
         @ArgumentsSource(ValidQuestRequest::class)
         @DisplayName("DTO 필수 값이 모두 있다면 200 OK가 반환된다")
         @ParameterizedTest(name = "{0} 값이 들어오면 200을 반환한다")
-        fun `필수 값이 모두 있다면 200 OK가 반환된다`(questRequest: QuestRequest) {
+        fun `필수 값이 모두 있다면 200 OK가 반환된다`(questRequest: WebQuestRequest) {
             //when
             val result = mvc.perform(
                 post(URI_PREFIX)
@@ -320,7 +320,7 @@ class QuestApiControllerUnitTest {
         @ArgumentsSource(InValidQuestRequest::class)
         @DisplayName("DTO 필수 값이 없다면 400 BAD_REQUEST가 반환된다")
         @ParameterizedTest(name = "{0} 값이 들어오면 400이 반환한다")
-        fun `필수 값이 없다면 400 BAD_REQUEST가 반환된다`(questRequest: QuestRequest?) {
+        fun `필수 값이 없다면 400 BAD_REQUEST가 반환된다`(questRequest: WebQuestRequest?) {
             //when
             val result = mvc.perform(
                 post(URI_PREFIX)
@@ -346,7 +346,7 @@ class QuestApiControllerUnitTest {
             //given
             val principal = SecurityContextHolder.getDeferredContext().get().authentication.principal as UserPrincipal
             doReturn(true).`when`(principal).isNowCoreTime()
-            val questRequest = QuestRequest("t", "d")
+            val questRequest = WebQuestRequest("t", "d")
 
             //when
             mvc.post(URI_PREFIX) {
@@ -355,7 +355,7 @@ class QuestApiControllerUnitTest {
             }
 
             //then
-            val argumentCaptor = argumentCaptor<QuestRequest>()
+            val argumentCaptor = argumentCaptor<WebQuestRequest>()
             verify(questApiController).saveQuest(argumentCaptor.capture(), any())
             assertThat(argumentCaptor.firstValue.type).isEqualTo(QuestType.MAIN)
         }
@@ -366,7 +366,7 @@ class QuestApiControllerUnitTest {
             //given
             val principal = SecurityContextHolder.getDeferredContext().get().authentication.principal as UserPrincipal
             doReturn(false).`when`(principal).isNowCoreTime()
-            val questRequest = QuestRequest("t", "d")
+            val questRequest = WebQuestRequest("t", "d")
 
             //when
             mvc.post(URI_PREFIX) {
@@ -375,7 +375,7 @@ class QuestApiControllerUnitTest {
             }
 
             //then
-            val argumentCaptor = argumentCaptor<QuestRequest>()
+            val argumentCaptor = argumentCaptor<WebQuestRequest>()
             verify(questApiController).saveQuest(argumentCaptor.capture(), any())
             assertThat(argumentCaptor.firstValue.type).isEqualTo(QuestType.SUB)
         }
@@ -385,7 +385,7 @@ class QuestApiControllerUnitTest {
         fun `다른 값이 모두 유효하고 데드라인이 null이면 200이 반환된다`() {
             //given
             val deadLine = null
-            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+            val questRequest = WebQuestRequest("t", "d", deadLine = deadLine)
 
             //when
             val result = mvc.post(URI_PREFIX) {
@@ -404,7 +404,7 @@ class QuestApiControllerUnitTest {
         fun `데드라인 값이 현재 시간 + 5분 이전이면 400이 반환된다`() {
             //given
             val deadLine = now.plusMinutes(5).minusSeconds(1)
-            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+            val questRequest = WebQuestRequest("t", "d", deadLine = deadLine)
 
             //when
             val result = mvc.post(URI_PREFIX) {
@@ -423,7 +423,7 @@ class QuestApiControllerUnitTest {
         fun `데드라인 값이 현재 시간 + 5분과 동일하면 400이 반환된다`() {
             //given
             val deadLine = now.plusMinutes(5)
-            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+            val questRequest = WebQuestRequest("t", "d", deadLine = deadLine)
 
             //when
             val result = mvc.post(URI_PREFIX) {
@@ -442,7 +442,7 @@ class QuestApiControllerUnitTest {
         fun `데드라인 값이 현재 시간 + 5분 이후면 200이 반환된다`() {
             //given
             val deadLine = now.plusMinutes(5).plusSeconds(1)
-            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+            val questRequest = WebQuestRequest("t", "d", deadLine = deadLine)
 
             //when
             val result = mvc.post(URI_PREFIX) {
@@ -461,7 +461,7 @@ class QuestApiControllerUnitTest {
         fun `데드라인 값이 다음 오전 6시 -5분 이후면 400이 반환된다`() {
             //given
             val deadLine = nextReset.minusMinutes(5).plusSeconds(1)
-            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+            val questRequest = WebQuestRequest("t", "d", deadLine = deadLine)
 
             //when
             val result = mvc.post(URI_PREFIX) {
@@ -480,7 +480,7 @@ class QuestApiControllerUnitTest {
         fun `데드라인 값이 다음 오전 6시 -5분과 동일하면 400이 반환된다`() {
             //given
             val deadLine = nextReset.minusMinutes(5)
-            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+            val questRequest = WebQuestRequest("t", "d", deadLine = deadLine)
 
             //when
             val result = mvc.post(URI_PREFIX) {
@@ -499,7 +499,7 @@ class QuestApiControllerUnitTest {
         fun `데드라인 값이 다음 오전 6시 -5분 이전이면 200이 반환된다`() {
             //given
             val deadLine = nextReset.minusMinutes(5).minusSeconds(1)
-            val questRequest = QuestRequest("t", "d", deadLine = deadLine)
+            val questRequest = WebQuestRequest("t", "d", deadLine = deadLine)
 
             //when
             val result = mvc.post(URI_PREFIX) {
@@ -521,7 +521,7 @@ class QuestApiControllerUnitTest {
         @ArgumentsSource(ValidQuestRequest::class)
         @DisplayName("DTO 필수 값이 모두 있다면 200 OK가 반환된다")
         @ParameterizedTest(name = "{0} 값이 들어오면 200을 반환한다")
-        fun `필수 값이 모두 있다면 200 OK가 반환된다`(questRequest: QuestRequest) {
+        fun `필수 값이 모두 있다면 200 OK가 반환된다`(questRequest: WebQuestRequest) {
             //given
             val questId = 1L
             `when`(questService.updateQuest(any(), any(), any()))
@@ -546,7 +546,7 @@ class QuestApiControllerUnitTest {
         @ArgumentsSource(InValidQuestRequest::class)
         @DisplayName("DTO 필수 값이 없다면 400 BAD_REQUEST가 반환된다")
         @ParameterizedTest(name = "{0} 값이 들어오면 400이 반환한다")
-        fun `필수 값이 없다면 400 BAD_REQUEST가 반환된다`(questRequest: QuestRequest?) {
+        fun `필수 값이 없다면 400 BAD_REQUEST가 반환된다`(questRequest: WebQuestRequest?) {
             //given
             val questId = 1L
 
@@ -577,7 +577,7 @@ class QuestApiControllerUnitTest {
         @ParameterizedTest(name = "{0} 값이 들어오면 400이 반환한다")
         fun `path variable 값이 올바르지 않으면 400 BAD_REQUEST가 반환된다`(questId: Any) {
             //given
-            val questRequest = QuestRequest("title", "desc")
+            val questRequest = WebQuestRequest("title", "desc")
             `when`(questService.updateQuest(any(), any(), any()))
                 .thenReturn(questResponse)
 
@@ -973,16 +973,16 @@ class QuestApiControllerUnitTest {
     class ValidQuestRequest: ArgumentsProvider {
         override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
             return Stream.of(
-                Arguments.of(QuestRequest("title", "desc")),
+                Arguments.of(WebQuestRequest("title", "desc")),
             )
         }
     }
 
     class InValidQuestRequest: ArgumentsProvider {
         override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
-            val details = mutableListOf(DetailRequest("", DetailQuestType.COUNT, 0))
+            val details = mutableListOf(WebDetailQuestRequest("", DetailQuestType.COUNT, 0))
             return Stream.of(
-                Arguments.of(QuestRequest("", "", details)),
+                Arguments.of(WebQuestRequest("", "", details)),
                 Arguments.of(null),
             )
         }

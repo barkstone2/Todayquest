@@ -35,12 +35,12 @@ public class QuestService {
     }
 
     @Transactional
-    public QuestResponse saveQuest(QuestRequest dto, Long userId) {
+    public QuestResponse saveQuest(WebQuestRequest dto, Long userId) {
         return questCommandService.saveQuest(dto, userId);
     }
 
     @Transactional
-    public QuestResponse updateQuest(QuestRequest dto, Long questId, Long userId) {
+    public QuestResponse updateQuest(WebQuestRequest dto, Long questId, Long userId) {
         return questCommandService.updateQuest(dto, questId, userId);
     }
 

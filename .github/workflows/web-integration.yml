@@ -8,8 +8,6 @@ env:
   JAVA_PATH: /home/runner/jdk
   GRADLE_USER_HOME: /home/runner/gradle
 
-run-name: '[테스트 & 통합] For "${{ github.event.head_commit.message }}"'
-
 jobs:
   gradle-test:
     name: 그래들 테스트

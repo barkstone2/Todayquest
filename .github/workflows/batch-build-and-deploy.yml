@@ -55,7 +55,7 @@ jobs:
         id: gradle-dependency-cache
         uses: actions/cache@v3
         with:
-          key: gradle-dependency-${{ hashFiles('./build.gradle', './dailyquest_batch/build.gradle', './dailyquest_domain/build.gradle', './dailyquest_elastic/build.gradle') }}
+          key: gradle-dependency-${{ hashFiles('./build.gradle', './batch/build.gradle', './domain/build.gradle', './elastic/build.gradle', './achievement/build.gradle', './notification/build.gradle', './jpa-common/build.gradle', './user/build.gradle', './jpa-common/build.gradle', './reflection-common/build.gradle') }}
           path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 빌드
         run: |

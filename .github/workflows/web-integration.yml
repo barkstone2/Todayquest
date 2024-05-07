@@ -3,7 +3,10 @@ name: 웹 애플리케이션 테스트 & 통합
 on:
   pull_request:
     branches: [ develop ]
-    paths: [ 'dailyquest_web/**', 'achievement/**', 'notification/**', 'user/**', 'dailyquest_domain/**', 'dailyquest_elastic/**', '*.gradle', '.github/workflows/web-**' ]
+    paths-ignore: [
+      'batch/**',
+      '.github/workflows/batch-*.yml'
+    ]
 env:
   JAVA_PATH: /home/runner/jdk
   GRADLE_USER_HOME: /home/runner/gradle
@@ -63,7 +66,7 @@ jobs:
         id: gradle-dependency-cache
         uses: actions/cache@v3
         with:
-          key: gradle-dependency-${{ hashFiles('./build.gradle', './dailyquest_web/build.gradle', './dailyquest_domain/build.gradle', './dailyquest_elastic/build.gradle') }}
+          key: gradle-dependency-${{ hashFiles('./build.gradle', './web/build.gradle', './domain/build.gradle', './elastic/build.gradle', './achievement/build.gradle', './notification/build.gradle', './jpa-common/build.gradle', './user/build.gradle', './jpa-common/build.gradle', './reflection-common/build.gradle') }}
           path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 테스트
         run: |

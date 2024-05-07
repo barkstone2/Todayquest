@@ -3,7 +3,10 @@ name: 배치 애플리케이션 테스트 & 통합
 on:
   pull_request:
     branches: [ develop ]
-    paths: [ 'dailyquest_batch/**', 'achievement/**', 'notification/**', 'user/**', 'dailyquest_domain/**', 'dailyquest_elastic/**', '*.gradle', '.github/workflows/batch-**' ]
+    paths-ignore: [
+      'web/**',
+      '.github/workflows/web-*.yml'
+    ]
 env:
   JAVA_PATH: /home/runner/jdk
   GRADLE_USER_HOME: /home/runner/gradle
@@ -63,11 +66,11 @@ jobs:
         id: gradle-dependency-cache
         uses: actions/cache@v3
         with:
-          key: gradle-dependency-${{ hashFiles('./build.gradle', './dailyquest_batch/build.gradle', './dailyquest_domain/build.gradle', './dailyquest_elastic/build.gradle') }}
+          key: gradle-dependency-${{ hashFiles('./build.gradle', './batch/build.gradle', './domain/build.gradle', './elastic/build.gradle', './achievement/build.gradle', './notification/build.gradle', './jpa-common/build.gradle', './user/build.gradle', './reflection-common/build.gradle') }}
           path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 테스트
         run: |
-          ./gradlew dailyquest_batch:test
+          ./gradlew batch:test
 
   fail-slack-message:
     name: 파이프라인 실패 알림

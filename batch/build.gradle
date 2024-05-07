@@ -12,8 +12,8 @@ plugins {
 dependencies {
     implementation(project(":achievement"))
     implementation(project(":user"))
-    implementation(project(':dailyquest_domain'))
-    implementation(project(':dailyquest_elastic'))
+    implementation(project(':domain'))
+    implementation(project(':elastic'))
     implementation(project(':jpa-common'))
 
     // 개발 환경 런타임
@@ -43,7 +43,7 @@ dependencies {
 test {
     dependsOn(":achievement:test")
     dependsOn(":user:test")
-    dependsOn(':dailyquest_domain:test')
-    dependsOn(':dailyquest_elastic:test')
+    dependsOn(':domain:test')
+    dependsOn(':elastic:test')
     dependsOn(":jpa-common:test")
 }

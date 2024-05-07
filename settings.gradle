@@ -1,11 +1,11 @@
 rootProject.name = 'dailyquest'
 
-include 'dailyquest_web'
-include 'dailyquest_batch'
-include 'dailyquest_domain'
-include 'dailyquest_elastic'
-include ("achievement")
-include 'jpa-common'
-include 'reflection-common'
-include 'notification'
-include 'user'
+include('web')
+include('batch')
+include('domain')
+include('elastic')
+include('achievement')
+include('jpa-common')
+include('reflection-common')
+include('notification')
+include('user')

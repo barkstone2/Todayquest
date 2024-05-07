@@ -14,9 +14,9 @@ plugins {
 dependencies {
 	implementation(project(":achievement"))
 	implementation(project(":user"))
-	implementation(project(':dailyquest_domain'))
+	implementation(project(':domain'))
 	implementation(project(':jpa-common'))
-	implementation(project(':dailyquest_elastic'))
+	implementation(project(':elastic'))
 
 	// 개발 환경 런타임
 	runtimeOnly('com.mysql:mysql-connector-j')
@@ -75,7 +75,7 @@ dependencies {
 test {
 	dependsOn(":achievement:test")
 	dependsOn(":user:test")
-	dependsOn(':dailyquest_domain:test')
+	dependsOn(':domain:test')
 	dependsOn(":jpa-common:test")
-	dependsOn(':dailyquest_elastic:test')
+	dependsOn(':elastic:test')
 }

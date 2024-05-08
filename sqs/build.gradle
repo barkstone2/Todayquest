@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+
+    /* kotlin */
+    id 'org.jetbrains.kotlin.jvm'
+    id "org.jetbrains.kotlin.kapt"
+    id "org.jetbrains.kotlin.plugin.jpa"
+    id "org.jetbrains.kotlin.plugin.spring"
+}
+
+dependencies {
+    api("io.awspring.cloud:spring-cloud-aws-starter-sqs:3.1.1")
+}
+
+bootJar {
+    enabled = false
+}

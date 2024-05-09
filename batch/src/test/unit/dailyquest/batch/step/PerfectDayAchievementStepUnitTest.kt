@@ -6,6 +6,7 @@ import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.batch.listener.step.PerfectDayAchievementStepListener
+import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.user.dto.UserPerfectDayCount
 import io.mockk.Runs
 import io.mockk.every
@@ -34,8 +35,9 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.TransactionStatus
 import org.springframework.transaction.TransactionTimedOutException
 
+
 @ExtendWith(MockKExtension::class)
-@Import(PerfectDayAchievementStepListener::class, PerfectDayAchievementStepConfig::class)
+@Import(PerfectDayAchievementStepListener::class, PerfectDayAchievementStepConfig::class, MockSqsClientTestContextConfig::class)
 @EnableAutoConfiguration
 @SpringBatchTest
 @DisplayName("완벽한 하루 업적 스텝 유닛 테스트")

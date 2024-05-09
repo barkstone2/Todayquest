@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.batch.listener.step.PerfectDayAchievementStepListener
+import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.user.dto.UserPerfectDayCount
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
@@ -27,8 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.context.annotation.Import
 
+
 @ExtendWith(MockKExtension::class)
-@Import(PerfectDayAchievementStepConfig::class)
+@Import(PerfectDayAchievementStepConfig::class, MockSqsClientTestContextConfig::class)
 @EnableAutoConfiguration
 @SpringBatchTest
 @DisplayName("완벽한 하루 업적 프로세서 유닛 테스트")

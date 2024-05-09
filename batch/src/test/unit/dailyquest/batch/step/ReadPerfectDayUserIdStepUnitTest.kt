@@ -2,6 +2,7 @@ package dailyquest.batch.step
 
 import com.ninjasquad.springmockk.MockkBean
 import dailyquest.batch.listener.step.ReadPerfectDayUserIdStepListener
+import dailyquest.context.MockSqsClientTestContextConfig
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
@@ -20,8 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.context.annotation.Import
 
+
 @ExtendWith(MockKExtension::class)
-@Import(ReadPerfectDayUserIdStepListener::class, ReadPerfectDayUserIdStepConfig::class)
+@Import(ReadPerfectDayUserIdStepListener::class, ReadPerfectDayUserIdStepConfig::class, MockSqsClientTestContextConfig::class)
 @EnableAutoConfiguration
 @SpringBatchTest
 @DisplayName("완벽한 하루 로그 스텝 유닛 테스트")

@@ -10,7 +10,7 @@ import dailyquest.context.IntegrationTestContext
 import dailyquest.context.MockElasticsearchTestContextConfig
 import dailyquest.context.MockRedisTestContextConfig
 import dailyquest.jwt.JwtTokenProvider
-import dailyquest.sqs.SqsService
+import dailyquest.sqs.service.SqsService
 import dailyquest.user.repository.UserRepository
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify

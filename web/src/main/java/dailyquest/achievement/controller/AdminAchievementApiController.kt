@@ -5,8 +5,8 @@ import dailyquest.achievement.dto.WebAchievementSaveRequest
 import dailyquest.achievement.dto.WebAchievementUpdateRequest
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementService
-import dailyquest.common.BatchApiUtil
 import dailyquest.common.ResponseData
+import dailyquest.sqs.SqsService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 class AdminAchievementApiController(
     private val achievementService: AchievementService,
-    private val batchApiUtil: BatchApiUtil
+    private val sqsService: SqsService
 ) {
 
     @PostMapping("")
@@ -25,7 +25,7 @@ class AdminAchievementApiController(
         @Valid @RequestBody saveRequest: WebAchievementSaveRequest
     ) {
         val savedAchievementId = achievementService.saveAchievement(saveRequest)
-        batchApiUtil.checkAndAchieve(savedAchievementId)
+        sqsService.publishRegisterMessage(savedAchievementId)
     }
 
     @PatchMapping("/{achievementId}")

@@ -23,6 +23,14 @@ spring:
     redis:
       database: 1
       port: 6378
+  cloud:
+    aws:
+      credentials:
+        access-key: ak
+        secret-key: sk
+      sqs:
+        endpoint: http://localhost
+        region: region
   web:
     locale: ko
 logging:

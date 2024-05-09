@@ -59,3 +59,7 @@ http:
     date-format: ${HTTP_RESPONSE_DATE_FORMAT:yyyy-MM-dd}
     time-format: ${HTTP_RESPONSE_TIME_FORMAT:HH:mm:ss}
     date-time-format: ${HTTP_RESPONSE_DATE_TIME_FORMAT:yyyy-MM-dd HH:mm:ss}
+aws:
+  sqs:
+    queue:
+      batch-job-queue-url: http://localhost

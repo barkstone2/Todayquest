@@ -44,6 +44,14 @@ spring:
     redis:
       host: ${SPRING.REDIS_HOST}
       port: 6379
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_CREDENTIAL_ACCESS_KEY}
+        secret-key: ${AWS_CREDENTIAL_SECRET_KEY}
+      sqs:
+        endpoint: ${AWS_SQS_ENDPOINT}
+        region: ${AWS_SQS_REGION}
 logging:
   level:
     root: info

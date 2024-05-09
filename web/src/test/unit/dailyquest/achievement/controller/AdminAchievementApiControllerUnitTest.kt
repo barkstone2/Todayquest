@@ -7,7 +7,7 @@ import dailyquest.achievement.dto.WebAchievementUpdateRequest
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementService
 import dailyquest.annotation.WebMvcUnitTest
-import dailyquest.common.BatchApiUtil
+import dailyquest.sqs.SqsService
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.hamcrest.Matchers.equalTo
@@ -34,7 +34,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
     @MockkBean(relaxed = true)
     private lateinit var achievementService: AchievementService
     @MockkBean(relaxed = true)
-    private lateinit var batchApiUtil: BatchApiUtil
+    private lateinit var sqsService: SqsService
     private val urlPrefix = "/admin/api/v1/achievements"
 
     @DisplayName("업적 등록 요청 시")
@@ -146,7 +146,7 @@ class AdminAchievementApiControllerUnitTest @Autowired constructor(
             //then
             verify {
                 achievementService.saveAchievement(any())
-                batchApiUtil.checkAndAchieve(any())
+                sqsService.publishRegisterMessage(any())
             }
         }
     }

@@ -6,11 +6,11 @@ import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.entity.AchievementType.*
 import dailyquest.achievement.repository.AchievementRepository
-import dailyquest.common.BatchApiUtil
 import dailyquest.context.IntegrationTestContext
 import dailyquest.context.MockElasticsearchTestContextConfig
 import dailyquest.context.MockRedisTestContextConfig
 import dailyquest.jwt.JwtTokenProvider
+import dailyquest.sqs.SqsService
 import dailyquest.user.repository.UserRepository
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
@@ -43,7 +43,7 @@ class AdminAchievementApiControllerTest @Autowired constructor(
 ): IntegrationTestContext(context, userRepository, jwtTokenProvider) {
 
     @MockkBean(relaxed = true)
-    private lateinit var batchApiUtil: BatchApiUtil
+    private lateinit var sqsService: SqsService
     private val uriPrefix = "/admin/api/v1/achievements"
 
     @DisplayName("신규 업적 등록 시")
@@ -118,7 +118,7 @@ class AdminAchievementApiControllerTest @Autowired constructor(
             }
 
             //then
-            verify { batchApiUtil.checkAndAchieve(any()) }
+            verify { sqsService.publishRegisterMessage(any()) }
         }
 
         @DisplayName("유저 권한으로 요청 시 FORBIDDEN이 반환된다")

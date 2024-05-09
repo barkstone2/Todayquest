@@ -42,7 +42,7 @@ spring:
     basename: message.web, message.achievement, message.user
   data:
     redis:
-      host: ${SPRING.REDIS_HOST}
+      host: ${SPRING_REDIS_HOST}
       port: 6379
   cloud:
     aws:

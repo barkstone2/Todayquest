@@ -19,7 +19,14 @@ spring:
       initialize-schema: always
   profiles:
     include: value
-
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_CREDENTIAL_ACCESS_KEY}
+        secret-key: ${AWS_CREDENTIAL_SECRET_KEY}
+      sqs:
+        endpoint: ${AWS_SQS_ENDPOINT}
+        region: ${AWS_SQS_REGION}
 elastic:
   username: ${ELASTIC_USERNAME}
   password: ${ELASTIC_PASSWORD}

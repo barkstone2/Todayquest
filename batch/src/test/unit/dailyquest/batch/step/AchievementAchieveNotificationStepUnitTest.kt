@@ -5,6 +5,7 @@ import com.ninjasquad.springmockk.SpykBean
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.batch.listener.step.AchievementAchieveNotificationStepListener
+import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.repository.NotificationRepository
 import io.mockk.Runs
@@ -34,8 +35,9 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.TransactionStatus
 import org.springframework.transaction.TransactionTimedOutException
 
+
 @ExtendWith(MockKExtension::class)
-@Import(AchievementAchieveNotificationStepConfig::class, AchievementAchieveNotificationStepListener::class)
+@Import(AchievementAchieveNotificationStepConfig::class, AchievementAchieveNotificationStepListener::class, MockSqsClientTestContextConfig::class)
 @EnableAutoConfiguration
 @SpringBatchTest
 @DisplayName("업적 달성 알림 스텝 유닛 테스트")

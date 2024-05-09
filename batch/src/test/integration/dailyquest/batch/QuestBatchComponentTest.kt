@@ -1,5 +1,6 @@
 package dailyquest.batch
 
+import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.properties.BatchContextProperties
 import dailyquest.properties.BatchParameterProperties
 import dailyquest.quest.entity.Quest
@@ -27,6 +28,7 @@ import org.springframework.batch.test.StepScopeTestExecutionListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestExecutionListeners
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDate
@@ -35,6 +37,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @DisplayName("퀘스트 배치 구성 요소 테스트")
+@Import(MockSqsClientTestContextConfig::class)
 @TestExecutionListeners(StepScopeTestExecutionListener::class, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 @SpringBootTest
 class QuestBatchComponentTest @Autowired constructor(
@@ -55,7 +58,6 @@ class QuestBatchComponentTest @Autowired constructor(
     @MockBean
     lateinit var questIndexRepository: QuestIndexRepository
     lateinit var jobRepositoryTestUtils: JobRepositoryTestUtils
-
     lateinit var testUser: User
     lateinit var anotherUser: User
 

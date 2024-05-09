@@ -13,6 +13,7 @@ import dailyquest.batch.step.AchievementAchieveNotificationStepConfig
 import dailyquest.batch.step.IncreasePerfectDayCountStepConfig
 import dailyquest.batch.step.PerfectDayAchievementStepConfig
 import dailyquest.batch.step.ReadPerfectDayUserIdStepConfig
+import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.repository.NotificationRepository
 import dailyquest.quest.repository.QuestLogRepository
@@ -53,6 +54,7 @@ import java.time.LocalDate
     IncreasePerfectDayCountStepListener::class,
     PerfectDayAchievementStepListener::class,
     AchievementAchieveNotificationStepListener::class,
+    MockSqsClientTestContextConfig::class
 )
 @EnableAutoConfiguration
 @SpringBatchTest

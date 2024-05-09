@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.batch.listener.step.AchievementAchieveNotificationStepListener
+import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.notification.dto.AchieveNotificationSaveRequest
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.repository.NotificationRepository
@@ -29,7 +30,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.context.annotation.Import
 
 @ExtendWith(MockKExtension::class)
-@Import(AchievementAchieveNotificationStepConfig::class)
+@Import(AchievementAchieveNotificationStepConfig::class, MockSqsClientTestContextConfig::class)
 @EnableAutoConfiguration
 @SpringBatchTest
 @DisplayName("업적 달성 알림 스텝 프로세서 유닛 테스트")

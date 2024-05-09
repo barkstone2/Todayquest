@@ -7,6 +7,7 @@ import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.entity.AchievementType.*
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.batch.listener.step.CheckAndAchieveStepListener
+import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.user.entity.User
 import dailyquest.user.repository.BatchUserRepository
 import io.mockk.every
@@ -37,7 +38,8 @@ import org.springframework.context.annotation.Import
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 
-@Import(CheckAndAchieveStepConfig::class)
+
+@Import(CheckAndAchieveStepConfig::class, MockSqsClientTestContextConfig::class)
 @EnableAutoConfiguration
 @SpringBatchTest
 @ExtendWith(MockKExtension::class)

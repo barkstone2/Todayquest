@@ -17,6 +17,7 @@ dependencies {
 	implementation(project(':domain'))
 	implementation(project(':jpa-common'))
 	implementation(project(':elastic'))
+	implementation(project(':sqs'))
 
 	// 개발 환경 런타임
 	runtimeOnly('com.mysql:mysql-connector-j')

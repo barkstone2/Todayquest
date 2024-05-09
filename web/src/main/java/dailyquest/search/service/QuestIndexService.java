@@ -2,10 +2,14 @@ package dailyquest.search.service;
 
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dailyquest.quest.dto.QuestResponse;
 import dailyquest.quest.dto.QuestSearchCondition;
 import dailyquest.search.document.QuestDocument;
-import dailyquest.search.repository.QuestIndexRepository;
+import dailyquest.sqs.service.SqsService;
+import dailyquest.sqs.dto.ElasticSyncMessage;
+import dailyquest.sqs.dto.ElasticSyncRequestType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
@@ -26,25 +30,39 @@ import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.*;
 @RequiredArgsConstructor
 @Service
 public class QuestIndexService {
-    private final QuestIndexRepository questIndexRepository;
     private final ElasticsearchOperations operations;
+    private final ObjectMapper objectMapper;
+    private final SqsService sqsService;
 
     @Retryable(retryFor = RuntimeException.class)
     @Async
     public void saveDocument(QuestResponse questResponse, Long userId) {
-        questIndexRepository.save(questResponse.mapToDocument(userId));
+        QuestDocument questDocument = questResponse.mapToDocument(userId);
+        try {
+            String documentJson = objectMapper.writeValueAsString(questDocument);
+            ElasticSyncMessage elasticSyncMessage = ElasticSyncMessage.of(ElasticSyncRequestType.PERSIST, questDocument.getId(), documentJson);
+            sqsService.publishElasticSyncMessage(elasticSyncMessage);
+        } catch (JsonProcessingException ignored) {
+        }
     }
 
     @Retryable(retryFor = RuntimeException.class)
     @Async
     public void deleteDocument(QuestResponse deletedQuest) {
-        questIndexRepository.deleteById(deletedQuest.getId());
+        ElasticSyncMessage elasticSyncMessage = ElasticSyncMessage.of(ElasticSyncRequestType.DELETE, deletedQuest.getId(), "");
+        sqsService.publishElasticSyncMessage(elasticSyncMessage);
     }
 
     @Retryable(retryFor = RuntimeException.class)
     @Async
     public void updateQuestStateOfDocument(QuestResponse questResponse, Long userId) {
-        questIndexRepository.save(questResponse.mapToDocument(userId));
+        QuestDocument questDocument = questResponse.mapToDocument(userId);
+        try {
+            String documentJson = objectMapper.writeValueAsString(questDocument);
+            ElasticSyncMessage elasticSyncMessage = ElasticSyncMessage.of(ElasticSyncRequestType.PERSIST, questDocument.getId(), documentJson);
+            sqsService.publishElasticSyncMessage(elasticSyncMessage);
+        } catch (JsonProcessingException ignored) {
+        }
     }
 
     public List<Long> searchDocuments(QuestSearchCondition searchCondition, Long userId, Pageable pageable) {

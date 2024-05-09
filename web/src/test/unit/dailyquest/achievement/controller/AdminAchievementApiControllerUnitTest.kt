@@ -7,7 +7,7 @@ import dailyquest.achievement.dto.WebAchievementUpdateRequest
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementService
 import dailyquest.annotation.WebMvcUnitTest
-import dailyquest.sqs.SqsService
+import dailyquest.sqs.service.SqsService
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.hamcrest.Matchers.equalTo

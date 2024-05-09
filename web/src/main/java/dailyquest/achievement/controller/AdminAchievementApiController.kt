@@ -6,7 +6,7 @@ import dailyquest.achievement.dto.WebAchievementUpdateRequest
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.service.AchievementService
 import dailyquest.common.ResponseData
-import dailyquest.sqs.SqsService
+import dailyquest.sqs.service.SqsService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated

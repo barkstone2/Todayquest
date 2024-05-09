@@ -1,6 +1,7 @@
 package dailyquest.batch
 
 import dailyquest.common.CustomElasticsearchContainer
+import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.properties.BatchContextProperties
 import dailyquest.properties.BatchParameterProperties
 import dailyquest.quest.entity.Quest
@@ -27,6 +28,7 @@ import org.springframework.batch.test.JobRepositoryTestUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Import
 import org.springframework.transaction.support.TransactionTemplate
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -35,6 +37,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
+@Import(MockSqsClientTestContextConfig::class)
 @Testcontainers
 @DisplayName("퀘스트 배치 통합 테스트")
 @SpringBootTest

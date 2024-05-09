@@ -15,13 +15,13 @@ dependencies {
     implementation(project(':domain'))
     implementation(project(':elastic'))
     implementation(project(':jpa-common'))
+    implementation(project(':sqs'))
 
     // 개발 환경 런타임
     runtimeOnly('com.mysql:mysql-connector-j')
     // 운영 환경 런타임
     runtimeOnly('org.mariadb.jdbc:mariadb-java-client')
 
-    implementation('org.springframework.boot:spring-boot-starter-web')
     implementation 'org.springframework.boot:spring-boot-starter-batch'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
 

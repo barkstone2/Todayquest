@@ -11,6 +11,7 @@ import dailyquest.batch.listener.step.AchievementAchieveNotificationStepListener
 import dailyquest.batch.listener.step.CheckAndAchieveStepListener
 import dailyquest.batch.step.AchievementAchieveNotificationStepConfig
 import dailyquest.batch.step.CheckAndAchieveStepConfig
+import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.repository.NotificationRepository
 import dailyquest.properties.BatchContextProperties
@@ -46,6 +47,7 @@ import org.springframework.data.repository.findByIdOrNull
     AchievementAchieveNotificationStepConfig::class,
     AchievementAchieveNotificationStepListener::class,
     CheckAndAchieveJobListener::class,
+    MockSqsClientTestContextConfig::class
 )
 @EnableAutoConfiguration
 @SpringBatchTest

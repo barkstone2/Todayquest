@@ -3,6 +3,7 @@ package dailyquest.batch
 import dailyquest.batch.job.DeadLineStepListener
 import dailyquest.batch.job.ResetStepListener
 import dailyquest.config.BatchConfig
+import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.quest.entity.Quest
 import dailyquest.quest.repository.QuestRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -22,11 +23,14 @@ import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
+
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+@Import(MockSqsClientTestContextConfig::class)
 @TestPropertySource(properties = ["spring.batch.job.enabled=false"])
 @DisplayName("퀘스트 데드라인 스텝 단위 테스트")
 @EnableAutoConfiguration

@@ -2,8 +2,10 @@ package dailyquest.search.document;
 
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.elasticsearch.annotations.*;
 
+import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,8 +28,10 @@ public class QuestDocument {
     private final String state;
     @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second)
     private final LocalDateTime createdDate;
+    @ReadOnlyProperty
+    private final LocalDateTime lastModifiedDate;
 
-    public QuestDocument(Long id, String title, String description, List<String> detailTitles, Long userId, String state, LocalDateTime createdDate) {
+    public QuestDocument(Long id, String title, String description, List<String> detailTitles, Long userId, String state, LocalDateTime createdDate, @Nullable LocalDateTime lastModifiedDate) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -35,6 +39,6 @@ public class QuestDocument {
         this.userId = userId;
         this.state = state;
         this.createdDate = createdDate;
+        this.lastModifiedDate = lastModifiedDate;
     }
-
 }

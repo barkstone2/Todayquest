@@ -60,3 +60,4 @@ aws:
   sqs:
     queue:
       batch-job-queue-url: ${AWS_SQS_BATCH_JOB_QUEUE_URL}
+      elastic-sync-queue-url: ${AWS_SQS_ELASTIC_SYNC_QUEUE_URL}

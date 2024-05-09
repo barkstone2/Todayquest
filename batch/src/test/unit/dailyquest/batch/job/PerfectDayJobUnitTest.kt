@@ -5,7 +5,6 @@ import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.achievement.repository.AchievementRepository
-import dailyquest.batch.listener.job.PerfectDayJobListener
 import dailyquest.batch.listener.step.AchievementAchieveNotificationStepListener
 import dailyquest.batch.listener.step.IncreasePerfectDayCountStepListener
 import dailyquest.batch.listener.step.PerfectDayAchievementStepListener
@@ -14,7 +13,6 @@ import dailyquest.batch.step.AchievementAchieveNotificationStepConfig
 import dailyquest.batch.step.IncreasePerfectDayCountStepConfig
 import dailyquest.batch.step.PerfectDayAchievementStepConfig
 import dailyquest.batch.step.ReadPerfectDayUserIdStepConfig
-import dailyquest.common.util.WebApiUtil
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.repository.NotificationRepository
 import dailyquest.quest.repository.QuestLogRepository
@@ -55,7 +53,6 @@ import java.time.LocalDate
     IncreasePerfectDayCountStepListener::class,
     PerfectDayAchievementStepListener::class,
     AchievementAchieveNotificationStepListener::class,
-    PerfectDayJobListener::class
 )
 @EnableAutoConfiguration
 @SpringBatchTest
@@ -75,8 +72,6 @@ class PerfectDayJobUnitTest @Autowired constructor(
     private lateinit var achievementAchieveLogRepository: AchievementAchieveLogRepository
     @MockkBean(relaxed = true)
     private lateinit var notificationRepository: NotificationRepository
-    @MockkBean(relaxed = true)
-    private lateinit var webApiUtil: WebApiUtil
 
     private val jobParameters: JobParameters =
         JobParametersBuilder().addLocalDate("loggedDate", LocalDate.now()).toJobParameters()
@@ -186,16 +181,5 @@ class PerfectDayJobUnitTest @Autowired constructor(
 
         //then
         verify { notificationRepository.saveAll<Notification>(match { list -> list.all { achievedUserIds.contains(it.userId) } }) }
-    }
-
-    @DisplayName("알림이 저장된 유저에 대해 SSE 전송 요청을 보낸다")
-    @Test
-    fun `알림이 저장된 유저에 대해 SSE 전송 요청을 보낸다`() {
-        //given
-        //when
-        jobLauncherTestUtils.launchJob(jobParameters)
-
-        //then
-        verify { webApiUtil.postSseNotify(match { achievedUserIds.containsAll(it) }) }
     }
 }

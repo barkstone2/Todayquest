@@ -11,7 +11,6 @@ import dailyquest.batch.listener.step.AchievementAchieveNotificationStepListener
 import dailyquest.batch.listener.step.CheckAndAchieveStepListener
 import dailyquest.batch.step.AchievementAchieveNotificationStepConfig
 import dailyquest.batch.step.CheckAndAchieveStepConfig
-import dailyquest.common.util.WebApiUtil
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.repository.NotificationRepository
 import dailyquest.properties.BatchContextProperties
@@ -68,8 +67,6 @@ class CheckAndAchieveJobUnitTest @Autowired constructor(
     private lateinit var batchParameterProperties: BatchParameterProperties
     @MockkBean(relaxed = true)
     private lateinit var batchContextProperties: BatchContextProperties
-    @MockkBean(relaxed = true)
-    private lateinit var webApiUtil: WebApiUtil
 
     private val jobParameters: JobParameters =
         JobParametersBuilder().addLong("", 1L).toJobParameters()
@@ -134,16 +131,5 @@ class CheckAndAchieveJobUnitTest @Autowired constructor(
 
         //then
         verify { notificationRepository.saveAll<Notification>(match { list -> list.all { userIds.contains(it.userId) } }) }
-    }
-
-    @DisplayName("알림이 저장된 유저에 대해 SSE 전송 요청을 보낸다")
-    @Test
-    fun `알림이 저장된 유저에 대해 SSE 전송 요청을 보낸다`() {
-        //given
-        //when
-        jobLauncherTestUtils.launchJob(jobParameters)
-
-        //then
-        verify { webApiUtil.postSseNotify(match { userIds.containsAll(it) }) }
     }
 }

@@ -1,0 +1,11 @@
+batch:
+  context:
+    target-achievement-key: "targetAchievement"
+    achieved-logs-key: "achievedLogs"
+    notified-user-ids-key: "notifiedUserIds"
+  param:
+    target-achievement-id-key: "targetAchievementId"
+aws:
+  sqs:
+    queue:
+      batch-job-queue-url: http://localhost

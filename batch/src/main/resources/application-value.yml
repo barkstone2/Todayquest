@@ -8,4 +8,4 @@ batch:
 aws:
   sqs:
     queue:
-      batch-job-queue-url: http://localhost
+      batch-job-queue-url: ${AWS_SQS_BATCH_JOB_QUEUE_URL}

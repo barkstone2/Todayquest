@@ -68,7 +68,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: 도커 이미지 빌드 & 푸쉬
         run: |
-          docker build -t barkstone2/dailyquest-server:${GITHUB_REF#refs/tags/web-} ./dailyquest_web/
+          docker build -t barkstone2/dailyquest-server:${GITHUB_REF#refs/tags/web-} ./web/
           docker push barkstone2/dailyquest-server:${GITHUB_REF#refs/tags/web-}
 
   deployment:
@@ -88,14 +88,14 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       - name: 버전 정보 생성
         run: |
-          cd ./dailyquest_web/deploy
+          cd ./web/deploy
           echo ${GITHUB_REF#refs/tags/web-} > version.txt
       - name: CodeDeploy 푸쉬
         run: |
           aws deploy push \
             --application-name dailyquest-server \
             --s3-location s3://dailyquest-store/deploy/server/dailyquest-server-${GITHUB_REF#refs/tags/web-}.tar \
-            --source ./dailyquest_web/deploy
+            --source ./web/deploy
       - name: CodeDeploy 배포
         run: |
           aws deploy create-deployment \

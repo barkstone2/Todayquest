@@ -32,7 +32,7 @@ public class JwtTokenProvider {
                 .claim("id", userPk)
                 .claim("token_type", jwtTokenProperties.getAccessTokenName())
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + jwtTokenProperties.getAccessTokenValidationMillisecond()))
+                .setExpiration(new Date(now.getTime() + jwtTokenProperties.getAccessTokenExpirationMilliseconds()))
                 .signWith(new SecretKeySpec(Decoders.BASE64.decode(secretKey), SignatureAlgorithm.HS256.getJcaName()))
                 .compact();
 
@@ -45,7 +45,7 @@ public class JwtTokenProvider {
                 .claim("id", userId)
                 .claim("token_type", jwtTokenProperties.getRefreshTokenName())
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + jwtTokenProperties.getRefreshTokenValidationMillisecond()))
+                .setExpiration(new Date(now.getTime() + jwtTokenProperties.getRefreshTokenExpirationMilliseconds()))
                 .signWith(new SecretKeySpec(Decoders.BASE64.decode(secretKey), SignatureAlgorithm.HS256.getJcaName()))
                 .compact();
     }
@@ -98,11 +98,11 @@ public class JwtTokenProvider {
     }
 
     public Cookie createAccessTokenCookie(String accessToken) {
-        return createSecureCookie(jwtTokenProperties.getAccessTokenName(), accessToken);
+        return createSecureCookie(jwtTokenProperties.getAccessTokenName(), accessToken, jwtTokenProperties.getAccessTokenExpirationSeconds());
     }
 
     public Cookie createRefreshTokenCookie(String refreshToken) {
-        return createSecureCookie(jwtTokenProperties.getRefreshTokenName(), refreshToken);
+        return createSecureCookie(jwtTokenProperties.getRefreshTokenName(), refreshToken, jwtTokenProperties.getRefreshTokenExpirationSeconds());
     }
 
     public String silentRefresh(String refreshToken) throws JwtException {
@@ -129,12 +129,8 @@ public class JwtTokenProvider {
         } catch (JwtException ignored) {
         }
 
-        Cookie emptyAccessToken = createSecureCookie(jwtTokenProperties.getAccessTokenName(), "");
-        Cookie emptyRefreshToken = createSecureCookie(jwtTokenProperties.getRefreshTokenName(), "");
-
-        emptyAccessToken.setMaxAge(0);
-        emptyRefreshToken.setMaxAge(0);
-
+        Cookie emptyAccessToken = createSecureCookie(jwtTokenProperties.getAccessTokenName(), "", 0);
+        Cookie emptyRefreshToken = createSecureCookie(jwtTokenProperties.getRefreshTokenName(), "", 0);
         return new Pair<>(emptyAccessToken, emptyRefreshToken);
     }
 
@@ -151,13 +147,14 @@ public class JwtTokenProvider {
         return redisTemplate.opsForValue().get(token) != null;
     }
 
-    private Cookie createSecureCookie(String cookieName, String value) {
+    private Cookie createSecureCookie(String cookieName, String value, int expirationSeconds) {
         Cookie cookie = new Cookie(cookieName, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(jwtTokenProperties.getUseSecure());
         cookie.setAttribute("sameSite", jwtTokenProperties.getSameSite());
         cookie.setDomain(jwtTokenProperties.getDomain());
+        cookie.setMaxAge(expirationSeconds);
         return cookie;
     }
 }

@@ -1,6 +1,7 @@
 package dailyquest.user.service
 
 import dailyquest.achievement.dto.AchievementAchieveRequest
+import dailyquest.achievement.dto.SimpleAchievementAchieveRequest
 import dailyquest.achievement.entity.AchievementType.*
 import dailyquest.achievement.service.AchievementService
 import dailyquest.common.timeSinceNowAsString
@@ -69,7 +70,7 @@ class UserService(
     fun addUserExpAndGold(userId: Long, updateRequest: UserUpdateRequest) {
         val updateTarget = this.findUser(userId)
         updateTarget.addExpAndGold(updateRequest.earnedExp, updateRequest.earnedGold)
-        val goldEarnAchieveRequest = AchievementAchieveRequest.of(GOLD_EARN, userId, updateTarget.goldEarnAmount)
+        val goldEarnAchieveRequest = SimpleAchievementAchieveRequest.of(GOLD_EARN, userId, updateTarget.goldEarnAmount)
         achievementService.checkAndAchieveAchievement(goldEarnAchieveRequest)
     }
 
@@ -77,9 +78,9 @@ class UserService(
     fun recordQuestRegistration(userId: Long, registrationDate: LocalDate) {
         val targetUser = this.findUser(userId)
         targetUser.increaseQuestRegistrationCount(registrationDate)
-        val questRegAchieveRequest = AchievementAchieveRequest.of(QUEST_REGISTRATION, userId, targetUser.questRegistrationCount)
+        val questRegAchieveRequest = SimpleAchievementAchieveRequest.of(QUEST_REGISTRATION, userId, targetUser.questRegistrationCount)
         achievementService.checkAndAchieveAchievement(questRegAchieveRequest)
-        val questContRegAchieveRequest = AchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION, userId, targetUser.currentQuestContinuousRegistrationDays)
+        val questContRegAchieveRequest = SimpleAchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION, userId, targetUser.currentQuestContinuousRegistrationDays)
         achievementService.checkAndAchieveAchievement(questContRegAchieveRequest)
     }
 
@@ -87,9 +88,9 @@ class UserService(
     fun recordQuestCompletion(userId: Long, completionDate: LocalDate) {
         val targetUser = this.findUser(userId)
         targetUser.increaseQuestCompletionCount(completionDate)
-        val questCompAchieveRequest = AchievementAchieveRequest.of(QUEST_COMPLETION, userId, targetUser.questCompletionCount)
+        val questCompAchieveRequest = SimpleAchievementAchieveRequest.of(QUEST_COMPLETION, userId, targetUser.questCompletionCount)
         achievementService.checkAndAchieveAchievement(questCompAchieveRequest)
-        val questContCompAchieveRequest = AchievementAchieveRequest.of(QUEST_CONTINUOUS_COMPLETION, userId, targetUser.currentQuestContinuousCompletionDays)
+        val questContCompAchieveRequest = SimpleAchievementAchieveRequest.of(QUEST_CONTINUOUS_COMPLETION, userId, targetUser.currentQuestContinuousCompletionDays)
         achievementService.checkAndAchieveAchievement(questContCompAchieveRequest)
     }
 }

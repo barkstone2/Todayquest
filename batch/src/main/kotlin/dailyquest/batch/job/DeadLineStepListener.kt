@@ -50,7 +50,8 @@ class DeadLineStepListener(
                 item.detailQuests.map { it.title }.toList(),
                 item.userId,
                 QuestState.FAIL.name,
-                item.createdDate
+                item.createdDate,
+                null
             ))
         }
 

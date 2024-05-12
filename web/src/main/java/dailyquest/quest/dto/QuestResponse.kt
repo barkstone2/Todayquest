@@ -49,7 +49,8 @@ data class QuestResponse(
             detailQuests.map { it.title },
             userId,
             state.name,
-            createdDate
+            createdDate,
+            lastModifiedDate
         )
     }
 

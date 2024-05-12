@@ -13,6 +13,7 @@ import dailyquest.user.repository.UserRepository
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
@@ -27,6 +28,7 @@ import org.springframework.web.filter.CharacterEncodingFilter
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+@Import(MockSqsClientTestContextConfig::class)
 @Transactional
 class IntegrationTestContext(
     protected val context: WebApplicationContext,

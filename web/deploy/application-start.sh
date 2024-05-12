@@ -28,7 +28,7 @@ IS_NEW_UP=$(docker inspect -f {{.State.Running}} $CONTAINER_NAME-$NEW_COLOR)
 if [ "$IS_NEW_UP" == "true" ]; then
     docker logs $CONTAINER_NAME-$NEW_COLOR | grep 'Completed initialization'
     NEW_CONTAINER_INIT=$?
-    while [ NEW_CONTAINER_INIT == 0 ]
+    while [ "$NEW_CONTAINER_INIT" == 0 ]
     do
         sleep 1
         docker logs $CONTAINER_NAME-$NEW_COLOR | grep 'Completed initialization'

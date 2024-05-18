@@ -27,6 +27,8 @@ spring:
       sqs:
         endpoint: ${AWS_SQS_ENDPOINT}
         region: ${AWS_SQS_REGION}
+        listener:
+          poll-timeout: ${AWS_SQS_POLL_TIMEOUT:20S}
 elastic:
   username: ${ELASTIC_USERNAME}
   password: ${ELASTIC_PASSWORD}

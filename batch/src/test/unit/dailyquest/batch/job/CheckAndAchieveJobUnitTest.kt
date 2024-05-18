@@ -87,8 +87,8 @@ class CheckAndAchieveJobUnitTest @Autowired constructor(
             achievement.type
         } returns AchievementType.QUEST_REGISTRATION
         every {
-            batchUserRepository.findAllByQuestRegistrationCountGreaterThanEqual(any(), any())
-        } returns PageImpl(userIds.map { user }) andThen Page.empty()
+            batchUserRepository.getAllUserIdWhoCanAchieveOf(any(), any())
+        } returns PageImpl(userIds) andThen Page.empty()
         every { user.id } returnsMany userIds
         every { batchContextProperties.targetAchievementKey } returns "targetAchievement"
         every { batchContextProperties.achievedLogsKey } returns "achievedLogs"
@@ -103,7 +103,7 @@ class CheckAndAchieveJobUnitTest @Autowired constructor(
         jobLauncherTestUtils.launchJob(jobParameters)
 
         //then
-        verify { batchUserRepository.findAllByQuestRegistrationCountGreaterThanEqual(any(), any()) }
+        verify { batchUserRepository.getAllUserIdWhoCanAchieveOf(any(), any()) }
     }
 
     @DisplayName("조회한 유저에 대해 업적 달성 로그를 저장한다")

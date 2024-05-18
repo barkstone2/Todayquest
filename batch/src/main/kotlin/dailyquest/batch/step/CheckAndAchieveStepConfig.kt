@@ -2,10 +2,8 @@ package dailyquest.batch.step
 
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
-import dailyquest.achievement.entity.AchievementType.*
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.batch.listener.step.CheckAndAchieveStepListener
-import dailyquest.user.entity.User
 import dailyquest.user.repository.BatchUserRepository
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.JobScope
@@ -32,13 +30,13 @@ class CheckAndAchieveStepConfig {
     fun checkAndAchieveStep(
         jobRepository: JobRepository,
         transactionManager: PlatformTransactionManager,
-        checkAndAchieveReader: ItemReader<User>,
-        checkAndAchieveProcessor: ItemProcessor<User, AchievementAchieveLog>,
+        checkAndAchieveReader: ItemReader<Long>,
+        checkAndAchieveProcessor: ItemProcessor<Long, AchievementAchieveLog>,
         checkAndAchieveWriter: ItemWriter<AchievementAchieveLog>,
         checkAndAchieveStepListener: CheckAndAchieveStepListener
     ): Step {
         return StepBuilder("checkAndAchieveStep", jobRepository)
-            .chunk<User, AchievementAchieveLog>(10, transactionManager)
+            .chunk<Long, AchievementAchieveLog>(10, transactionManager)
             .reader(checkAndAchieveReader)
             .processor(checkAndAchieveProcessor)
             .writer(checkAndAchieveWriter)
@@ -54,29 +52,24 @@ class CheckAndAchieveStepConfig {
     fun checkAndAchieveReader(
         @Value("#{jobExecutionContext['targetAchievement']}") targetAchievement: Achievement,
         batchUserRepository: BatchUserRepository,
-    ): RepositoryItemReader<User> {
-        var builder = RepositoryItemReaderBuilder<User>()
+    ): RepositoryItemReader<Long> {
+        return RepositoryItemReaderBuilder<Long>()
             .repository(batchUserRepository)
+            .methodName("getAllUserIdWhoCanAchieveOf")
+            .arguments(targetAchievement)
+            .pageSize(10)
             .name("checkAndAchieveReader")
             .sorts(sortedMapOf())
-        builder = when (targetAchievement.type) {
-            QUEST_REGISTRATION -> builder.methodName("findAllByQuestRegistrationCountGreaterThanEqual")
-            QUEST_COMPLETION -> builder.methodName("findAllByQuestCompletionCountGreaterThanEqual")
-            QUEST_CONTINUOUS_REGISTRATION -> builder.methodName("findAllByMaxQuestContinuousRegistrationDaysGreaterThanEqual")
-            QUEST_CONTINUOUS_COMPLETION -> builder.methodName("findAllByMaxQuestContinuousCompletionDaysGreaterThanEqual")
-            GOLD_EARN -> builder.methodName("findAllByGoldEarnAmountGreaterThanEqual")
-            PERFECT_DAY -> builder.methodName("findAllByPerfectDayCountGreaterThanEqual")
-        }
-        return builder.arguments(targetAchievement.targetValue).build()
+            .build()
     }
 
     @Bean
     @StepScope
     fun checkAndAchieveProcessor(
         @Value("#{jobExecutionContext['targetAchievement']}") targetAchievement: Achievement,
-    ): FunctionItemProcessor<User, AchievementAchieveLog> {
+    ): FunctionItemProcessor<Long, AchievementAchieveLog> {
         return FunctionItemProcessor {
-            AchievementAchieveLog.of(targetAchievement, it.id)
+            AchievementAchieveLog.of(targetAchievement, it)
         }
     }
 

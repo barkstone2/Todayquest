@@ -1,5 +1,6 @@
 package dailyquest.quest.repository
 
+import dailyquest.config.QueryDslConfig
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestState.*
 import io.mockk.junit5.MockKExtension
@@ -11,9 +12,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.context.annotation.Import
 import org.springframework.data.domain.Pageable
 import java.time.LocalDate
 
+@Import(QueryDslConfig::class)
 @ExtendWith(MockKExtension::class)
 @DisplayName("퀘스트 로그 리포지토리 유닛 테스트")
 @DataJpaTest

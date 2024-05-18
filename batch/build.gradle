@@ -28,6 +28,9 @@ dependencies {
     // KClass 호출을 위한 kotlin-reflecet
     implementation "org.jetbrains.kotlin:kotlin-reflect"
 
+    implementation("com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta")
+    kapt ("com.querydsl:querydsl-apt:${queryDslVersion}:jakarta")
+
     // 테스트 DB
     testRuntimeOnly 'com.h2database:h2'
     // 배치 테스트

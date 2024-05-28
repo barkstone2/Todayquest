@@ -1,19 +1,21 @@
 package dailyquest.search.service;
 
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dailyquest.quest.dto.QuestResponse;
 import dailyquest.quest.dto.QuestSearchCondition;
 import dailyquest.search.document.QuestDocument;
-import dailyquest.sqs.service.SqsService;
 import dailyquest.sqs.dto.ElasticSyncMessage;
 import dailyquest.sqs.dto.ElasticSyncRequestType;
+import dailyquest.sqs.service.SqsService;
 import lombok.RequiredArgsConstructor;
+import org.opensearch.data.client.orhlc.NativeSearchQuery;
+import org.opensearch.index.query.BoolQueryBuilder;
+import org.opensearch.index.query.MultiMatchQueryBuilder;
+import org.opensearch.index.query.RangeQueryBuilder;
+import org.opensearch.index.query.TermQueryBuilder;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.client.elc.NativeQuery;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchOperations;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -24,13 +26,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.*;
+import static org.opensearch.index.query.QueryBuilders.*;
 
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @RequiredArgsConstructor
 @Service
 public class QuestIndexService {
-    private final ElasticsearchOperations operations;
+    private final SearchOperations operations;
     private final ObjectMapper objectMapper;
     private final SqsService sqsService;
 
@@ -66,67 +68,43 @@ public class QuestIndexService {
     }
 
     public List<Long> searchDocuments(QuestSearchCondition searchCondition, Long userId, Pageable pageable) {
-
-        Query userIdtermQuery = term()
-                .field("userId")
-                .value(userId)
-                .build()._toQuery();
-
-        Query stateTermQuery = null;
+        BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
+        boolQueryBuilder.must(multiMatchQuery(searchCondition.keyword(), searchCondition.keywordType().fieldNames));
+        boolQueryBuilder.filter(termQuery("userId", userId));
         if(searchCondition.state() != null) {
-            stateTermQuery = term()
-                    .field("state")
-                    .value(searchCondition.state().name())
-                    .build()._toQuery();
+            boolQueryBuilder.filter(termQuery("state", searchCondition.state().name()));
+        }
+        RangeQueryBuilder rangeQuery = this.getCreateDateRangeQueryIfNotNull(searchCondition);
+        if(rangeQuery != null) {
+            boolQueryBuilder.filter(rangeQuery);
         }
 
-        Query mulitMatchQuery = multiMatch()
-                .fields(searchCondition.keywordType().fieldNames)
-                .query(searchCondition.keyword())
-                .build()._toQuery();
+        NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
+        nativeSearchQuery.setPageable(pageable);
 
-        Query rangeQuery = null;
-
-        LocalDateTime startDateTime = searchCondition.getStartResetTime();
-        LocalDateTime endDateTime = searchCondition.getEndResetTime();
-
-        if(startDateTime != null && endDateTime != null) {
-            rangeQuery = range()
-                    .field("createdDate")
-                    .from(startDateTime.toString())
-                    .to(endDateTime.toString())
-                    .build()._toQuery();
-        }
-        if(startDateTime != null && endDateTime == null) {
-            rangeQuery = range()
-                    .field("createdDate")
-                    .from(startDateTime.toString())
-                    .build()._toQuery();
-        }
-        if(startDateTime == null && endDateTime != null) {
-            rangeQuery = range()
-                    .field("createdDate")
-                    .to(endDateTime.toString())
-                    .build()._toQuery();
-        }
-
-        BoolQuery.Builder boolQueryBuilder = bool()
-                .must(mulitMatchQuery);
-
-        boolQueryBuilder.filter(userIdtermQuery);
-        if(stateTermQuery != null) boolQueryBuilder.filter(stateTermQuery);
-        if(rangeQuery != null) boolQueryBuilder.filter(rangeQuery);
-
-        Query query = boolQueryBuilder.build()._toQuery();
-
-        NativeQuery nativeQuery = NativeQuery.builder()
-                .withQuery(query)
-                .withPageable(pageable)
-                .build();
-
-        return operations.search(nativeQuery, QuestDocument.class)
+        return operations.search(nativeSearchQuery, QuestDocument.class)
                 .stream()
                 .map(h -> Long.parseLong(Objects.requireNonNull(h.getId())))
                 .toList();
+    }
+
+    private RangeQueryBuilder getCreateDateRangeQueryIfNotNull(QuestSearchCondition searchCondition) {
+        RangeQueryBuilder rangeQuery = null;
+        LocalDateTime startDateTime = searchCondition.getStartResetTime();
+        LocalDateTime endDateTime = searchCondition.getEndResetTime();
+        if(startDateTime != null && endDateTime != null) {
+            rangeQuery = rangeQuery("createdDate")
+                    .from(startDateTime.toString())
+                    .to(endDateTime.toString());
+        }
+        if(startDateTime != null && endDateTime == null) {
+            rangeQuery = rangeQuery("createdDate")
+                    .from(startDateTime.toString());
+        }
+        if(startDateTime == null && endDateTime != null) {
+            rangeQuery = rangeQuery("createdDate")
+                    .to(endDateTime.toString());
+        }
+        return rangeQuery;
     }
 }

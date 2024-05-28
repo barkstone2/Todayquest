@@ -31,13 +31,14 @@ import org.springframework.batch.test.MetaDataInstanceFactory
 import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 
 
 @Import(CheckAndAchieveStepConfig::class, MockSqsClientTestContextConfig::class)
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = [ElasticsearchDataAutoConfiguration::class])
 @SpringBatchTest
 @ExtendWith(MockKExtension::class)
 class CheckAndAchieveStepComponentUnitTest @Autowired constructor(

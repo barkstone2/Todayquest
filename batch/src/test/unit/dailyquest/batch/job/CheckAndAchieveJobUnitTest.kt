@@ -34,6 +34,7 @@ import org.springframework.batch.test.JobRepositoryTestUtils
 import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -49,7 +50,7 @@ import org.springframework.data.repository.findByIdOrNull
     CheckAndAchieveJobListener::class,
     MockSqsClientTestContextConfig::class
 )
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = [ElasticsearchDataAutoConfiguration::class])
 @SpringBatchTest
 @DisplayName("업적 달성 확인 작업 유닛 테스트")
 class CheckAndAchieveJobUnitTest @Autowired constructor(

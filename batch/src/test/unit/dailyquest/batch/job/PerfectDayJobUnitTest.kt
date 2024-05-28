@@ -38,6 +38,7 @@ import org.springframework.batch.test.JobRepositoryTestUtils
 import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -56,7 +57,7 @@ import java.time.LocalDate
     AchievementAchieveNotificationStepListener::class,
     MockSqsClientTestContextConfig::class
 )
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = [ElasticsearchDataAutoConfiguration::class])
 @SpringBatchTest
 @DisplayName("완벽한 하루 작업 유닛 테스트")
 class PerfectDayJobUnitTest @Autowired constructor(

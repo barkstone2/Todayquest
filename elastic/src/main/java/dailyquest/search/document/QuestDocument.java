@@ -1,16 +1,15 @@
 package dailyquest.search.document;
 
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.elasticsearch.annotations.*;
 
-import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@Setting(settingPath = "elastic/quests/setting.json")
 @Document(indexName = "quests")
 public class QuestDocument {
     @Id

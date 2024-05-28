@@ -34,9 +34,6 @@ elastic:
   password: ${ELASTIC_PASSWORD:changeit}
   host: ${ELASTIC_HOST:localhost}
   port: ${ELASTIC_PORT:9205}
-  truststore:
-    location: ${ELASTIC_TRUSTSTORE_LOCATION:src/test/resources/test-keystore/test-ca.p12}
-    password: ${ELASTIC_TRUSTSTORE_PASSWORD:changeit}
   connection-timeout-millis: 30000
   socket-timeout-millis: 30000
 

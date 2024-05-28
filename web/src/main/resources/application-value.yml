@@ -38,9 +38,6 @@ elastic:
   password: ${ELASTIC_PASSWORD}
   host: ${ELASTIC_HOST}
   port: ${ELASTIC_PORT}
-  truststore:
-    location: ${ELASTIC_TRUSTSTORE_LOCATION}
-    password: ${ELASTIC_TRUSTSTORE_PASSWORD:}
 
 jwt:
   access-token-expiration-seconds-formula: ${ACCESS_TOKEN_EXPIRATION_SECONDS_FORMULA}

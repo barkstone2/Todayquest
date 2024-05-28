@@ -30,6 +30,7 @@ import org.springframework.batch.test.JobLauncherTestUtils
 import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.TransactionStatus
@@ -38,7 +39,7 @@ import org.springframework.transaction.TransactionTimedOutException
 
 @ExtendWith(MockKExtension::class)
 @Import(PerfectDayAchievementStepListener::class, PerfectDayAchievementStepConfig::class, MockSqsClientTestContextConfig::class)
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = [ElasticsearchDataAutoConfiguration::class])
 @SpringBatchTest
 @DisplayName("완벽한 하루 업적 스텝 유닛 테스트")
 class PerfectDayAchievementStepUnitTest @Autowired constructor(

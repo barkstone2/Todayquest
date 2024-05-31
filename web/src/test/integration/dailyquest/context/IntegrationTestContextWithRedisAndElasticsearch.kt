@@ -1,6 +1,6 @@
 package dailyquest.context
 
-import dailyquest.common.CustomElasticsearchContainer
+import dailyquest.common.CustomOpenSearchContainer
 import dailyquest.common.CustomRedisContainer
 import dailyquest.jwt.JwtTokenProvider
 import dailyquest.user.repository.UserRepository
@@ -18,7 +18,7 @@ open class IntegrationTestContextWithRedisAndElasticsearch(
     companion object {
         @JvmStatic
         @Container
-        val elasticsearch = CustomElasticsearchContainer()
+        val elasticsearch = CustomOpenSearchContainer()
 
         @JvmStatic
         @Container

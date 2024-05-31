@@ -35,12 +35,7 @@ dependencies {
     testRuntimeOnly 'com.h2database:h2'
     // 배치 테스트
     testImplementation 'org.springframework.batch:spring-batch-test'
-
-    // 테스트 컨테이너 의존성
-    testImplementation("org.testcontainers:junit-jupiter:${testContainersVersion}")
-    // 엘라스틱서치 테스트 컨테이너
-    testImplementation("org.testcontainers:elasticsearch:${testContainersVersion}")
-
+    testImplementation(project(":opensearch-test"))
 }
 
 test {

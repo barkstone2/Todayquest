@@ -30,8 +30,8 @@ redis:
     max_reward_count: "mrc"
 
 elastic:
-  username: ${ELASTIC_USERNAME:elastic}
-  password: ${ELASTIC_PASSWORD:changeit}
+  username: ${ELASTIC_USERNAME:admin}
+  password: ${ELASTIC_PASSWORD:admin}
   host: ${ELASTIC_HOST:localhost}
   port: ${ELASTIC_PORT:9205}
   connection-timeout-millis: 30000

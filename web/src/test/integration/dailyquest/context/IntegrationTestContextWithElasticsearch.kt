@@ -1,6 +1,6 @@
 package dailyquest.context
 
-import dailyquest.common.CustomElasticsearchContainer
+import dailyquest.common.CustomOpenSearchContainer
 import dailyquest.jwt.JwtTokenProvider
 import dailyquest.user.repository.UserRepository
 import io.mockk.junit5.MockKExtension
@@ -21,6 +21,6 @@ open class IntegrationTestContextWithElasticsearch(
     companion object {
         @JvmStatic
         @Container
-        val elasticsearch = CustomElasticsearchContainer()
+        val elasticsearch = CustomOpenSearchContainer()
     }
 }

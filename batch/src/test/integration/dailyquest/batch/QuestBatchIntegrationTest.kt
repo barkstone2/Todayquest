@@ -1,6 +1,6 @@
 package dailyquest.batch
 
-import dailyquest.common.CustomElasticsearchContainer
+import dailyquest.common.CustomOpenSearchContainer
 import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.properties.BatchContextProperties
 import dailyquest.properties.BatchParameterProperties
@@ -64,7 +64,7 @@ class QuestBatchIntegrationTest @Autowired constructor(
     companion object {
         @JvmStatic
         @Container
-        val elasticsearch = CustomElasticsearchContainer()
+        val elasticsearch = CustomOpenSearchContainer()
     }
 
     @BeforeEach

@@ -2,7 +2,7 @@ package dailyquest.batch.listener.step
 
 import dailyquest.common.util.ExecutionContextUtil
 import dailyquest.user.dto.UserPerfectDayCount
-import dailyquest.user.entity.User
+import dailyquest.user.record.entity.UserRecord
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.annotation.AfterChunk
@@ -31,7 +31,7 @@ class IncreasePerfectDayCountStepListener {
     }
 
     @AfterWrite
-    fun afterWrite(chunk: Chunk<User>) {
+    fun afterWrite(chunk: Chunk<UserRecord>) {
         val userPerfectDayCounts = chunk.map { UserPerfectDayCount.from(it) }
         executionContextUtil.putToStepContext(userPerfectDayCountsKey, userPerfectDayCounts)
     }

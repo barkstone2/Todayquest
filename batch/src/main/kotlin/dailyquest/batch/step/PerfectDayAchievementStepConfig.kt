@@ -50,7 +50,6 @@ class PerfectDayAchievementStepConfig {
     @Bean
     @StepScope
     fun perfectDayCountReader(
-        userRepository: UserRepository,
         @Value("#{jobExecutionContext['userPerfectDayCounts']}") userPerfectDayCounts: List<UserPerfectDayCount>
     ): IteratorItemReader<UserPerfectDayCount> {
         return IteratorItemReader(userPerfectDayCounts)

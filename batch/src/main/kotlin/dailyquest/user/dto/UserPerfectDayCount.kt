@@ -1,6 +1,6 @@
 package dailyquest.user.dto
 
-import dailyquest.user.entity.User
+import dailyquest.user.record.entity.UserRecord
 import java.io.Serializable
 
 class UserPerfectDayCount(
@@ -9,8 +9,8 @@ class UserPerfectDayCount(
 ) : Serializable {
     companion object {
         @JvmStatic
-        fun from(user: User): UserPerfectDayCount {
-            return UserPerfectDayCount(user.id, user.perfectDayCount)
+        fun from(userRecord: UserRecord): UserPerfectDayCount {
+            return UserPerfectDayCount(userRecord.id, userRecord.perfectDayCount)
         }
     }
 }

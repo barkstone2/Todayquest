@@ -4,12 +4,10 @@ import com.ninjasquad.springmockk.SpykBean
 import dailyquest.context.IntegrationTestContext
 import dailyquest.context.MockElasticsearchTestContextConfig
 import dailyquest.context.MockRedisTestContextConfig
-import dailyquest.jwt.JwtTokenProvider
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.entity.NotificationType
 import dailyquest.notification.repository.NotificationRepository
 import dailyquest.properties.NotificationPageSizeProperties
-import dailyquest.user.repository.UserRepository
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import jakarta.persistence.EntityManager
@@ -23,27 +21,21 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.patch
-import org.springframework.web.context.WebApplicationContext
 import java.time.LocalDateTime
 
 @Import(MockElasticsearchTestContextConfig::class, MockRedisTestContextConfig::class)
 @ExtendWith(MockKExtension::class)
 @DisplayName("알림 API 컨트롤러 통합 테스트")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class NotificationApiControllerTest @Autowired constructor(
-    context: WebApplicationContext,
-    userRepository: UserRepository,
-    jwtTokenProvider: JwtTokenProvider,
     private val notificationRepository: NotificationRepository,
     private val entityManager: EntityManager,
     @SpykBean
     private val notificationPageSizeProperties: NotificationPageSizeProperties
-) : IntegrationTestContext(context, userRepository, jwtTokenProvider) {
+) : IntegrationTestContext() {
 
     private val uriPrefix = "/api/v1/notifications"
 

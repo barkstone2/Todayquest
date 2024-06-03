@@ -4,13 +4,11 @@ import com.jayway.jsonpath.JsonPath;
 import dailyquest.context.IntegrationTestContext;
 import dailyquest.context.MockElasticsearchTestContextConfig;
 import dailyquest.context.MockRedisTestContextConfig;
-import dailyquest.jwt.JwtTokenProvider;
 import dailyquest.quest.dto.QuestLogSearchType;
 import dailyquest.quest.entity.QuestLog;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.entity.QuestType;
 import dailyquest.quest.repository.QuestLogRepository;
-import dailyquest.user.repository.UserRepository;
 import dailyquest.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,32 +16,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import({MockRedisTestContextConfig.class, MockElasticsearchTestContextConfig.class})
 @DisplayName("상태창 API 컨트롤러 통합 테스트")
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class StatusApiControllerTest extends IntegrationTestContext {
-
-    @Autowired
-    public StatusApiControllerTest(WebApplicationContext context, UserRepository userRepository, JwtTokenProvider jwtTokenProvider) {
-        super(context, userRepository, jwtTokenProvider);
-    }
 
     static final String URI_PREFIX = "/api/v1/status";
 

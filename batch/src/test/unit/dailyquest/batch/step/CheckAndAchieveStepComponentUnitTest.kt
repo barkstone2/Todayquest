@@ -8,7 +8,7 @@ import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.batch.listener.step.CheckAndAchieveStepListener
 import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.user.entity.User
-import dailyquest.user.repository.BatchUserRepository
+import dailyquest.user.record.repository.BatchUserRecordRepository
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -49,7 +49,7 @@ class CheckAndAchieveStepComponentUnitTest @Autowired constructor(
     private val checkAndAchieveWriter: ItemWriter<AchievementAchieveLog>,
 ) {
     @MockkBean(relaxed = true)
-    private lateinit var batchUserRepository: BatchUserRepository
+    private lateinit var batchUserRecordRepository: BatchUserRecordRepository
 
     @MockkBean(relaxed = true)
     private lateinit var achievementAchieveLogRepository: AchievementAchieveLogRepository
@@ -84,7 +84,7 @@ class CheckAndAchieveStepComponentUnitTest @Autowired constructor(
             val jobExecution = jobLauncherTestUtils.launchStep(stepName, jobExecutionContext)
 
             //then
-            verify { batchUserRepository.getAllUserIdWhoCanAchieveOf(any(), any()) }
+            verify { batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(any(), any()) }
         }
     }
 
@@ -98,7 +98,7 @@ class CheckAndAchieveStepComponentUnitTest @Autowired constructor(
             mockkObject(AchievementAchieveLog)
             val user = mockk<User>(relaxed = true)
             every { targetAchievement.type } returns QUEST_REGISTRATION
-            every { batchUserRepository.getAllUserIdWhoCanAchieveOf(any(), any()) } returns PageImpl(listOf(user.id)) andThen Page.empty()
+            every { batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(any(), any()) } returns PageImpl(listOf(user.id)) andThen Page.empty()
 
             //when
             jobLauncherTestUtils.launchStep(stepName, jobExecutionContext)
@@ -118,7 +118,7 @@ class CheckAndAchieveStepComponentUnitTest @Autowired constructor(
             mockkObject(AchievementAchieveLog)
             val user = mockk<User>(relaxed = true)
             every { targetAchievement.type } returns QUEST_REGISTRATION
-            every { batchUserRepository.getAllUserIdWhoCanAchieveOf(any(), any()) } returns PageImpl(listOf(user.id)) andThen Page.empty()
+            every { batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(any(), any()) } returns PageImpl(listOf(user.id)) andThen Page.empty()
 
             //when
             jobLauncherTestUtils.launchStep(stepName, jobExecutionContext)

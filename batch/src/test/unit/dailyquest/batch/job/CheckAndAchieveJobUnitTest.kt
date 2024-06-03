@@ -17,7 +17,7 @@ import dailyquest.notification.repository.NotificationRepository
 import dailyquest.properties.BatchContextProperties
 import dailyquest.properties.BatchParameterProperties
 import dailyquest.user.entity.User
-import dailyquest.user.repository.BatchUserRepository
+import dailyquest.user.record.repository.BatchUserRecordRepository
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
@@ -59,7 +59,7 @@ class CheckAndAchieveJobUnitTest @Autowired constructor(
     private val checkAndAchieveJob: Job,
 ) {
     @MockkBean(relaxed = true)
-    private lateinit var batchUserRepository: BatchUserRepository
+    private lateinit var batchUserRecordRepository: BatchUserRecordRepository
     @MockkBean(relaxed = true)
     private lateinit var achievementRepository: AchievementRepository
     @MockkBean(relaxed = true)
@@ -88,7 +88,7 @@ class CheckAndAchieveJobUnitTest @Autowired constructor(
             achievement.type
         } returns AchievementType.QUEST_REGISTRATION
         every {
-            batchUserRepository.getAllUserIdWhoCanAchieveOf(any(), any())
+            batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(any(), any())
         } returns PageImpl(userIds) andThen Page.empty()
         every { user.id } returnsMany userIds
         every { batchContextProperties.targetAchievementKey } returns "targetAchievement"
@@ -104,7 +104,7 @@ class CheckAndAchieveJobUnitTest @Autowired constructor(
         jobLauncherTestUtils.launchJob(jobParameters)
 
         //then
-        verify { batchUserRepository.getAllUserIdWhoCanAchieveOf(any(), any()) }
+        verify { batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(any(), any()) }
     }
 
     @DisplayName("조회한 유저에 대해 업적 달성 로그를 저장한다")

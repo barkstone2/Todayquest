@@ -4,6 +4,7 @@ import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.batch.listener.step.CheckAndAchieveStepListener
+import dailyquest.user.record.repository.BatchUserRecordRepository
 import dailyquest.user.repository.BatchUserRepository
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.JobScope
@@ -51,10 +52,10 @@ class CheckAndAchieveStepConfig {
     @StepScope
     fun checkAndAchieveReader(
         @Value("#{jobExecutionContext['targetAchievement']}") targetAchievement: Achievement,
-        batchUserRepository: BatchUserRepository,
+        batchUserRecordRepository: BatchUserRecordRepository,
     ): RepositoryItemReader<Long> {
         return RepositoryItemReaderBuilder<Long>()
-            .repository(batchUserRepository)
+            .repository(batchUserRecordRepository)
             .methodName("getAllUserIdWhoCanAchieveOf")
             .arguments(targetAchievement)
             .pageSize(10)

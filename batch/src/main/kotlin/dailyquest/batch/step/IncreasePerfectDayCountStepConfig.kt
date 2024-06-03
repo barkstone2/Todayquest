@@ -1,8 +1,8 @@
 package dailyquest.batch.step
 
 import dailyquest.batch.listener.step.IncreasePerfectDayCountStepListener
-import dailyquest.user.entity.User
-import dailyquest.user.repository.UserRepository
+import dailyquest.user.record.entity.UserRecord
+import dailyquest.user.record.repository.BatchUserRecordRepository
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.JobScope
 import org.springframework.batch.core.configuration.annotation.StepScope
@@ -25,13 +25,13 @@ class IncreasePerfectDayCountStepConfig {
     fun increasePerfectDayCountStep(
         jobRepository: JobRepository,
         transactionManager: PlatformTransactionManager,
-        perfectDayUserReader: RepositoryItemReader<User>,
-        perfectDayCountIncreaseProcessor: FunctionItemProcessor<User, User>,
+        perfectDayUserReader: RepositoryItemReader<UserRecord>,
+        perfectDayCountIncreaseProcessor: FunctionItemProcessor<UserRecord, UserRecord>,
         increasePerfectDayCountStepListener: IncreasePerfectDayCountStepListener,
-        userWriter: RepositoryItemWriter<User>,
+        userWriter: RepositoryItemWriter<UserRecord>,
     ): Step {
         return StepBuilder("perfectDayLogStep", jobRepository)
-            .chunk<User, User>(10, transactionManager)
+            .chunk<UserRecord, UserRecord>(10, transactionManager)
             .reader(perfectDayUserReader)
             .processor(perfectDayCountIncreaseProcessor)
             .writer(userWriter)
@@ -46,10 +46,10 @@ class IncreasePerfectDayCountStepConfig {
     @StepScope
     fun perfectDayUserReader(
         @Value("#{jobExecutionContext['perfectDayLogUserIds']}") userIds: List<Long>,
-        userRepository: UserRepository
-    ): RepositoryItemReader<User> {
-        return RepositoryItemReaderBuilder<User>()
-            .repository(userRepository)
+        userRecordRepository: BatchUserRecordRepository
+    ): RepositoryItemReader<UserRecord> {
+        return RepositoryItemReaderBuilder<UserRecord>()
+            .repository(userRecordRepository)
             .methodName("findAllByIdIn")
             .arguments(listOf(userIds))
             .pageSize(10)
@@ -60,7 +60,7 @@ class IncreasePerfectDayCountStepConfig {
 
     @Bean
     @StepScope
-    fun perfectDayCountIncreaseProcessor(): FunctionItemProcessor<User, User> {
+    fun perfectDayCountIncreaseProcessor(): FunctionItemProcessor<UserRecord, UserRecord> {
         return FunctionItemProcessor { user ->
             user.increasePerfectDayCount()
             user
@@ -69,9 +69,9 @@ class IncreasePerfectDayCountStepConfig {
 
     @Bean
     @StepScope
-    fun userWriter(userRepository: UserRepository): RepositoryItemWriter<User> {
-        return RepositoryItemWriterBuilder<User>()
-            .repository(userRepository)
+    fun userWriter(userRecordRepository: BatchUserRecordRepository): RepositoryItemWriter<UserRecord> {
+        return RepositoryItemWriterBuilder<UserRecord>()
+            .repository(userRecordRepository)
             .build()
     }
 }

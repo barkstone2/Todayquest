@@ -26,7 +26,7 @@ class UserRecord @JvmOverloads constructor(
     goldUseAmount: Long = 0,
 ) {
     @Column(name = "user_id")
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
     val id: Long = id
 
     @Column(name = "quest_registration_count", nullable = false)

@@ -3,6 +3,7 @@ package dailyquest.batch.listener.step
 import dailyquest.common.util.ExecutionContextUtil
 import dailyquest.user.dto.UserPerfectDayCount
 import dailyquest.user.entity.User
+import dailyquest.user.record.entity.UserRecord
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -60,7 +61,7 @@ class IncreasePerfectDayCountStepListenerUnitTest {
         @Test
         fun `chunk에 담긴 유저 정보를 UserPerfectDayCount로 변환해 StepExecutionContext에 저장 요청한다`() {
             //given
-            val user = mockk<User>(relaxed = true)
+            val user = mockk<UserRecord>(relaxed = true)
             val userId = 1L
             every { user.id } returns userId
             val chunk = Chunk(listOf(user))

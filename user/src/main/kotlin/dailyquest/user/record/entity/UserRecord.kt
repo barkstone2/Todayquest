@@ -73,11 +73,11 @@ class UserRecord @JvmOverloads constructor(
     var goldUseAmount: Long = goldUseAmount
         protected set
 
-    fun recordGoldEarn(goldEarnAmount: Int) {
+    fun recordGoldEarn(goldEarnAmount: Long) {
         this.goldEarnAmount += goldEarnAmount
     }
 
-    fun recordGoldUse(goldUseAmount: Int) {
+    fun recordGoldUse(goldUseAmount: Long) {
         this.goldUseAmount += goldUseAmount
     }
 

@@ -52,7 +52,7 @@ jobs:
           echo "JAVA_HOME=$(find ${{ env.JAVA_PATH }} -type d -name '*corretto-17*')" >> $GITHUB_ENV
       - name: 오픈서치 인증서 세팅
         run: |
-          keytool -import -v -deststorepass changeit -destkeystore $JAVA_HOME/lib/security/cacerts -file cert/opensearch-default-ca.pem -noprompt >/dev/null 2>&1
+          keytool -import -v -deststorepass changeit -destkeystore $JAVA_HOME/lib/security/cacerts -file cert/opensearch-default-ca.pem -noprompt | true
 
 
       - name: 그래들 래퍼 버전 셋업

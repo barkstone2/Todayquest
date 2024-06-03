@@ -5,6 +5,7 @@ import dailyquest.quest.entity.DetailQuest;
 import dailyquest.quest.entity.Quest;
 import dailyquest.quest.repository.QuestRepository;
 import dailyquest.redis.service.RedisService;
+import dailyquest.user.record.service.UserRecordService;
 import dailyquest.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,21 +14,21 @@ import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Transactional
 @Service
 public class QuestCommandService {
     private final QuestRepository questRepository;
     private final UserService userService;
+    private final UserRecordService userRecordService;
     private final QuestLogService questLogService;
     private final RedisService redisService;
     private final MessageSourceAccessor messageSourceAccessor;
 
     @Autowired
-    public QuestCommandService(QuestRepository questRepository, UserService userService, QuestLogService questLogService, RedisService redisService, MessageSource messageSource) {
+    public QuestCommandService(QuestRepository questRepository, UserService userService, UserRecordService userRecordService, QuestLogService questLogService, RedisService redisService, MessageSource messageSource) {
         this.questRepository = questRepository;
         this.userService = userService;
+        this.userRecordService = userRecordService;
         this.questLogService = questLogService;
         this.redisService = redisService;
         this.messageSourceAccessor = new MessageSourceAccessor(messageSource);
@@ -39,7 +40,7 @@ public class QuestCommandService {
         questRepository.save(quest);
         QuestLogRequest questLogRequest = QuestLogRequest.from(quest);
         questLogService.saveQuestLog(questLogRequest);
-        userService.recordQuestRegistration(userId, questLogRequest.getLoggedDate());
+        userRecordService.recordQuestRegistration(userId, questLogRequest.getLoggedDate());
         return QuestResponse.createDto(quest);
     }
 
@@ -82,7 +83,8 @@ public class QuestCommandService {
                 QuestCompletionUserUpdateRequest questCompletionUserUpdateRequest
                         = new QuestCompletionUserUpdateRequest(redisService.getQuestClearExp(), redisService.getQuestClearGold(), quest.getType());
                 userService.addUserExpAndGold(userId, questCompletionUserUpdateRequest);
-                userService.recordQuestCompletion(userId, questLogRequest.getLoggedDate());
+                userRecordService.recordGoldEarn(userId, questCompletionUserUpdateRequest);
+                userRecordService.recordQuestCompletion(userId, questLogRequest.getLoggedDate());
             }
             case DELETE -> throw new IllegalStateException(messageSourceAccessor.getMessage("quest.error.deleted"));
             case PROCEED -> throw new IllegalStateException(messageSourceAccessor.getMessage("quest.error.complete.detail"));

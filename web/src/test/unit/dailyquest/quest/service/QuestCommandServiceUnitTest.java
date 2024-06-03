@@ -7,6 +7,7 @@ import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.entity.QuestType;
 import dailyquest.quest.repository.QuestRepository;
 import dailyquest.redis.service.RedisService;
+import dailyquest.user.record.service.UserRecordService;
 import dailyquest.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
@@ -34,6 +35,7 @@ public class QuestCommandServiceUnitTest {
     @InjectMocks QuestCommandService questCommandService;
     @Mock(answer = Answers.RETURNS_SMART_NULLS) QuestRepository questRepository;
     @Mock UserService userService;
+    @Mock UserRecordService userRecordService;
     @Mock QuestLogService questLogService;
     @Mock MessageSource messageSource;
     @Mock RedisService redisService;
@@ -78,7 +80,7 @@ public class QuestCommandServiceUnitTest {
             questCommandService.saveQuest(saveRequest, userId);
 
             //then
-            verify(userService).recordQuestRegistration(eq(userId), any());
+            verify(userRecordService).recordQuestRegistration(eq(userId), any());
         }
     }
 
@@ -303,7 +305,7 @@ public class QuestCommandServiceUnitTest {
                 questCommandService.completeQuest(userId, questId);
 
                 //then
-                verify(userService).recordQuestCompletion(eq(userId), eq(loggedDate));
+                verify(userRecordService).recordQuestCompletion(eq(userId), eq(loggedDate));
             }
         }
     }

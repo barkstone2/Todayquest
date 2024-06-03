@@ -4,13 +4,16 @@ import dailyquest.achievement.dto.SimpleAchievementAchieveRequest
 import dailyquest.achievement.entity.AchievementType.*
 import dailyquest.achievement.service.AchievementService
 import dailyquest.user.dto.UserResponse
+import dailyquest.user.dto.UserSaveRequest
 import dailyquest.user.dto.UserUpdateRequest
 import dailyquest.user.entity.User
+import dailyquest.user.record.service.UserRecordService
 import dailyquest.user.repository.UserRepository
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.verify
 import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
@@ -29,6 +32,8 @@ class UserServiceUnitTest {
     private lateinit var userService: UserService
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
+    @RelaxedMockK
+    private lateinit var userRecordService: UserRecordService
     @RelaxedMockK
     private lateinit var achievementService: AchievementService
     @RelaxedMockK
@@ -100,6 +105,30 @@ class UserServiceUnitTest {
             assertThat(result).isNotNull.isInstanceOf(UserResponse::class.java)
         }
     }
+
+    @DisplayName("saveUser 호출 시")
+    @Nested
+    inner class TestSaveUser {
+        @DisplayName("유저 기록값 엔티티를 등록 요청 한다")
+        @Test
+        fun `유저 기록값 엔티티를 등록 요청 한다`() {
+            //given
+            val userId = 1L
+            val user = mockk<User>()
+            val saveRequest = mockk<UserSaveRequest>()
+            every { saveRequest.mapToEntity() } returns user
+            every { userRepository.save(any()) } returns user
+            every { user.id } returns userId
+
+            //when
+            userService.saveUser(saveRequest)
+            
+            //then
+            verify { userRecordService.saveNewRecordEntity(eq(userId)) }
+        }
+        
+    }
+
 
     @DisplayName("updateUser 호출 시")
     @Nested

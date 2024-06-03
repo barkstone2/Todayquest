@@ -27,7 +27,7 @@ class UserRecord @JvmOverloads constructor(
 ) {
     @Column(name = "user_id")
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private val id: Long = id
+    val id: Long = id
 
     @Column(name = "quest_registration_count", nullable = false)
     var questRegistrationCount: Long = questRegistrationCount

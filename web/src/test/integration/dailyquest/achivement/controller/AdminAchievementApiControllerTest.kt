@@ -9,9 +9,7 @@ import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.context.IntegrationTestContext
 import dailyquest.context.MockElasticsearchTestContextConfig
 import dailyquest.context.MockRedisTestContextConfig
-import dailyquest.jwt.JwtTokenProvider
 import dailyquest.sqs.service.SqsService
-import dailyquest.user.repository.UserRepository
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
@@ -22,25 +20,19 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.web.context.WebApplicationContext
 
 @Import(MockElasticsearchTestContextConfig::class, MockRedisTestContextConfig::class)
 @ExtendWith(MockKExtension::class)
 @DisplayName("관리자 업적 API 컨트롤러 통합 테스트")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdminAchievementApiControllerTest @Autowired constructor(
-    context: WebApplicationContext,
-    userRepository: UserRepository,
-    jwtTokenProvider: JwtTokenProvider,
     private val achievementRepository: AchievementRepository,
-): IntegrationTestContext(context, userRepository, jwtTokenProvider) {
+): IntegrationTestContext() {
 
     @MockkBean(relaxed = true)
     private lateinit var sqsService: SqsService

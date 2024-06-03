@@ -12,6 +12,9 @@ import dailyquest.user.entity.User
 import dailyquest.user.repository.UserRepository
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.BeforeEach
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
@@ -30,11 +33,17 @@ import java.time.format.DateTimeFormatter
 
 @Import(MockSqsClientTestContextConfig::class)
 @Transactional
-class IntegrationTestContext(
-    protected val context: WebApplicationContext,
-    protected val userRepository: UserRepository,
-    protected val jwtTokenProvider: JwtTokenProvider,
-) {
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+class IntegrationTestContext {
+    @Autowired
+    protected lateinit var context: WebApplicationContext
+    @Autowired
+    protected lateinit var userRepository: UserRepository
+    @Autowired
+    protected lateinit var userRecordRepository: UserRecordRepository
+    @Autowired
+    protected lateinit var jwtTokenProvider: JwtTokenProvider
+
     companion object {
         const val SERVER_ADDR = "http://localhost:"
         val om: ObjectMapper

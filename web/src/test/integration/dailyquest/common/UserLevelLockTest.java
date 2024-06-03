@@ -9,6 +9,7 @@ import dailyquest.quest.service.QuestService;
 import dailyquest.user.dto.UserSaveRequest;
 import dailyquest.user.entity.ProviderType;
 import dailyquest.user.service.UserService;
+import dailyquest.user.record.service.UserRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,8 @@ public class UserLevelLockTest extends IntegrationTestContext {
     @Autowired
     UserService userService;
 
+    @Autowired
+    UserRecordService userRecordService;
 
     @DisplayName("네임드 락 멀티 스레드 테스트")
     @Test
@@ -54,6 +57,7 @@ public class UserLevelLockTest extends IntegrationTestContext {
         Future<Long> resultUserId = executorService.submit(() -> {
             UserSaveRequest userSaveRequest = new UserSaveRequest("user1", "user1", ProviderType.GOOGLE);
             long userId = userService.saveUser(userSaveRequest);
+            userRecordService.saveNewRecordEntity(userId);
 
             //when
             for (int i = 0; i < threadCount; i++) {

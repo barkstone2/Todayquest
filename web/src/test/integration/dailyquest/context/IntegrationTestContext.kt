@@ -9,6 +9,8 @@ import dailyquest.jwt.JwtTokenProvider
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.RoleType
 import dailyquest.user.entity.User
+import dailyquest.user.record.entity.UserRecord
+import dailyquest.user.record.repository.UserRecordRepository
 import dailyquest.user.repository.UserRepository
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.BeforeEach
@@ -85,6 +87,9 @@ class IntegrationTestContext {
         user = userRepository.save(user)
         anotherUser = userRepository.save(anotherUser)
         admin = userRepository.save(admin)
+        userRecordRepository.save(UserRecord(user.id))
+        userRecordRepository.save(UserRecord(anotherUser.id))
+        userRecordRepository.save(UserRecord(admin.id))
 
         val userAccessToken = jwtTokenProvider.createAccessToken(user.id)
         userToken = jwtTokenProvider.createAccessTokenCookie(userAccessToken)

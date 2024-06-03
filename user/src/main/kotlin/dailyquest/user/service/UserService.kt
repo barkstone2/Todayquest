@@ -1,9 +1,6 @@
 package dailyquest.user.service
 
-import dailyquest.achievement.dto.AchievementAchieveRequest
-import dailyquest.achievement.dto.SimpleAchievementAchieveRequest
 import dailyquest.achievement.entity.AchievementType.*
-import dailyquest.achievement.service.AchievementService
 import dailyquest.common.timeSinceNowAsString
 import dailyquest.user.dto.UserResponse
 import dailyquest.user.dto.UserSaveRequest
@@ -16,7 +13,6 @@ import org.springframework.context.MessageSource
 import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.jvm.optionals.getOrNull
 
@@ -25,7 +21,6 @@ import kotlin.jvm.optionals.getOrNull
 class UserService(
     private val userRepository: UserRepository,
     private val userRecordService: UserRecordService,
-    private val achievementService: AchievementService,
     messageSource: MessageSource
 ) {
     private val messageSourceAccessor: MessageSourceAccessor = MessageSourceAccessor(messageSource)
@@ -74,27 +69,5 @@ class UserService(
     fun addUserExpAndGold(userId: Long, updateRequest: UserUpdateRequest) {
         val updateTarget = this.findUser(userId)
         updateTarget.addExpAndGold(updateRequest.earnedExp, updateRequest.earnedGold)
-        val goldEarnAchieveRequest = SimpleAchievementAchieveRequest.of(GOLD_EARN, userId, updateTarget.goldEarnAmount)
-        achievementService.checkAndAchieveAchievement(goldEarnAchieveRequest)
-    }
-
-    @Transactional
-    fun recordQuestRegistration(userId: Long, registrationDate: LocalDate) {
-        val targetUser = this.findUser(userId)
-        targetUser.increaseQuestRegistrationCount(registrationDate)
-        val questRegAchieveRequest = SimpleAchievementAchieveRequest.of(QUEST_REGISTRATION, userId, targetUser.questRegistrationCount)
-        achievementService.checkAndAchieveAchievement(questRegAchieveRequest)
-        val questContRegAchieveRequest = SimpleAchievementAchieveRequest.of(QUEST_CONTINUOUS_REGISTRATION, userId, targetUser.currentQuestContinuousRegistrationDays)
-        achievementService.checkAndAchieveAchievement(questContRegAchieveRequest)
-    }
-
-    @Transactional
-    fun recordQuestCompletion(userId: Long, completionDate: LocalDate) {
-        val targetUser = this.findUser(userId)
-        targetUser.increaseQuestCompletionCount(completionDate)
-        val questCompAchieveRequest = SimpleAchievementAchieveRequest.of(QUEST_COMPLETION, userId, targetUser.questCompletionCount)
-        achievementService.checkAndAchieveAchievement(questCompAchieveRequest)
-        val questContCompAchieveRequest = SimpleAchievementAchieveRequest.of(QUEST_CONTINUOUS_COMPLETION, userId, targetUser.currentQuestContinuousCompletionDays)
-        achievementService.checkAndAchieveAchievement(questContCompAchieveRequest)
     }
 }

@@ -3,32 +3,21 @@ package dailyquest.user.controller
 import dailyquest.context.IntegrationTestContext
 import dailyquest.context.MockElasticsearchTestContextConfig
 import dailyquest.context.MockRedisTestContextConfig
-import dailyquest.jwt.JwtTokenProvider
 import dailyquest.user.dto.UserUpdateRequest
-import dailyquest.user.repository.UserRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType.APPLICATION_JSON_UTF8
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.web.context.WebApplicationContext
 import java.time.LocalTime
 
 @Import(MockRedisTestContextConfig::class, MockElasticsearchTestContextConfig::class)
 @DisplayName("유저 API 컨트롤러 통합 테스트")
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-class UserControllerTest @Autowired constructor(
-    context: WebApplicationContext,
-    userRepository: UserRepository,
-    jwtTokenProvider: JwtTokenProvider,
-): IntegrationTestContext(context, userRepository, jwtTokenProvider) {
+class UserControllerTest : IntegrationTestContext() {
 
     private val uriPrefix = "/api/v1/users"
 

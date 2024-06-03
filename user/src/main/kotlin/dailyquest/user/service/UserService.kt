@@ -9,6 +9,7 @@ import dailyquest.user.dto.UserResponse
 import dailyquest.user.dto.UserSaveRequest
 import dailyquest.user.dto.UserUpdateRequest
 import dailyquest.user.entity.User
+import dailyquest.user.record.service.UserRecordService
 import dailyquest.user.repository.UserRepository
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.context.MessageSource
@@ -23,6 +24,7 @@ import kotlin.jvm.optionals.getOrNull
 @Service
 class UserService(
     private val userRepository: UserRepository,
+    private val userRecordService: UserRecordService,
     private val achievementService: AchievementService,
     messageSource: MessageSource
 ) {
@@ -50,7 +52,9 @@ class UserService(
     @Transactional
     fun saveUser(saveRequest: UserSaveRequest): Long  {
         val requestEntity = saveRequest.mapToEntity()
-        return userRepository.save(requestEntity).id
+        val userId = userRepository.save(requestEntity).id
+        userRecordService.saveNewRecordEntity(userId)
+        return userId
     }
 
     @Transactional

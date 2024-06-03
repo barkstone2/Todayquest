@@ -1,10 +1,10 @@
-package dailyquest.user.repository
+package dailyquest.user.record.repository
 
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType.*
-import dailyquest.user.entity.QUser.user
+import dailyquest.user.record.entity.QUserRecord.userRecord
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -19,9 +19,9 @@ import org.springframework.data.domain.Pageable
 
 @ExtendWith(MockKExtension::class)
 @DisplayName("배치 유저 리포지토리 구현체 유닛 테스트")
-class BatchUserRepositoryImplUnitTest {
+class BatchUserRecordRepositoryImplUnitTest {
     @InjectMockKs
-    private lateinit var batchUserRepository: BatchUserRepositoryImpl
+    private lateinit var batchUserRecordRepository: BatchUserRecordRepositoryImpl
     @RelaxedMockK
     private lateinit var jpaQueryFactory: JPAQueryFactory
     @RelaxedMockK
@@ -31,13 +31,13 @@ class BatchUserRepositoryImplUnitTest {
 
     @BeforeEach
     fun beforeEach() {
-        every { jpaQueryFactory.select(user.id) } returns userIdQuery
-        every { userIdQuery.from(user) } returns userIdQuery
+        every { jpaQueryFactory.select(userRecord.id) } returns userIdQuery
+        every { userIdQuery.from(userRecord) } returns userIdQuery
         every { userIdQuery.where(any()) } returns userIdQuery
         every { userIdQuery.offset(any()) } returns userIdQuery
         every { userIdQuery.limit(any()) } returns userIdQuery
 
-        every { jpaQueryFactory.select(user.count()) } returns countQuery
+        every { jpaQueryFactory.select(userRecord.count()) } returns countQuery
         every { countQuery.from(any()) } returns countQuery
         every { countQuery.where(any()) } returns countQuery
         every { countQuery.fetchFirst() } returns 1
@@ -56,10 +56,10 @@ class BatchUserRepositoryImplUnitTest {
             val achievement = Achievement(type = achievementType, targetValue = targetValue)
 
             //when
-            batchUserRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
+            batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
 
             //then
-            verify { userIdQuery.where(user.questRegistrationCount.goe(targetValue)) }
+            verify { userIdQuery.where(userRecord.questRegistrationCount.goe(targetValue)) }
         }
 
         @DisplayName("업적 타입 인자가 퀘스트 완료면 퀘스트 완료 횟수가 조건으로 사용된다")
@@ -71,11 +71,11 @@ class BatchUserRepositoryImplUnitTest {
             val achievement = Achievement(type = achievementType, targetValue = targetValue)
 
             //when
-            batchUserRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
+            batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
 
 
             //then
-            verify { userIdQuery.where(user.questCompletionCount.goe(targetValue)) }
+            verify { userIdQuery.where(userRecord.questCompletionCount.goe(targetValue)) }
         }
 
         @DisplayName("업적 타입 인자가 퀘스트 연속 등록이면 최대 퀘스트 연속 등록일이 조건으로 사용된다")
@@ -87,11 +87,11 @@ class BatchUserRepositoryImplUnitTest {
             val achievement = Achievement(type = achievementType, targetValue = targetValue)
 
             //when
-            batchUserRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
+            batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
 
 
             //then
-            verify { userIdQuery.where(user.maxQuestContinuousRegistrationDays.goe(targetValue)) }
+            verify { userIdQuery.where(userRecord.maxQuestContinuousRegistrationDays.goe(targetValue)) }
         }
 
         @DisplayName("업적 타입 인자가 퀘스트 연속 완료면 최대 퀘스트 연속 완료일이 조건으로 사용된다")
@@ -103,11 +103,11 @@ class BatchUserRepositoryImplUnitTest {
             val achievement = Achievement(type = achievementType, targetValue = targetValue)
 
             //when
-            batchUserRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
+            batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
 
 
             //then
-            verify { userIdQuery.where(user.maxQuestContinuousCompletionDays.goe(targetValue)) }
+            verify { userIdQuery.where(userRecord.maxQuestContinuousCompletionDays.goe(targetValue)) }
         }
 
         @DisplayName("업적 타입 인자가 골드 획득이면 골드 총 획득량이 조건으로 사용된다")
@@ -119,11 +119,11 @@ class BatchUserRepositoryImplUnitTest {
             val achievement = Achievement(type = achievementType, targetValue = targetValue)
 
             //when
-            batchUserRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
+            batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
 
 
             //then
-            verify { userIdQuery.where(user.goldEarnAmount.goe(targetValue)) }
+            verify { userIdQuery.where(userRecord.goldEarnAmount.goe(targetValue)) }
         }
 
         @DisplayName("업적 타입 인자가 완벽한 하루면 완벽한 하루 횟수가 조건으로 사용된다")
@@ -135,11 +135,11 @@ class BatchUserRepositoryImplUnitTest {
             val achievement = Achievement(type = achievementType, targetValue = targetValue)
 
             //when
-            batchUserRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
+            batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(achievement, pageable)
 
 
             //then
-            verify { userIdQuery.where(user.perfectDayCount.goe(targetValue)) }
+            verify { userIdQuery.where(userRecord.perfectDayCount.goe(targetValue)) }
         }
     }
 }

@@ -45,6 +45,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.concurrent.ConcurrentHashMap
+import dailyquest.user.record.entity.UserRecord
 
 @DisplayName("퀘스트 API 컨트롤러 통합 테스트")
 class QuestApiControllerTest @Autowired constructor(
@@ -866,6 +867,7 @@ class QuestApiControllerTest @Autowired constructor(
             runBlocking(Dispatchers.IO) {
                 val user1 = User("", "", ProviderType.GOOGLE)
                 user = userRepository.save(user1)
+                userRecordRepository.save(UserRecord(user.id))
 
                 val accessToken = jwtTokenProvider.createAccessToken(user.id)
                 userToken = jwtTokenProvider.createAccessTokenCookie(accessToken)

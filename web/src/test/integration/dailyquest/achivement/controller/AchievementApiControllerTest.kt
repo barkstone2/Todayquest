@@ -11,9 +11,7 @@ import dailyquest.achievement.service.AchievementService
 import dailyquest.context.IntegrationTestContext
 import dailyquest.context.MockElasticsearchTestContextConfig
 import dailyquest.context.MockRedisTestContextConfig
-import dailyquest.jwt.JwtTokenProvider
 import dailyquest.properties.AchievementPageSizeProperties
-import dailyquest.user.repository.UserRepository
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import org.hamcrest.Matchers.*
@@ -22,26 +20,20 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.web.servlet.get
-import org.springframework.web.context.WebApplicationContext
 
 @Import(MockElasticsearchTestContextConfig::class, MockRedisTestContextConfig::class)
 @ExtendWith(MockKExtension::class)
 @DisplayName("업적 API 컨트롤러 통합 테스트")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AchievementApiControllerTest @Autowired constructor(
-    context: WebApplicationContext,
-    userRepository: UserRepository,
-    jwtTokenProvider: JwtTokenProvider,
     private val achievementService: AchievementService,
     private val achievementRepository: AchievementRepository,
     private val achievementAchieveLogRepository: AchievementAchieveLogRepository,
     private val om: ObjectMapper,
     @SpykBean
     private val achievementPageSizeProperties: AchievementPageSizeProperties
-) : IntegrationTestContext(context, userRepository, jwtTokenProvider) {
+) : IntegrationTestContext() {
     private val uriPrefix = "/api/v1/achievements"
 
 

@@ -10,7 +10,6 @@ import dailyquest.common.MessageUtil
 import dailyquest.common.ResponseData
 import dailyquest.common.RestPage
 import dailyquest.context.IntegrationTestContextWithRedisAndElasticsearch
-import dailyquest.jwt.JwtTokenProvider
 import dailyquest.properties.RedisKeyProperties
 import dailyquest.quest.dto.*
 import dailyquest.quest.entity.*
@@ -19,7 +18,6 @@ import dailyquest.quest.repository.QuestRepository
 import dailyquest.search.repository.QuestIndexRepository
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.User
-import dailyquest.user.repository.UserRepository
 import jakarta.persistence.EntityManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,8 +34,6 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -45,18 +41,14 @@ import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import org.springframework.web.context.WebApplicationContext
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.concurrent.ConcurrentHashMap
+import dailyquest.user.record.entity.UserRecord
 
 @DisplayName("퀘스트 API 컨트롤러 통합 테스트")
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class QuestApiControllerTest @Autowired constructor(
-    context: WebApplicationContext,
-    userRepository: UserRepository,
-    jwtTokenProvider: JwtTokenProvider,
     var questRepository: QuestRepository,
     var questLogRepository: QuestLogRepository,
     var redisTemplate: RedisTemplate<String, String>,
@@ -65,7 +57,7 @@ class QuestApiControllerTest @Autowired constructor(
     var questIndexRepository: QuestIndexRepository,
     private val achievementRepository: AchievementRepository,
     private val achievementAchieveLogRepository: AchievementAchieveLogRepository,
-): IntegrationTestContextWithRedisAndElasticsearch(context, userRepository, jwtTokenProvider) {
+): IntegrationTestContextWithRedisAndElasticsearch() {
 
     private val uriPrefix = "/api/v1/quests"
 
@@ -875,6 +867,7 @@ class QuestApiControllerTest @Autowired constructor(
             runBlocking(Dispatchers.IO) {
                 val user1 = User("", "", ProviderType.GOOGLE)
                 user = userRepository.save(user1)
+                userRecordRepository.save(UserRecord(user.id))
 
                 val accessToken = jwtTokenProvider.createAccessToken(user.id)
                 userToken = jwtTokenProvider.createAccessTokenCookie(accessToken)

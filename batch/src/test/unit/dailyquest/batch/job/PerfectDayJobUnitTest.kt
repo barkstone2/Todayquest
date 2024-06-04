@@ -19,6 +19,9 @@ import dailyquest.notification.repository.NotificationRepository
 import dailyquest.quest.repository.QuestLogRepository
 import dailyquest.user.dto.UserPerfectDayCount
 import dailyquest.user.entity.User
+import dailyquest.user.record.entity.UserRecord
+import dailyquest.user.record.repository.BatchUserRecordRepository
+import dailyquest.user.record.repository.UserRecordRepository
 import dailyquest.user.repository.UserRepository
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
@@ -38,6 +41,7 @@ import org.springframework.batch.test.JobRepositoryTestUtils
 import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -56,7 +60,7 @@ import java.time.LocalDate
     AchievementAchieveNotificationStepListener::class,
     MockSqsClientTestContextConfig::class
 )
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = [ElasticsearchDataAutoConfiguration::class])
 @SpringBatchTest
 @DisplayName("완벽한 하루 작업 유닛 테스트")
 class PerfectDayJobUnitTest @Autowired constructor(
@@ -67,7 +71,7 @@ class PerfectDayJobUnitTest @Autowired constructor(
     @MockkBean(relaxed = true)
     private lateinit var questLogRepository: QuestLogRepository
     @MockkBean(relaxed = true)
-    private lateinit var userRepository: UserRepository
+    private lateinit var userRecordRepository: BatchUserRecordRepository
     @MockkBean(relaxed = true)
     private lateinit var achievementRepository: AchievementRepository
     @MockkBean(relaxed = true)
@@ -80,7 +84,7 @@ class PerfectDayJobUnitTest @Autowired constructor(
     private val perfectDayUserIds = listOf(1L, 2L, 3L)
     private val achievedUserIds = listOf(1L, 2L)
     private val achievement: Achievement = mockk(relaxed = true)
-    private val user: User = mockk(relaxed = true)
+    private val userRecord: UserRecord = mockk(relaxed = true)
     private val userIdsKey = "perfectDayLogUserIds"
     private val userPerfectDayCountsKey = "userPerfectDayCounts"
     private val perfectDayAchievementsKey = "perfectDayAchievements"
@@ -96,9 +100,9 @@ class PerfectDayJobUnitTest @Autowired constructor(
         } returns PageImpl(perfectDayUserIds) andThen Page.empty()
         every { achievementRepository.getAllActivatedOfType(any()) } returns listOf(achievement, achievement, achievement)
         every {
-            userRepository.findAllByIdIn(any(), any())
-        } returns PageImpl(perfectDayUserIds.map { user }) andThen Page.empty()
-        every { user.id } returnsMany perfectDayUserIds
+            userRecordRepository.findAllByIdIn(any(), any())
+        } returns PageImpl(perfectDayUserIds.map { userRecord }) andThen Page.empty()
+        every { userRecord.id } returnsMany perfectDayUserIds
         every { achievement.canAchieve(any()) } returnsMany achievedUserIds.map { true } andThen false
     }
 
@@ -122,7 +126,7 @@ class PerfectDayJobUnitTest @Autowired constructor(
         jobLauncherTestUtils.launchJob(jobParameters)
 
         //then
-        verify { userRepository.findAllByIdIn(eq(perfectDayUserIds), any()) }
+        verify { userRecordRepository.findAllByIdIn(eq(perfectDayUserIds), any()) }
     }
 
     @DisplayName("완벽한 하루 달성 유저ID로 조회한 유저 엔티티의 완벽한 하루 횟수를 증가시킨다")
@@ -133,7 +137,7 @@ class PerfectDayJobUnitTest @Autowired constructor(
         jobLauncherTestUtils.launchJob(jobParameters)
 
         //then
-        verify(exactly = perfectDayUserIds.size) { user.increasePerfectDayCount() }
+        verify(exactly = perfectDayUserIds.size) { userRecord.increasePerfectDayCount() }
     }
 
     @DisplayName("완벽한 하루 횟수를 증가시킨 유저 정보를 JobExecutionContext에 담는다")

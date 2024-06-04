@@ -6,8 +6,6 @@ import dailyquest.admin.dto.SystemSettingsResponse
 import dailyquest.admin.service.AdminService
 import dailyquest.common.ResponseData
 import dailyquest.context.IntegrationTestContextWithRedis
-import dailyquest.jwt.JwtTokenProvider
-import dailyquest.user.repository.UserRepository
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -15,23 +13,17 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.web.context.WebApplicationContext
 
 @ExtendWith(MockKExtension::class)
 @DisplayName("관리자 API 컨트롤러 통합 테스트")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdminApiControllerTest @Autowired constructor(
-    context: WebApplicationContext,
-    userRepository: UserRepository,
-    jwtTokenProvider: JwtTokenProvider,
     private val adminService: AdminService,
-): IntegrationTestContextWithRedis(context, userRepository, jwtTokenProvider) {
+): IntegrationTestContextWithRedis() {
 
     private val uriPrefix = "/admin/api/v1"
 

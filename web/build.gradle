@@ -64,13 +64,13 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	// 테스트 컨테이너 의존성
 	testImplementation("org.testcontainers:junit-jupiter:${testContainersVersion}")
-	// 엘라스틱서치 테스트 컨테이너
-	testImplementation("org.testcontainers:elasticsearch:${testContainersVersion}")
 	// 레디스 테스트 컨테이너
 	testImplementation("com.redis.testcontainers:testcontainers-redis:1.6.4")
 
 	// 코틀린 멀티 스레드 테스트를 위한 코루틴
 	testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+
+	testImplementation(project(":opensearch-test"))
 }
 
 test {

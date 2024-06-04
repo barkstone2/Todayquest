@@ -24,12 +24,13 @@ import org.springframework.batch.test.MetaDataInstanceFactory
 import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
 import org.springframework.context.annotation.Import
 
 
 @ExtendWith(MockKExtension::class)
 @Import(PerfectDayAchievementStepConfig::class, MockSqsClientTestContextConfig::class)
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = [ElasticsearchDataAutoConfiguration::class])
 @SpringBatchTest
 @DisplayName("완벽한 하루 업적 스텝 리더 유닛 테스트")
 class PerfectDayAchievementReaderUnitTest @Autowired constructor(

@@ -22,17 +22,6 @@ class UserPrincipal(
     val gold: Long = 0,
     val coreTimeHour: Int = 8,
     val coreTimeLastModifiedDate: LocalDateTime? = null,
-    val questRegistrationCount: Long = 0,
-    val questCompletionCount: Long = 0,
-    val currentQuestContinuousRegistrationDays: Long = 0,
-    val currentQuestContinuousCompletionDays: Long = 0,
-    val maxQuestContinuousRegistrationDays: Long = 0,
-    val maxQuestContinuousCompletionDays: Long = 0,
-    val lastQuestRegistrationDate: LocalDate? = null,
-    val lastQuestCompletionDate: LocalDate? = null,
-    val perfectDayCount: Long = 0,
-    val goldEarnAmount: Long = 0,
-    val goldUseAmount: Long = 0,
 ) : UserDetails {
 
     var notificationCount: Int = 0
@@ -93,17 +82,6 @@ class UserPrincipal(
                 gold = userResponse.gold,
                 coreTimeHour = userResponse.coreTime.hour,
                 coreTimeLastModifiedDate = userResponse.coreTimeLastModifiedDate,
-                questRegistrationCount = userResponse.questRegistrationCount,
-                questCompletionCount = userResponse.questCompletionCount,
-                currentQuestContinuousRegistrationDays = userResponse.currentQuestContinuousRegistrationDays,
-                currentQuestContinuousCompletionDays = userResponse.currentQuestContinuousCompletionDays,
-                maxQuestContinuousRegistrationDays = userResponse.maxQuestContinuousRegistrationDays,
-                maxQuestContinuousCompletionDays = userResponse.maxQuestContinuousCompletionDays,
-                lastQuestRegistrationDate = userResponse.lastQuestRegistrationDate,
-                lastQuestCompletionDate = userResponse.lastQuestCompletionDate,
-                perfectDayCount = userResponse.perfectDayCount,
-                goldEarnAmount = userResponse.goldEarnAmount,
-                goldUseAmount = userResponse.goldUseAmount,
             )
         }
     }

@@ -10,15 +10,9 @@ class ElasticProperties(
     val password: String,
     val connectionTimeoutMillis: Long = 5000,
     val socketTimeoutMillis: Long = 5000,
-    val truststore: ElasticSSLProperties,
 ) {
 
     fun getElasticAddress(): String {
         return "$host:$port"
     }
-
-    class ElasticSSLProperties(
-        val location: String,
-        val password: String,
-    )
 }

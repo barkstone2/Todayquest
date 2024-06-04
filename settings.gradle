@@ -10,3 +10,4 @@ include('reflection-common')
 include('notification')
 include('user')
 include 'sqs'
+include 'opensearch-test'

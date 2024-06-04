@@ -22,6 +22,7 @@ import org.springframework.batch.test.JobRepositoryTestUtils
 import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
@@ -35,7 +36,7 @@ import java.time.format.DateTimeFormatter
 @Import(MockSqsClientTestContextConfig::class)
 @TestPropertySource(properties = ["spring.batch.job.enabled=false"])
 @DisplayName("퀘스트 리셋 스텝 단위 테스트")
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = [ElasticsearchDataAutoConfiguration::class])
 @SpringJUnitConfig(BatchConfig::class)
 @SpringBatchTest
 class ResetStepUnitTest @Autowired constructor(

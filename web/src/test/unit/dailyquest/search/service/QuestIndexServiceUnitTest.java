@@ -1,7 +1,5 @@
 package dailyquest.search.service;
 
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import dailyquest.quest.dto.QuestResponse;
 import dailyquest.quest.dto.QuestSearchCondition;
 import dailyquest.quest.dto.QuestSearchKeywordType;
 import dailyquest.quest.entity.QuestState;
@@ -17,20 +15,21 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.opensearch.data.client.orhlc.NativeSearchQuery;
+import org.opensearch.index.query.BoolQueryBuilder;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.opensearch.index.query.QueryBuilders.*;
+import static org.opensearch.index.query.QueryBuilders.rangeQuery;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("퀘스트 인덱스 서비스 단위 테스트")
@@ -60,18 +59,11 @@ public class QuestIndexServiceUnitTest {
             QuestSearchCondition searchCondition = new QuestSearchCondition(0, null, QuestSearchKeywordType.ALL, "keyword", null, null);
             Pageable pageable = PageRequest.of(0, 10);
 
-            ArgumentCaptor<NativeQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeQuery.class);
+            ArgumentCaptor<NativeSearchQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeSearchQuery.class);
 
-            Query query = bool()
-                    .must(multiMatch()
-                            .fields(searchCondition.keywordType().fieldNames)
-                            .query(searchCondition.keyword())
-                            .build()._toQuery())
-                    .filter(term()
-                            .field("userId")
-                            .value(userId)
-                            .build()._toQuery())
-                    .build()._toQuery();
+            BoolQueryBuilder query = new BoolQueryBuilder();
+            query.must(multiMatchQuery(searchCondition.keyword(), searchCondition.keywordType().fieldNames));
+            query.filter(termQuery("userId", userId));
 
             //when
             questIndexService.searchDocuments(searchCondition, userId, pageable);
@@ -89,22 +81,12 @@ public class QuestIndexServiceUnitTest {
             QuestSearchCondition searchCondition = new QuestSearchCondition(0, QuestState.PROCEED, QuestSearchKeywordType.ALL, "keyword", null, null);
             Pageable pageable = PageRequest.of(0, 10);
 
-            ArgumentCaptor<NativeQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeQuery.class);
+            ArgumentCaptor<NativeSearchQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeSearchQuery.class);
 
-            Query query = bool()
-                    .must(multiMatch()
-                            .fields(searchCondition.keywordType().fieldNames)
-                            .query(searchCondition.keyword())
-                            .build()._toQuery())
-                    .filter(term()
-                            .field("userId")
-                            .value(userId)
-                            .build()._toQuery())
-                    .filter(term()
-                            .field("state")
-                            .value(searchCondition.state().name())
-                            .build()._toQuery())
-                    .build()._toQuery();
+            BoolQueryBuilder query = new BoolQueryBuilder();
+            query.must(multiMatchQuery(searchCondition.keyword(), searchCondition.keywordType().fieldNames));
+            query.filter(termQuery("userId", userId));
+            query.filter(termQuery("state", searchCondition.state().name()));
 
             //when
             questIndexService.searchDocuments(searchCondition, userId, pageable);
@@ -120,25 +102,16 @@ public class QuestIndexServiceUnitTest {
             //given
             long userId = 1L;
             LocalDate startDate = LocalDate.of(2022, 12, 12);
+            LocalDateTime startDateTime = LocalDateTime.of(startDate, LocalTime.of(6, 0));
             QuestSearchCondition searchCondition = new QuestSearchCondition(0, null, QuestSearchKeywordType.ALL, "keyword", startDate, null);
             Pageable pageable = PageRequest.of(0, 10);
 
-            ArgumentCaptor<NativeQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeQuery.class);
+            ArgumentCaptor<NativeSearchQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeSearchQuery.class);
 
-            Query query = bool()
-                    .must(multiMatch()
-                            .fields(searchCondition.keywordType().fieldNames)
-                            .query(searchCondition.keyword())
-                            .build()._toQuery())
-                    .filter(term()
-                            .field("userId")
-                            .value(userId)
-                            .build()._toQuery())
-                    .filter(range()
-                            .field("createdDate")
-                            .from(LocalDateTime.of(startDate, LocalTime.of(6, 0)).toString())
-                            .build()._toQuery())
-                    .build()._toQuery();
+            BoolQueryBuilder query = new BoolQueryBuilder();
+            query.must(multiMatchQuery(searchCondition.keyword(), searchCondition.keywordType().fieldNames));
+            query.filter(termQuery("userId", userId));
+            query.filter(rangeQuery("createdDate").from(startDateTime.toString()));
 
             //when
             questIndexService.searchDocuments(searchCondition, userId, pageable);
@@ -154,25 +127,16 @@ public class QuestIndexServiceUnitTest {
             //given
             long userId = 1L;
             LocalDate endDate = LocalDate.of(2022, 12, 12);
+            LocalDateTime endDateTime = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0));
             QuestSearchCondition searchCondition = new QuestSearchCondition(0, null, QuestSearchKeywordType.ALL, "keyword", null, endDate);
             Pageable pageable = PageRequest.of(0, 10);
 
-            ArgumentCaptor<NativeQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeQuery.class);
+            ArgumentCaptor<NativeSearchQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeSearchQuery.class);
 
-            Query query = bool()
-                    .must(multiMatch()
-                            .fields(searchCondition.keywordType().fieldNames)
-                            .query(searchCondition.keyword())
-                            .build()._toQuery())
-                    .filter(term()
-                            .field("userId")
-                            .value(userId)
-                            .build()._toQuery())
-                    .filter(range()
-                            .field("createdDate")
-                            .to(LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0)).toString())
-                            .build()._toQuery())
-                    .build()._toQuery();
+            BoolQueryBuilder query = new BoolQueryBuilder();
+            query.must(multiMatchQuery(searchCondition.keyword(), searchCondition.keywordType().fieldNames));
+            query.filter(termQuery("userId", userId));
+            query.filter(rangeQuery("createdDate").to(endDateTime.toString()));
 
             //when
             questIndexService.searchDocuments(searchCondition, userId, pageable);
@@ -188,27 +152,21 @@ public class QuestIndexServiceUnitTest {
             //given
             long userId = 1L;
             LocalDate startDate = LocalDate.of(2022, 12, 12);
+            LocalDateTime startDateTime = LocalDateTime.of(startDate, LocalTime.of(6, 0));
             LocalDate endDate = LocalDate.of(2022, 12, 12);
+            LocalDateTime endDateTime = LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0));
             QuestSearchCondition searchCondition = new QuestSearchCondition(0, null, QuestSearchKeywordType.ALL, "keyword", startDate, endDate);
             Pageable pageable = PageRequest.of(0, 10);
 
-            ArgumentCaptor<NativeQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeQuery.class);
+            ArgumentCaptor<NativeSearchQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeSearchQuery.class);
 
-            Query query = bool()
-                    .must(multiMatch()
-                            .fields(searchCondition.keywordType().fieldNames)
-                            .query(searchCondition.keyword())
-                            .build()._toQuery())
-                    .filter(term()
-                            .field("userId")
-                            .value(userId)
-                            .build()._toQuery())
-                    .filter(range()
-                            .field("createdDate")
-                            .from(LocalDateTime.of(startDate, LocalTime.of(6, 0)).toString())
-                            .to(LocalDateTime.of(endDate.plusDays(1), LocalTime.of(6, 0)).toString())
-                            .build()._toQuery())
-                    .build()._toQuery();
+            BoolQueryBuilder query = new BoolQueryBuilder();
+            query.must(multiMatchQuery(searchCondition.keyword(), searchCondition.keywordType().fieldNames));
+            query.filter(termQuery("userId", userId));
+            query.filter(rangeQuery("createdDate")
+                    .from(startDateTime.toString())
+                    .to(endDateTime.toString())
+            );
 
             //when
             questIndexService.searchDocuments(searchCondition, userId, pageable);
@@ -225,7 +183,7 @@ public class QuestIndexServiceUnitTest {
             long userId = 1L;
             QuestSearchCondition searchCondition = new QuestSearchCondition(0, null, QuestSearchKeywordType.ALL, "keyword", null, null);
             Pageable pageable = PageRequest.of(0, 10);
-            ArgumentCaptor<NativeQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeQuery.class);
+            ArgumentCaptor<NativeSearchQuery> nativeQueryCaptor = ArgumentCaptor.forClass(NativeSearchQuery.class);
 
             //when
             questIndexService.searchDocuments(searchCondition, userId, pageable);

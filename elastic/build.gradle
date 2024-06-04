@@ -11,8 +11,9 @@ plugins {
 }
 
 dependencies {
-    // 엘라스틱서치 의존성
-    api('org.springframework.boot:spring-boot-starter-data-elasticsearch')
+    api('org.opensearch.client:spring-data-opensearch-starter:1.0.1') {
+        exclude('group': 'org.opensearch.client', 'module': 'opensearch-rest-client-sniffer')
+    }
 }
 
 bootJar {

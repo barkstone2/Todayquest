@@ -17,7 +17,7 @@ import dailyquest.notification.repository.NotificationRepository
 import dailyquest.properties.BatchContextProperties
 import dailyquest.properties.BatchParameterProperties
 import dailyquest.user.entity.User
-import dailyquest.user.repository.BatchUserRepository
+import dailyquest.user.record.repository.BatchUserRecordRepository
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
@@ -34,6 +34,7 @@ import org.springframework.batch.test.JobRepositoryTestUtils
 import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -49,7 +50,7 @@ import org.springframework.data.repository.findByIdOrNull
     CheckAndAchieveJobListener::class,
     MockSqsClientTestContextConfig::class
 )
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = [ElasticsearchDataAutoConfiguration::class])
 @SpringBatchTest
 @DisplayName("업적 달성 확인 작업 유닛 테스트")
 class CheckAndAchieveJobUnitTest @Autowired constructor(
@@ -58,7 +59,7 @@ class CheckAndAchieveJobUnitTest @Autowired constructor(
     private val checkAndAchieveJob: Job,
 ) {
     @MockkBean(relaxed = true)
-    private lateinit var batchUserRepository: BatchUserRepository
+    private lateinit var batchUserRecordRepository: BatchUserRecordRepository
     @MockkBean(relaxed = true)
     private lateinit var achievementRepository: AchievementRepository
     @MockkBean(relaxed = true)
@@ -87,8 +88,8 @@ class CheckAndAchieveJobUnitTest @Autowired constructor(
             achievement.type
         } returns AchievementType.QUEST_REGISTRATION
         every {
-            batchUserRepository.findAllByQuestRegistrationCountGreaterThanEqual(any(), any())
-        } returns PageImpl(userIds.map { user }) andThen Page.empty()
+            batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(any(), any())
+        } returns PageImpl(userIds) andThen Page.empty()
         every { user.id } returnsMany userIds
         every { batchContextProperties.targetAchievementKey } returns "targetAchievement"
         every { batchContextProperties.achievedLogsKey } returns "achievedLogs"
@@ -103,7 +104,7 @@ class CheckAndAchieveJobUnitTest @Autowired constructor(
         jobLauncherTestUtils.launchJob(jobParameters)
 
         //then
-        verify { batchUserRepository.findAllByQuestRegistrationCountGreaterThanEqual(any(), any()) }
+        verify { batchUserRecordRepository.getAllUserIdWhoCanAchieveOf(any(), any()) }
     }
 
     @DisplayName("조회한 유저에 대해 업적 달성 로그를 저장한다")

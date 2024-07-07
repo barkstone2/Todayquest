@@ -8,7 +8,6 @@ import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.properties.AchievementPageSizeProperties
-import org.springframework.context.MessageSource
 import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -23,10 +22,8 @@ class AchievementService(
     private val achievementPageSizeProperties: AchievementPageSizeProperties,
     private val achieveLogCommandService: AchievementAchieveLogCommandService,
     private val achieveLogQueryService: AchievementAchieveLogQueryService,
-    messageSource: MessageSource
+    private val messageSourceAccessor: MessageSourceAccessor
 ) {
-    private val messageSourceAccessor: MessageSourceAccessor = MessageSourceAccessor(messageSource)
-
     fun getAchievedAchievements(userId: Long, page: Int): Page<AchievementResponse> {
         val pageRequest = PageRequest.of(page, achievementPageSizeProperties.size)
         return achieveLogQueryService.getAchievedAchievements(userId, pageRequest)

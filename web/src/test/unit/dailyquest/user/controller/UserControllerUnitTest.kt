@@ -24,9 +24,9 @@ import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.context.MessageSource
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.FilterType
+import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -64,7 +64,7 @@ class UserControllerUnitTest {
     lateinit var notificationService: NotificationService
 
     @MockkBean(relaxed = true)
-    lateinit var messageSource: MessageSource
+    lateinit var messageSourceAccessor: MessageSourceAccessor
 
     val om: ObjectMapper = ObjectMapper().registerModule(JavaTimeModule())
 

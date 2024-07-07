@@ -1,8 +1,15 @@
 package dailyquest.exception
 
+import dailyquest.common.MessageUtil
+import dailyquest.common.ResponseData
 import jakarta.persistence.EntityNotFoundException
+import jakarta.persistence.OptimisticLockException
+import jakarta.persistence.PersistenceException
 import jakarta.validation.ConstraintViolationException
+import org.hibernate.StaleObjectStateException
+import org.hibernate.dialect.lock.OptimisticEntityLockException
 import org.slf4j.LoggerFactory
+import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.http.HttpStatus
 import org.springframework.http.converter.HttpMessageConversionException
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -17,22 +24,12 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.servlet.NoHandlerFoundException
-import dailyquest.common.MessageUtil
-import dailyquest.common.ResponseData
-import jakarta.persistence.OptimisticLockException
-import jakarta.persistence.PersistenceException
-import org.hibernate.StaleObjectStateException
-import org.hibernate.dialect.lock.OptimisticEntityLockException
-import org.springframework.context.MessageSource
-import org.springframework.context.support.MessageSourceAccessor
 import java.util.function.Consumer
 
 @RestControllerAdvice
 class RestApiExceptionHandler(
-    messageSource: MessageSource
+    private val messageSourceAccessor: MessageSourceAccessor
 ) {
-    private val messageSourceAccessor = MessageSourceAccessor(messageSource)
-
     var log = LoggerFactory.getLogger(this.javaClass)
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

@@ -6,8 +6,7 @@ import dailyquest.quest.entity.Quest;
 import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,18 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
 public class QuestQueryService {
 
     private final QuestRepository questRepository;
     private final MessageSourceAccessor messageSourceAccessor;
-
-    @Autowired
-    public QuestQueryService(QuestRepository questRepository, MessageSource messageSource) {
-        this.questRepository = questRepository;
-        this.messageSourceAccessor = new MessageSourceAccessor(messageSource);
-    }
 
     public List<QuestResponse> getCurrentQuests(Long userId, QuestState state) {
         LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);

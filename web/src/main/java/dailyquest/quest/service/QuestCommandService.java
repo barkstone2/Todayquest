@@ -8,12 +8,12 @@ import dailyquest.redis.service.RedisService;
 import dailyquest.user.record.service.UserRecordService;
 import dailyquest.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Transactional
 @Service
 public class QuestCommandService {
@@ -23,16 +23,6 @@ public class QuestCommandService {
     private final QuestLogService questLogService;
     private final RedisService redisService;
     private final MessageSourceAccessor messageSourceAccessor;
-
-    @Autowired
-    public QuestCommandService(QuestRepository questRepository, UserService userService, UserRecordService userRecordService, QuestLogService questLogService, RedisService redisService, MessageSource messageSource) {
-        this.questRepository = questRepository;
-        this.userService = userService;
-        this.userRecordService = userRecordService;
-        this.questLogService = questLogService;
-        this.redisService = redisService;
-        this.messageSourceAccessor = new MessageSourceAccessor(messageSource);
-    }
 
     public QuestResponse saveQuest(WebQuestRequest dto, Long userId) {
         Long nextSeq = questRepository.getNextSeqOfUser(userId);

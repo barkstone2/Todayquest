@@ -9,7 +9,6 @@ import dailyquest.user.entity.User
 import dailyquest.user.record.service.UserRecordService
 import dailyquest.user.repository.UserRepository
 import jakarta.persistence.EntityNotFoundException
-import org.springframework.context.MessageSource
 import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,10 +20,8 @@ import kotlin.jvm.optionals.getOrNull
 class UserService(
     private val userRepository: UserRepository,
     private val userRecordService: UserRecordService,
-    messageSource: MessageSource
+    private val messageSourceAccessor: MessageSourceAccessor
 ) {
-    private val messageSourceAccessor: MessageSourceAccessor = MessageSourceAccessor(messageSource)
-
     fun findUserByOauthId(oauth2Id: String): UserResponse? {
         return userRepository.findByOauth2Id(oauth2Id)?.let { UserResponse.from(it) }
     }

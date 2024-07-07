@@ -37,7 +37,7 @@ public class QuestCommandService {
     public QuestResponse saveQuest(WebQuestRequest dto, Long userId) {
         Long nextSeq = questRepository.getNextSeqOfUser(userId);
         Quest quest = dto.mapToEntity(nextSeq, userId);
-        questRepository.save(quest);
+        questRepository.saveAndFlush(quest);
         QuestLogRequest questLogRequest = QuestLogRequest.from(quest);
         questLogService.saveQuestLog(questLogRequest);
         userRecordService.recordQuestRegistration(userId, questLogRequest.getLoggedDate());

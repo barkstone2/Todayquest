@@ -16,7 +16,7 @@ import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.context.MessageSource
+import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 
@@ -31,7 +31,7 @@ class UserServiceUnitTest {
     @RelaxedMockK
     private lateinit var userRecordService: UserRecordService
     @RelaxedMockK
-    private lateinit var messageSource: MessageSource
+    private lateinit var messageSourceAccessor: MessageSourceAccessor
     @RelaxedMockK
     private lateinit var user: User
 

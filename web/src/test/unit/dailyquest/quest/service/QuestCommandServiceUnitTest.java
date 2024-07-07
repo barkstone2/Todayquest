@@ -18,7 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.MessageSource;
+import org.springframework.context.support.MessageSourceAccessor;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -37,7 +37,7 @@ public class QuestCommandServiceUnitTest {
     @Mock UserService userService;
     @Mock UserRecordService userRecordService;
     @Mock QuestLogService questLogService;
-    @Mock MessageSource messageSource;
+    @Mock MessageSourceAccessor messageSourceAccessor;
     @Mock RedisService redisService;
     MockedStatic<QuestLogRequest> mockedStatic;
     MockedStatic<QuestResponse> mockedQuestResponse;

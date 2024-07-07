@@ -20,7 +20,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.context.MessageSource
+import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 
@@ -38,7 +38,7 @@ class AchievementServiceUnitTest {
     @RelaxedMockK
     private lateinit var notificationService: NotificationService
     @RelaxedMockK
-    private lateinit var messageSource: MessageSource
+    private lateinit var messageSourceAccessor: MessageSourceAccessor
     @InjectMockKs
     private lateinit var achievementService: AchievementService
 

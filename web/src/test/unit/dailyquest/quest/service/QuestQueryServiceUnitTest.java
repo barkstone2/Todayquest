@@ -13,7 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.MessageSource;
+import org.springframework.context.support.MessageSourceAccessor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,11 +29,12 @@ public class QuestQueryServiceUnitTest {
 
     @InjectMocks QuestQueryService questQueryService;
     @Mock QuestRepository questRepository;
-    @Mock MessageSource messageSource;
+    @Mock MessageSourceAccessor messageSourceAccessor;
 
     @BeforeEach
     void beforeEach() {
-        lenient().doReturn("").when(messageSource).getMessage(any(), any(), any());
+        lenient().doReturn("").when(messageSourceAccessor).getMessage(anyString());
+        lenient().doReturn("").when(messageSourceAccessor).getMessage(anyString(), any(Object[].class));
     }
 
     @DisplayName("현재 퀘스트 조회 시")

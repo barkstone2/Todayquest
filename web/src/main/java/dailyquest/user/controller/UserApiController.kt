@@ -7,7 +7,6 @@ import dailyquest.user.dto.UserPrincipal
 import dailyquest.user.dto.WebUserUpdateRequest
 import dailyquest.user.service.UserService
 import jakarta.validation.Valid
-import org.springframework.context.MessageSource
 import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.ResponseEntity
@@ -21,10 +20,8 @@ import org.springframework.web.bind.annotation.*
 class UserApiController(
     private val userService: UserService,
     private val notificationService: NotificationService,
-    messageSource: MessageSource
+    private val messageSourceAccessor: MessageSourceAccessor
 ) {
-    private val messageSourceAccessor = MessageSourceAccessor(messageSource)
-
     @GetMapping
     fun getPrincipal(@AuthenticationPrincipal principal: UserPrincipal): ResponseEntity<ResponseData<UserPrincipal>> {
         principal.notificationCount = notificationService.getNotConfirmedNotificationCount(principal.id)

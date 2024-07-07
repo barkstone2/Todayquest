@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,8 +46,7 @@ public class QuestQueryService {
     }
 
     public Page<QuestResponse> getQuestsByCondition(Long userId, QuestSearchCondition condition, Pageable pageable) {
-        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-        return questRepository.findQuestsByCondition(userId, condition, pageRequest)
+        return questRepository.findQuestsByCondition(userId, condition, pageable)
                 .map(QuestResponse::createDto);
     }
 

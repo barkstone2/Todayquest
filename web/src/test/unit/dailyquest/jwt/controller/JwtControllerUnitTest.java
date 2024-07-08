@@ -2,25 +2,19 @@ package dailyquest.jwt.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import dailyquest.annotation.WithCustomMockUser;
-import dailyquest.config.MessageSourceConfig;
-import dailyquest.config.SecurityConfig;
-import dailyquest.filter.InternalApiKeyValidationFilter;
-import dailyquest.jwt.JwtAuthorizationFilter;
+import dailyquest.annotation.WebMvcUnitTest;
 import dailyquest.jwt.dto.TokenRequest;
 import dailyquest.jwt.service.JwtService;
 import dailyquest.user.entity.ProviderType;
 import jakarta.servlet.http.Cookie;
 import kotlin.Pair;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
@@ -32,11 +26,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @SuppressWarnings("ALL")
-@Import(MessageSourceConfig.class)
 @ExtendWith(MockitoExtension.class)
-@WebMvcTest(controllers = JwtController.class,
-        excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {SecurityConfig.class, JwtAuthorizationFilter.class, InternalApiKeyValidationFilter.class})})
-@WithCustomMockUser
+@WebMvcUnitTest(JwtController.class)
 @DisplayName("JWT 컨트롤러 유닛 테스트")
 public class JwtControllerUnitTest {
     static final String URI_PREFIX = "/api/v1/auth";

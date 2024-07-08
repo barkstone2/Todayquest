@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -133,12 +134,13 @@ public class QuestApiController {
     public ResponseEntity<ResponseData<DetailResponse>> updateDetailQuestCount(
             @Min(1) @PathVariable("questId") Long questId,
             @Min(1) @PathVariable("detailQuestId") Long detailQuestId,
-            @Valid @RequestBody(required = false) DetailInteractRequest requestDto,
+            @RequestBody(required = false)
+            @Range(min = 0, max = 255, message = "{Range.details.count}")
+            Integer count,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        if (requestDto == null) requestDto = new DetailInteractRequest();
-        requestDto.setPathVariables(questId, detailQuestId);
-        DetailResponse interactDetail = questService.updateDetailQuestCount(principal.getId(), requestDto);
+        DetailInteractRequest interactRequest = new DetailInteractRequest(questId, detailQuestId, count);
+        DetailResponse interactDetail = questService.updateDetailQuestCount(principal.getId(), interactRequest);
         return ResponseEntity.ok(new ResponseData<>(interactDetail));
     }
 

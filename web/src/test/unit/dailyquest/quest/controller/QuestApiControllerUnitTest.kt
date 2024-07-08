@@ -21,7 +21,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.*
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.ArgumentsProvider
+import org.junit.jupiter.params.provider.ArgumentsSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.ArgumentMatchers.*
 import org.mockito.MockedStatic
 import org.mockito.Mockito.mockStatic
@@ -751,30 +754,29 @@ class QuestApiControllerUnitTest {
         }
     }
 
-    @DisplayName("세부 퀘스트 상호작용 시")
+    @DisplayName("세부 퀘스트 카운트 변경 시")
     @Nested
-    inner class DetailInteractTest {
+    inner class UpdateDetailCountTest {
 
         @ValueSource(longs = [1, 5, 100, 5000])
         @DisplayName("PathVariable 값이 올바르다면 validation error가 발생하지 않는다")
         @ParameterizedTest(name = "{0} 값이 들어오면 200을 반환한다")
         fun `PathVariable 값이 올바르다면 200 OK가 반환된다`(validQuestId: Long) {
             //given
-            val interactRequest = DetailInteractRequest(3)
             doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), any())
 
             //when
             val result = mvc.perform(
                 patch("$URI_PREFIX/$validQuestId/details/$validQuestId")
-                    .contentType(MediaType.APPLICATION_JSON_UTF8)
-                    .content(om.writeValueAsBytes(interactRequest))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("3")
                     .with(csrf())
             )
 
             //then
             result
                 .andExpect(status().isOk)
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.data").exists())
                 .andExpect(jsonPath("$.errorResponse").doesNotExist())
         }
@@ -789,7 +791,7 @@ class QuestApiControllerUnitTest {
             //when
             val result = mvc.perform(
                 patch("$URI_PREFIX/$invalidQuestId/details/$validDetailQuestId")
-                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .contentType(MediaType.APPLICATION_JSON)
                     .characterEncoding("UTF-8")
                     .with(csrf())
             )
@@ -797,59 +799,33 @@ class QuestApiControllerUnitTest {
             //then
             result
                 .andExpect(status().isBadRequest)
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.data").doesNotExist())
                 .andExpect(jsonPath("$.errorResponse.message").exists())
                 .andExpect(jsonPath("$.errorResponse.errors").exists())
                 .andReturn()
         }
 
-        @ValueSource(ints = [1, 3, 5, 255])
+        @ValueSource(strings = ["0", "1", "125", "254", "255"])
         @DisplayName("RequestBody 값이 유효하다면 200 OK가 반환된다")
         @ParameterizedTest(name = "{0} 값이 들어오면 200을 반환한다")
-        fun `RequestBody 값이 유효하다면 200 OK가 반환된다`(count: Int) {
+        fun `RequestBody 값이 유효하다면 200 OK가 반환된다`(count: String) {
             //given
             val validPathVariable = 1L
             doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), any())
 
-            val interactRequest = DetailInteractRequest(count)
-
             //when
             val result = mvc.perform(
                 patch("$URI_PREFIX/$validPathVariable/details/$validPathVariable")
-                    .contentType(MediaType.APPLICATION_JSON_UTF8)
-                    .content(om.writeValueAsBytes(interactRequest))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(count)
                     .with(csrf())
             )
 
             //then
             result
                 .andExpect(status().isOk)
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andExpect(jsonPath("$.data").exists())
-                .andExpect(jsonPath("$.errorResponse").doesNotExist())
-        }
-
-        @DisplayName("count 값이 없어도 200 OK가 반환된다")
-        @Test
-        fun `count 값이 없어도 200 OK가 반환된다`() {
-            //given
-            val questId = 1L
-            val interactRequest = DetailInteractRequest()
-            doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), any())
-
-            //when
-            val result = mvc.perform(
-                patch("$URI_PREFIX/$questId/details/$questId")
-                    .contentType(MediaType.APPLICATION_JSON_UTF8)
-                    .content(om.writeValueAsBytes(interactRequest))
-                    .with(csrf())
-            )
-
-            //then
-            result
-                .andExpect(status().isOk)
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.data").exists())
                 .andExpect(jsonPath("$.errorResponse").doesNotExist())
         }
@@ -864,23 +840,20 @@ class QuestApiControllerUnitTest {
             //when
             val result = mvc.perform(
                 patch("$URI_PREFIX/$questId/details/$questId")
-                    .contentType(MediaType.APPLICATION_JSON_UTF8)
                     .with(csrf())
             )
 
             //then
             result
                 .andExpect(status().isOk)
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$.data").exists())
                 .andExpect(jsonPath("$.errorResponse").doesNotExist())
         }
 
-        @NullSource
-        @ValueSource(strings = ["", " ", "0", "-1", "300"])
+        @ValueSource(strings = ["-1", "256"])
         @DisplayName("RequestBody 값이 유효하지 않다면 400 BAD_REQUEST가 반환된다")
-        @ParameterizedTest(name = "{0} 값이 들어오면 200을 반환한다")
-        fun `RequestBody 값이 유효하지 않다면 400 BAD_REQUEST가 반환된다`(count: String?) {
+        @ParameterizedTest(name = "{0} 값이 들어오면 400을 반환한다")
+        fun `RequestBody 값이 유효하지 않다면 400 BAD_REQUEST가 반환된다`(count: String) {
             //given
             val questId = 1L
             doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), any())
@@ -888,35 +861,34 @@ class QuestApiControllerUnitTest {
             //when
             val result = mvc.perform(
                 patch("$URI_PREFIX/$questId/details/$questId")
-                    .contentType(MediaType.APPLICATION_JSON_UTF8)
-                    .content(om.writeValueAsBytes("{\"count\":\"$count\"}"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(count)
                     .with(csrf())
             )
 
             //then
             result
                 .andExpect(status().isBadRequest)
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.data").doesNotExist())
                 .andExpect(jsonPath("$.errorResponse").exists())
         }
 
-        @DisplayName("requestBody가 있을 때 pathVariable 정보가 RequestDto에 담긴다")
+        @DisplayName("pathVariable 정보가 담긴 DTO로 서비스에 요청을 위임한다")
         @Test
-        fun `requestBody가 있을 때 pathVariable 정보가 RequestDto에 담긴다`() {
+        fun `pathVariable 정보가 담긴 DTO로 서비스에 요청을 위임한다`() {
             //given
             val questId = 1L
             val detailQuestId = 1L
+            val count = 3
             val requestDtoCaptor = argumentCaptor<DetailInteractRequest>()
             doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), requestDtoCaptor.capture())
-            val interactRequest = DetailInteractRequest()
-            interactRequest.setPathVariables(questId = 2, detailQuestId = 2)
 
             //when
             mvc.perform(
                 patch("$URI_PREFIX/$questId/details/$detailQuestId")
-                    .contentType(MediaType.APPLICATION_JSON_UTF8)
-                    .content(om.writeValueAsBytes(interactRequest))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(count.toString())
                     .with(csrf())
             )
 
@@ -924,28 +896,7 @@ class QuestApiControllerUnitTest {
             val requestDto = requestDtoCaptor.firstValue
             assertThat(requestDto.questId).isEqualTo(questId)
             assertThat(requestDto.detailQuestId).isEqualTo(detailQuestId)
-        }
-
-        @DisplayName("requestBody가 없어도 pathVariable 정보가 RequestDto에 담긴다")
-        @Test
-        fun `requestBody가 없어도 pathVariable 정보가 RequestDto에 담긴다`() {
-            //given
-            val questId = 1L
-            val detailQuestId = 1L
-            val requestDtoCaptor = argumentCaptor<DetailInteractRequest>()
-            doReturn(detailResponse).`when`(questService).updateDetailQuestCount(anyLong(), requestDtoCaptor.capture())
-
-            //when
-            mvc.perform(
-                patch("$URI_PREFIX/$questId/details/$detailQuestId")
-                    .contentType(MediaType.APPLICATION_JSON_UTF8)
-                    .with(csrf())
-            )
-
-            //then
-            val requestDto = requestDtoCaptor.firstValue
-            assertThat(requestDto.questId).isEqualTo(questId)
-            assertThat(requestDto.detailQuestId).isEqualTo(detailQuestId)
+            assertThat(requestDto.count).isEqualTo(count)
         }
     }
 

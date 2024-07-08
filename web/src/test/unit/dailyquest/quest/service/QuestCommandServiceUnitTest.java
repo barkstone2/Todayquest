@@ -403,7 +403,7 @@ public class QuestCommandServiceUnitTest {
     @Nested
     class DetailQuestCountUpdateTest {
         private final Long userId = 1L;
-        private final DetailInteractRequest interactRequest = new DetailInteractRequest();
+        private final DetailInteractRequest interactRequest = new DetailInteractRequest(1, 1, null);
         private final Quest foundEntity = mock(Quest.class);
         private final DetailQuest interactResult = mock(DetailQuest.class, Answers.RETURNS_SMART_NULLS);
 

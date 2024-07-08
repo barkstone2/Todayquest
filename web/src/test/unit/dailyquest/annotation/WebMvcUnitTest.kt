@@ -1,14 +1,17 @@
 package dailyquest.annotation
 
+import dailyquest.config.MessageSourceConfig
 import dailyquest.config.SecurityConfig
 import dailyquest.filter.InternalApiKeyValidationFilter
 import dailyquest.jwt.JwtAuthorizationFilter
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.FilterType
+import org.springframework.context.annotation.Import
 import org.springframework.core.annotation.AliasFor
 import kotlin.reflect.KClass
 
+@Import(MessageSourceConfig::class)
 @WithCustomMockUser
 @WebMvcTest(
     excludeFilters = [

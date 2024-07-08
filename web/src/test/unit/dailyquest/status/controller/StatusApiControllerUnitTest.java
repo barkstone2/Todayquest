@@ -1,6 +1,7 @@
 package dailyquest.status.controller;
 
 import dailyquest.annotation.WithCustomMockUser;
+import dailyquest.config.MessageSourceConfig;
 import dailyquest.config.SecurityConfig;
 import dailyquest.filter.InternalApiKeyValidationFilter;
 import dailyquest.jwt.JwtAuthorizationFilter;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Import(MessageSourceConfig.class)
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(controllers = StatusApiController.class,
         excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {SecurityConfig.class, JwtAuthorizationFilter.class, InternalApiKeyValidationFilter.class})})

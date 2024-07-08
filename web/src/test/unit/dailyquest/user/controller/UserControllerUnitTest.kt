@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.ninjasquad.springmockk.MockkBean
 import dailyquest.annotation.WithCustomMockUser
+import dailyquest.config.MessageSourceConfig
 import dailyquest.config.SecurityConfig
 import dailyquest.filter.InternalApiKeyValidationFilter
 import dailyquest.jwt.JwtAuthorizationFilter
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.FilterType
+import org.springframework.context.annotation.Import
 import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.MediaType
@@ -40,6 +42,7 @@ import java.util.stream.Stream
 @Suppress("DEPRECATION")
 @DisplayName("유저 API 컨트롤러 유닛 테스트")
 @WithCustomMockUser
+@Import(MessageSourceConfig::class)
 @WebMvcTest(controllers = [UserApiController::class],
     excludeFilters = [
         ComponentScan.Filter(

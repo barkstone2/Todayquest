@@ -1,34 +1,14 @@
 package dailyquest.quest.dto
 
-import dailyquest.common.MessageUtil
 import dailyquest.quest.entity.DetailQuestType
 import dailyquest.quest.entity.QuestState
 import dailyquest.quest.entity.QuestType
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers
-import org.mockito.MockedStatic
-import org.mockito.Mockito
 
 @DisplayName("퀘스트 리퀘스트 DTO 유닛 테스트")
 class QuestRequestUnitTest {
-
-    private lateinit var messageUtil: MockedStatic<MessageUtil>
-
-    @BeforeEach
-    fun init() {
-        messageUtil = Mockito.mockStatic(MessageUtil::class.java)
-        Mockito.`when`(MessageUtil.getMessage(ArgumentMatchers.anyString())).thenReturn("")
-        Mockito.`when`(MessageUtil.getMessage(ArgumentMatchers.anyString(), ArgumentMatchers.any())).thenReturn("")
-    }
-
-    @AfterEach
-    fun afterEach() {
-        messageUtil.close()
-    }
 
     @DisplayName("생성자에 값을 넣으면 값이 올바르게 담긴다")
     @Test

@@ -6,24 +6,26 @@ import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.achievement.repository.AchievementRepository
-import dailyquest.common.MessageUtil
 import dailyquest.common.ResponseData
 import dailyquest.common.RestPage
 import dailyquest.context.IntegrationTestContextWithRedisAndElasticsearch
 import dailyquest.properties.RedisKeyProperties
-import dailyquest.quest.dto.*
+import dailyquest.quest.dto.QuestResponse
+import dailyquest.quest.dto.QuestSearchKeywordType
+import dailyquest.quest.dto.WebDetailQuestRequest
+import dailyquest.quest.dto.WebQuestRequest
 import dailyquest.quest.entity.*
 import dailyquest.quest.repository.QuestLogRepository
 import dailyquest.quest.repository.QuestRepository
 import dailyquest.search.repository.QuestIndexRepository
 import dailyquest.user.entity.ProviderType
 import dailyquest.user.entity.User
+import dailyquest.user.record.entity.UserRecord
 import jakarta.persistence.EntityManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -34,6 +36,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -45,7 +48,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.concurrent.ConcurrentHashMap
-import dailyquest.user.record.entity.UserRecord
 
 @DisplayName("퀘스트 API 컨트롤러 통합 테스트")
 class QuestApiControllerTest @Autowired constructor(
@@ -57,6 +59,7 @@ class QuestApiControllerTest @Autowired constructor(
     var questIndexRepository: QuestIndexRepository,
     private val achievementRepository: AchievementRepository,
     private val achievementAchieveLogRepository: AchievementAchieveLogRepository,
+    val messageSourceAccessor: MessageSourceAccessor
 ): IntegrationTestContextWithRedisAndElasticsearch() {
 
     private val uriPrefix = "/api/v1/quests"
@@ -257,7 +260,7 @@ class QuestApiControllerTest @Autowired constructor(
         @ParameterizedTest(name = "{0} 값이 들어오면 BAD_REQUEST를 반환한다")
         fun `page 번호가 숫자가 아니면 BAD_REQUEST가 반환된다`(page: Any) {
             //given
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 
             //when
             val request = mvc
@@ -684,7 +687,7 @@ class QuestApiControllerTest @Autowired constructor(
             val savedQuest = questRepository.save(Quest("제목", "1", user.id, 1L, QuestState.PROCEED, QuestType.MAIN))
             val questId = savedQuest.id + 1
             val url = "$urlPrefix/$questId"
-            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
+            val errorMessage = messageSourceAccessor.getMessage("exception.entity.notfound", arrayOf(messageSourceAccessor.getMessage("quest")))
 
             //when
             val request = mvc
@@ -718,7 +721,7 @@ class QuestApiControllerTest @Autowired constructor(
             val savedQuest = questRepository.save(Quest("제목", "1", anotherUser.id, 1L, QuestState.PROCEED, QuestType.MAIN))
             val questId = savedQuest.id
             val url = "$urlPrefix/$questId"
-            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
+            val errorMessage = messageSourceAccessor.getMessage("exception.entity.notfound", arrayOf(messageSourceAccessor.getMessage("quest")))
 
             //when
             val request = mvc
@@ -751,7 +754,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `Path Variable이 유효한 Long 타입이 아니면 BAD_REQUEST가 반환된다`(questId: Any) {
             //given
             val url = "$urlPrefix/$questId"
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 
             //when
             val request = mvc
@@ -788,7 +791,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `RequestBody 구문이 올바르지 않으면 BAD_REQUEST가 반환된다`() {
             //given
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
             val requestBody = "invalid body"
 
             //when
@@ -820,12 +823,12 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `DTO Validation에 실패하면 BAD_REQUEST가 반환된다`() {
             //given
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
             val questRequest = WebQuestRequest("", "", mutableListOf(WebDetailQuestRequest("", DetailQuestType.COUNT, 1)))
             val requestBody = om.writeValueAsString(questRequest)
             val bindingMessages = listOf(
-                MessageUtil.getMessage("NotBlank.quest.title"),
-                MessageUtil.getMessage("NotBlank.details.title")
+                messageSourceAccessor.getMessage("NotBlank.quest.title"),
+                messageSourceAccessor.getMessage("NotBlank.details.title")
             )
 
             //when
@@ -1079,7 +1082,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `Path Variable이 유효한 Long 타입이 아니면 BAD_REQUEST가 반환된다`(questId: Any) {
             //given
             val url = "$urlPrefix/$questId"
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 
             val detailRequest = WebDetailQuestRequest("update", DetailQuestType.COUNT, 1)
             val questRequest = WebQuestRequest("update", "update", mutableListOf(detailRequest))
@@ -1118,7 +1121,7 @@ class QuestApiControllerTest @Autowired constructor(
             val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.PROCEED, QuestType.SUB))
             val url = "$urlPrefix/${savedQuest.id}"
 
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 
             val detailRequest = WebDetailQuestRequest("", DetailQuestType.COUNT, 1)
             val questRequest = WebQuestRequest("", "", mutableListOf(detailRequest))
@@ -1126,8 +1129,8 @@ class QuestApiControllerTest @Autowired constructor(
             val requestBody = om.writeValueAsString(questRequest)
 
             val bindingMessages = listOf(
-                MessageUtil.getMessage("NotBlank.quest.title"),
-                MessageUtil.getMessage("NotBlank.details.title")
+                messageSourceAccessor.getMessage("NotBlank.quest.title"),
+                messageSourceAccessor.getMessage("NotBlank.details.title")
             )
 
             //when
@@ -1162,7 +1165,7 @@ class QuestApiControllerTest @Autowired constructor(
             val savedQuest = questRepository.save(Quest("title", "desc", anotherUser.id, 1L, QuestState.PROCEED, QuestType.SUB))
 
             val url = "$urlPrefix/${savedQuest.id}"
-            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
+            val errorMessage = messageSourceAccessor.getMessage("exception.entity.notfound", arrayOf(messageSourceAccessor.getMessage("quest")))
 
             val detailRequest = WebDetailQuestRequest("update", DetailQuestType.COUNT, 1)
             val questRequest = WebQuestRequest("update", "update", mutableListOf(detailRequest))
@@ -1198,7 +1201,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
             val url = "$urlPrefix/10000"
-            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
+            val errorMessage = messageSourceAccessor.getMessage("exception.entity.notfound", arrayOf(messageSourceAccessor.getMessage("quest")))
 
             val detailRequest = WebDetailQuestRequest("update", DetailQuestType.COUNT, 1)
             val questRequest = WebQuestRequest("update", "update", mutableListOf(detailRequest))
@@ -1236,7 +1239,7 @@ class QuestApiControllerTest @Autowired constructor(
             val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.FAIL, QuestType.SUB))
 
             val url = "$urlPrefix/${savedQuest.id}"
-            val errorMessage = MessageUtil.getMessage("quest.error.not-proceed")
+            val errorMessage = messageSourceAccessor.getMessage("quest.error.not-proceed")
 
             val detailRequest = WebDetailQuestRequest("update", DetailQuestType.COUNT, 1)
             val questRequest = WebQuestRequest("update", "update", mutableListOf(detailRequest))
@@ -1353,7 +1356,7 @@ class QuestApiControllerTest @Autowired constructor(
         @ParameterizedTest(name = "{0} 값이 들어오면 BAD_REQUEST가 반환한다")
         fun `Path Variable이 유효한 Long 타입이 아니면 BAD_REQUEST가 반환된다`(questId: Any) {
             val url = "${SERVER_ADDR}$port${uriPrefix}/$questId/delete"
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 
             //when
             val request = mvc
@@ -1387,7 +1390,7 @@ class QuestApiControllerTest @Autowired constructor(
             val savedQuest = questRepository.save(Quest("title", "desc", anotherUser.id, 1L, QuestState.PROCEED, QuestType.SUB))
 
             val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/delete"
-            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
+            val errorMessage = messageSourceAccessor.getMessage("exception.entity.notfound", arrayOf(messageSourceAccessor.getMessage("quest")))
 
             //when
             val request = mvc
@@ -1419,7 +1422,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
             val url = "${SERVER_ADDR}$port${uriPrefix}/10000/delete"
-            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
+            val errorMessage = messageSourceAccessor.getMessage("exception.entity.notfound", arrayOf(messageSourceAccessor.getMessage("quest")))
 
             //when
             val request = mvc
@@ -1519,7 +1522,7 @@ class QuestApiControllerTest @Autowired constructor(
         @ParameterizedTest(name = "{0} 값이 들어오면 BAD_REQUEST가 반환한다")
         fun `Path Variable이 유효한 Long 타입이 아니면 BAD_REQUEST가 반환된다`(questId: Any) {
             val url = urlFormat.format(questId)
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 
             //when
             val request = mvc
@@ -1552,7 +1555,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `삭제된 퀘스트라면 BAD_REQUEST가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.DELETE, QuestType.SUB))
             val url = urlFormat.format(savedQuest.id)
-            val errorMessage = MessageUtil.getMessage("quest.error.deleted")
+            val errorMessage = messageSourceAccessor.getMessage("quest.error.deleted")
 
             //when
             val request = mvc
@@ -1585,7 +1588,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `진행중인 퀘스트가 아니라면 BAD_REQUEST가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.FAIL, QuestType.SUB))
             val url = urlFormat.format(savedQuest.id)
-            val errorMessage = MessageUtil.getMessage("quest.error.not-proceed")
+            val errorMessage = messageSourceAccessor.getMessage("quest.error.not-proceed")
 
             //when
             val request = mvc
@@ -1621,7 +1624,7 @@ class QuestApiControllerTest @Autowired constructor(
             savedQuest.replaceDetailQuests(listOf(detailRequest))
 
             val url = urlFormat.format(savedQuest.id)
-            val errorMessage = MessageUtil.getMessage("quest.error.complete.detail")
+            val errorMessage = messageSourceAccessor.getMessage("quest.error.complete.detail")
 
             //when
             val request = mvc
@@ -1835,7 +1838,7 @@ class QuestApiControllerTest @Autowired constructor(
         @ParameterizedTest(name = "{0} 값이 들어오면 BAD_REQUEST가 반환한다")
         fun `Path Variable이 유효한 Long 타입이 아니면 BAD_REQUEST가 반환된다`(questId: Any) {
             val url = "${SERVER_ADDR}$port${uriPrefix}/$questId/discard"
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 
             //when
             val request = mvc
@@ -1868,7 +1871,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `삭제된 퀘스트라면 BAD_REQUEST가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.DELETE, QuestType.SUB))
             val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/discard"
-            val errorMessage = MessageUtil.getMessage("quest.error.deleted")
+            val errorMessage = messageSourceAccessor.getMessage("quest.error.deleted")
 
             //when
             val request = mvc
@@ -1901,7 +1904,7 @@ class QuestApiControllerTest @Autowired constructor(
         fun `진행중인 퀘스트가 아니라면 BAD_REQUEST가 반환된다`() {
             val savedQuest = questRepository.save(Quest("title", "desc", user.id, 1L, QuestState.FAIL, QuestType.SUB))
             val url = "${SERVER_ADDR}$port${uriPrefix}/${savedQuest.id}/discard"
-            val errorMessage = MessageUtil.getMessage("quest.error.not-proceed")
+            val errorMessage = messageSourceAccessor.getMessage("quest.error.not-proceed")
 
             //when
             val request = mvc
@@ -2018,7 +2021,7 @@ class QuestApiControllerTest @Autowired constructor(
         @ParameterizedTest(name = "{0} 값이 들어오면 BAD_REQUEST가 반환한다")
         fun `Path Variable의 quest id가 유효한 Long 타입이 아니면 BAD_REQUEST가 반환된다`(questId: Any) {
             //given
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 
             //when
             val request = mvc
@@ -2039,7 +2042,7 @@ class QuestApiControllerTest @Autowired constructor(
         @ParameterizedTest(name = "{0} 값이 들어오면 BAD_REQUEST가 반환한다")
         fun `Path Variable의 detail quest id가 유효한 Long 타입이 아니면 BAD_REQUEST가 반환된다`(detailQuestId: Any) {
             //given
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 
             //when
             val request = mvc
@@ -2059,7 +2062,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `요청 DTO 카운트가 256이면 BAD_REQUEST 응답 코드와 함께 Validation 에러가 반환된다`() {
             //given
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 
             // TODO 예외 메시지 처리 로직 변경 후 주석 해제
 //            val bindingMessages = listOf(
@@ -2123,7 +2126,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `요청 DTO 카운트가 -1이면 BAD_REQUEST가 반환된다`() {
             //given
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 //            val bindingMessages = listOf(MessageUtil.getMessage("Range.details.count"))
 
             //when
@@ -2146,7 +2149,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `다른 유저의 퀘스트를 요청하면 NOT_FOUND가 반환된다`() {
             //given
-            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
+            val errorMessage = messageSourceAccessor.getMessage("exception.entity.notfound", arrayOf(messageSourceAccessor.getMessage("quest")))
 
             //when
             val request = mvc
@@ -2166,7 +2169,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `존재하지 않는 퀘스트 요청 시 NOT_FOUND가 반환된다`() {
             //given
-            val errorMessage = MessageUtil.getMessage("exception.entity.notfound", MessageUtil.getMessage("quest"))
+            val errorMessage = messageSourceAccessor.getMessage("exception.entity.notfound", arrayOf(messageSourceAccessor.getMessage("quest")))
 
             //when
             val request = mvc
@@ -2186,7 +2189,7 @@ class QuestApiControllerTest @Autowired constructor(
         @Test
         fun `퀘스트에 포함되지 않은 세부 퀘스트 요청 시 BAD_REQUEST가 반환된다`() {
             //given
-            val errorMessage = MessageUtil.getMessage("exception.badRequest")
+            val errorMessage = messageSourceAccessor.getMessage("exception.badRequest")
 
             //when
             val request = mvc
@@ -2208,7 +2211,7 @@ class QuestApiControllerTest @Autowired constructor(
             //given
             quest.failQuest()
             questRepository.flush()
-            val errorMessage = MessageUtil.getMessage("quest.error.not-proceed")
+            val errorMessage = messageSourceAccessor.getMessage("quest.error.not-proceed")
 
             //when
             val request = mvc

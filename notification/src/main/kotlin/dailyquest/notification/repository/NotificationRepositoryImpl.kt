@@ -28,8 +28,7 @@ class NotificationRepositoryImpl @Autowired constructor(
         pageable: Pageable
     ): Page<Notification> {
         val notConfirmed = notification.confirmedDate.isNull
-        val whereExpression = this.hasSameUserIdAndNotDeletedAndHasSameType(userId, condition)
-            .and(notConfirmed)
+        val whereExpression = hasSameUserId(userId).and(notDeleted()).and(hasSameType(condition)).and(notConfirmed)
         val notifications = this.getPagedNotificationsBasedOnCondition(pageable, whereExpression)
         return notifications
     }
@@ -39,17 +38,21 @@ class NotificationRepositoryImpl @Autowired constructor(
         condition: NotificationCondition,
         pageable: Pageable
     ): Page<Notification> {
-        val whereExpression = this.hasSameUserIdAndNotDeletedAndHasSameType(userId, condition)
+        val whereExpression = hasSameUserId(userId).and(notDeleted()).and(hasSameType(condition))
         val notifications = this.getPagedNotificationsBasedOnCondition(pageable, whereExpression)
         return notifications
     }
 
-    private fun hasSameUserIdAndNotDeletedAndHasSameType(userId: Long, condition: NotificationCondition): BooleanExpression {
-        val hasSameUserId = notification.userId.eq(userId)
-        val notDeleted = notification.deletedDate.isNull
-        val hasSameType = if (condition.type != null) notification.type.eq(condition.type) else null
-        val whereExpression = hasSameUserId.and(notDeleted).and(hasSameType)
-        return whereExpression
+    private fun hasSameUserId(userId: Long): BooleanExpression {
+        return notification.userId.eq(userId)
+    }
+
+    private fun notDeleted(): BooleanExpression {
+        return notification.deletedDate.isNull
+    }
+
+    private fun hasSameType(condition: NotificationCondition): BooleanExpression? {
+        return if (condition.type != null) notification.type.eq(condition.type) else null
     }
 
     private fun getPagedNotificationsBasedOnCondition(pageable: Pageable, whereExpression: BooleanExpression): Page<Notification> {

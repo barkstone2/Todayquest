@@ -1,6 +1,7 @@
 package dailyquest.jwt;
 
 import dailyquest.common.MessageUtil;
+import dailyquest.jwt.dto.SilentRefreshResult;
 import dailyquest.properties.JwtTokenProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -399,28 +400,29 @@ public class JwtTokenProviderUnitTest {
             assertThatThrownBy(runnable::run).isInstanceOf(JwtException.class);
         }
 
-        @DisplayName("유효한 토큰이라면 리프레시 토큰을 블랙 리스트 처리 후 새 엑세스 토큰을 반환한다")
+        @DisplayName("유효한 토큰이라면 리프레시 토큰을 블랙 리스트 처리 후 새 토큰들을 반환한다")
         @Test
         public void doRefresh() throws Exception {
             //given
             doReturn(REFRESH_TOKEN_NAME).when(jwtTokenProperties).getRefreshTokenName();
             doReturn(REFRESH_TOKEN_VALIDATION_MILLISECOND).when(jwtTokenProperties).getRefreshTokenExpirationMilliseconds();
+            String token = jwtTokenProvider.createRefreshToken(1L);
 
             ValueOperations<String, String> mockOperation = mock(ValueOperations.class);
             doReturn(mockOperation).when(redisTemplate).opsForValue();
             doReturn(null).when(mockOperation).get(any());
 
-            String token = jwtTokenProvider.createRefreshToken(1L);
-
             //when
-            String newToken = jwtTokenProvider.silentRefresh(token);
+            SilentRefreshResult result = jwtTokenProvider.silentRefresh(token);
 
             //then
             verify(mockOperation).set(eq(token), eq(""), any(Duration.class));
-            assertThat(newToken).isNotEmpty();
-            assertThat(newToken).isNotEqualTo(token);
+            assertThat(result.getAccessToken()).isNotEmpty();
+            assertThat(result.getRefreshToken()).isNotEmpty();
+            assertThat(result.getRefreshToken()).isNotEqualTo(token);
         }
     }
+
     @DisplayName("토큰 invalidate 요청 시")
     @Nested
     class TokenInvalidateTest {

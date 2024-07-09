@@ -1,5 +1,6 @@
 package dailyquest.jwt;
 
+import dailyquest.jwt.dto.SilentRefreshResult;
 import dailyquest.properties.JwtTokenProperties;
 import dailyquest.properties.SecurityUrlProperties;
 import dailyquest.redis.service.RedisService;
@@ -53,7 +54,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         try {
             String accessToken = jwtTokenProvider.getJwtFromCookies(request.getCookies(), jwtTokenProperties.getAccessTokenName());
             if(!jwtTokenProvider.isValidToken(accessToken, jwtTokenProperties.getAccessTokenName())) {
-                accessToken = this.doSilentRefresh(request, response);
+                SilentRefreshResult silentRefreshResult = this.doSilentRefresh(request, response);
+                accessToken = silentRefreshResult.getAccessToken();
             }
             this.parseAndSetAuthentication(accessToken);
         } catch (JwtException ex) {
@@ -64,13 +66,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    protected String doSilentRefresh(HttpServletRequest request, HttpServletResponse response) {
-        String result;
+    protected SilentRefreshResult doSilentRefresh(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtTokenProvider.getJwtFromCookies(request.getCookies(), jwtTokenProperties.getRefreshTokenName());
-        result = jwtTokenProvider.silentRefresh(refreshToken);
-        response.addCookie(jwtTokenProvider.createAccessTokenCookie(result));
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(jwtTokenProvider.getUserIdFromToken(refreshToken));
-        response.addCookie(jwtTokenProvider.createRefreshTokenCookie(newRefreshToken));
+        SilentRefreshResult result = jwtTokenProvider.silentRefresh(refreshToken);
+        response.addCookie(jwtTokenProvider.createAccessTokenCookie(result.getAccessToken()));
+        response.addCookie(jwtTokenProvider.createRefreshTokenCookie(result.getRefreshToken()));
         return result;
     }
 

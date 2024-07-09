@@ -1,5 +1,6 @@
 package dailyquest.jwt;
 
+import dailyquest.jwt.dto.SilentRefreshResult;
 import dailyquest.properties.JwtTokenProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -15,6 +16,7 @@ import dailyquest.common.MessageUtil;
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Duration;
 import java.util.Date;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -44,6 +46,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .claim("id", userId)
                 .claim("token_type", jwtTokenProperties.getRefreshTokenName())
+                .claim("uuid", UUID.randomUUID())
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + jwtTokenProperties.getRefreshTokenExpirationMilliseconds()))
                 .signWith(new SecretKeySpec(Decoders.BASE64.decode(secretKey), SignatureAlgorithm.HS256.getJcaName()))
@@ -105,13 +108,14 @@ public class JwtTokenProvider {
         return createSecureCookie(jwtTokenProperties.getRefreshTokenName(), refreshToken);
     }
 
-    public String silentRefresh(String refreshToken) throws JwtException {
+    public SilentRefreshResult silentRefresh(String refreshToken) throws JwtException {
         try {
             if (!isInBlackList(refreshToken) && isValidToken(refreshToken, jwtTokenProperties.getRefreshTokenName())) {
                 Long userId = getUserIdFromToken(refreshToken);
                 addToBlackList(refreshToken);
-
-                return createAccessToken(userId);
+                String newAccessToken = createAccessToken(userId);
+                String newRefreshToken = createRefreshToken(userId);
+                return new SilentRefreshResult(newAccessToken, newRefreshToken);
             } else {
                 throw new JwtException("로그인 시간이 만료됐습니다. 다시 로그인 해주세요.");
             }

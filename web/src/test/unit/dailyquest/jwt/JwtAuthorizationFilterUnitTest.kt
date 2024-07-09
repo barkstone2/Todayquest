@@ -1,5 +1,6 @@
 package dailyquest.jwt
 
+import dailyquest.jwt.dto.SilentRefreshResult
 import dailyquest.properties.JwtTokenProperties
 import dailyquest.properties.SecurityUrlProperties
 import dailyquest.redis.service.RedisService
@@ -209,8 +210,10 @@ class JwtAuthorizationFilterUnitTest {
         @Test
         fun `새로 발급받은 accessToken으로 쿠키를 만들어 response에 담는다`() {
             //given
-            val accessToken = "accessToken"
-            every { jwtTokenProvider.silentRefresh(any()) } returns accessToken
+            val accessToken = "newAccessToken"
+            val refreshToken = "newRefreshToken"
+            val silentRefreshResult = SilentRefreshResult(accessToken, refreshToken)
+            every { jwtTokenProvider.silentRefresh(any()) } returns silentRefreshResult
             val accessTokenCookie = mockk<Cookie>()
             every { jwtTokenProvider.createAccessTokenCookie(eq(accessToken)) } returns accessTokenCookie
 
@@ -221,12 +224,14 @@ class JwtAuthorizationFilterUnitTest {
             verify { response.addCookie(accessTokenCookie) }
         }
 
-        @DisplayName("refresh 토큰을 다시 발급받고 쿠키를 만들어 response에 담는다")
+        @DisplayName("새로 발급받은 refreshToken으로 쿠키를 만들어 response에 담는다")
         @Test
-        fun `refresh 토큰을 다시 발급받고 쿠키를 만들어 response에 담는다`() {
+        fun `새로 발급받은 refreshToken으로 쿠키를 만들어 response에 담는다`() {
             //given
-            val refreshToken = "refreshToken"
-            every { jwtTokenProvider.createRefreshToken(any()) } returns refreshToken
+            val accessToken = "newAccessToken"
+            val refreshToken = "newRefreshToken"
+            val silentRefreshResult = SilentRefreshResult(accessToken, refreshToken)
+            every { jwtTokenProvider.silentRefresh(any()) } returns silentRefreshResult
             val refreshTokenCookie = mockk<Cookie>()
             every { jwtTokenProvider.createRefreshTokenCookie(eq(refreshToken)) } returns refreshTokenCookie
 

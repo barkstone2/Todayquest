@@ -58,19 +58,6 @@ class JwtAuthorizationFilterUnitTest {
     @DisplayName("shouldNotFilter 호출 시")
     @Nested
     inner class TestShouldNotFilter {
-        @DisplayName("internalUrl 중 requestURI와 패턴이 일치하는 것이 있다면 true를 반환한다")
-        @Test
-        fun `internalUrl 중 requestURI와 패턴이 일치하는 것이 있다면 true를 반환한다`() {
-            //given
-            every { request.requestURI } returns "/A/B"
-            every { securityUrlProperties.internalUrl } returns arrayOf("/A/**")
-
-            //when
-            val result = jwtAuthorizationFilter.shouldNotFilter(request)
-
-            //then
-            assertThat(result).isTrue()
-        }
 
         @DisplayName("allowedUrl 중 requestURI와 패턴이 일치하는 것이 있다면 true를 반환한다")
         @Test
@@ -86,13 +73,12 @@ class JwtAuthorizationFilterUnitTest {
             assertThat(result).isTrue()
         }
 
-        @DisplayName("internalUrl과 allowedUrl 모두 requestURI와 패턴이 일치하지 않으면 false를 반환한다")
+        @DisplayName("allowedUrl와 requestURI와 패턴이 일치하지 않으면 false를 반환한다")
         @Test
-        fun `internalUrl과 allowedUrl 모두 requestURI와 패턴이 일치하지 않으면 false를 반환한다`() {
+        fun `allowedUrl와 requestURI와 패턴이 일치하지 않으면 false를 반환한다`() {
             //given
             every { request.requestURI } returns "/A/B"
             every { securityUrlProperties.allowedUrl } returns arrayOf("/B/**")
-            every { securityUrlProperties.internalUrl } returns arrayOf("/C/**")
 
             //when
             val result = jwtAuthorizationFilter.shouldNotFilter(request)

@@ -2,7 +2,6 @@ package dailyquest.annotation
 
 import dailyquest.config.MessageSourceConfig
 import dailyquest.config.SecurityConfig
-import dailyquest.filter.InternalApiKeyValidationFilter
 import dailyquest.jwt.JwtAuthorizationFilter
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.ComponentScan
@@ -17,7 +16,7 @@ import kotlin.reflect.KClass
     excludeFilters = [
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [SecurityConfig::class, JwtAuthorizationFilter::class, InternalApiKeyValidationFilter::class]
+            classes = [SecurityConfig::class, JwtAuthorizationFilter::class]
         )
     ]
 )

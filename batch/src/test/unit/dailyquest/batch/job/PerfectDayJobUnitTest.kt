@@ -5,7 +5,6 @@ import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.achievement.repository.AchievementRepository
-import dailyquest.batch.listener.step.AchievementAchieveNotificationStepListener
 import dailyquest.batch.listener.step.IncreasePerfectDayCountStepListener
 import dailyquest.batch.listener.step.PerfectDayAchievementStepListener
 import dailyquest.batch.listener.step.ReadPerfectDayUserIdStepListener
@@ -57,7 +56,6 @@ import java.time.LocalDate
     ReadPerfectDayUserIdStepListener::class,
     IncreasePerfectDayCountStepListener::class,
     PerfectDayAchievementStepListener::class,
-    AchievementAchieveNotificationStepListener::class,
     MockSqsClientTestContextConfig::class
 )
 @EnableAutoConfiguration(exclude = [ElasticsearchDataAutoConfiguration::class])
@@ -89,7 +87,6 @@ class PerfectDayJobUnitTest @Autowired constructor(
     private val userPerfectDayCountsKey = "userPerfectDayCounts"
     private val perfectDayAchievementsKey = "perfectDayAchievements"
     private val achievedLogsKey = "achievedLogs"
-    private val notifiedUserIdsKey = "notifiedUserIds"
 
     @BeforeEach
     fun init() {

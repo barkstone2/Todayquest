@@ -3,7 +3,6 @@ package dailyquest.batch.step
 import com.ninjasquad.springmockk.MockkBean
 import dailyquest.achievement.entity.Achievement
 import dailyquest.achievement.entity.AchievementAchieveLog
-import dailyquest.batch.listener.step.AchievementAchieveNotificationStepListener
 import dailyquest.context.MockSqsClientTestContextConfig
 import dailyquest.notification.dto.AchieveNotificationSaveRequest
 import dailyquest.notification.entity.Notification
@@ -44,8 +43,6 @@ class AchievementAchieveNotificationProcessorUnitTest @Autowired constructor(
     private lateinit var achievementAchieveLogReader: ItemReader<AchievementAchieveLog>
     @MockkBean(name = "achievementAchieveNotificationWriter", relaxed = true)
     private lateinit var achievementAchieveNotificationWriter: ItemWriter<Notification>
-    @MockkBean(relaxed = true)
-    private lateinit var achievementNotificationStepListener: AchievementAchieveNotificationStepListener
     @MockkBean(relaxed = true)
     private lateinit var notificationRepository: NotificationRepository
 

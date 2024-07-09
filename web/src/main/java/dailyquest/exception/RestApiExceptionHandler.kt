@@ -1,6 +1,5 @@
 package dailyquest.exception
 
-import dailyquest.common.MessageUtil
 import dailyquest.common.ResponseData
 import jakarta.persistence.EntityNotFoundException
 import jakarta.persistence.OptimisticLockException
@@ -38,7 +37,7 @@ class RestApiExceptionHandler(
     )
     fun handlerNotFound(e: NoHandlerFoundException): ResponseData<Void> {
         log.error("[exceptionHandle] ex", e)
-        val errorResponse = ErrorResponse(MessageUtil.getMessage("exception.notFound"), HttpStatus.NOT_FOUND)
+        val errorResponse = ErrorResponse(messageSourceAccessor.getMessage("exception.notFound"), HttpStatus.NOT_FOUND)
         return ResponseData(errorResponse)
     }
 
@@ -93,7 +92,7 @@ class RestApiExceptionHandler(
     )
     fun badRequest(e: Exception): ResponseData<Void> {
         log.error("[exceptionHandle]", e)
-        val errorResponse = ErrorResponse(MessageUtil.getMessage("exception.badRequest"), HttpStatus.BAD_REQUEST)
+        val errorResponse = ErrorResponse(messageSourceAccessor.getMessage("exception.badRequest"), HttpStatus.BAD_REQUEST)
         return ResponseData(errorResponse)
     }
 
@@ -134,7 +133,7 @@ class RestApiExceptionHandler(
 
     private fun <T> handleBindingResult(bindingResult: BindingResult): ResponseData<T> {
         val fieldErrors = bindingResult.fieldErrors
-        val errorResponse = ErrorResponse(MessageUtil.getMessage("exception.badRequest"), HttpStatus.BAD_REQUEST)
+        val errorResponse = ErrorResponse(messageSourceAccessor.getMessage("exception.badRequest"), HttpStatus.BAD_REQUEST)
         fieldErrors.forEach(Consumer { fieldError: FieldError ->
             errorResponse.errors.add(fieldError.field, fieldError.defaultMessage)
         })

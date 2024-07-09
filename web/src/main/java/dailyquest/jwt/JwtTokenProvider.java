@@ -9,9 +9,9 @@ import jakarta.servlet.http.Cookie;
 import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import dailyquest.common.MessageUtil;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Duration;
@@ -24,6 +24,7 @@ public class JwtTokenProvider {
 
     public final JwtTokenProperties jwtTokenProperties;
     private final RedisTemplate<String, String> redisTemplate;
+    private final MessageSourceAccessor messageSourceAccessor;
 
     @Value("${spring.jwt.secret}")
     private String secretKey;
@@ -90,14 +91,14 @@ public class JwtTokenProvider {
 
     public String getJwtFromCookies(@Nullable Cookie[] cookies, String tokenType){
 
-        if(cookies == null) throw new JwtException(MessageUtil.getMessage("exception.invalid.login"));
+        if(cookies == null) throw new JwtException(messageSourceAccessor.getMessage("exception.invalid.login"));
 
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals(tokenType))
                 return cookie.getValue();
         }
 
-        throw new JwtException(MessageUtil.getMessage("exception.invalid.login"));
+        throw new JwtException(messageSourceAccessor.getMessage("exception.invalid.login"));
     }
 
     public Cookie createAccessTokenCookie(String accessToken) {

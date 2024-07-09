@@ -1,15 +1,16 @@
 package dailyquest.redis.repository
 
-import dailyquest.common.MessageUtil
 import dailyquest.exception.RedisDataNotFoundException
 import dailyquest.properties.RedisKeyProperties
+import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Repository
 
 @Repository
 class RedisRepository(
     val redisTemplate: RedisTemplate<String, String>,
-    val redisKeyProperties: RedisKeyProperties
+    val redisKeyProperties: RedisKeyProperties,
+    private val messageSourceAccessor: MessageSourceAccessor
 ) {
 
     fun getExpTable(): Map<Int, Long> {
@@ -26,7 +27,7 @@ class RedisRepository(
 
     private fun getSettingValue(key: String): Long {
         val boundHashOps = redisTemplate.boundHashOps<String, Long>(redisKeyProperties.settings)
-        return boundHashOps.get(key) ?: throw RedisDataNotFoundException(MessageUtil.getMessage("exception.server.error"))
+        return boundHashOps.get(key) ?: throw RedisDataNotFoundException(messageSourceAccessor.getMessage("exception.server.error"))
     }
 
     fun getRandomNicknamePrefix(): String {

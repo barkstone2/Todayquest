@@ -1,16 +1,18 @@
 package dailyquest.preferencequest.service
 
-import dailyquest.common.MessageUtil
 import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.preferencequest.repository.PreferenceQuestRepository
 import jakarta.persistence.EntityNotFoundException
-import org.assertj.core.api.Assertions.assertThatExceptionOfType
-import org.assertj.core.api.Assertions.assertThatNoException
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.*
+import org.mockito.Answers
+import org.mockito.InjectMocks
+import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.springframework.context.support.MessageSourceAccessor
 
 @ExtendWith(MockitoExtension::class)
 @DisplayName("선호 퀘스트 쿼리 서비스 유닛 테스트")
@@ -21,17 +23,8 @@ class PreferenceQuestQueryServiceUnitTest {
     @Mock
     lateinit var preferenceQuestRepository: PreferenceQuestRepository
 
-    private lateinit var messageUtil: MockedStatic<MessageUtil>
-
-    @BeforeEach
-    fun beforeEach() {
-        messageUtil = Mockito.mockStatic(MessageUtil::class.java, Answers.RETURNS_SMART_NULLS)
-    }
-
-    @AfterEach
-    fun afterEach() {
-        messageUtil.close()
-    }
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    lateinit var messageSourceAccessor: MessageSourceAccessor
 
     @DisplayName("getPreferenceQuest 호출 시")
     @Nested

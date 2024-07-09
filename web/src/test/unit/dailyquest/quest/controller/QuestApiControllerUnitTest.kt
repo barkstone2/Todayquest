@@ -3,7 +3,6 @@ package dailyquest.quest.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import dailyquest.annotation.WebMvcUnitTest
-import dailyquest.common.MessageUtil
 import dailyquest.common.UserLevelLock
 import dailyquest.common.unitTestDefaultConfiguration
 import dailyquest.quest.dto.*
@@ -25,9 +24,8 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.Answers
 import org.mockito.ArgumentMatchers.*
-import org.mockito.MockedStatic
-import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
@@ -35,6 +33,7 @@ import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.http.MediaType
@@ -69,8 +68,8 @@ class QuestApiControllerUnitTest {
 
     @SpyBean
     lateinit var questApiController: QuestApiController
-
-    private lateinit var messageUtil: MockedStatic<MessageUtil>
+    @MockBean(answer = Answers.RETURNS_SMART_NULLS)
+    lateinit var messageSourceAccessor: MessageSourceAccessor
 
     lateinit var questResponse: QuestResponse
     lateinit var detailResponse: DetailResponse
@@ -89,15 +88,6 @@ class QuestApiControllerUnitTest {
         searchedQuests = PageImpl(currentQuests)
         doReturn(searchedQuests).`when`(questService).searchQuest(any(), any(), any())
         detailResponse = DetailResponse(title = "title")
-
-        messageUtil = mockStatic(MessageUtil::class.java)
-        `when`(MessageUtil.getMessage(anyString())).thenReturn("")
-        `when`(MessageUtil.getMessage(anyString(), any())).thenReturn("")
-    }
-
-    @AfterEach
-    fun afterEach() {
-        messageUtil.close()
     }
 
     @DisplayName("퀘스트 목록 조회 시")

@@ -1,16 +1,21 @@
 package dailyquest.preferencequest.service
 
-import dailyquest.common.MessageUtil
 import dailyquest.preferencequest.dto.PreferenceQuestRequest
 import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.preferencequest.repository.PreferenceQuestRepository
 import dailyquest.user.entity.User
 import dailyquest.user.repository.UserRepository
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.*
+import org.mockito.Answers
+import org.mockito.InjectMocks
+import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.*
+import org.springframework.context.support.MessageSourceAccessor
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
@@ -25,18 +30,8 @@ class PreferenceQuestCommandServiceUnitTest {
 
     @Mock
     lateinit var userRepository: UserRepository
-
-    private lateinit var messageUtil: MockedStatic<MessageUtil>
-
-    @BeforeEach
-    fun beforeEach() {
-        messageUtil = Mockito.mockStatic(MessageUtil::class.java, Answers.RETURNS_SMART_NULLS)
-    }
-
-    @AfterEach
-    fun afterEach() {
-        messageUtil.close()
-    }
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    lateinit var messageSourceAccessor: MessageSourceAccessor
 
     @DisplayName("선호 퀘스트 등록 시")
     @Nested

@@ -3,7 +3,6 @@ package dailyquest.jwt.service;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import dailyquest.common.GoogleIdTokenVerifierFactory;
-import dailyquest.common.MessageUtil;
 import dailyquest.jwt.JwtTokenProvider;
 import dailyquest.jwt.dto.TokenRequest;
 import dailyquest.redis.service.RedisService;
@@ -12,12 +11,15 @@ import dailyquest.user.entity.ProviderType;
 import dailyquest.user.service.UserService;
 import jakarta.servlet.http.Cookie;
 import kotlin.Pair;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.access.AccessDeniedException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,21 +35,12 @@ public class JwtServiceUnitTest {
     @Mock UserService userService;
     @Mock GoogleIdTokenVerifierFactory verifierFactory;
     @Mock RedisService redisService;
-
-    MockedStatic<MessageUtil> messageUtil;
+    @Mock(answer = Answers.RETURNS_SMART_NULLS) MessageSourceAccessor messageSourceAccessor;
     String clientId = "test-client-id";
 
     @BeforeEach
     void before() {
-        jwtService = new JwtService(clientId, jwtTokenProvider, userService, verifierFactory, redisService);
-        messageUtil = mockStatic(MessageUtil.class);
-        when(MessageUtil.getMessage(any())).thenReturn("");
-        when(MessageUtil.getMessage(any(), any())).thenReturn("");
-    }
-
-    @AfterEach
-    void clear() {
-        messageUtil.close();
+        jwtService = new JwtService(clientId, jwtTokenProvider, userService, verifierFactory, redisService, messageSourceAccessor);
     }
 
     @DisplayName("issueTokenCookie 요청 시")

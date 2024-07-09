@@ -1,19 +1,22 @@
 package dailyquest.jwt;
 
-import dailyquest.common.MessageUtil;
 import dailyquest.jwt.dto.SilentRefreshResult;
 import dailyquest.properties.JwtTokenProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import jakarta.servlet.http.Cookie;
 import kotlin.Pair;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -48,21 +51,13 @@ public class JwtTokenProviderUnitTest {
     long ACCESS_TOKEN_VALIDATION_MILLISECOND = 1000000;
     long REFRESH_TOKEN_VALIDATION_MILLISECOND = 10000000;
 
-    MockedStatic<MessageUtil> messageUtil;
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    MessageSourceAccessor messageSourceAccessor;
 
     @BeforeEach
     void before() {
         ReflectionTestUtils.setField(jwtTokenProvider, "secretKey", secretKey);
-        messageUtil = mockStatic(MessageUtil.class);
-        when(MessageUtil.getMessage(any())).thenReturn("");
-        when(MessageUtil.getMessage(any(), any())).thenReturn("");
     }
-
-    @AfterEach
-    void clear() {
-        messageUtil.close();
-    }
-
 
     @DisplayName("createAccessToken 요청 시")
     @Nested

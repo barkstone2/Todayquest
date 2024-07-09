@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dailyquest.annotation.WebMvcUnitTest
-import dailyquest.common.MessageUtil
 import dailyquest.common.UserLevelLock
 import dailyquest.common.unitTestDefaultConfiguration
 import dailyquest.preferencequest.dto.PreferenceDetailRequest
@@ -12,18 +11,19 @@ import dailyquest.preferencequest.dto.PreferenceQuestRequest
 import dailyquest.preferencequest.service.PreferenceQuestService
 import dailyquest.quest.dto.QuestResponse
 import dailyquest.search.service.QuestIndexService
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
 import org.mockito.Answers
-import org.mockito.MockedStatic
-import org.mockito.Mockito
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
@@ -50,18 +50,10 @@ class PreferenceQuestApiControllerUnitTest {
     @MockBean
     lateinit var questIndexService: QuestIndexService
 
-    private lateinit var messageUtil: MockedStatic<MessageUtil>
+    @MockBean(answer = Answers.RETURNS_SMART_NULLS)
+    lateinit var messageSourceAccessor: MessageSourceAccessor
+
     val om: ObjectMapper = ObjectMapper().registerModule(JavaTimeModule()).registerKotlinModule()
-
-    @BeforeEach
-    fun init() {
-        messageUtil = Mockito.mockStatic(MessageUtil::class.java, Answers.RETURNS_SMART_NULLS)
-    }
-
-    @AfterEach
-    fun afterEach() {
-        messageUtil.close()
-    }
 
     @DisplayName("전체 선호 퀘스트 목록 조회 시 서비스 메서드가 호출된다")
     @Test

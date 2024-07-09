@@ -1,24 +1,25 @@
 package dailyquest.admin.service
 
-import org.assertj.core.api.Assertions.*
-import org.junit.jupiter.api.*
+import dailyquest.admin.dto.SystemSettingsRequest
+import dailyquest.properties.RedisKeyProperties
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.Answers
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.MockedStatic
-import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.*
+import org.springframework.context.support.MessageSourceAccessor
 import org.springframework.data.redis.core.BoundHashOperations
 import org.springframework.data.redis.core.RedisTemplate
-import dailyquest.admin.dto.SystemSettingsRequest
-import dailyquest.common.MessageUtil
-import dailyquest.properties.RedisKeyProperties
 
 @ExtendWith(MockitoExtension::class)
 @DisplayName("관리자 서비스 유닛 테스트")
 class AdminServiceUnitTest {
-
 
     @InjectMocks
     lateinit var adminService: AdminService
@@ -29,20 +30,8 @@ class AdminServiceUnitTest {
     @Mock
     lateinit var redisTemplate: RedisTemplate<String, String>
 
-    private lateinit var messageUtil: MockedStatic<MessageUtil>
-
-    @BeforeEach
-    fun beforeEach() {
-        messageUtil = Mockito.mockStatic(MessageUtil::class.java)
-        Mockito.`when`(MessageUtil.getMessage(any())).thenReturn("")
-        Mockito.`when`(MessageUtil.getMessage(any(), any())).thenReturn("")
-    }
-
-    @AfterEach
-    fun afterEach() {
-        messageUtil.close()
-    }
-
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    lateinit var messageSourceAccessor: MessageSourceAccessor
 
     @DisplayName("시스템 설정값 조회 시")
     @Nested

@@ -434,18 +434,19 @@ public class QuestCommandServiceUnitTest {
             assertThrows(IllegalStateException.class, run);
         }
 
-        @DisplayName("카운트 변경 결과가 null이면 IllegalStateException 예외를 던진다")
+        @DisplayName("카운트 변경 결과가 null이면 IllegalArgumentException 예외를 던진다")
         @Test
         void ifResultIsNullThrowException() {
             //given
             doReturn(foundEntity).when(questRepository).findByIdAndUserId(any(), any());
+            doReturn(true).when(foundEntity).isProceed();
             doReturn(null).when(foundEntity).updateDetailQuestCount(anyLong(), any());
 
             //when
             Executable testMethod = () -> questCommandService.updateDetailQuestCount(userId, mock(DetailInteractRequest.class));
 
             //then
-            assertThrows(IllegalStateException.class, testMethod);
+            assertThrows(IllegalArgumentException.class, testMethod);
         }
 
         @DisplayName("카운트 변경 결과가 null이 아니면, 응답 DTO가 반환된다")

@@ -101,6 +101,9 @@ public class QuestCommandService {
     public DetailResponse updateDetailQuestCount(Long userId, DetailInteractRequest request) {
         Quest quest = this.getProceedEntityOfUser(request.getQuestId(), userId);
         DetailQuest interactResult = quest.updateDetailQuestCount(request.getDetailQuestId(), request.getCount());
+        if (interactResult == null) {
+            throw new IllegalArgumentException(messageSourceAccessor.getMessage("exception.badRequest"));
+        }
         return DetailResponse.of(interactResult, quest.canComplete());
     }
 }

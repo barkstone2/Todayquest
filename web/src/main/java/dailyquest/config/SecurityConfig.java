@@ -39,7 +39,6 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests()
                 .requestMatchers(securityUrlProperties.getAllowedUrl()).permitAll()
-                .requestMatchers(securityUrlProperties.getInternalUrl()).permitAll()
                 .requestMatchers(securityUrlProperties.getAdminUrl()).hasAuthority(RoleType.ADMIN.getCode())
                 .anyRequest().authenticated();
 

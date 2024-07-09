@@ -8,5 +8,4 @@ import org.springframework.stereotype.Component
 class SecurityUrlProperties {
     var allowedUrl: Array<String> = arrayOf()
     var adminUrl: Array<String> = arrayOf()
-    var internalUrl: Array<String> = arrayOf()
 }

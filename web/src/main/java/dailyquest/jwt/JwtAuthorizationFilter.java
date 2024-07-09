@@ -44,9 +44,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String requestUri = request.getRequestURI();
         String[] allowedUrl = securityUrlProperties.getAllowedUrl();
-        String[] internalUrl = securityUrlProperties.getInternalUrl();
-        return Arrays.stream(allowedUrl).anyMatch(url -> antPathMatcher.match(url, requestUri))
-                || Arrays.stream(internalUrl).anyMatch(url -> antPathMatcher.match(url, requestUri));
+        return Arrays.stream(allowedUrl).anyMatch(url -> antPathMatcher.match(url, requestUri));
     }
 
     @Override

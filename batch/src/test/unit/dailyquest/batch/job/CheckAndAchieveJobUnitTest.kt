@@ -7,7 +7,6 @@ import dailyquest.achievement.entity.AchievementType
 import dailyquest.achievement.repository.AchievementAchieveLogRepository
 import dailyquest.achievement.repository.AchievementRepository
 import dailyquest.batch.listener.job.CheckAndAchieveJobListener
-import dailyquest.batch.listener.step.AchievementAchieveNotificationStepListener
 import dailyquest.batch.listener.step.CheckAndAchieveStepListener
 import dailyquest.batch.step.AchievementAchieveNotificationStepConfig
 import dailyquest.batch.step.CheckAndAchieveStepConfig
@@ -46,7 +45,6 @@ import org.springframework.data.repository.findByIdOrNull
     CheckAndAchieveStepConfig::class,
     CheckAndAchieveStepListener::class,
     AchievementAchieveNotificationStepConfig::class,
-    AchievementAchieveNotificationStepListener::class,
     CheckAndAchieveJobListener::class,
     MockSqsClientTestContextConfig::class
 )

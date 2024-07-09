@@ -1,7 +1,6 @@
 package dailyquest.batch.step
 
 import dailyquest.achievement.entity.AchievementAchieveLog
-import dailyquest.batch.listener.step.AchievementAchieveNotificationStepListener
 import dailyquest.notification.dto.AchieveNotificationSaveRequest
 import dailyquest.notification.entity.Notification
 import dailyquest.notification.repository.NotificationRepository
@@ -32,14 +31,12 @@ class AchievementAchieveNotificationStepConfig {
         achievementAchieveLogReader: ItemReader<AchievementAchieveLog>,
         achievementAchieveNotificationProcessor: ItemProcessor<AchievementAchieveLog, Notification>,
         achievementAchieveNotificationWriter: ItemWriter<Notification>,
-        achievementNotificationStepListener: AchievementAchieveNotificationStepListener
     ): Step {
         return StepBuilder("achievementAchieveNotificationStep", jobRepository)
             .chunk<AchievementAchieveLog, Notification>(10, transactionManager)
             .reader(achievementAchieveLogReader)
             .processor(achievementAchieveNotificationProcessor)
             .writer(achievementAchieveNotificationWriter)
-            .listener(achievementNotificationStepListener)
             .faultTolerant()
             .retryLimit(3)
             .retry(Exception::class.java)

@@ -16,7 +16,7 @@ interface QuestRepository : JpaRepository<Quest, Long> {
         pageable: Pageable
     ): Page<Quest>
 
-    @Query("select q from Quest q where q.state = 'PROCEED' and q.deadLine != null and q.deadLine <= :targetDate")
+    @Query("select q from Quest q where q.state = 'PROCEED' and q.deadLine <= :targetDate")
     fun getQuestForDeadLineBatch(
         @Param("targetDate") targetDate: LocalDateTime,
         pageable: Pageable

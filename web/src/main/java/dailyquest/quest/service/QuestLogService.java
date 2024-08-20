@@ -4,7 +4,6 @@ import dailyquest.common.DateTimeExtensionKt;
 import dailyquest.quest.dto.QuestLogRequest;
 import dailyquest.quest.dto.QuestLogSearchCondition;
 import dailyquest.quest.dto.QuestStatisticsResponse;
-import dailyquest.quest.entity.QuestState;
 import dailyquest.quest.repository.QuestLogRepository;
 import dailyquest.status.dto.StatusResponse;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -62,33 +60,4 @@ public class QuestLogService {
     public StatusResponse getTotalStatistics(Long userId) {
         return questLogRepository.getTotalStatisticsOfUser(userId);
     }
-
-    public Integer getTotalRegistrationCount(Long userId) {
-        return questLogRepository.countByUserIdAndState(userId, QuestState.PROCEED);
-    }
-
-    public Integer getTotalCompletionCount(Long userId) {
-        return questLogRepository.countByUserIdAndState(userId, QuestState.COMPLETE);
-    }
-
-    public Integer getRegistrationDaysSince(Long userId, int beforeDays) {
-        LocalDate fromDate = calculateFromDate(beforeDays);
-        return questLogRepository.getDistinctRegistrationDateCountFrom(fromDate, userId);
-    }
-
-    private LocalDate calculateFromDate(int beforeDays) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDate today = now.toLocalDate();
-        if (now.isBefore(now.withHour(6).withMinute(0).withSecond(0).withNano(0))) {
-            today = today.minusDays(1);
-        }
-        return today.minusDays(beforeDays);
-    }
-
-    public Integer getCompletionDaysSince(Long userId, int beforeDays) {
-        LocalDate fromDate = calculateFromDate(beforeDays);
-        return questLogRepository.getDistinctCompletionDateCountFrom(fromDate, userId);
-    }
-
-
 }

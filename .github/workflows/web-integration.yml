@@ -28,20 +28,7 @@ jobs:
     steps:
       - name: 리포지토리 체크아웃
         uses: actions/checkout@v3
-
-      - id: java-checksum-setup
-        name: 자바 캐시용 체크섬 셋업
-        run: |
-          mkdir -p ${{ env.JAVA_PATH }}
-          echo "java_checksum=$(curl https://corretto.aws/downloads/latest_checksum/amazon-corretto-17-x64-linux-jdk.tar.gz)" >> "$GITHUB_OUTPUT"
-      - id: java-cache-check
-        name: 캐싱된 자바 확인
-        uses: actions/cache@v3
-        with:
-          key: java-corretto-17-${{ steps.java-checksum-setup.outputs.java_checksum }}
-          path: ${{ env.JAVA_PATH }}
       - id: jdk-install
-        if: ${{ !steps.java-cache-check.outputs.cache-hit }}
         name: 자바 설치
         run: |
           mkdir -p ${{ env.JAVA_PATH }}
@@ -53,24 +40,6 @@ jobs:
       - name: 오픈서치 인증서 세팅
         run: |
           keytool -import -v -deststorepass changeit -destkeystore $JAVA_HOME/lib/security/cacerts -file cert/opensearch-default-ca.pem -noprompt | true
-
-      - name: 그래들 래퍼 버전 셋업
-        id: gradle-version-setup
-        run: |
-          mkdir -p ${{ env.GRADLE_USER_HOME }}
-          echo "gradle_version=$(grep 'distributionUrl' ./gradle/wrapper/gradle-wrapper.properties | sed -n 's/.*distributions\/\(gradle-[^-]*-[^-]*\).*/\1/p')" >> $GITHUB_OUTPUT
-      - name: 그래들 래퍼 캐시 체크
-        id: gradle-wrapper-cache
-        uses: actions/cache@v3
-        with:
-          key: gradle-wrapper-${{ steps.gradle-version-setup.outputs.gradle_version }}
-          path: ${{ env.GRADLE_USER_HOME }}/wrapper
-      - name: 그래들 디펜던시 캐시 체크
-        id: gradle-dependency-cache
-        uses: actions/cache@v3
-        with:
-          key: gradle-dependency-${{ hashFiles('./build.gradle', './web/build.gradle', './domain/build.gradle', './elastic/build.gradle', './achievement/build.gradle', './notification/build.gradle', './jpa-common/build.gradle', './user/build.gradle', './reflection-common/build.gradle') }}
-          path: ${{ env.GRADLE_USER_HOME }}/caches
       - name: 그래들 테스트
         run: |
           ./gradlew web:test

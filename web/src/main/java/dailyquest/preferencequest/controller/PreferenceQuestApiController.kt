@@ -2,8 +2,8 @@ package dailyquest.preferencequest.controller
 
 import dailyquest.common.ResponseData
 import dailyquest.common.UserLevelLock
-import dailyquest.preferencequest.dto.PreferenceQuestRequest
 import dailyquest.preferencequest.dto.PreferenceQuestResponse
+import dailyquest.preferencequest.dto.WebPreferenceQuestRequest
 import dailyquest.preferencequest.service.PreferenceQuestService
 import dailyquest.quest.dto.QuestResponse
 import dailyquest.search.service.QuestIndexService
@@ -42,7 +42,7 @@ class PreferenceQuestApiController(
 
     @PostMapping("")
     fun savePreferenceQuest(
-        @Valid @RequestBody preferenceQuestRequest: PreferenceQuestRequest,
+        @Valid @RequestBody preferenceQuestRequest: WebPreferenceQuestRequest,
         @AuthenticationPrincipal principal: UserPrincipal
     ): ResponseEntity<ResponseData<PreferenceQuestResponse>> {
         return ResponseEntity.ok(ResponseData.of(preferenceQuestService.savePreferenceQuest(preferenceQuestRequest, principal.id)))
@@ -51,7 +51,7 @@ class PreferenceQuestApiController(
     @PatchMapping("/{preferenceQuestId}")
     fun updatePreferenceQuest(
         @Min(1) @PathVariable("preferenceQuestId") preferenceQuestId: Long,
-        @Valid @RequestBody preferenceQuestRequest: PreferenceQuestRequest,
+        @Valid @RequestBody preferenceQuestRequest: WebPreferenceQuestRequest,
         @AuthenticationPrincipal principal: UserPrincipal
 
     ): ResponseEntity<ResponseData<PreferenceQuestResponse>> {

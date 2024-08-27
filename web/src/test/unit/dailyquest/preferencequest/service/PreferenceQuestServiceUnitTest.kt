@@ -1,6 +1,6 @@
 package dailyquest.preferencequest.service
 
-import dailyquest.preferencequest.dto.PreferenceQuestRequest
+import dailyquest.preferencequest.dto.WebPreferenceQuestRequest
 import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.quest.dto.WebQuestRequest
 import dailyquest.quest.dto.QuestResponse
@@ -52,7 +52,7 @@ class PreferenceQuestServiceUnitTest {
     @Test
     fun `선호 퀘스트 저장 시 커맨드 서비스에 요청이 위임된다`() {
         //given
-        val mockRequest = mock<PreferenceQuestRequest>()
+        val mockRequest = mock<WebPreferenceQuestRequest>()
         val userId = 1L
 
         //when
@@ -70,7 +70,7 @@ class PreferenceQuestServiceUnitTest {
         @Test
         fun `쿼리 서비스에서 엔티티를 조회한다`() {
             //given
-            val mockRequest = mock<PreferenceQuestRequest>()
+            val mockRequest = mock<WebPreferenceQuestRequest>()
             val preferenceQuestId = 1L
             val userId = 1L
 
@@ -87,7 +87,7 @@ class PreferenceQuestServiceUnitTest {
             //given
             val preferenceQuestId = 1L
             val userId = 1L
-            val mockRequest = mock<PreferenceQuestRequest>()
+            val mockRequest = mock<WebPreferenceQuestRequest>()
             val updateTarget = mock<PreferenceQuest>()
             doReturn(updateTarget).`when`(preferenceQuestQueryService).getPreferenceQuest(any(), any())
 

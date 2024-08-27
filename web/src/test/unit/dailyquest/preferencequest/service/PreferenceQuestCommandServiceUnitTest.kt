@@ -1,6 +1,6 @@
 package dailyquest.preferencequest.service
 
-import dailyquest.preferencequest.dto.PreferenceQuestRequest
+import dailyquest.preferencequest.dto.WebPreferenceQuestRequest
 import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.preferencequest.repository.PreferenceQuestRepository
 import dailyquest.user.entity.User
@@ -37,7 +37,7 @@ class PreferenceQuestCommandServiceUnitTest {
     @Nested
     inner class TestSavePreferenceQuest {
         private val userId = 1L
-        private val saveRequest = mock<PreferenceQuestRequest>()
+        private val saveRequest = mock<WebPreferenceQuestRequest>()
         private val principalUser = mock<User>()
         private val savedEntity = mock<PreferenceQuest>(defaultAnswer = Answers.RETURNS_SMART_NULLS)
 
@@ -76,35 +76,18 @@ class PreferenceQuestCommandServiceUnitTest {
     @DisplayName("선호 퀘스트 수정 시")
     @Nested
     inner class TestUpdatePreferenceQuest {
-        private val updateRequest = mock<PreferenceQuestRequest>()
-        private val ownerUser = mock<User>()
+        private val updateRequest = mock<WebPreferenceQuestRequest>()
         private val updateTarget = mock<PreferenceQuest>(defaultAnswer = Answers.RETURNS_SMART_NULLS)
 
-        @DisplayName("updateTarget의 유저 정보를 사용해 요청 정보를 엔티티로 변환한다")
+        @DisplayName("요청 DTO로 타겟 엔티티에 업데이트를 요청한다")
         @Test
-        fun `updateTarget의 유저 정보를 사용해 요청 정보를 엔티티로 변환한다`() {
+        fun `요청 DTO로 타겟 엔티티에 업데이트를 요청한다`() {
             //given
-            doReturn(ownerUser).`when`(updateTarget).user
-
             //when
             preferenceQuestCommandService.updatePreferenceQuest(updateRequest, updateTarget)
 
             //then
-            verify(updateRequest).mapToEntity(eq(ownerUser))
-        }
-
-        @DisplayName("요청 정보를 변환한 엔티티로 타겟 엔티티에 업데이트를 요청한다")
-        @Test
-        fun `요청 정보를 변환한 엔티티로 타겟 엔티티에 업데이트를 요청한다`() {
-            //given
-            val requestEntity = mock<PreferenceQuest>(defaultAnswer = Answers.RETURNS_SMART_NULLS)
-            doReturn(requestEntity).`when`(updateRequest).mapToEntity(anyOrNull())
-
-            //when
-            preferenceQuestCommandService.updatePreferenceQuest(updateRequest, updateTarget)
-
-            //then
-            verify(updateTarget).updatePreferenceQuest(eq(requestEntity))
+            verify(updateTarget).updatePreferenceQuest(eq(updateRequest))
         }
     }
 

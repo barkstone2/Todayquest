@@ -6,8 +6,8 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dailyquest.annotation.WebMvcUnitTest
 import dailyquest.common.UserLevelLock
 import dailyquest.common.unitTestDefaultConfiguration
-import dailyquest.preferencequest.dto.PreferenceDetailRequest
-import dailyquest.preferencequest.dto.PreferenceQuestRequest
+import dailyquest.preferencequest.dto.WebPreferenceDetailRequest
+import dailyquest.preferencequest.dto.WebPreferenceQuestRequest
 import dailyquest.preferencequest.service.PreferenceQuestService
 import dailyquest.quest.dto.QuestResponse
 import dailyquest.search.service.QuestIndexService
@@ -121,7 +121,7 @@ class PreferenceQuestApiControllerUnitTest {
         @ArgumentsSource(InValidPreferenceQuestRequest::class)
         @DisplayName("DTO Validation 실패 시 BAD_REQUEST가 반환된다")
         @ParameterizedTest(name = "{1} BAD_REQUEST가 반환된다.")
-        fun `DTO Validation 실패 시 BAD_REQUEST가 반환된다`(requestDto: PreferenceQuestRequest, message: String) {
+        fun `DTO Validation 실패 시 BAD_REQUEST가 반환된다`(requestDto: WebPreferenceQuestRequest, message: String) {
             //given
             val uri = ""
 
@@ -145,10 +145,10 @@ class PreferenceQuestApiControllerUnitTest {
             //given
             val uri = ""
 
-            val requestDto = PreferenceQuestRequest(
+            val requestDto = WebPreferenceQuestRequest(
                 "title",
                 "Desc",
-                listOf(PreferenceDetailRequest("detail-title"))
+                listOf(WebPreferenceDetailRequest("detail-title"))
             )
 
             //when
@@ -176,10 +176,10 @@ class PreferenceQuestApiControllerUnitTest {
             //given
             val uri = "/$id"
 
-            val requestDto = PreferenceQuestRequest(
+            val requestDto = WebPreferenceQuestRequest(
                 "title",
                 "Desc",
-                listOf(PreferenceDetailRequest("detail-title"))
+                listOf(WebPreferenceDetailRequest("detail-title"))
             )
 
             //when
@@ -198,7 +198,7 @@ class PreferenceQuestApiControllerUnitTest {
         @ArgumentsSource(InValidPreferenceQuestRequest::class)
         @DisplayName("DTO Validation 실패 시 BAD_REQUEST가 반환된다")
         @ParameterizedTest(name = "{1} BAD_REQUEST가 반환된다.")
-        fun `DTO Validation 실패 시 BAD_REQUEST가 반환된다`(requestDto: PreferenceQuestRequest, message: String) {
+        fun `DTO Validation 실패 시 BAD_REQUEST가 반환된다`(requestDto: WebPreferenceQuestRequest, message: String) {
             //given
             val preferenceQuestId = 1L
             val uri = "/$preferenceQuestId"
@@ -224,10 +224,10 @@ class PreferenceQuestApiControllerUnitTest {
             val preferenceQuestId = 1L
             val uri = "/$preferenceQuestId"
 
-            val requestDto = PreferenceQuestRequest(
+            val requestDto = WebPreferenceQuestRequest(
                 "타이틀",
                 "Desc",
-                listOf(PreferenceDetailRequest("detail-title"))
+                listOf(WebPreferenceDetailRequest("detail-title"))
             )
 
             //when
@@ -388,25 +388,25 @@ class PreferenceQuestApiControllerUnitTest {
             val overRangeTitle = "t".repeat(100)
             val overRangeDesc = "d".repeat(301)
 
-            val validDetail = PreferenceDetailRequest(validTitle, targetCount = 3)
+            val validDetail = WebPreferenceDetailRequest(validTitle, targetCount = 3)
             val validDetails = listOf(validDetail)
 
-            val emptyTitleDetails = listOf(PreferenceDetailRequest("", targetCount = 3))
-            val blankTitleDetails = listOf(PreferenceDetailRequest("        ", targetCount = 3))
-            val rangeOutTitleDetails = listOf(PreferenceDetailRequest(overRangeTitle, targetCount = 3))
-            val rangeOutDetails = listOf(PreferenceDetailRequest(validTitle, targetCount = 0))
-            val countOutDetails = mutableListOf<PreferenceDetailRequest>().also { list -> repeat(6) { list.add(validDetail) } }
+            val emptyTitleDetails = listOf(WebPreferenceDetailRequest("", targetCount = 3))
+            val blankTitleDetails = listOf(WebPreferenceDetailRequest("        ", targetCount = 3))
+            val rangeOutTitleDetails = listOf(WebPreferenceDetailRequest(overRangeTitle, targetCount = 3))
+            val rangeOutDetails = listOf(WebPreferenceDetailRequest(validTitle, targetCount = 0))
+            val countOutDetails = mutableListOf<WebPreferenceDetailRequest>().also { list -> repeat(6) { list.add(validDetail) } }
 
             return Stream.of(
-                Arguments.of(PreferenceQuestRequest("", "", validDetails), "제목 길이가 0이면"),
-                Arguments.of(PreferenceQuestRequest("   ", "", validDetails), "제목에 공백만 있으면"),
-                Arguments.of(PreferenceQuestRequest(overRangeTitle, "", validDetails), "제목 길이가 초과하면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, overRangeDesc, validDetails), "설명 길이가 초과하면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, "", emptyTitleDetails), "세부 제목 길이가 0이면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, "", blankTitleDetails), "세부 제목에 공백만 있으면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, "", rangeOutTitleDetails), "세부 제목 길이가 초과하면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, "", rangeOutDetails), "세부 설명 길이가 초과하면"),
-                Arguments.of(PreferenceQuestRequest(validTitle, "", countOutDetails), "세부 퀘스트 개수가 초과하면"),
+                Arguments.of(WebPreferenceQuestRequest("", "", validDetails), "제목 길이가 0이면"),
+                Arguments.of(WebPreferenceQuestRequest("   ", "", validDetails), "제목에 공백만 있으면"),
+                Arguments.of(WebPreferenceQuestRequest(overRangeTitle, "", validDetails), "제목 길이가 초과하면"),
+                Arguments.of(WebPreferenceQuestRequest(validTitle, overRangeDesc, validDetails), "설명 길이가 초과하면"),
+                Arguments.of(WebPreferenceQuestRequest(validTitle, "", emptyTitleDetails), "세부 제목 길이가 0이면"),
+                Arguments.of(WebPreferenceQuestRequest(validTitle, "", blankTitleDetails), "세부 제목에 공백만 있으면"),
+                Arguments.of(WebPreferenceQuestRequest(validTitle, "", rangeOutTitleDetails), "세부 제목 길이가 초과하면"),
+                Arguments.of(WebPreferenceQuestRequest(validTitle, "", rangeOutDetails), "세부 설명 길이가 초과하면"),
+                Arguments.of(WebPreferenceQuestRequest(validTitle, "", countOutDetails), "세부 퀘스트 개수가 초과하면"),
             )
         }
     }

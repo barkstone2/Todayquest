@@ -46,24 +46,6 @@ class QuestLogRepositoryUnitTest @Autowired constructor(
             assertThat(result).containsExactly(shouldBeContainedUserId)
         }
 
-        @DisplayName("동일한 퀘스트에 대해 PROCEED와 COMPLETE 날짜가 다른 경우 조회되지 않는다")
-        @Test
-        fun `동일한 퀘스트에 대해 PROCEED와 COMPLETE 날짜가 다른 경우 조회되지 않는다`() {
-            //given
-            val loggedDate = LocalDate.of(2020, 1, 1)
-            val shouldNotBeContainedUserId = 1L
-            saveQuestLog(shouldNotBeContainedUserId, 1L, PROCEED, loggedDate)
-            saveQuestLog(shouldNotBeContainedUserId, 1L, COMPLETE, loggedDate.plusDays(1))
-            saveQuestLog(shouldNotBeContainedUserId, 2L, PROCEED, loggedDate.minusDays(1))
-            saveQuestLog(shouldNotBeContainedUserId, 2L, COMPLETE, loggedDate)
-
-            //when
-            val result = questLogRepository.getAllUserIdsWhoAchievedPerfectDay(loggedDate, Pageable.unpaged())
-
-            //then
-            assertThat(result).doesNotContain(shouldNotBeContainedUserId)
-        }
-
         @DisplayName("조회일에 포기하지 않은 모든 퀘스트를 완료한 경우에도 조회되지 않는다")
         @Test
         fun `조회일에 포기하지 않은 모든 퀘스트를 완료한 경우에도 조회되지 않는다`() {
@@ -103,8 +85,8 @@ class QuestLogRepositoryUnitTest @Autowired constructor(
         private fun saveQuestLog(userId: Long, questId: Long, state: QuestState, loggedDate: LocalDate) {
             val query =
                 entityManager.createNativeQuery("insert into quest_log (quest_id, user_id, state, logged_date, type, created_date, last_modified_date) values (?, ?, ?, ?, 'MAIN', now(), now())")
-            query.setParameter(1, userId)
-            query.setParameter(2, questId)
+            query.setParameter(1, questId)
+            query.setParameter(2, userId)
             query.setParameter(3, state.name)
             query.setParameter(4, loggedDate)
             query.executeUpdate()

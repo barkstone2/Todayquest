@@ -13,10 +13,8 @@ interface QuestLogRepository : JpaRepository<QuestLog, Long> {
     @Query("select qlp.userId " +
             "from QuestLog qlp " +
             "left join QuestLog qlc " +
-                "on qlc.loggedDate = :loggedDate " +
+                "on qlc.questId = qlp.questId " +
                 "and qlc.state = 'COMPLETE' " +
-                "and qlc.userId = qlp.userId " +
-                "and qlc.questId = qlp.questId " +
             "where qlp.loggedDate = :loggedDate " +
             "and qlp.state = 'PROCEED' " +
             "group by qlp.userId " +

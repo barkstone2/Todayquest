@@ -1,6 +1,7 @@
 package dailyquest.preferencequest.entity
 
 import dailyquest.common.BaseTimeEntity
+import dailyquest.preferencequest.dto.PreferenceQuestRequest
 import dailyquest.user.entity.User
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -38,10 +39,10 @@ class PreferenceQuest private constructor(
     val preferenceDetailQuests : List<PreferenceDetailQuest>
         get() = _preferenceDetailQuests.toList()
 
-    fun updatePreferenceQuest(requestEntity: PreferenceQuest) {
-        this.title = requestEntity.title
-        this.description = requestEntity.description
-        replaceDetailQuests(requestEntity.preferenceDetailQuests)
+    fun updatePreferenceQuest(requestDto: PreferenceQuestRequest) {
+        this.title = requestDto.title
+        this.description = requestDto.description
+        replaceDetailQuests(requestDto.details.map { it.mapToEntity() })
     }
 
     private fun replaceDetailQuests(detailQuests: List<PreferenceDetailQuest>) {

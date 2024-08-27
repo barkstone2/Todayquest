@@ -22,8 +22,7 @@ class PreferenceQuestCommandService @Autowired constructor(
     }
 
     fun updatePreferenceQuest(preferenceQuestRequest: PreferenceQuestRequest, updateTarget: PreferenceQuest): PreferenceQuestResponse {
-        val requestEntity = preferenceQuestRequest.mapToEntity(updateTarget.user)
-        updateTarget.updatePreferenceQuest(requestEntity)
+        updateTarget.updatePreferenceQuest(preferenceQuestRequest)
         return PreferenceQuestResponse.from(updateTarget)
     }
 

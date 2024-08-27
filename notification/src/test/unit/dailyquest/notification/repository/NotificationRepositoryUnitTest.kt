@@ -248,10 +248,27 @@ class NotificationRepositoryUnitTest {
             notificationRepository.save(confirmedNotification)
 
             //when
-            val resultCount = notificationRepository.countByUserIdAndConfirmedDateIsNull(userId)
+            val resultCount = notificationRepository.countNotConfirmedNotifications(userId)
 
             //then
             assertThat(resultCount).isEqualTo(notConfirmedCount)
+        }
+
+        @DisplayName("삭제된 알림 수는 조회되지 않는다")
+        @Test
+        fun `삭제된 알림 수는 조회되지 않는다`() {
+            //given
+            val userId = 1L
+            val deletedNotification = Notification.of(NotificationType.ACHIEVEMENT_ACHIEVE, userId, "")
+            notificationRepository.save(deletedNotification)
+            deletedNotification.deleteNotification()
+            notificationRepository.save(deletedNotification)
+
+            //when
+            val resultCount = notificationRepository.countNotConfirmedNotifications(userId)
+
+            //then
+            assertThat(resultCount).isZero()
         }
     }
 }

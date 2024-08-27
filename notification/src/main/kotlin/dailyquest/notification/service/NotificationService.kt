@@ -42,7 +42,7 @@ class NotificationService @Autowired constructor(
     }
 
     fun getNotConfirmedNotificationCount(userId: Long): Int {
-        return notificationRepository.countByUserIdAndConfirmedDateIsNull(userId)
+        return notificationRepository.countNotConfirmedNotifications(userId)
     }
 
     @Transactional

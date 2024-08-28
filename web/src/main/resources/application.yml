@@ -33,6 +33,10 @@ spring:
         format_sql: true
         default_batch_fetch_size: 100
         dialect: org.hibernate.dialect.MySQLDialect
+        order_updates: true
+        order_inserts: true
+        jdbc:
+          batch_size: 100
   web:
     resources:
       add-mappings: false

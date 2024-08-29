@@ -31,4 +31,12 @@ interface AchievementRepository: JpaRepository<Achievement, Long>{
     )
     fun getNotAchievedAchievements(@Param("userId") userId: Long, pageable: Pageable): Page<Achievement>
     fun getAllByOrderByTypeAscTargetValueAsc(): List<Achievement>
+
+    @Query("select a " +
+            "from Achievement a " +
+            "inner join AchievementAchieveLog aal " +
+            "on aal.userId = :userId and aal.achievement.id = a.id " +
+            "where a.inactivated = false " +
+            "order by aal.createdDate desc")
+    fun getAchievedAchievements(@Param("userId") userId: Long, pageable: Pageable): Page<Achievement>
 }

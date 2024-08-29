@@ -21,12 +21,11 @@ class AchievementService(
     private val achievementRepository: AchievementRepository,
     private val achievementPageSizeProperties: AchievementPageSizeProperties,
     private val achieveLogCommandService: AchievementAchieveLogCommandService,
-    private val achieveLogQueryService: AchievementAchieveLogQueryService,
     private val messageSourceAccessor: MessageSourceAccessor
 ) {
     fun getAchievedAchievements(userId: Long, page: Int): Page<AchievementResponse> {
         val pageRequest = PageRequest.of(page, achievementPageSizeProperties.size)
-        return achieveLogQueryService.getAchievedAchievements(userId, pageRequest)
+        return achievementRepository.getAchievedAchievements(userId, pageRequest).map { AchievementResponse.from(it) }
     }
 
     fun getNotAchievedAchievements(userId: Long, page: Int): Page<AchievementResponse> {

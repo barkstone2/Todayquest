@@ -34,8 +34,6 @@ class AchievementServiceUnitTest {
     @RelaxedMockK
     private lateinit var achieveLogCommandService: AchievementAchieveLogCommandService
     @RelaxedMockK
-    private lateinit var achieveLogQueryService: AchievementAchieveLogQueryService
-    @RelaxedMockK
     private lateinit var notificationService: NotificationService
     @RelaxedMockK
     private lateinit var messageSourceAccessor: MessageSourceAccessor
@@ -60,7 +58,7 @@ class AchievementServiceUnitTest {
 
             //then
             verify {
-                achieveLogQueryService.getAchievedAchievements(eq(userId), eq(pageRequest))
+                achievementRepository.getAchievedAchievements(eq(userId), eq(pageRequest))
             }
         }
     }

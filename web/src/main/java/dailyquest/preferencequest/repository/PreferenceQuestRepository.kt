@@ -8,9 +8,10 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface PreferenceQuestRepository : JpaRepository<PreferenceQuest, Long> {
-    fun findByIdAndUserIdAndDeletedDateIsNull(preferenceQuestId: Long, userId: Long): PreferenceQuest?
+    @Query("select pq from PreferenceQuest pq left join fetch pq._preferenceDetailQuests where pq.id = :preferenceQuestId and pq.userId = :userId")
+    fun findByIdAndUserIdAndDeletedDateIsNull(@Param("preferenceQuestId") preferenceQuestId: Long, @Param("userId") userId: Long): PreferenceQuest?
 
-    @Query("select pq from PreferenceQuest pq where pq.userId = :userId and pq.deletedDate is null")
+    @Query("select pq from PreferenceQuest pq left join fetch pq._preferenceDetailQuests where pq.userId = :userId and pq.deletedDate is null")
     fun getActivePrefQuests(@Param("userId") userId: Long): List<PreferenceQuest>
 
     @Query("select count(q) from PreferenceQuest pq left join Quest q on q.userId = pq.userId and q.preferenceQuest.id = pq.id where pq.userId = :userId and pq.deletedDate is null group by pq.id")

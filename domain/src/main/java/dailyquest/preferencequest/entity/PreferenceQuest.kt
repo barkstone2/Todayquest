@@ -46,7 +46,6 @@ class PreferenceQuest private constructor(
     private fun replaceDetailQuests(detailQuests: List<PreferenceDetailQuest>) {
         _preferenceDetailQuests.clear()
         _preferenceDetailQuests.addAll(detailQuests)
-        detailQuests.forEach { it.linkToParent(this) }
     }
 
     fun deletePreferenceQuest() {

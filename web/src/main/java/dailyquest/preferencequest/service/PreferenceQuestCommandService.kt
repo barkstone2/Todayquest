@@ -4,7 +4,6 @@ import dailyquest.preferencequest.dto.PreferenceQuestRequest
 import dailyquest.preferencequest.dto.PreferenceQuestResponse
 import dailyquest.preferencequest.entity.PreferenceQuest
 import dailyquest.preferencequest.repository.PreferenceQuestRepository
-import dailyquest.user.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -13,11 +12,9 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class PreferenceQuestCommandService @Autowired constructor(
     private val preferenceQuestRepository: PreferenceQuestRepository,
-    private val userRepository: UserRepository,
 ) {
     fun savePreferenceQuest(preferenceQuestRequest: PreferenceQuestRequest, userId: Long): PreferenceQuestResponse {
-        val userInfo = userRepository.findById(userId).get()
-        val preferenceQuest = preferenceQuestRequest.mapToEntity(userInfo)
+        val preferenceQuest = preferenceQuestRequest.mapToEntity(userId)
         return PreferenceQuestResponse.from(preferenceQuestRepository.save(preferenceQuest))
     }
 

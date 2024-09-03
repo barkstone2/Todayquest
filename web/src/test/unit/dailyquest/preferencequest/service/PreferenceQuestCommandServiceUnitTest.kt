@@ -28,8 +28,6 @@ class PreferenceQuestCommandServiceUnitTest {
     @Mock
     lateinit var preferenceQuestRepository: PreferenceQuestRepository
 
-    @Mock
-    lateinit var userRepository: UserRepository
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     lateinit var messageSourceAccessor: MessageSourceAccessor
 
@@ -38,12 +36,10 @@ class PreferenceQuestCommandServiceUnitTest {
     inner class TestSavePreferenceQuest {
         private val userId = 1L
         private val saveRequest = mock<WebPreferenceQuestRequest>()
-        private val principalUser = mock<User>()
         private val savedEntity = mock<PreferenceQuest>(defaultAnswer = Answers.RETURNS_SMART_NULLS)
 
         @BeforeEach
         fun init() {
-            doReturn(Optional.of(principalUser)).`when`(userRepository).findById(any())
             doReturn(savedEntity).`when`(preferenceQuestRepository).save(anyOrNull())
         }
 
@@ -55,7 +51,7 @@ class PreferenceQuestCommandServiceUnitTest {
             preferenceQuestCommandService.savePreferenceQuest(saveRequest, userId)
 
             //then
-            verify(saveRequest).mapToEntity(eq(principalUser))
+            verify(saveRequest).mapToEntity(eq(userId))
         }
 
         @DisplayName("mapToEntity 결과를 저장 요청에 사용한다")

@@ -146,7 +146,7 @@ class PreferenceQuestServiceUnitTest {
         val preferenceQuestId = 1L
         val userId = 1L
         val mockUser = mock<User>()
-        val preferenceQuest = PreferenceQuest.of("pq-save-title", "pq-save-desc", user = mockUser)
+        val preferenceQuest = PreferenceQuest.of("pq-save-title", "pq-save-desc", userId = mockUser.id)
         val questRequest = WebQuestRequest.from(preferenceQuest)
         doReturn(preferenceQuest).`when`(preferenceQuestQueryService).getPreferenceQuest(any(), any())
         doReturn(mock<QuestResponse>()).`when`(questService).saveQuest(any(), any())

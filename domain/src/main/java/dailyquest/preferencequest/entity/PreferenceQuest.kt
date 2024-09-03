@@ -2,7 +2,6 @@ package dailyquest.preferencequest.entity
 
 import dailyquest.common.BaseTimeEntity
 import dailyquest.preferencequest.dto.PreferenceQuestRequest
-import dailyquest.user.entity.User
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -11,7 +10,7 @@ import java.time.LocalDateTime
 class PreferenceQuest private constructor(
     title: String,
     description: String = "",
-    user: User,
+    userId: Long,
 ) : BaseTimeEntity() {
 
     @Id
@@ -30,9 +29,8 @@ class PreferenceQuest private constructor(
     var deletedDate: LocalDateTime? = null
         protected set
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    val user: User = user
+    @Column(name = "user_id")
+    val userId: Long = userId
 
     @OneToMany(mappedBy = "preferenceQuest", cascade = [CascadeType.ALL], orphanRemoval = true)
     private val _preferenceDetailQuests: MutableList<PreferenceDetailQuest> = mutableListOf()
@@ -74,12 +72,12 @@ class PreferenceQuest private constructor(
             title: String,
             description: String = "",
             details: List<PreferenceDetailQuest> = emptyList(),
-            user: User
+            userId: Long
         ): PreferenceQuest {
             val preferenceQuest = PreferenceQuest(
                 title,
                 description,
-                user
+                userId
             )
             preferenceQuest.replaceDetailQuests(details)
             return preferenceQuest
